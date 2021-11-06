@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "yigd",
+  "version": "${version}",
+
+  "name": "You're in Grave Danger",
+  "description": "Adds graves and some other stuff to the game",
+  "authors": [
+    "B1n4ry"
+  ],
+  "contact": {
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/yigd/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.b1n4ry.yigd.Yigd"
+    ],
+    "client": [
+      {
+        "value": "com.b1n4ry.yigd.client.YigdClient"
+      }
+    ],
+    "modmenu": [ "com.b1n4ry.yigd.YigdModMenu" ]
+  },
+  "mixins": [
+    "yigd.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
