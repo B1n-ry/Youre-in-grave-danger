@@ -129,19 +129,23 @@ public class Yigd implements ModInitializer {
                     GameProfile playerProfile = player.getGameProfile();
 
                     int xpPoints;
-                    if (YigdConfig.getConfig().graveSettings.defaultXpDrop) {
+                    YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
+                    if (graveSettings.defaultXpDrop) {
                         xpPoints = Math.min(7 * player.experienceLevel, 100);
                     } else {
-                        xpPoints = (YigdConfig.getConfig().graveSettings.xpDropPercent / 100) * player.totalExperience;
+                        xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * player.totalExperience);
                     }
 
                     placedGraveEntity.setInventory(invItems);
                     placedGraveEntity.setGraveOwner(playerProfile);
-                    placedGraveEntity.setStoredXp(xpPoints);
                     placedGraveEntity.setCustomName(playerProfile.getName());
+                    placedGraveEntity.setStoredXp(xpPoints);
+
+                    player.totalExperience = 0;
+                    player.experienceProgress = 0;
+                    player.experienceLevel = 0;
 
                     placedGraveEntity.sync();
-
 
                     System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
                 }

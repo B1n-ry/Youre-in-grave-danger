@@ -3,6 +3,7 @@ package com.b1n4ry.yigd.mixin;
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.PlayerEntityExt;
+import jdk.nashorn.internal.ir.annotations.Reference;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,6 +25,10 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
     private DefaultedList<ItemStack> soulboundInventory; // Not necessary as the game mechanic is currently not working
 
     @Shadow @Final public PlayerInventory inventory;
+
+    @Shadow public int experienceLevel;
+
+    @Shadow public int totalExperience;
 
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> type, World world) {
         super(type, world);
