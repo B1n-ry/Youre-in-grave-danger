@@ -10,7 +10,7 @@
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments": "Remove Enchantments",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments.@Tooltip": "Removes items with this enchantment from\nthe grave. Useful if soulbound items are\nignored and ends up in both\nyour inventory and your grave\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments": "Soulbound Enchantments",
-  "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments.@Tooltip": "Items with this enchantment will not\ngenerate in graves, but be kept by the\nplayer when they respawn.\nFormat: [namespace]:[enchantment_name]\nCurrently out of order",
+  "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments.@Tooltip": "Items with this enchantment will not\ngenerate in graves, but be kept by the\nplayer when they respawn.\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.blacklistBlocks": "Grave Replace Block Blacklist",
   "text.autoconfig.yigd.option.graveSettings.blacklistBlocks.@Tooltip": "Blocks that can't be replaced by graves\nGraves can't overwrite block entities\nFormat: [namespace]:[block_name]",
   "text.autoconfig.yigd.option.graveSettings.blacklistDimensions": "Grave Dimension Blacklist",
