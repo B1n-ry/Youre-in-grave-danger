@@ -7,6 +7,7 @@
     "PlayerEntityMixin"
   ],
   "client": [
+    "DebugHudMixin"
   ],
   "injectors": {
     "defaultRequire": 1

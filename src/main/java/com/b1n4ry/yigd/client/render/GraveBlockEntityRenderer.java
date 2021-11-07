@@ -56,7 +56,7 @@ public class GraveBlockEntityRenderer extends BlockEntityRenderer<GraveBlockEnti
 
         if (customName != null) {
             boolean renderText = YigdConfig.getConfig().graveSettings.renderGraveOwner;
-            if (!renderText || blockEntity.getGraveOwner() == null) {
+            if (renderText || blockEntity.getGraveOwner() == null) {
                 matrices.push();
 
                 int width = this.dispatcher.getTextRenderer().getWidth(customName);

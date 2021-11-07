@@ -29,10 +29,6 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
 
     @Shadow @Final public PlayerInventory inventory;
 
-    @Shadow public int experienceLevel;
-
-    @Shadow public int totalExperience;
-
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> type, World world) {
         super(type, world);
     }
@@ -41,16 +37,6 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
     private void dropAll(PlayerInventory inventory) {
         if (this.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;
 
-        if (!YigdConfig.getConfig().graveSettings.generateGraves) {
-            this.inventory.dropAll();
-            return;
-        }
-        int dimId = this.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(this.world.getDimension());
-        if (YigdConfig.getConfig().graveSettings.blacklistDimensions.contains(dimId)) {
-            this.inventory.dropAll();
-            return;
-        }
-
         DefaultedList<ItemStack> items = DefaultedList.of();
         items.addAll(inventory.main);
         items.addAll(inventory.armor);
@@ -58,6 +44,17 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
 
         List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
         soulboundInventory = Yigd.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
+
+        if (!YigdConfig.getConfig().graveSettings.generateGraves) {
+            this.inventory.dropAll();
+            return;
+        }
+
+        int dimId = this.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(this.world.getDimension());
+        if (YigdConfig.getConfig().graveSettings.blacklistDimensions.contains(dimId)) {
+            this.inventory.dropAll();
+            return;
+        }
 
         items = Yigd.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
 

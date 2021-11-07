@@ -90,7 +90,7 @@ public class Yigd implements ModInitializer {
 
         for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
             if (gravePlaceableAt(world, gravePos)) {
-                placeGrave(player, world, gravePos, invItems);
+                placeGraveBlock(player, world, gravePos, invItems);
                 foundViableGrave = true;
                 break;
             }
@@ -99,7 +99,7 @@ public class Yigd implements ModInitializer {
         // If there is nowhere to place the grave for some reason the items should not disappear
         if (!foundViableGrave) { // No grave was placed
             if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                placeGrave(player, world, blockPos, invItems);
+                placeGraveBlock(player, world, blockPos, invItems);
             } else {
                 ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
             }
@@ -122,7 +122,7 @@ public class Yigd implements ModInitializer {
         return yPos >= 0 && yPos <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
     }
 
-    private static void placeGrave(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems) {
+    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems) {
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing());
         world.setBlockState(gravePos, graveBlock);
 
