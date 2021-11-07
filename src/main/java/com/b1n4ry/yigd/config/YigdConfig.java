@@ -18,13 +18,30 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
-        public RetrievalType retrievalType = RetrievalType.ON_USE;
+        public RetrievalTypeConfig retrievalType = RetrievalTypeConfig.ON_USE;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
+
+        @ConfigEntry.Gui.Tooltip
+        public List<String> deleteEnchantments = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
         public List<String> soulboundEnchantments = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
         public List<String> blacklistBlocks = Arrays.asList(new String[] { "minecraft:bedrock" });
+
+        @ConfigEntry.Gui.Tooltip
+        public List<Integer> blacklistDimensions = new ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean graveInVoid = true;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public LastResortConfig lastResort = LastResortConfig.DROP_ITEMS;
 
         @ConfigEntry.Gui.Tooltip
         public boolean defaultXpDrop = false;
@@ -36,6 +53,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public BlockUnderGrave blockUnderGrave = new BlockUnderGrave();
+
+        public boolean renderGraveSkull = true;
+        public boolean renderGraveOwner = true;
     }
 
     public static class BlockUnderGrave {

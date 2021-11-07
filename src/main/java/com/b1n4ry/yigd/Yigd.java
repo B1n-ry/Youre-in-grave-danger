@@ -6,6 +6,7 @@ import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.compat.CuriosCompat;
 import com.b1n4ry.yigd.compat.CuriosCosmeticCompat;
 import com.b1n4ry.yigd.compat.TrinketsCompat;
+import com.b1n4ry.yigd.config.LastResortConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -68,6 +69,7 @@ public class Yigd implements ModInitializer {
 
     public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems) {
         if (world.isClient()) return;
+        if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < 0) return;
 
         BlockPos blockPos = new BlockPos(pos.x, pos.y - 1, pos.z);
 
@@ -88,67 +90,7 @@ public class Yigd implements ModInitializer {
 
         for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
             if (gravePlaceableAt(world, gravePos)) {
-                BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing());
-                world.setBlockState(gravePos, graveBlock);
-
-                BlockPos blockPosUnder = new BlockPos(gravePos.getX(), gravePos.getY() - 1, gravePos.getZ());
-                Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
-                String blockId = Registry.BLOCK.getId(blockUnder).toString();
-
-                YigdConfig.BlockUnderGrave blockUnderConfig = YigdConfig.getConfig().graveSettings.blockUnderGrave;
-                String replaceUnderBlock;
-
-                if (blockUnderConfig.generateBlockUnder) {
-                    if (blockUnderConfig.whiteListBlocks.contains(blockId)) {
-                        if (world.getRegistryKey() == World.OVERWORLD) {
-                            replaceUnderBlock = blockUnderConfig.inOverWorld;
-                        } else if (world.getRegistryKey() == World.NETHER) {
-                            replaceUnderBlock = blockUnderConfig.inNether;
-                        } else if (world.getRegistryKey() == World.END) {
-                            replaceUnderBlock = blockUnderConfig.inTheEnd;
-                        } else {
-                            replaceUnderBlock = blockUnderConfig.inCustom;
-                        }
-
-                        Identifier blockIdentifier = Identifier.tryParse(replaceUnderBlock);
-                        BlockState blockStateUnder;
-                        if (blockIdentifier == null) {
-                            blockStateUnder = Blocks.DIRT.getDefaultState();
-                        } else {
-                            blockStateUnder = Registry.BLOCK.get(blockIdentifier).getDefaultState();
-                        }
-
-                        world.setBlockState(blockPosUnder, blockStateUnder); // Place support block under grave
-                    }
-                }
-
-                BlockEntity placed = world.getBlockEntity(gravePos);
-                if (placed instanceof GraveBlockEntity) {
-                    GraveBlockEntity placedGraveEntity = (GraveBlockEntity)placed;
-
-                    GameProfile playerProfile = player.getGameProfile();
-
-                    int xpPoints;
-                    YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
-                    if (graveSettings.defaultXpDrop) {
-                        xpPoints = Math.min(7 * player.experienceLevel, 100);
-                    } else {
-                        xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * player.totalExperience);
-                    }
-
-                    placedGraveEntity.setInventory(invItems);
-                    placedGraveEntity.setGraveOwner(playerProfile);
-                    placedGraveEntity.setCustomName(playerProfile.getName());
-                    placedGraveEntity.setStoredXp(xpPoints);
-
-                    player.totalExperience = 0;
-                    player.experienceProgress = 0;
-                    player.experienceLevel = 0;
-
-                    placedGraveEntity.sync();
-
-                    System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
-                }
+                placeGrave(player, world, gravePos, invItems);
                 foundViableGrave = true;
                 break;
             }
@@ -156,7 +98,11 @@ public class Yigd implements ModInitializer {
 
         // If there is nowhere to place the grave for some reason the items should not disappear
         if (!foundViableGrave) { // No grave was placed
-            ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
+            if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
+                placeGrave(player, world, blockPos, invItems);
+            } else {
+                ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
+            }
         }
     }
 
@@ -172,7 +118,73 @@ public class Yigd implements ModInitializer {
 
         if (blacklistBlockId.contains(id)) return false;
 
-        return blockPos.getY() >= 0 && blockPos.getY() <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
+        int yPos = blockPos.getY();
+        return yPos >= 0 && yPos <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
+    }
+
+    private static void placeGrave(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems) {
+        BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing());
+        world.setBlockState(gravePos, graveBlock);
+
+        BlockPos blockPosUnder = new BlockPos(gravePos.getX(), gravePos.getY() - 1, gravePos.getZ());
+
+        YigdConfig.BlockUnderGrave blockUnderConfig = YigdConfig.getConfig().graveSettings.blockUnderGrave;
+        String replaceUnderBlock;
+
+        if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= 1) { // If block should generate under, and if there is a "block" under that can be replaced
+            Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
+            String blockId = Registry.BLOCK.getId(blockUnder).toString();
+
+            if (blockUnderConfig.whiteListBlocks.contains(blockId)) {
+                if (world.getRegistryKey() == World.OVERWORLD) {
+                    replaceUnderBlock = blockUnderConfig.inOverWorld;
+                } else if (world.getRegistryKey() == World.NETHER) {
+                    replaceUnderBlock = blockUnderConfig.inNether;
+                } else if (world.getRegistryKey() == World.END) {
+                    replaceUnderBlock = blockUnderConfig.inTheEnd;
+                } else {
+                    replaceUnderBlock = blockUnderConfig.inCustom;
+                }
+
+                Identifier blockIdentifier = Identifier.tryParse(replaceUnderBlock);
+                BlockState blockStateUnder;
+                if (blockIdentifier == null) {
+                    blockStateUnder = Blocks.DIRT.getDefaultState();
+                } else {
+                    blockStateUnder = Registry.BLOCK.get(blockIdentifier).getDefaultState();
+                }
+
+                world.setBlockState(blockPosUnder, blockStateUnder); // Place support block under grave
+            }
+        }
+
+        BlockEntity placed = world.getBlockEntity(gravePos);
+        if (placed instanceof GraveBlockEntity) {
+            GraveBlockEntity placedGraveEntity = (GraveBlockEntity)placed;
+
+            GameProfile playerProfile = player.getGameProfile();
+
+            int xpPoints;
+            YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
+            if (graveSettings.defaultXpDrop) {
+                xpPoints = Math.min(7 * player.experienceLevel, 100);
+            } else {
+                xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * player.totalExperience);
+            }
+
+            placedGraveEntity.setInventory(invItems);
+            placedGraveEntity.setGraveOwner(playerProfile);
+            placedGraveEntity.setCustomName(playerProfile.getName());
+            placedGraveEntity.setStoredXp(xpPoints);
+
+            player.totalExperience = 0;
+            player.experienceProgress = 0;
+            player.experienceLevel = 0;
+
+            placedGraveEntity.sync();
+
+            System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
+        }
     }
 
     public static DefaultedList<ItemStack> removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {

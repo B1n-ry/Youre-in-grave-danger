@@ -3,7 +3,8 @@ package com.b1n4ry.yigd.block;
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
-import com.b1n4ry.yigd.config.RetrievalType;
+import com.b1n4ry.yigd.config.DropTypeConfig;
+import com.b1n4ry.yigd.config.RetrievalTypeConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
@@ -74,8 +75,8 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        RetrievalType retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
-        if (retrievalType == RetrievalType.ON_USE || retrievalType == null) {
+        RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
+        if (retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) {
             RetrieveItems(player, world, pos);
         }
 
@@ -83,10 +84,10 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     }
     @Override
     public void onSteppedOn(World world, BlockPos pos, Entity entity) {
-        if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalType.ON_STAND && entity instanceof PlayerEntity) {
+        if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_STAND && entity instanceof PlayerEntity) {
             PlayerEntity player = (PlayerEntity) entity;
             RetrieveItems(player, world, pos);
-        } else if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalType.ON_SNEAK && entity instanceof PlayerEntity) {
+        } else if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_SNEAK && entity instanceof PlayerEntity) {
             PlayerEntity player = (PlayerEntity) entity;
             if (player.isInSneakingPose()) {
                 RetrieveItems(player, world, pos);
@@ -97,7 +98,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     }
     @Override
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalType.ON_BREAK) {
+        if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK) {
             if (RetrieveItems(player, world, pos)) return;
         }
 
@@ -108,7 +109,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         if (blockEntity instanceof GraveBlockEntity) {
             GraveBlockEntity graveEntity = (GraveBlockEntity) blockEntity;
 
-            if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalType.ON_BREAK && player.getGameProfile().equals(graveEntity.getGraveOwner())) {
+            if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && player.getGameProfile().equals(graveEntity.getGraveOwner())) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }
@@ -168,14 +169,21 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
-        DefaultedList<ItemStack> inventory = graveEntity.getStoredInventory();
+        DefaultedList<ItemStack> items = graveEntity.getStoredInventory();
 
         if (graveOwner == null) return false;
-        if (inventory == null) return false;
+        if (items == null) return false;
 
         if (!player.getGameProfile().getId().equals(graveOwner.getId())) return false;
 
-        DefaultedList<ItemStack> items = graveEntity.getStoredInventory();
+
+        if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
+            ItemScatterer.spawn(world, pos, items);
+            world.removeBlock(pos, false);
+            return true;
+        }
+
+
         DefaultedList<ItemStack> retrievalInventory = DefaultedList.of();
 
         retrievalInventory.addAll(player.inventory.main);
@@ -218,37 +226,6 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             player.equip(i, mainInventory.get(i));
         }
 
-
-        DefaultedList<ItemStack> extraItems = DefaultedList.of();
-
-        List<Integer> openArmorSlots = getInventoryOpenSlots(player.inventory.armor); // Armor slots that does not have armor selected
-
-        for(int i = 0; i < 4; i++) {
-            if (openArmorSlots.contains(i)) {
-                player.equipStack(EquipmentSlot.fromTypeIndex(EquipmentSlot.Type.ARMOR, i), retrievalInventory.subList(36, 40).get(i)); // Put player armor back
-                extraItems.add(armorInventory.get(i));
-            } else extraItems.add(retrievalInventory.subList(36, 40).get(i));
-        }
-
-        ItemStack offHandItem = player.inventory.offHand.get(0);
-        if(offHandItem == ItemStack.EMPTY || offHandItem.getItem() == Items.AIR) player.equipStack(EquipmentSlot.OFFHAND, retrievalInventory.get(40));
-        else extraItems.add(retrievalInventory.get(40));
-
-
-        extraItems.addAll(retrievalInventory.subList(0, 36));
-        if (retrievalInventory.size() > 41) extraItems.addAll(retrievalInventory.subList(41, retrievalInventory.size()));
-
-
-        List<Integer> openSlots = getInventoryOpenSlots(player.inventory.main);
-
-        int loopIterations = Math.min(openSlots.size(), extraItems.size());
-        for(int i = 0; i < loopIterations; i++) {
-            player.equip(openSlots.get(i), extraItems.get(i));
-        }
-
-        DefaultedList<ItemStack> dropItems = DefaultedList.of();
-        dropItems.addAll(extraItems.subList(openSlots.size(), extraItems.size()));
-
         int inventoryOffset = 41;
         for (YigdApi yigdApi : Yigd.apiMods) {
             int inventorySize = yigdApi.getInventorySize(player);
@@ -256,6 +233,47 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             yigdApi.setInventory(items.subList(inventoryOffset, inventoryOffset + inventorySize), player);
             inventoryOffset += inventorySize;
         }
+
+
+        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+
+        List<Integer> openArmorSlots = getInventoryOpenSlots(player.inventory.armor); // Armor slots that does not have armor selected
+
+        for(int i = 0; i < 4; i++) {
+            ItemStack armorPiece = retrievalInventory.subList(36, 40).get(i);
+            if (openArmorSlots.contains(i)) {
+                player.equipStack(EquipmentSlot.fromTypeIndex(EquipmentSlot.Type.ARMOR, i), armorPiece); // Put player armor back
+                extraItems.add(armorInventory.get(i));
+            } else {
+                extraItems.add(armorPiece);
+            }
+        }
+
+        ItemStack offHandItem = player.inventory.offHand.get(0);
+        if(offHandItem == ItemStack.EMPTY || offHandItem.getItem() == Items.AIR) player.equipStack(EquipmentSlot.OFFHAND, retrievalInventory.get(40));
+        else extraItems.add(retrievalInventory.get(40));
+
+        extraItems.addAll(retrievalInventory.subList(0, 36));
+        if (retrievalInventory.size() > 41) extraItems.addAll(retrievalInventory.subList(41, retrievalInventory.size()));
+
+        DefaultedList<ItemStack> overflow = DefaultedList.of();
+        for (ItemStack extraItem : extraItems) {
+            if (extraItem != ItemStack.EMPTY && extraItem.getItem() != Items.AIR) {
+                overflow.add(extraItem);
+            }
+        }
+
+
+        List<Integer> openSlots = getInventoryOpenSlots(player.inventory.main);
+
+        int loopIterations = Math.min(openSlots.size(), overflow.size());
+        for(int i = 0; i < loopIterations; i++) {
+            player.equip(openSlots.get(i), overflow.get(i));
+        }
+
+        DefaultedList<ItemStack> dropItems = DefaultedList.of();
+        if (openSlots.size() < overflow.size()) dropItems.addAll(overflow.subList(openSlots.size(), overflow.size()));
+
 
         BlockPos playerPos = player.getBlockPos();
 

@@ -9,9 +9,12 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -42,6 +45,11 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
             this.inventory.dropAll();
             return;
         }
+        int dimId = this.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(this.world.getDimension());
+        if (YigdConfig.getConfig().graveSettings.blacklistDimensions.contains(dimId)) {
+            this.inventory.dropAll();
+            return;
+        }
 
         DefaultedList<ItemStack> items = DefaultedList.of();
         items.addAll(inventory.main);
@@ -52,7 +60,12 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
         soulboundInventory = Yigd.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
         items = Yigd.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
-        this.inventory.clear();
+
+        List<String> removeEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments; // List with enchantments to delete
+        DefaultedList<ItemStack> removeFromGrave = Yigd.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
+        items = Yigd.removeFromList(items, removeFromGrave); // Delete items with set enchantment
+
+        this.inventory.clear(); // Make sure your items are in fact deleted, and not accidentally retrieved when you respawn
 
         Yigd.placeDeathGrave(this.world, this.getPos(), this.inventory.player, items);
     }
