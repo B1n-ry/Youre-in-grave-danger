@@ -29,6 +29,8 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
 
     @Shadow @Final public PlayerInventory inventory;
 
+    @Shadow public abstract boolean equip(int slot, ItemStack item);
+
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> type, World world) {
         super(type, world);
     }
@@ -63,6 +65,11 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
         items = Yigd.removeFromList(items, removeFromGrave); // Delete items with set enchantment
 
         this.inventory.clear(); // Make sure your items are in fact deleted, and not accidentally retrieved when you respawn
+
+        List<ItemStack> syncHotbar = soulboundInventory.subList(0, 10);
+        for (int i = 0; i < 10; i++) {
+            this.equip(i, syncHotbar.get(i));
+        }
 
         Yigd.placeDeathGrave(this.world, this.getPos(), this.inventory.player, items);
     }

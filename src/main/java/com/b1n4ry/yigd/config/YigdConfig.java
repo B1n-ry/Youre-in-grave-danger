@@ -28,10 +28,10 @@ public class YigdConfig implements ConfigData {
         public List<String> deleteEnchantments = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> soulboundEnchantments = new ArrayList<>();
+        public List<String> soulboundEnchantments = Arrays.asList("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> blacklistBlocks = Arrays.asList(new String[] { "minecraft:bedrock" });
+        public List<String> blacklistBlocks = Arrays.asList("minecraft:bedrock");
 
         @ConfigEntry.Gui.Tooltip
         public List<Integer> blacklistDimensions = new ArrayList<>();
@@ -75,7 +75,7 @@ public class YigdConfig implements ConfigData {
         public String inCustom = "minecraft:dirt";
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> whiteListBlocks = Arrays.asList(new String[] { "minecraft:air", "minecraft:water", "minecraft:lava" });
+        public List<String> whiteListBlocks = Arrays.asList("minecraft:air", "minecraft:water", "minecraft:lava");
     }
 
     public static YigdConfig getConfig() {

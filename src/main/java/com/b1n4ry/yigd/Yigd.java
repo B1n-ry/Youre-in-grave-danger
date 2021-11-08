@@ -8,6 +8,7 @@ import com.b1n4ry.yigd.compat.CuriosCosmeticCompat;
 import com.b1n4ry.yigd.compat.TrinketsCompat;
 import com.b1n4ry.yigd.config.LastResortConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.SoulboundEnchantment;
 import com.mojang.authlib.GameProfile;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
@@ -21,10 +22,12 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.state.property.Properties;
@@ -45,6 +48,8 @@ public class Yigd implements ModInitializer {
     public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
+    private static Enchantment SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
+
     public static final ArrayList<YigdApi> apiMods = new ArrayList<>();
 
     @Override
@@ -55,7 +60,6 @@ public class Yigd implements ModInitializer {
         Registry.register(Registry.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
 
         GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", BlockEntityType.Builder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
-
 
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {
             apiMods.add(new TrinketsCompat());
