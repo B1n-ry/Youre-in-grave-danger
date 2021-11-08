@@ -34,7 +34,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProvider {
@@ -122,7 +122,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             customName = itemStack.getName().asString();
 
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity != null && blockEntity instanceof GraveBlockEntity) {
+            if (blockEntity instanceof GraveBlockEntity) {
                 GraveBlockEntity graveBlockEntity = (GraveBlockEntity) blockEntity;
 
                 graveBlockEntity.setCustomName(customName);
@@ -203,7 +203,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         List<ItemStack> mainInventory = items.subList(0, 36);
 
 
-        List<String> bindingCurse = Arrays.asList(new String[] {"minecraft:binding_curse"});
+        List<String> bindingCurse = Collections.singletonList("minecraft:binding_curse");
 
         for (int i = 0; i < armorInventory.size(); i++) { // Replace armor from grave
             EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(armorInventory.get(i)); // return EquipmentSlot
@@ -236,6 +236,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
 
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        extraItems.addAll(retrievalInventory.subList(0, 36));
 
         List<Integer> openArmorSlots = getInventoryOpenSlots(player.inventory.armor); // Armor slots that does not have armor selected
 
@@ -253,26 +254,31 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         if(offHandItem == ItemStack.EMPTY || offHandItem.getItem() == Items.AIR) player.equipStack(EquipmentSlot.OFFHAND, retrievalInventory.get(40));
         else extraItems.add(retrievalInventory.get(40));
 
-        extraItems.addAll(retrievalInventory.subList(0, 36));
         if (retrievalInventory.size() > 41) extraItems.addAll(retrievalInventory.subList(41, retrievalInventory.size()));
 
-        DefaultedList<ItemStack> overflow = DefaultedList.of();
-        for (ItemStack extraItem : extraItems) {
-            if (extraItem != ItemStack.EMPTY && extraItem.getItem() != Items.AIR) {
-                overflow.add(extraItem);
+        List<Integer> openSlots = getInventoryOpenSlots(player.inventory.main);
+        List<Integer> stillOpen = new ArrayList<>();
+
+        int loopIterations = Math.min(openSlots.size(), extraItems.size());
+        for(int i = 0; i < loopIterations; i++) {
+            int currentSlot = openSlots.get(i);
+            ItemStack currentExtra = extraItems.get(i);
+            player.equip(currentSlot, currentExtra);
+
+            if (currentExtra.isEmpty()) {
+                stillOpen.add(currentSlot);
             }
         }
 
+        List<ItemStack> overflow = extraItems.subList(loopIterations, extraItems.size());
+        overflow.removeIf(ItemStack::isEmpty);
 
-        List<Integer> openSlots = getInventoryOpenSlots(player.inventory.main);
-
-        int loopIterations = Math.min(openSlots.size(), overflow.size());
-        for(int i = 0; i < loopIterations; i++) {
-            player.equip(openSlots.get(i), overflow.get(i));
+        for (int i = 0; i < Math.min(overflow.size(), stillOpen.size()); i++) {
+            player.equip(stillOpen.get(i), overflow.get(i));
         }
 
         DefaultedList<ItemStack> dropItems = DefaultedList.of();
-        if (openSlots.size() < overflow.size()) dropItems.addAll(overflow.subList(openSlots.size(), overflow.size()));
+        if (stillOpen.size() < overflow.size()) dropItems.addAll(overflow.subList(stillOpen.size(), overflow.size()));
 
 
         BlockPos playerPos = player.getBlockPos();

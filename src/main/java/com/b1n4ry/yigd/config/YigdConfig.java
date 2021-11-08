@@ -28,10 +28,10 @@ public class YigdConfig implements ConfigData {
         public List<String> deleteEnchantments = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> soulboundEnchantments = Arrays.asList("yigd:soulbound");
+        public List<String> soulboundEnchantments = Collections.singletonList("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> blacklistBlocks = Arrays.asList("minecraft:bedrock");
+        public List<String> blacklistBlocks = Collections.singletonList("minecraft:bedrock");
 
         @ConfigEntry.Gui.Tooltip
         public List<Integer> blacklistDimensions = new ArrayList<>();
