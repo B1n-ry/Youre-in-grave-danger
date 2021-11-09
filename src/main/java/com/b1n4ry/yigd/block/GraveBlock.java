@@ -86,11 +86,9 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     }
     @Override
     public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
-        if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_STAND && entity instanceof PlayerEntity) {
-            PlayerEntity player = (PlayerEntity) entity;
+        if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_STAND && entity instanceof PlayerEntity player) {
             RetrieveItems(player, world, pos);
-        } else if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_SNEAK && entity instanceof PlayerEntity) {
-            PlayerEntity player = (PlayerEntity) entity;
+        } else if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_SNEAK && entity instanceof PlayerEntity player) {
             if (player.isInSneakingPose()) {
                 RetrieveItems(player, world, pos);
             }
@@ -108,9 +106,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     }
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof GraveBlockEntity) {
-            GraveBlockEntity graveEntity = (GraveBlockEntity) blockEntity;
-
+        if (blockEntity instanceof GraveBlockEntity graveEntity) {
             if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && player.getGameProfile().equals(graveEntity.getGraveOwner())) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
@@ -124,9 +120,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             customName = itemStack.getName().asString();
 
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof GraveBlockEntity) {
-                GraveBlockEntity graveBlockEntity = (GraveBlockEntity) blockEntity;
-
+            if (blockEntity instanceof GraveBlockEntity graveBlockEntity) {
                 graveBlockEntity.setCustomName(customName);
             }
         }
@@ -135,18 +129,13 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext ct) {
         Direction dir = state.get(FACING);
-        switch(dir) {
-            case NORTH:
-                return SHAPE_NORTH;
-            case SOUTH:
-                return SHAPE_SOUTH;
-            case EAST:
-                return SHAPE_EAST;
-            case WEST:
-                return SHAPE_WEST;
-            default:
-                return VoxelShapes.fullCube();
-        }
+        return switch (dir) {
+            case NORTH -> SHAPE_NORTH;
+            case SOUTH -> SHAPE_SOUTH;
+            case EAST -> SHAPE_EAST;
+            case WEST -> SHAPE_WEST;
+            default -> VoxelShapes.fullCube();
+        };
     }
     @Override
     public BlockState getPlacementState(ItemPlacementContext context) {
@@ -164,10 +153,8 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
         BlockEntity blockEntity = world.getBlockEntity(pos);
 
-        if (!(blockEntity instanceof GraveBlockEntity)) return false;
-        GraveBlockEntity graveEntity = (GraveBlockEntity)blockEntity;
+        if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
         graveEntity.sync();
-
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 

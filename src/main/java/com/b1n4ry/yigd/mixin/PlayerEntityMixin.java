@@ -3,7 +3,6 @@ package com.b1n4ry.yigd.mixin;
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,11 +23,9 @@ import java.util.UUID;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity {
-    @Shadow @Final public PlayerInventory inventory;
+    @Shadow @Final private PlayerInventory inventory;
 
     @Shadow public abstract PlayerInventory getInventory();
-
-    @Shadow public abstract GameProfile getGameProfile();
 
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> type, World world) {
         super(type, world);

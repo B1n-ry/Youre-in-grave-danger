@@ -3,28 +3,24 @@ package com.b1n4ry.yigd.client.render;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
-import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.*;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory.Context;
+import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
+import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.render.entity.model.EntityModelLoader;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory.Context;
 import net.minecraft.client.render.entity.model.SkullEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3f;
 
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private final TextRenderer textRenderer;
-    private EntityModelLoader renderLayer;
-    private SkullBlockEntityModel skull;
+    private final EntityModelLoader renderLayer;
 
     public GraveBlockEntityRenderer(Context ctx) {
         super();
@@ -32,9 +28,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         this.renderLayer = ctx.getLayerRenderDispatcher();
     }
 
-    public SkullBlockEntityModel getSkull(GameProfile player) {
-        SkullBlockEntityModel skull = new SkullEntityModel(renderLayer.getModelPart(EntityModelLayers.PLAYER_HEAD));
-        return skull;
+    public SkullBlockEntityModel getSkull() {
+        return new SkullEntityModel(renderLayer.getModelPart(EntityModelLayers.PLAYER_HEAD));
     }
 
     @Override
@@ -66,11 +61,9 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             matrices.multiply(Vec3f.NEGATIVE_X.getDegreesQuaternion(270f));
 
             matrices.scale(1f, 1f, 0.25f);
-//            SkullBlockEntityRenderer skullRenderer = new SkullBlockEntityRenderer(this.context);
-//            skullRenderer.render();
 
-            this.skull = getSkull(graveOwner);
-            SkullBlockEntityRenderer.renderSkull(null, 0, 0f, matrices, vertexConsumers, light, this.skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
+            SkullBlockEntityModel skull = getSkull();
+            SkullBlockEntityRenderer.renderSkull(null, 0, 0f, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
 
             matrices.pop();
         }

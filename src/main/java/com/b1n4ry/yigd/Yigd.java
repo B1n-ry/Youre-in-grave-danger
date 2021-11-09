@@ -157,8 +157,7 @@ public class Yigd implements ModInitializer {
         }
 
         BlockEntity placed = world.getBlockEntity(gravePos);
-        if (placed instanceof GraveBlockEntity) {
-            GraveBlockEntity placedGraveEntity = (GraveBlockEntity)placed;
+        if (placed instanceof GraveBlockEntity placedGraveEntity) {
 
             GameProfile playerProfile = player.getGameProfile();
 

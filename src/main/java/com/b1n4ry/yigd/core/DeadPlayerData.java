@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class DeadPlayerData {
-    private static Map<UUID, DefaultedList<ItemStack>> soulboundInventories = new HashMap<>();
-    private static Map<UUID, DefaultedList<ItemStack>> deathPlayerInventories = new HashMap<>();
+    private static final Map<UUID, DefaultedList<ItemStack>> soulboundInventories = new HashMap<>();
+    private static final Map<UUID, DefaultedList<ItemStack>> deathPlayerInventories = new HashMap<>();
 
     public static DefaultedList<ItemStack> getSoulboundInventory(UUID userId) {
         return soulboundInventories.get(userId);
@@ -26,9 +26,9 @@ public class DeadPlayerData {
     }
 
     public static void dropSoulbound(UUID userId) {
-        if (soulboundInventories.containsKey(userId)) soulboundInventories.remove(userId);
+        soulboundInventories.remove(userId);
     }
     public static void dropDeathInventory(UUID userId) {
-        if (deathPlayerInventories.containsKey(userId)) deathPlayerInventories.remove(userId);
+        deathPlayerInventories.remove(userId);
     }
 }

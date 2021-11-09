@@ -3,7 +3,7 @@ package com.b1n4ry.yigd.mixin;
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.core.DeadPlayerData;
-import com.mojang.authlib.GameProfile;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.ItemStack;
@@ -12,7 +12,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +21,9 @@ import java.util.UUID;
 @Mixin(PlayerManager.class)
 public abstract class PlayerManagerMixin {
     @ModifyArg(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;isSpaceEmpty(Lnet/minecraft/entity/Entity;)Z"))
-    private ServerPlayerEntity equipSoulboundItems(ServerPlayerEntity player) {
+    private Entity equipSoulboundItems(Entity entity) {
+        ServerPlayerEntity player = (ServerPlayerEntity) entity;
+
         UUID userId = player.getUuid();
 
         if (player.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return player;
