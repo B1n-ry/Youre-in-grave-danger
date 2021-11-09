@@ -2,39 +2,19 @@ package com.b1n4ry.yigd.client.render;
 
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.mojang.authlib.GameProfile;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
-import net.minecraft.block.entity.SkullBlockEntity;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.*;
-import net.minecraft.client.render.entity.model.EntityModelLayers;
-import net.minecraft.client.render.entity.model.EntityModelLoader;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory.Context;
-import net.minecraft.client.render.entity.model.SkullEntityModel;
+import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3f;
 
-public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
-    private final TextRenderer textRenderer;
-    private EntityModelLoader renderLayer;
-    private SkullBlockEntityModel skull;
-
-    public GraveBlockEntityRenderer(Context ctx) {
-        super();
-        this.textRenderer = ctx.getTextRenderer();
-        this.renderLayer = ctx.getLayerRenderDispatcher();
-    }
-
-    public SkullBlockEntityModel getSkull(GameProfile player) {
-        SkullBlockEntityModel skull = new SkullEntityModel(renderLayer.getModelPart(EntityModelLayers.PLAYER_HEAD));
-        return skull;
+public class GraveBlockEntityRenderer extends BlockEntityRenderer<GraveBlockEntity> {
+    public GraveBlockEntityRenderer(BlockEntityRenderDispatcher dispatcher) {
+        super(dispatcher);
     }
 
     @Override
@@ -44,34 +24,31 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         }
         Direction direction = blockEntity.getCachedState().get(Properties.HORIZONTAL_FACING);
 
-        GameProfile graveOwner = blockEntity.getGraveOwner();
-        if (graveOwner != null && YigdConfig.getConfig().graveSettings.renderGraveSkull) {
+        if (blockEntity.getGraveOwner() != null && YigdConfig.getConfig().graveSettings.renderGraveSkull) {
             matrices.push();
 
             switch (direction) {
-                case SOUTH -> {
+                case SOUTH:
                     matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180f));
                     matrices.translate(-1.0, 0.25, -0.9375);
-                }
-                case NORTH -> matrices.translate(0.0, 0.25, 0.0625);
-                case WEST -> {
+                    break;
+                case NORTH:
+                    matrices.translate(0.0, 0.25, 0.0625);
+                    break;
+                case WEST:
                     matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90f));
                     matrices.translate(-1.0, 0.25, 0.0625);
-                }
-                case EAST -> {
+                    break;
+                case EAST:
                     matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(270f));
                     matrices.translate(0.0, 0.25, -0.9375);
-                }
+                    break;
             }
             matrices.multiply(Vec3f.NEGATIVE_X.getDegreesQuaternion(270f));
 
             matrices.scale(1f, 1f, 0.25f);
-//            SkullBlockEntityRenderer skullRenderer = new SkullBlockEntityRenderer(this.context);
-//            skullRenderer.render();
 
-            this.skull = getSkull(graveOwner);
-            SkullBlockEntityRenderer.renderSkull(null, 0, 0f, matrices, vertexConsumers, light, this.skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
-
+            SkullBlockEntityRenderer.render(null, 0f, SkullBlock.Type.PLAYER, blockEntity.getGraveOwner(), 0f, matrices, vertexConsumers, light);
             matrices.pop();
         }
 
@@ -82,7 +59,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             if (renderText || blockEntity.getGraveOwner() == null) {
                 matrices.push();
 
-                int width = this.textRenderer.getWidth(customName);
+                int width = this.dispatcher.getTextRenderer().getWidth(customName);
 
                 float scale = 0.55f / width;
 
@@ -110,7 +87,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 matrices.scale(scale, scale, scale);
                 matrices.translate(-width / 2.0, -4.5, 0);
 
-                this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, true, matrices.peek().getModel(), vertexConsumers, false, 0, light);
+                this.dispatcher.getTextRenderer().draw(customName, 0, 0, 0xFFFFFF, true, matrices.peek().getModel(), vertexConsumers, false, 0, light);
 
                 matrices.pop();
             }

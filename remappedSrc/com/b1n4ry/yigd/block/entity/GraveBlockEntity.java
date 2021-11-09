@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
 
 public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
     private GameProfile graveOwner;
@@ -18,11 +17,11 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     private String customName;
     private DefaultedList<ItemStack> storedInventory;
 
-    public GraveBlockEntity(BlockPos pos, BlockState state) {
-        this(null, pos, state);
+    public GraveBlockEntity() {
+        this(null);
     }
-    public GraveBlockEntity(String customName, BlockPos pos, BlockState state) {
-        super(Yigd.GRAVE_BLOCK_ENTITY, pos, state);
+    public GraveBlockEntity(String customName) {
+        super(Yigd.GRAVE_BLOCK_ENTITY);
 
         this.graveOwner = null;
         this.storedXp = 0;
@@ -45,8 +44,8 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     }
 
     @Override
-    public void readNbt(NbtCompound tag) {
-        super.readNbt(tag);
+    public void fromTag(BlockState state, NbtCompound tag) {
+        super.fromTag(state, tag);
 
         this.storedInventory = DefaultedList.ofSize(tag.getInt("ItemCount"), ItemStack.EMPTY);
 

@@ -6,7 +6,6 @@ import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.DropTypeConfig;
 import com.b1n4ry.yigd.config.RetrievalTypeConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
@@ -15,7 +14,6 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -85,7 +83,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         return super.onUse(state, world, pos, player, hand, hit);
     }
     @Override
-    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
+    public void onSteppedOn(World world, BlockPos pos, Entity entity) {
         if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_STAND && entity instanceof PlayerEntity) {
             PlayerEntity player = (PlayerEntity) entity;
             RetrieveItems(player, world, pos);
@@ -96,7 +94,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             }
         }
 
-        super.onSteppedOn(world, pos, state, entity);
+        super.onSteppedOn(world, pos, entity);
     }
     @Override
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
@@ -155,8 +153,8 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new GraveBlockEntity(customName, pos, state);
+    public BlockEntity createBlockEntity(BlockView world) {
+        return new GraveBlockEntity(customName);
     }
 
     private boolean RetrieveItems(PlayerEntity player, World world, BlockPos pos) {
@@ -185,13 +183,12 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             return true;
         }
 
-        PlayerInventory inventory = player.getInventory();
 
         DefaultedList<ItemStack> retrievalInventory = DefaultedList.of();
 
-        retrievalInventory.addAll(inventory.main);
-        retrievalInventory.addAll(inventory.armor);
-        retrievalInventory.addAll(inventory.offHand);
+        retrievalInventory.addAll(player.inventory.main);
+        retrievalInventory.addAll(player.inventory.armor);
+        retrievalInventory.addAll(player.inventory.offHand);
 
         for (YigdApi yigdApi : Yigd.apiMods) {
             retrievalInventory.addAll(yigdApi.getInventory(player));
@@ -200,7 +197,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         }
 
 
-        inventory.clear(); // Delete all items
+        player.inventory.clear(); // Delete all items
 
         List<ItemStack> armorInventory = items.subList(36, 40);
         List<ItemStack> mainInventory = items.subList(0, 36);
@@ -226,7 +223,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         player.equipStack(EquipmentSlot.OFFHAND, items.get(40)); // Replace offhand from grave
 
         for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
-            inventory.setStack(i, mainInventory.get(i));
+            player.equip(i, mainInventory.get(i));
         }
 
         int inventoryOffset = 41;
@@ -241,7 +238,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
         extraItems.addAll(retrievalInventory.subList(0, 36));
 
-        List<Integer> openArmorSlots = getInventoryOpenSlots(inventory.armor); // Armor slots that does not have armor selected
+        List<Integer> openArmorSlots = getInventoryOpenSlots(player.inventory.armor); // Armor slots that does not have armor selected
 
         for(int i = 0; i < 4; i++) {
             ItemStack armorPiece = retrievalInventory.subList(36, 40).get(i);
@@ -253,20 +250,20 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             }
         }
 
-        ItemStack offHandItem = inventory.offHand.get(0);
+        ItemStack offHandItem = player.inventory.offHand.get(0);
         if(offHandItem == ItemStack.EMPTY || offHandItem.getItem() == Items.AIR) player.equipStack(EquipmentSlot.OFFHAND, retrievalInventory.get(40));
         else extraItems.add(retrievalInventory.get(40));
 
         if (retrievalInventory.size() > 41) extraItems.addAll(retrievalInventory.subList(41, retrievalInventory.size()));
 
-        List<Integer> openSlots = getInventoryOpenSlots(inventory.main);
+        List<Integer> openSlots = getInventoryOpenSlots(player.inventory.main);
         List<Integer> stillOpen = new ArrayList<>();
 
         int loopIterations = Math.min(openSlots.size(), extraItems.size());
         for(int i = 0; i < loopIterations; i++) {
             int currentSlot = openSlots.get(i);
             ItemStack currentExtra = extraItems.get(i);
-            inventory.setStack(currentSlot, currentExtra);
+            player.equip(currentSlot, currentExtra);
 
             if (currentExtra.isEmpty()) {
                 stillOpen.add(currentSlot);
@@ -277,7 +274,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         overflow.removeIf(ItemStack::isEmpty);
 
         for (int i = 0; i < Math.min(overflow.size(), stillOpen.size()); i++) {
-            inventory.setStack(stillOpen.get(i), overflow.get(i));
+            player.equip(stillOpen.get(i), overflow.get(i));
         }
 
         DefaultedList<ItemStack> dropItems = DefaultedList.of();
@@ -291,8 +288,6 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
         player.addExperience(graveEntity.getStoredXp());
         world.removeBlock(pos, false);
-
-        DeadPlayerData.dropDeathInventory(player.getUuid());
 
         return true;
     }

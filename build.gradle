@@ -1,10 +1,10 @@
 plugins {
-	id 'fabric-loom' version '0.7-SNAPSHOT'
+	id 'fabric-loom' version '0.9-SNAPSHOT'
 	id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -29,14 +29,6 @@ repositories {
 		name = "Ladysnake Mods"
 		url = 'https://ladysnake.jfrog.io/artifactory/mods'
 	}
-
-	maven {
-		url = "https://maven.theillusivec4.top/"
-	}
-	maven {
-		name = "OnyxStudios"
-		url = "https://maven.abusedmaster.xyz"
-	}
 }
 
 dependencies {
@@ -60,13 +52,6 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation "top.theillusivec4.curios:curios-fabric:${project.curios_version}"
-
-	// Without these, worlds would not load when testing the mod
-	modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cca_version}"
-	modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-item:${project.cca_version}"
-
-
 }
 
 processResources {
@@ -84,13 +69,8 @@ tasks.withType(JavaCompile).configureEach {
 	// If Javadoc is generated, this must be specified in that task too.
 	it.options.encoding = "UTF-8"
 
-	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
-	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
-	// We'll use that if it's available, but otherwise we'll use the older option.
-	def targetVersion = 8
-	if (JavaVersion.current().isJava9Compatible()) {
-		 it.options.release = targetVersion
-	}
+	// Minecraft 1.17 (21w19a) upwards uses Java 16.
+	it.options.release = 16
 }
 
 java {

@@ -2,8 +2,7 @@ package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.b1n4ry.yigd.core.DeadPlayerData;
-import com.mojang.authlib.GameProfile;
+import com.b1n4ry.yigd.core.PlayerEntityExt;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,15 +19,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.List;
-import java.util.UUID;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin extends LivingEntity {
+public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEntityExt {
+    private DefaultedList<ItemStack> soulboundInventory; // Not necessary as the game mechanic is currently not working
+
     @Shadow @Final public PlayerInventory inventory;
 
-    @Shadow public abstract PlayerInventory getInventory();
-
-    @Shadow public abstract GameProfile getGameProfile();
+    @Shadow public abstract boolean equip(int slot, ItemStack item);
 
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> type, World world) {
         super(type, world);
@@ -44,7 +42,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         items.addAll(inventory.offHand);
 
         List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
-        DefaultedList<ItemStack> soulboundInventory = Yigd.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
+        soulboundInventory = Yigd.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
         if (!YigdConfig.getConfig().graveSettings.generateGraves) {
             this.inventory.dropAll();
@@ -67,14 +65,13 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
         List<ItemStack> syncHotbar = soulboundInventory.subList(0, 10);
         for (int i = 0; i < 10; i++) {
-            this.getInventory().setStack(i, syncHotbar.get(i));
+            this.equip(i, syncHotbar.get(i));
         }
 
-        UUID playerId = this.getUuid();
-
-        DeadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
-        DeadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
-
         Yigd.placeDeathGrave(this.world, this.getPos(), this.inventory.player, items);
+    }
+
+    public DefaultedList<ItemStack> getSoulboundInventory() {
+        return soulboundInventory;
     }
 }
