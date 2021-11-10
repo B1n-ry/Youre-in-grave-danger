@@ -13,27 +13,28 @@ import java.util.*;
 
 public class TrinketsCompat implements YigdApi {
     @Override
-    public List<ItemStack> getInventory(PlayerEntity player) {
-        List<ItemStack> itemStacks = new ArrayList<>();
-
+    public Object getInventory(PlayerEntity player) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
-        if (optional.isPresent()) {
-            Collection<Map<String, TrinketInventory>> collection = optional.get().getInventory().values();
-            for (Map<String, TrinketInventory> map : collection) {
-                for (int i = 0; i < map.size(); i++) {
-                    System.out.println(map.keySet().toArray()[i] + ", " + map.values().toArray()[i].toString());
-                }
-            }
-        }
-
-        return itemStacks;
+        if (optional.isPresent()) return optional.get().getInventory(player);
+        
+        return null;
     }
 
     @Override
-    public void setInventory(List<ItemStack> inventory, PlayerEntity player) {
-//        for (ItemStack itemStack : inventory) {
-//            TrinketsApi.getTrinketComponent(player).equip(itemStack);
-//        }
+    public void setInventory(Object inventory, PlayerEntity player) {
+        Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
+        if (!optional.isPresent()) return;
+        Map<String, Map<String, TrinketInventory>> playerInventory = optional.get();
+
+        if (inventory instanceof Map<String, Map<String, TrinketInventory>> trinketInv) {
+            trinketInv.forEach((index, value) -> {
+                Map<String, TrinketInventory> trinkSlotInv = trinketInv.get(index);
+                Map<String, TrinketInventory> playerSlotInv = playerInventory.get(index);
+                playerInventory.get(index).forEach((index2, value2) -> {
+                    TrinketInventory inventory = trinketSlotInv.get(index2);
+                });
+            });
+        }
     }
 
     @Override
