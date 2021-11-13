@@ -1,13 +1,10 @@
 package com.b1n4ry.yigd.compat;
 
 import com.b1n4ry.yigd.api.YigdApi;
-import dev.emi.trinkets.TrinketSlot;
-import dev.emi.trinkets.api.SlotGroup;
-import dev.emi.trinkets.api.TrinketComponent;
-import dev.emi.trinkets.api.TrinketInventory;
-import dev.emi.trinkets.api.TrinketsApi;
+import dev.emi.trinkets.api.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Pair;
 
 import java.util.*;
 
@@ -15,36 +12,72 @@ public class TrinketsCompat implements YigdApi {
     @Override
     public Object getInventory(PlayerEntity player) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
-        if (optional.isPresent()) return optional.get().getInventory(player);
-        
-        return null;
+        if (!optional.isPresent()) return null;
+
+        TrinketComponent trinkets = optional.get();
+
+        return trinkets.getAllEquipped();
     }
 
     @Override
     public void setInventory(Object inventory, PlayerEntity player) {
-        Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
-        if (!optional.isPresent()) return;
-        Map<String, Map<String, TrinketInventory>> playerInventory = optional.get();
+        if (!(inventory instanceof List)) return;
+        List<Pair<SlotReference, ItemStack>> toEquip = (List<Pair<SlotReference, ItemStack>>) inventory;
 
-        if (inventory instanceof Map<String, Map<String, TrinketInventory>> trinketInv) {
-            trinketInv.forEach((index, value) -> {
-                Map<String, TrinketInventory> trinkSlotInv = trinketInv.get(index);
-                Map<String, TrinketInventory> playerSlotInv = playerInventory.get(index);
-                playerInventory.get(index).forEach((index2, value2) -> {
-                    TrinketInventory inventory = trinketSlotInv.get(index2);
-                });
-            });
-        }
+        TrinketsApi.getTrinketComponent(player).ifPresent(trinkets -> {
+            for (Pair<SlotReference, ItemStack> pair : toEquip) {
+                SlotReference ref = pair.getLeft();
+                SlotType slotType = ref.inventory().getSlotType();
+                ref.inventory().setStack(ref.index(), pair.getRight());
+
+                trinkets.forEach(((slotReference, itemStack) -> {
+                    SlotType type = slotReference.inventory().getSlotType();
+
+                    if (type.equals(slotType)) {
+                        slotReference.inventory().setStack(ref.index(), pair.getRight());
+                        return;
+                    }
+                }));
+            }
+        });
+
     }
 
     @Override
     public int getInventorySize(PlayerEntity player) {
-//        return TrinketsApi.getTrinketsInventory(player).size();
-        return 0;
+        Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
+        if (!optional.isPresent()) return 0;
+
+        int size = 0;
+
+        TrinketComponent component = optional.get();
+
+        Set<TrinketInventory> inventorySet = component.getTrackingUpdates();
+        for (TrinketInventory inventory : inventorySet) {
+            size += inventory.size();
+        }
+
+        return size;
     }
 
     @Override
     public void dropAll(PlayerEntity player) {
-//        TrinketsApi.TRINKETS.get(player).getInventory().clear();
+        TrinketsApi.getTrinketComponent(player).ifPresent(trinketComponent -> {
+            trinketComponent.forEach((slotReference, itemStack) -> slotReference.inventory().clear());
+        });
+    }
+
+    @Override
+    public List<ItemStack> toStackList(Object inventory) {
+        if (!(inventory instanceof List)) return null;
+        List<Pair<SlotReference, ItemStack>> nested = (List<Pair<SlotReference, ItemStack>>) inventory;
+
+        List<ItemStack> items = new ArrayList<>();
+        for (Pair<SlotReference, ItemStack> pair : nested) {
+            ItemStack stack = pair.getRight();
+            if (!stack.isEmpty()) items.add(stack);
+        }
+
+        return items;
     }
 }

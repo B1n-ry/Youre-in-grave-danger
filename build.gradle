@@ -18,16 +18,16 @@ repositories {
 	// for more information about repositories.
 	maven { url "https://maven.shedaniel.me/" }
 	maven {
-		name = 'TerraformersMC'
-		url = 'https://maven.terraformersmc.com/'
+		name = "TerraformersMC"
+		url = "https://maven.terraformersmc.com/"
+	}
+	maven {
+		name = "Ladysnake Libs"
+		url = "https://ladysnake.jfrog.io/artifactory/mods"
 	}
 	maven {
 		name = "Jitpack"
 		url = "https://jitpack.io"
-	}
-	maven {
-		name = "Ladysnake Mods"
-		url = 'https://ladysnake.jfrog.io/artifactory/mods'
 	}
 }
 

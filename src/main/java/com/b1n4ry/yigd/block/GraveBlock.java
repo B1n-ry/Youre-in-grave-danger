@@ -19,6 +19,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final DirectionProperty FACING;
@@ -148,8 +150,10 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         return new GraveBlockEntity(customName, pos, state);
     }
 
-    private boolean RetrieveItems(PlayerEntity player, World world, BlockPos pos) {
+    private boolean RetrieveItems(PlayerEntity playerEntity, World world, BlockPos pos) {
         if (world.isClient) return false;
+
+        if (!(playerEntity instanceof ServerPlayerEntity player)) return false;
 
         BlockEntity blockEntity = world.getBlockEntity(pos);
 
@@ -167,6 +171,11 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
 
         if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
+            List<List<ItemStack>> graveModItems = graveEntity.getModdedInventories();
+            for (List<ItemStack> graveModItem : graveModItems) {
+                items.addAll(graveModItem);
+            }
+
             ItemScatterer.spawn(world, pos, items);
             world.removeBlock(pos, false);
             return true;
@@ -180,8 +189,10 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         retrievalInventory.addAll(inventory.armor);
         retrievalInventory.addAll(inventory.offHand);
 
+        List<ItemStack> asIStack = new ArrayList<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
-            retrievalInventory.addAll(yigdApi.getInventory(player));
+            Object modInv = yigdApi.getInventory(player);
+            asIStack.addAll(yigdApi.toStackList(modInv));
 
             yigdApi.dropAll(player);
         }
@@ -216,17 +227,23 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             inventory.setStack(i, mainInventory.get(i));
         }
 
-        int inventoryOffset = 41;
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            int inventorySize = yigdApi.getInventorySize(player);
-
-            yigdApi.setInventory(items.subList(inventoryOffset, inventoryOffset + inventorySize), player);
-            inventoryOffset += inventorySize;
-        }
-
 
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
+
+        UUID userId = player.getUuid();
+        List<Object> modInventories = DeadPlayerData.getModdedInventories(userId);
+        for (int i = 0; i < Yigd.apiMods.size(); i++) {
+            YigdApi yigdApi = Yigd.apiMods.get(i);
+            if (modInventories.size() >= i) {
+                yigdApi.setInventory(modInventories.get(i), player);
+            } else {
+                extraItems.addAll(graveEntity.getModdedInventories().get(i));
+            }
+        }
+        DeadPlayerData.dropModdedInventory(userId);
+
         extraItems.addAll(retrievalInventory.subList(0, 36));
+        extraItems.addAll(asIStack);
 
         List<Integer> openArmorSlots = getInventoryOpenSlots(inventory.armor); // Armor slots that does not have armor selected
 

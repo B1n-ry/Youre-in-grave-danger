@@ -6,6 +6,7 @@ import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.compat.TrinketsCompat;
 import com.b1n4ry.yigd.config.LastResortConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.SoulboundEnchantment;
 import com.mojang.authlib.GameProfile;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -77,18 +78,20 @@ public class Yigd implements ModInitializer {
             blockPos = new BlockPos(blockPos.getX(), 254, blockPos.getZ());
         }
 
+        List<Object> modInventories = new ArrayList<>();
+
         for (YigdApi yigdApi : Yigd.apiMods) {
-            invItems.addAll(yigdApi.getInventory(player));
+            modInventories.add(yigdApi.getInventory(player));
 
             yigdApi.dropAll(player);
         }
-
+        DeadPlayerData.setModdedInventories(player.getUuid(), modInventories);
 
         boolean foundViableGrave = false;
 
         for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
             if (gravePlaceableAt(world, gravePos)) {
-                placeGraveBlock(player, world, gravePos, invItems);
+                placeGraveBlock(player, world, gravePos, invItems, modInventories);
                 foundViableGrave = true;
                 break;
             }
@@ -97,8 +100,11 @@ public class Yigd implements ModInitializer {
         // If there is nowhere to place the grave for some reason the items should not disappear
         if (!foundViableGrave) { // No grave was placed
             if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                placeGraveBlock(player, world, blockPos, invItems);
+                placeGraveBlock(player, world, blockPos, invItems, modInventories);
             } else {
+                for (YigdApi yigdApi : Yigd.apiMods) {
+                    invItems.addAll(yigdApi.toStackList(player));
+                }
                 ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
             }
         }
@@ -120,7 +126,7 @@ public class Yigd implements ModInitializer {
         return yPos >= 0 && yPos <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
     }
 
-    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems) {
+    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories) {
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing());
         world.setBlockState(gravePos, graveBlock);
 
@@ -169,10 +175,18 @@ public class Yigd implements ModInitializer {
                 xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * player.totalExperience);
             }
 
+            List<List<ItemStack>> moddedInvStacks = new ArrayList<>();
+            for (int i = 0; i < Yigd.apiMods.size(); i++) {
+                YigdApi yigdApi = Yigd.apiMods.get(i);
+                moddedInvStacks.add(new ArrayList<>());
+                moddedInvStacks.get(i).addAll(yigdApi.toStackList(modInventories.get(i)));
+            }
+
             placedGraveEntity.setInventory(invItems);
             placedGraveEntity.setGraveOwner(playerProfile);
             placedGraveEntity.setCustomName(playerProfile.getName());
             placedGraveEntity.setStoredXp(xpPoints);
+            placedGraveEntity.setModdedInventories(moddedInvStacks);
 
             player.totalExperience = 0;
             player.experienceProgress = 0;

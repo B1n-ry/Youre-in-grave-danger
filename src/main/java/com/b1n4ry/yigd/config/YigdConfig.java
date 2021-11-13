@@ -25,7 +25,7 @@ public class YigdConfig implements ConfigData {
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> deleteEnchantments = new ArrayList<>();
+        public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
 
         @ConfigEntry.Gui.Tooltip
         public List<String> soulboundEnchantments = Collections.singletonList("yigd:soulbound");

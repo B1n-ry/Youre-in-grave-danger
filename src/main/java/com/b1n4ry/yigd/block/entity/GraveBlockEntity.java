@@ -8,15 +8,21 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
     private GameProfile graveOwner;
     private int storedXp;
     private String customName;
     private DefaultedList<ItemStack> storedInventory;
+    private List<List<ItemStack>> moddedInventories;
 
     public GraveBlockEntity(BlockPos pos, BlockState state) {
         this(null, pos, state);
@@ -41,6 +47,14 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
         if (graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
         if (customName != null) tag.putString("CustomName", customName);
 
+        NbtList modList = new NbtList();
+        for (List<ItemStack> inv : moddedInventories) {
+            DefaultedList<ItemStack> list = DefaultedList.of();
+            list.addAll(inv);
+            modList.add(Inventories.writeNbt(new NbtCompound(), list));
+        }
+        tag.put("ModdedInventoryItems", modList);
+
         return tag;
     }
 
@@ -56,6 +70,19 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
 
         if(tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
         if(tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+
+        if (tag.contains("ModdedInventoryItems")) {
+            NbtList modList = tag.getList("ModdedInventoryItems", NbtList.LIST_TYPE);
+
+            moddedInventories = new ArrayList<>();
+            for (NbtElement mod : modList) {
+                if (!(mod instanceof NbtCompound modNbt)) continue;
+                DefaultedList<ItemStack> inventory = DefaultedList.of();
+                Inventories.readNbt(modNbt, inventory);
+
+                moddedInventories.add(inventory.stream().toList());
+            }
+        }
     }
 
     @Override
@@ -83,6 +110,9 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     public void setInventory(DefaultedList<ItemStack> inventory) {
         this.storedInventory = inventory;
     }
+    public void setModdedInventories(List<List<ItemStack>> inventories) {
+        this.moddedInventories = inventories;
+    }
 
 
     public GameProfile getGraveOwner() {
@@ -94,7 +124,10 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     public DefaultedList<ItemStack> getStoredInventory() {
         return storedInventory;
     }
-    public int getStoredXp () {
+    public int getStoredXp() {
         return storedXp;
+    }
+    public List<List<ItemStack>> getModdedInventories() {
+        return moddedInventories;
     }
 }

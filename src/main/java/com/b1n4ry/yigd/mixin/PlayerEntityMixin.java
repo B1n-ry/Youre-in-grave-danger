@@ -15,25 +15,28 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.List;
 import java.util.UUID;
 
-@Mixin(PlayerEntity.class)
+@Mixin(value = PlayerEntity.class, priority = 9001)
 public abstract class PlayerEntityMixin extends LivingEntity {
     @Shadow @Final private PlayerInventory inventory;
 
     @Shadow public abstract PlayerInventory getInventory();
 
+    @Shadow protected abstract void vanishCursedItems();
+
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> type, World world) {
         super(type, world);
     }
 
-    @Redirect(method = "dropInventory", at = @At(value = "INVOKE", target = "net.minecraft.entity.player.PlayerInventory.dropAll()V"))
-    private void dropAll(PlayerInventory inventory) {
-        if (this.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;
+    @Override // Overrides the method, which will cause the LivingEntity dropInventory function not to run, which is used by trinkets to drop all trinket items. This way trinket items are not deleted before this mixin method executes
+    public void dropInventory() {
+        if (this.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) {
+            super.dropInventory();
+            return;
+        }
 
         DefaultedList<ItemStack> items = DefaultedList.of();
         items.addAll(inventory.main);
@@ -44,6 +47,9 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         DefaultedList<ItemStack> soulboundInventory = Yigd.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
         if (!YigdConfig.getConfig().graveSettings.generateGraves) {
+            super.dropInventory();
+
+            this.vanishCursedItems();
             this.inventory.dropAll();
             return;
         }
