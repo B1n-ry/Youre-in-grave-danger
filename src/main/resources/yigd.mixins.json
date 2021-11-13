@@ -4,7 +4,7 @@
   "package": "com.b1n4ry.yigd.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "PlayerEntityMixin",
+    "LivingEntityMixin",
     "PlayerManagerMixin"
   ],
   "client": [
