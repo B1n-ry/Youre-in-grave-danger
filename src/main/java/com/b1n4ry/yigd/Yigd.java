@@ -73,7 +73,7 @@ public class Yigd implements ModInitializer {
         BlockPos blockPos = new BlockPos(pos.x, pos.y - 1, pos.z);
 
         if (blockPos.getY() < 0) {
-            blockPos = new BlockPos(blockPos.getX(), 10, blockPos.getZ());
+            blockPos = new BlockPos(blockPos.getX(), YigdConfig.getConfig().graveSettings.graveSpawnHeight, blockPos.getZ());
         } else if (blockPos.getY() > 255) {
             blockPos = new BlockPos(blockPos.getX(), 254, blockPos.getZ());
         }
@@ -196,6 +196,7 @@ public class Yigd implements ModInitializer {
 
             System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
         }
+        if (YigdConfig.getConfig().graveSettings.tellDeathPos) DeadPlayerData.setDeathPos(player.getUuid(), player.getBlockPos()); // Backup of the coordinates where you died
     }
 
     public static DefaultedList<ItemStack> removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {

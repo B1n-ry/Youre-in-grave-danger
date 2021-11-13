@@ -2,6 +2,7 @@ package com.b1n4ry.yigd.core;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.*;
 
@@ -9,6 +10,7 @@ public class DeadPlayerData {
     private static final Map<UUID, DefaultedList<ItemStack>> soulboundInventories = new HashMap<>();
     private static final Map<UUID, DefaultedList<ItemStack>> deathPlayerInventories = new HashMap<>();
     private static final Map<UUID, List<Object>> moddedInventories = new HashMap<>();
+    private static final Map<UUID, BlockPos> deathPoses = new HashMap<>();
 
     public static DefaultedList<ItemStack> getSoulboundInventory(UUID userId) {
         return soulboundInventories.get(userId);
@@ -18,6 +20,9 @@ public class DeadPlayerData {
     }
     public static List<Object> getModdedInventories(UUID userId) {
         return moddedInventories.get(userId);
+    }
+    public static BlockPos getDeathPos(UUID userId) {
+        return deathPoses.get(userId);
     }
     public static void setSoulboundInventories(UUID userId, DefaultedList<ItemStack> soulboundItems) {
         dropSoulbound(userId);
@@ -29,6 +34,9 @@ public class DeadPlayerData {
     public static void setModdedInventories(UUID userId, List<Object> moddedInvetory) {
         moddedInventories.put(userId, moddedInvetory);
     }
+    public static void setDeathPos(UUID userId, BlockPos deathPos) {
+        deathPoses.put(userId, deathPos);
+    }
 
     public static void dropSoulbound(UUID userId) {
         soulboundInventories.remove(userId);
@@ -38,5 +46,8 @@ public class DeadPlayerData {
     }
     public static void dropModdedInventory(UUID userId) {
         moddedInventories.remove(userId);
+    }
+    public static void dropDeathPos(UUID userId) {
+        deathPoses.remove(userId);
     }
 }

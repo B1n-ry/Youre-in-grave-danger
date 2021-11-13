@@ -17,6 +17,8 @@
   "text.autoconfig.yigd.option.graveSettings.blacklistDimensions.@Tooltip": "Dimensions with their ID in this list\nwill not generate graves\n\nYou can see the dimension ID\nin the bottom of the top left\nF3 display (9th row from the top)",
   "text.autoconfig.yigd.option.graveSettings.graveInVoid": "Spawn Grave in Void",
   "text.autoconfig.yigd.option.graveSettings.graveInVoid.@Tooltip": "If a grave should generate when you fall into the void",
+  "text.autoconfig.yigd.option.graveSettings.graveSpawnHeight": "Grave Spawn Height",
+  "text.autoconfig.yigd.option.graveSettings.graveSpawnHeight.@Tooltip": "What Y level a grave should spawn at when you die in the void",
   "text.autoconfig.yigd.option.graveSettings.lastResort": "Last Resort",
   "text.autoconfig.yigd.option.graveSettings.lastResort.@Tooltip": "If no block can be overwritten with a\ngrave, what should happen with your items?\n\nSET_GRAVE: Place a grave where you died (replace blacklisted block)\nDROP_ITEMS: Drop all your items where you died",
   "text.autoconfig.yigd.option.graveSettings.defaultXpDrop": "Default XP Drop",
@@ -39,8 +41,8 @@
   "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.whiteListBlocks.@Tooltip": "If the block under a\nnewly generated grave matches\nany block in this list\nit will be replaced",
   "text.autoconfig.yigd.option.graveSettings.renderGraveSkull": "Render Grave Owner Skull",
   "text.autoconfig.yigd.option.graveSettings.renderGraveOwner": "Render Grave Owner Name",
-  "text.autoconfig.yigd.option.graveSettings.adaptRender": "Adapt Grave Render",
-  "text.autoconfig.yigd.option.graveSettings.adaptRender.@Tooltip": "Render the ground texture based on the block under the grave",
+  "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
+  "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player\ntelling them where they died",
 
   "block.yigd.grave": "Grave",
   "enchantment.yigd.soulbound": "Soulbound"

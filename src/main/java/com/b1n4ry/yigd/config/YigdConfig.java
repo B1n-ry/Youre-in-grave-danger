@@ -40,6 +40,10 @@ public class YigdConfig implements ConfigData {
         public boolean graveInVoid = true;
 
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 1, max = 255)
+        public int graveSpawnHeight = 2;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public LastResortConfig lastResort = LastResortConfig.DROP_ITEMS;
 
@@ -56,6 +60,9 @@ public class YigdConfig implements ConfigData {
 
         public boolean renderGraveSkull = true;
         public boolean renderGraveOwner = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean tellDeathPos = false;
     }
 
     public static class BlockUnderGrave {

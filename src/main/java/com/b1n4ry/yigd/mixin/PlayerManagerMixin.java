@@ -9,7 +9,9 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -61,6 +63,13 @@ public abstract class PlayerManagerMixin {
         }
 
         DeadPlayerData.dropSoulbound(userId);
+
+        BlockPos deathPos = DeadPlayerData.getDeathPos(userId);
+        if (deathPos != null) {
+            player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ()), false);
+            DeadPlayerData.dropDeathPos(userId);
+        }
+
         return player;
     }
 }
