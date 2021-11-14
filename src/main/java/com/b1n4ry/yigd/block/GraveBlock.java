@@ -69,14 +69,14 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     protected static final VoxelShape SHAPE_CORE_SOUTH;
     protected static final VoxelShape SHAPE_TOP_SOUTH;
 
-    public static final BooleanProperty WATERLOGGED;
+    protected static final BooleanProperty WATERLOGGED;
 
     private String customName = null;
 
 
     public GraveBlock(Settings settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH));
+        this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.WATERLOGGED, false));
     }
 
     @Override
@@ -143,6 +143,10 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             case WEST -> SHAPE_WEST;
             default -> VoxelShapes.fullCube();
         };
+    }
+
+    public Direction getDirection(BlockState state) {
+        return state.get(FACING);
     }
 
     @Override
