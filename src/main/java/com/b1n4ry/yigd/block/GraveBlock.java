@@ -7,6 +7,7 @@ import com.b1n4ry.yigd.config.DropTypeConfig;
 import com.b1n4ry.yigd.config.RetrievalTypeConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
+import com.b1n4ry.yigd.core.GraveHelper;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
@@ -163,6 +164,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
         DefaultedList<ItemStack> items = graveEntity.getStoredInventory();
+        int xp = graveEntity.getStoredXp();
 
         if (graveOwner == null) return false;
         if (items == null) return false;
@@ -181,136 +183,10 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             return true;
         }
 
-        PlayerInventory inventory = player.getInventory();
-
-        DefaultedList<ItemStack> retrievalInventory = DefaultedList.of();
-
-        retrievalInventory.addAll(inventory.main);
-        retrievalInventory.addAll(inventory.armor);
-        retrievalInventory.addAll(inventory.offHand);
-
-        List<ItemStack> asIStack = new ArrayList<>();
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            Object modInv = yigdApi.getInventory(player);
-            asIStack.addAll(yigdApi.toStackList(modInv));
-
-            yigdApi.dropAll(player);
-        }
-
-
-        inventory.clear(); // Delete all items
-
-        List<ItemStack> armorInventory = items.subList(36, 40);
-        List<ItemStack> mainInventory = items.subList(0, 36);
-
-
-        List<String> bindingCurse = Collections.singletonList("minecraft:binding_curse");
-
-        for (int i = 0; i < armorInventory.size(); i++) { // Replace armor from grave
-            EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(armorInventory.get(i)); // return EquipmentSlot
-
-            ItemStack rArmorItem = retrievalInventory.subList(36, 40).get(i);
-            ItemStack gArmorItem = armorInventory.get(i);
-
-            boolean currentHasCurse = Yigd.hasEnchantments(bindingCurse, rArmorItem); // If retrieval armor has "curse of binding" this will return true
-
-            // If retrieval trip armor has "curse of binding" it should stay on, and if grave armor had "curse of binding" it should end up in the inventory
-            // Grave armor only gets equipped if neither last nor current armor has "curse of binding"
-            if (!currentHasCurse && !Yigd.hasEnchantments(bindingCurse, gArmorItem)) {
-                player.equipStack(equipmentSlot, gArmorItem); // Both armor parts are free from curse of binding and armor can be replaced
-            }
-        }
-
-        player.equipStack(EquipmentSlot.OFFHAND, items.get(40)); // Replace offhand from grave
-
-        for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
-            inventory.setStack(i, mainInventory.get(i));
-        }
-
-
-        DefaultedList<ItemStack> extraItems = DefaultedList.of();
-
-        UUID userId = player.getUuid();
-        List<Object> modInventories = DeadPlayerData.getModdedInventories(userId);
-        for (int i = 0; i < Yigd.apiMods.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            if (modInventories.size() >= i) {
-                yigdApi.setInventory(modInventories.get(i), player);
-            } else {
-                extraItems.addAll(graveEntity.getModdedInventories().get(i));
-            }
-        }
-        DeadPlayerData.dropModdedInventory(userId);
-
-        extraItems.addAll(retrievalInventory.subList(0, 36));
-        extraItems.addAll(asIStack);
-
-        List<Integer> openArmorSlots = getInventoryOpenSlots(inventory.armor); // Armor slots that does not have armor selected
-
-        for(int i = 0; i < 4; i++) {
-            ItemStack armorPiece = retrievalInventory.subList(36, 40).get(i);
-            if (openArmorSlots.contains(i)) {
-                player.equipStack(EquipmentSlot.fromTypeIndex(EquipmentSlot.Type.ARMOR, i), armorPiece); // Put player armor back
-                extraItems.add(armorInventory.get(i));
-            } else {
-                extraItems.add(armorPiece);
-            }
-        }
-
-        ItemStack offHandItem = inventory.offHand.get(0);
-        if(offHandItem == ItemStack.EMPTY || offHandItem.getItem() == Items.AIR) player.equipStack(EquipmentSlot.OFFHAND, retrievalInventory.get(40));
-        else extraItems.add(retrievalInventory.get(40));
-
-        if (retrievalInventory.size() > 41) extraItems.addAll(retrievalInventory.subList(41, retrievalInventory.size()));
-
-        List<Integer> openSlots = getInventoryOpenSlots(inventory.main);
-        List<Integer> stillOpen = new ArrayList<>();
-
-        int loopIterations = Math.min(openSlots.size(), extraItems.size());
-        for(int i = 0; i < loopIterations; i++) {
-            int currentSlot = openSlots.get(i);
-            ItemStack currentExtra = extraItems.get(i);
-            inventory.setStack(currentSlot, currentExtra);
-
-            if (currentExtra.isEmpty()) {
-                stillOpen.add(currentSlot);
-            }
-        }
-
-        List<ItemStack> overflow = extraItems.subList(loopIterations, extraItems.size());
-        overflow.removeIf(ItemStack::isEmpty);
-
-        for (int i = 0; i < Math.min(overflow.size(), stillOpen.size()); i++) {
-            inventory.setStack(stillOpen.get(i), overflow.get(i));
-        }
-
-        DefaultedList<ItemStack> dropItems = DefaultedList.of();
-        if (stillOpen.size() < overflow.size()) dropItems.addAll(overflow.subList(stillOpen.size(), overflow.size()));
-
-
-        BlockPos playerPos = player.getBlockPos();
-
-        ItemScatterer.spawn(world, playerPos, dropItems);
-
-
-        player.addExperience(graveEntity.getStoredXp());
+        GraveHelper.RetrieveItems(player, items, xp);
         world.removeBlock(pos, false);
 
-        DeadPlayerData.dropDeathInventory(player.getUuid());
-
         return true;
-    }
-
-
-    private List<Integer> getInventoryOpenSlots(DefaultedList<ItemStack> inventory) {
-        List<Integer> openSlots = new ArrayList<>();
-
-        for (int i = 0; i < inventory.size(); i++) {
-            if(inventory.get(i) == ItemStack.EMPTY)
-                openSlots.add(i);
-        }
-
-        return openSlots;
     }
 
     static {

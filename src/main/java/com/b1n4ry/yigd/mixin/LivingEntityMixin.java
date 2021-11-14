@@ -3,6 +3,7 @@ package com.b1n4ry.yigd.mixin;
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
+import com.b1n4ry.yigd.core.GraveHelper;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -31,14 +32,14 @@ public abstract class LivingEntityMixin {
         items.addAll(inventory.offHand);
 
         List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
-        DefaultedList<ItemStack> soulboundInventory = Yigd.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
+        DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
 
-        items = Yigd.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
+        items = GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
 
         List<String> removeEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments; // List with enchantments to delete
-        DefaultedList<ItemStack> removeFromGrave = Yigd.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
-        items = Yigd.removeFromList(items, removeFromGrave); // Delete items with set enchantment
+        DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
+        items = GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
 
         UUID playerId = player.getUuid();
 
@@ -53,6 +54,6 @@ public abstract class LivingEntityMixin {
             return;
         }
 
-        Yigd.placeDeathGrave(player.world, player.getPos(), inventory.player, items);
+        GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items);
     }
 }

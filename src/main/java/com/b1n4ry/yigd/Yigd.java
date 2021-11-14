@@ -8,6 +8,7 @@ import com.b1n4ry.yigd.config.LastResortConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.SoulboundEnchantment;
+import com.b1n4ry.yigd.core.YigdCommand;
 import com.mojang.authlib.GameProfile;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
@@ -23,10 +24,14 @@ import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.state.property.Properties;
@@ -40,7 +45,9 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class Yigd implements ModInitializer {
 
@@ -64,173 +71,7 @@ public class Yigd implements ModInitializer {
             apiMods.add(new TrinketsCompat());
         }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
-    }
 
-    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems) {
-        if (world.isClient()) return;
-        if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < 0) return;
-
-        BlockPos blockPos = new BlockPos(pos.x, pos.y - 1, pos.z);
-
-        if (blockPos.getY() < 0) {
-            blockPos = new BlockPos(blockPos.getX(), YigdConfig.getConfig().graveSettings.graveSpawnHeight, blockPos.getZ());
-        } else if (blockPos.getY() > 255) {
-            blockPos = new BlockPos(blockPos.getX(), 254, blockPos.getZ());
-        }
-
-        List<Object> modInventories = new ArrayList<>();
-
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            modInventories.add(yigdApi.getInventory(player));
-
-            yigdApi.dropAll(player);
-        }
-        DeadPlayerData.setModdedInventories(player.getUuid(), modInventories);
-
-        boolean foundViableGrave = false;
-
-        for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
-            if (gravePlaceableAt(world, gravePos)) {
-                placeGraveBlock(player, world, gravePos, invItems, modInventories);
-                foundViableGrave = true;
-                break;
-            }
-        }
-
-        // If there is nowhere to place the grave for some reason the items should not disappear
-        if (!foundViableGrave) { // No grave was placed
-            if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                placeGraveBlock(player, world, blockPos, invItems, modInventories);
-            } else {
-                for (YigdApi yigdApi : Yigd.apiMods) {
-                    invItems.addAll(yigdApi.toStackList(player));
-                }
-                ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
-            }
-        }
-    }
-
-    private static boolean gravePlaceableAt(World world, BlockPos blockPos) {
-        BlockEntity blockEntity = world.getBlockEntity(blockPos);
-
-        if (blockEntity != null) return false;
-
-        Block block = world.getBlockState(blockPos).getBlock();
-
-        List<String> blacklistBlockId = YigdConfig.getConfig().graveSettings.blacklistBlocks;
-        String id = Registry.BLOCK.getId(block).toString();
-
-        if (blacklistBlockId.contains(id)) return false;
-
-        int yPos = blockPos.getY();
-        return yPos >= 0 && yPos <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
-    }
-
-    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories) {
-        BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing());
-        world.setBlockState(gravePos, graveBlock);
-
-        BlockPos blockPosUnder = new BlockPos(gravePos.getX(), gravePos.getY() - 1, gravePos.getZ());
-
-        YigdConfig.BlockUnderGrave blockUnderConfig = YigdConfig.getConfig().graveSettings.blockUnderGrave;
-        String replaceUnderBlock;
-
-        if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= 1) { // If block should generate under, and if there is a "block" under that can be replaced
-            Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
-            String blockId = Registry.BLOCK.getId(blockUnder).toString();
-
-            if (blockUnderConfig.whiteListBlocks.contains(blockId)) {
-                if (world.getRegistryKey() == World.OVERWORLD) {
-                    replaceUnderBlock = blockUnderConfig.inOverWorld;
-                } else if (world.getRegistryKey() == World.NETHER) {
-                    replaceUnderBlock = blockUnderConfig.inNether;
-                } else if (world.getRegistryKey() == World.END) {
-                    replaceUnderBlock = blockUnderConfig.inTheEnd;
-                } else {
-                    replaceUnderBlock = blockUnderConfig.inCustom;
-                }
-
-                Identifier blockIdentifier = Identifier.tryParse(replaceUnderBlock);
-                BlockState blockStateUnder;
-                if (blockIdentifier == null) {
-                    blockStateUnder = Blocks.DIRT.getDefaultState();
-                } else {
-                    blockStateUnder = Registry.BLOCK.get(blockIdentifier).getDefaultState();
-                }
-
-                world.setBlockState(blockPosUnder, blockStateUnder); // Place support block under grave
-            }
-        }
-
-        BlockEntity placed = world.getBlockEntity(gravePos);
-        if (placed instanceof GraveBlockEntity placedGraveEntity) {
-
-            GameProfile playerProfile = player.getGameProfile();
-
-            int xpPoints;
-            YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
-            if (graveSettings.defaultXpDrop) {
-                xpPoints = Math.min(7 * player.experienceLevel, 100);
-            } else {
-                xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * player.totalExperience);
-            }
-
-            List<List<ItemStack>> moddedInvStacks = new ArrayList<>();
-            for (int i = 0; i < Yigd.apiMods.size(); i++) {
-                YigdApi yigdApi = Yigd.apiMods.get(i);
-                moddedInvStacks.add(new ArrayList<>());
-                moddedInvStacks.get(i).addAll(yigdApi.toStackList(modInventories.get(i)));
-            }
-
-            placedGraveEntity.setInventory(invItems);
-            placedGraveEntity.setGraveOwner(playerProfile);
-            placedGraveEntity.setCustomName(playerProfile.getName());
-            placedGraveEntity.setStoredXp(xpPoints);
-            placedGraveEntity.setModdedInventories(moddedInvStacks);
-
-            player.totalExperience = 0;
-            player.experienceProgress = 0;
-            player.experienceLevel = 0;
-
-            placedGraveEntity.sync();
-
-            System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
-        }
-        if (YigdConfig.getConfig().graveSettings.tellDeathPos) DeadPlayerData.setDeathPos(player.getUuid(), player.getBlockPos()); // Backup of the coordinates where you died
-    }
-
-    public static DefaultedList<ItemStack> removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {
-        for (ItemStack item : remove) {
-            int match = list.indexOf(item);
-            if (match < 0) continue;
-
-            list.set(match, ItemStack.EMPTY);
-        }
-
-        return list;
-    }
-
-    public static DefaultedList<ItemStack> getEnchantedItems(DefaultedList<ItemStack> items, List<String> enchantStrings) {
-        DefaultedList<ItemStack> included = DefaultedList.ofSize(items.size(), ItemStack.EMPTY);
-
-        for (int i = 0; i < items.size(); i++) {
-            ItemStack item = items.get(i);
-            if (hasEnchantments(enchantStrings, item)) included.set(i, item);
-        }
-        return included;
-    }
-
-    public static boolean hasEnchantments(List<String> enchants, ItemStack item) {
-        if (!item.hasEnchantments()) return false;
-
-        for (NbtElement enchantment : item.getEnchantments()) {
-            String enchantId = ((NbtCompound) enchantment).getString("id");
-
-            if (enchants.stream().anyMatch(enchantId::equals)) {
-                return true;
-            }
-        }
-
-        return false;
+        YigdCommand.registerCommands();
     }
 }

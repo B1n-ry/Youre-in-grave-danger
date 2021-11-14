@@ -67,7 +67,6 @@ public abstract class PlayerManagerMixin {
         BlockPos deathPos = DeadPlayerData.getDeathPos(userId);
         if (deathPos != null) {
             player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ()), false);
-            DeadPlayerData.dropDeathPos(userId);
         }
 
         return player;
