@@ -47,13 +47,15 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
         if (graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
         if (customName != null) tag.putString("CustomName", customName);
 
-        NbtList modList = new NbtList();
-        for (List<ItemStack> inv : moddedInventories) {
-            DefaultedList<ItemStack> list = DefaultedList.of();
-            list.addAll(inv);
-            modList.add(Inventories.writeNbt(new NbtCompound(), list));
+        if (moddedInventories != null) {
+            NbtList modList = new NbtList();
+            for (List<ItemStack> inv : moddedInventories) {
+                DefaultedList<ItemStack> list = DefaultedList.of();
+                list.addAll(inv);
+                modList.add(Inventories.writeNbt(new NbtCompound(), list));
+            }
+            tag.put("ModdedInventoryItems", modList);
         }
-        tag.put("ModdedInventoryItems", modList);
 
         return tag;
     }

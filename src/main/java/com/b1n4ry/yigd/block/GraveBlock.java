@@ -17,11 +17,14 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
@@ -35,6 +38,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -42,7 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProvider {
+public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProvider, Waterloggable {
     public static final DirectionProperty FACING;
     protected static final VoxelShape SHAPE_NORTH;
     protected static final VoxelShape SHAPE_BASE_NORTH;
@@ -65,6 +69,8 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     protected static final VoxelShape SHAPE_CORE_SOUTH;
     protected static final VoxelShape SHAPE_TOP_SOUTH;
 
+    public static final BooleanProperty WATERLOGGED;
+
     private String customName = null;
 
 
@@ -75,7 +81,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(Properties.HORIZONTAL_FACING);
+        builder.add(Properties.HORIZONTAL_FACING, WATERLOGGED);
     }
 
     @Override
@@ -129,9 +135,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         }
     }
 
-    @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext ct) {
-        Direction dir = state.get(FACING);
+    private VoxelShape getShape(Direction dir) {
         return switch (dir) {
             case NORTH -> SHAPE_NORTH;
             case SOUTH -> SHAPE_SOUTH;
@@ -140,9 +144,30 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             default -> VoxelShapes.fullCube();
         };
     }
+
     @Override
-    public BlockState getPlacementState(ItemPlacementContext context) {
-        return this.getDefaultState().with(Properties.HORIZONTAL_FACING, context.getPlayerFacing().getOpposite());
+    public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext ct) {
+        Direction dir = state.get(FACING);
+        return getShape(dir);
+    }
+    @Override
+    public BlockState getPlacementState(ItemPlacementContext context) {;
+        BlockPos blockPos = context.getBlockPos();
+        FluidState fluidState = context.getWorld().getFluidState(blockPos);
+        return this.getDefaultState().with(Properties.HORIZONTAL_FACING, context.getPlayerFacing().getOpposite()).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
+    }
+
+    @Override
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+        if (state.get(WATERLOGGED)) {
+            world.getFluidTickScheduler().schedule(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+        }
+
+        return direction.getAxis().isHorizontal() ? state : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+    }
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
 
     @Nullable
@@ -159,6 +184,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         BlockEntity blockEntity = world.getBlockEntity(pos);
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
+        if (graveEntity.getGraveOwner() == null) return false;
         graveEntity.sync();
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
@@ -215,5 +241,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         SHAPE_WEST = VoxelShapes.union(SHAPE_BASE_WEST, SHAPE_FOOT_WEST, SHAPE_CORE_WEST, SHAPE_TOP_WEST);
         SHAPE_EAST = VoxelShapes.union(SHAPE_BASE_EAST, SHAPE_FOOT_EAST, SHAPE_CORE_EAST, SHAPE_TOP_EAST);
         SHAPE_SOUTH = VoxelShapes.union(SHAPE_BASE_SOUTH, SHAPE_FOOT_SOUTH, SHAPE_CORE_SOUTH, SHAPE_TOP_SOUTH);
+
+        WATERLOGGED = Properties.WATERLOGGED;
     }
 }
