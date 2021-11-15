@@ -41,6 +41,8 @@
   "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.whiteListBlocks.@Tooltip": "If the block under a\nnewly generated grave matches\nany block in this list\nit will be replaced",
   "text.autoconfig.yigd.option.graveSettings.renderGraveSkull": "Render Grave Owner Skull",
   "text.autoconfig.yigd.option.graveSettings.renderGraveOwner": "Render Grave Owner Name",
+  "text.autoconfig.yigd.option.graveSettings.adaptRenderer": "Adapt Grave Renderer",
+  "text.autoconfig.yigd.option.graveSettings.adaptRenderer.@Tooltip": "Render grave ground layer as\nthe block the grave is on top of",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player\ntelling them where they died",
 

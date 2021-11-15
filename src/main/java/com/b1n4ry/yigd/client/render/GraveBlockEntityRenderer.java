@@ -16,6 +16,7 @@ import net.minecraft.block.SkullBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -30,8 +31,7 @@ import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.FallingBlockEntityRenderer;
 import net.minecraft.client.render.entity.model.*;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.texture.*;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
@@ -51,11 +51,13 @@ import java.util.function.Function;
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private final TextRenderer textRenderer;
     private final EntityModelLoader renderLayer;
-//    private final GraveModel model;
+    private final TextureManager textureManager;
 
     public GraveBlockEntityRenderer(Context ctx) {
         this.textRenderer = ctx.getTextRenderer();
         this.renderLayer = ctx.getLayerRenderDispatcher();
+        this.textureManager = MinecraftClient.getInstance().getTextureManager();
+
 
 
 //        model = new GraveModel(ctx.getLayerModelPart(new EntityModelLayer(new Identifier("yigd", "block/grave"), "main")));
@@ -149,28 +151,15 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         BlockState blockUnder;
         if (YigdConfig.getConfig().graveSettings.adaptRenderer) {
             blockUnder = world.getBlockState(under);
-        } else {
-            blockUnder = Blocks.GRAVEL.getDefaultState();
+
+            matrices.push();
+
+            matrices.scale(1.001f, 0.0626f, 1.001f);
+            matrices.translate(-0.0005f, 0, -0.0005f);
+            MinecraftClient.getInstance().getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), false, new Random());
+
+            matrices.pop();
         }
-
-        matrices.push();
-//        SpriteIdentifier spriteIdentifier = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, id);
-//        VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(vertexConsumers, model::getLayer);
-//        model.render(matrices, vertexConsumer, light, overlay, 0f, 0f, 0f, 1f);
-//
-//        Tessellator tessellator = Tessellator.getInstance();
-//        BufferBuilder bufferBuilder = tessellator.getBuffer();
-//
-//        RenderSystem.enableTexture();
-//        RenderSystem.enableCull();
-//
-//        RenderSystem.setShaderTexture(0, id);
-//        bufferBuilder.vertex(0, 0, 0).color(1f, 1f, 1f, 1f).normal(16f, 1, 16f);
-//
-        matrices.scale(1f, 0.0625f, 1f);
-        MinecraftClient.getInstance().getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, new Random());
-
-        matrices.pop();
     }
 
     @Environment(EnvType.CLIENT)

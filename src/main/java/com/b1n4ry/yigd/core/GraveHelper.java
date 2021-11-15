@@ -155,7 +155,9 @@ public class GraveHelper {
             if (graveSettings.defaultXpDrop) {
                 xpPoints = Math.min(7 * player.experienceLevel, 100);
             } else {
-                xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * player.totalExperience);
+                int currentLevel = player.experienceLevel;
+                int totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
+                xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
             }
 
             List<List<ItemStack>> moddedInvStacks = new ArrayList<>();

@@ -4,10 +4,22 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"0": "yigd:block/grave",
-		"ground": "minecraft:block/gravel",
 		"particle": "minecraft:block/stone"
 	},
 	"elements": [
+		{
+			"name": "Base_Layer",
+			"from": [0, 0, 0],
+			"to": [16, 1, 16],
+			"faces": {
+				"north": {"uv": [4, 4, 8, 4.25], "texture": "#0"},
+				"east": {"uv": [0, 4, 4, 4.25], "texture": "#0"},
+				"south": {"uv": [12, 4, 16, 4.25], "texture": "#0"},
+				"west": {"uv": [8, 4, 12, 4.25], "texture": "#0"},
+				"up": {"uv": [8, 4, 4, 0], "texture": "#0"},
+				"down": {"uv": [8, 4.25, 4, 8.25], "texture": "#0"}
+			}
+		},
 		{
 			"name": "Base_Grave",
 			"from": [2, 1, 10],
