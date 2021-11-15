@@ -9,19 +9,6 @@
 	},
 	"elements": [
 		{
-			"name": "main",
-			"from": [0, 0, 0],
-			"to": [16, 1, 16],
-			"faces": {
-				"north": {"uv": [0, 0, 16, 1], "texture": "#ground"},
-				"east": {"uv": [0, 0, 16, 1], "texture": "#ground"},
-				"south": {"uv": [0, 0, 16, 1], "texture": "#ground"},
-				"west": {"uv": [0, 0, 16, 1], "texture": "#ground"},
-				"up": {"uv": [0, 0, 16, 16], "texture": "#ground"},
-				"down": {"uv": [0, 0, 16, 16], "texture": "#ground"}
-			}
-		},
-		{
 			"name": "Base_Grave",
 			"from": [2, 1, 10],
 			"to": [14, 3, 15],

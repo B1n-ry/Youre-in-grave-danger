@@ -60,6 +60,8 @@ public class YigdConfig implements ConfigData {
 
         public boolean renderGraveSkull = true;
         public boolean renderGraveOwner = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean adaptRenderer = true;
 
         @ConfigEntry.Gui.Tooltip
         public boolean tellDeathPos = false;
