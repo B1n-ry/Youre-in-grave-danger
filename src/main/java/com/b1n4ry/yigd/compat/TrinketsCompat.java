@@ -1,6 +1,9 @@
 package com.b1n4ry.yigd.compat;
 
 import com.b1n4ry.yigd.api.YigdApi;
+import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
+import com.b1n4ry.yigd.core.GraveHelper;
 import dev.emi.trinkets.api.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -10,13 +13,36 @@ import java.util.*;
 
 public class TrinketsCompat implements YigdApi {
     @Override
-    public Object getInventory(PlayerEntity player) {
+    public Object getInventory(PlayerEntity player, boolean... handleAsDeath) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
         if (!optional.isPresent()) return null;
 
         TrinketComponent trinkets = optional.get();
 
-        return trinkets.getAllEquipped();
+        List<Pair<SlotReference, ItemStack>> inv = trinkets.getAllEquipped();
+
+        if (handleAsDeath.length > 0 && handleAsDeath[0]) {
+            List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
+            List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
+
+            List<Pair<SlotReference, ItemStack>> soulbound = new ArrayList<>();
+
+            for (Pair<SlotReference, ItemStack> pair : inv) {
+                SlotReference ref = pair.getLeft();
+                ItemStack stack = pair.getRight();
+                if (GraveHelper.hasEnchantments(soulboundEnchantments, stack)) {
+                    soulbound.add(new Pair<>(ref, stack.copy()));
+                    pair.setRight(ItemStack.EMPTY);
+                }
+                if (GraveHelper.hasEnchantments(deleteEnchantments, stack)) {
+                    pair.setRight(ItemStack.EMPTY);
+                }
+            }
+
+            DeadPlayerData.addModdedSoulbound(player.getUuid(), soulbound);
+        }
+
+        return inv;
     }
 
     @Override
@@ -35,7 +61,6 @@ public class TrinketsCompat implements YigdApi {
 
                     if (type.equals(slotType)) {
                         slotReference.inventory().setStack(ref.index(), pair.getRight());
-                        return;
                     }
                 }));
             }

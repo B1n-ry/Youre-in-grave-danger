@@ -9,7 +9,7 @@ public interface YigdApi {
     // Object refers to a custom variable type that will store all your items from the inventory. MUST BE SAME TYPE EVERYWHERE OBJECT IS USED
     // With the Object as a custom type you can define location of said item with e.g. a map variable
 
-    Object getInventory(PlayerEntity player); // Get a custom return value containing inventory items
+    Object getInventory(PlayerEntity player, boolean... handleAsDeath); // Get a custom return value containing inventory items
 
     void setInventory(Object inventory, PlayerEntity player); // A method that places all items in a custom object to the player inventory
 

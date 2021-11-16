@@ -36,7 +36,7 @@ public abstract class LivingEntityMixin {
 
         List<Object> modInventories = new ArrayList<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
-            modInventories.add(yigdApi.getInventory(player));
+            modInventories.add(yigdApi.getInventory(player, true));
 
             yigdApi.dropAll(player);
         }
@@ -61,6 +61,11 @@ public abstract class LivingEntityMixin {
 
         int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
         if (!YigdConfig.getConfig().graveSettings.generateGraves || YigdConfig.getConfig().graveSettings.blacklistDimensions.contains(dimId)) {
+            for (int i = 0; i < Yigd.apiMods.size(); i++) {
+                YigdApi yigdApi = Yigd.apiMods.get(i);
+                items.addAll(yigdApi.toStackList(modInventories.get(i)));
+            }
+
             ItemScatterer.spawn(player.world, player.getBlockPos(), items);
             return;
         }

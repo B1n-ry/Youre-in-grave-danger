@@ -52,6 +52,14 @@ public abstract class PlayerManagerMixin {
             player.getInventory().setStack(i, mainInventory.get(i));
         }
 
+        List<Object> modSoulbounds = DeadPlayerData.getModdedSoulbound(userId);
+        for (int i = 0; i < Yigd.apiMods.size(); i++) {
+            YigdApi yigdApi = Yigd.apiMods.get(i);
+            Object modSoulbound = modSoulbounds.get(i);
+
+            yigdApi.setInventory(modSoulbound, player);
+        }
+
         if (soulboundItems.size() > 41) {
             int inventoryOffset = 41;
             for (YigdApi yigdApi : Yigd.apiMods) {
@@ -62,6 +70,7 @@ public abstract class PlayerManagerMixin {
             }
         }
 
+        DeadPlayerData.dropModdedSoulbound(userId);
         DeadPlayerData.dropSoulbound(userId);
 
         BlockPos deathPos = DeadPlayerData.getDeathPos(userId);

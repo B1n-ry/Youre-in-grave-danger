@@ -106,7 +106,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
-            if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && player.getGameProfile().equals(graveEntity.getGraveOwner())) {
+            if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && player.getGameProfile().equals(graveEntity.getGraveOwner())) || graveEntity.getGraveOwner() == null) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }

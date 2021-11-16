@@ -31,8 +31,9 @@ A minecraft mod which so far adds one single block. The grave, which will genera
     * Whitelist Blocks: List with blocks that are allowed to get overwritten with the grave support block
  * Render Grave Owner Skull: If graves should render the head of the grave owner (CLIENT SIDE)
  * Render Grave Owner Name: If grave should render the playername of the grave owner (CLIENT SIDE). Does not affect non player graves
+ * Adapt Grave Renderer: If true, the ground layer in the grave will turn into the block the grave is on top of. The side textures will still render the same amount of pixels as the actual block, so it will look squished
  * Tell Death Pos: If players should get a message with info about where their grave generated
 
-You can build the mod yourself, or download it from here:<br>
-CurseForge: https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger<br>
+You can build the mod yourself, or download it from here: <br>
+CurseForge: https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger <br>
 Modrinth: https://modrinth.com/mod/yigd/versions

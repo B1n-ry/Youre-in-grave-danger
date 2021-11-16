@@ -1,28 +1,46 @@
 package com.b1n4ry.yigd.compat;
 
 import com.b1n4ry.yigd.api.YigdApi;
+import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
+import com.b1n4ry.yigd.core.GraveHelper;
 import me.lizardofoz.inventorio.api.InventorioAPI;
 import me.lizardofoz.inventorio.player.PlayerInventoryAddon;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class InventorioCompat implements YigdApi {
     @Override
-    public Object getInventory(PlayerEntity player) {
-        List<ItemStack> inventories = new ArrayList<>();
+    public Object getInventory(PlayerEntity player, boolean... handleAsDeath) {
+        DefaultedList<ItemStack> inventories = DefaultedList.of();
 
         PlayerInventoryAddon inventoryAddon = InventorioAPI.getInventoryAddon(player);
+
+        List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
+        List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
+
         if (inventoryAddon == null) return inventories;
         for (int i = 0; i < inventoryAddon.size(); i++) {
             ItemStack stack = inventoryAddon.getStack(i);
 
             inventories.add(stack);
         }
+        if (handleAsDeath.length > 0 && handleAsDeath[0]) {
+            DefaultedList<ItemStack> soulboundItems = GraveHelper.getEnchantedItems(inventories, soulboundEnchantments);
+            inventories = GraveHelper.removeFromList(inventories, soulboundItems);
 
-        return inventories;
+            DefaultedList<ItemStack> deletedItems = GraveHelper.getEnchantedItems(inventories, deleteEnchantments);
+            inventories = GraveHelper.removeFromList(inventories, deletedItems);
+
+            DeadPlayerData.addModdedSoulbound(player.getUuid(), soulboundItems.stream().toList());
+        }
+
+        return inventories.stream().toList();
     }
 
     @Override

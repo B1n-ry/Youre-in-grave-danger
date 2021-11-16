@@ -8,6 +8,7 @@ import java.util.*;
 
 public class DeadPlayerData {
     private static final Map<UUID, DefaultedList<ItemStack>> soulboundInventories = new HashMap<>();
+    private static final Map<UUID, List<Object>> moddedSoulbound = new HashMap<>();
     private static final Map<UUID, DefaultedList<ItemStack>> deathPlayerInventories = new HashMap<>();
     private static final Map<UUID, List<Object>> moddedInventories = new HashMap<>();
     private static final Map<UUID, BlockPos> deathPoses = new HashMap<>();
@@ -28,6 +29,9 @@ public class DeadPlayerData {
     public static int getDeathXp(UUID userId) {
         return deathXp.get(userId);
     }
+    public static List<Object> getModdedSoulbound(UUID userId) {
+        return moddedSoulbound.get(userId);
+    }
     public static void setSoulboundInventories(UUID userId, DefaultedList<ItemStack> soulboundItems) {
         dropSoulbound(userId);
         soulboundInventories.put(userId, soulboundItems);
@@ -44,6 +48,12 @@ public class DeadPlayerData {
     public static void setDeathXp(UUID userId, int xp) {
         deathXp.put(userId, xp);
     }
+    public static void addModdedSoulbound(UUID userId, Object modInventory) {
+        if (!moddedSoulbound.containsKey(userId)) {
+            moddedSoulbound.put(userId, new ArrayList<>());
+        }
+        moddedSoulbound.get(userId).add(modInventory);
+    }
 
     public static void dropSoulbound(UUID userId) {
         soulboundInventories.remove(userId);
@@ -59,6 +69,9 @@ public class DeadPlayerData {
     }
     public static void dropDeathXp(UUID userId) {
         deathXp.remove(userId);
+    }
+    public static void dropModdedSoulbound(UUID userId) {
+        moddedSoulbound.remove(userId);
     }
 
     public static boolean hasStoredInventory(UUID userId) {
