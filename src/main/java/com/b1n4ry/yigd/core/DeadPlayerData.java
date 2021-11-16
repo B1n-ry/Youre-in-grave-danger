@@ -35,8 +35,8 @@ public class DeadPlayerData {
     public static void setDeathPlayerInventories(UUID userId, DefaultedList<ItemStack> inventoryItems) {
         deathPlayerInventories.put(userId, inventoryItems);
     }
-    public static void setModdedInventories(UUID userId, List<Object> moddedInvetory) {
-        moddedInventories.put(userId, moddedInvetory);
+    public static void setModdedInventories(UUID userId, List<Object> moddedInventory) {
+        moddedInventories.put(userId, moddedInventory);
     }
     public static void setDeathPos(UUID userId, BlockPos deathPos) {
         deathPoses.put(userId, deathPos);

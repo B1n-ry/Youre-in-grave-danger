@@ -1,10 +1,12 @@
 package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
+import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -16,13 +18,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Mixin(value = LivingEntity.class, priority = 9001)
 public abstract class LivingEntityMixin {
-    @Inject(method = "dropInventory", at = @At("HEAD"))
-    private void generateGrave(CallbackInfo ci) {
+    @Inject(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropInventory()V", shift = At.Shift.BEFORE))
+    private void generateGrave(DamageSource source, CallbackInfo ci) {
         if (!((LivingEntity)(Object)this instanceof PlayerEntity player)) return;
         PlayerInventory inventory = player.getInventory();
 
@@ -30,6 +33,13 @@ public abstract class LivingEntityMixin {
         items.addAll(inventory.main);
         items.addAll(inventory.armor);
         items.addAll(inventory.offHand);
+
+        List<Object> modInventories = new ArrayList<>();
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            modInventories.add(yigdApi.getInventory(player));
+
+            yigdApi.dropAll(player);
+        }
 
         List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
         DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
@@ -45,6 +55,7 @@ public abstract class LivingEntityMixin {
 
         DeadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
         DeadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
+        DeadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
 
         inventory.clear(); // Make sure no items are accidentally dropped, and will render gone from your inventory
 
@@ -54,6 +65,6 @@ public abstract class LivingEntityMixin {
             return;
         }
 
-        GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items);
+        GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items, modInventories);
     }
 }

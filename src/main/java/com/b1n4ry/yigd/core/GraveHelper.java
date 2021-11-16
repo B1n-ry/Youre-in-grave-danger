@@ -6,7 +6,6 @@ import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.LastResortConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -47,7 +46,7 @@ public class GraveHelper {
         return openSlots;
     }
 
-    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems) {
+    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories) {
         if (world.isClient()) return;
         if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < 0) return;
 
@@ -58,15 +57,6 @@ public class GraveHelper {
         } else if (blockPos.getY() > 255) {
             blockPos = new BlockPos(blockPos.getX(), 254, blockPos.getZ());
         }
-
-        List<Object> modInventories = new ArrayList<>();
-
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            modInventories.add(yigdApi.getInventory(player));
-
-            yigdApi.dropAll(player);
-        }
-        DeadPlayerData.setModdedInventories(player.getUuid(), modInventories);
 
         boolean foundViableGrave = false;
 
@@ -108,8 +98,7 @@ public class GraveHelper {
     }
 
     private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories) {
-        boolean waterlogged = false;
-        if (world.getFluidState(gravePos) == Fluids.WATER.getDefaultState()) waterlogged = true;
+        boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing()).with(Properties.WATERLOGGED, waterlogged);
         world.setBlockState(gravePos, graveBlock);
 

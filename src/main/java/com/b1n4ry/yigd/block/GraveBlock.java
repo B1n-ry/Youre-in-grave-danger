@@ -1,27 +1,20 @@
 package com.b1n4ry.yigd.block;
 
-import com.b1n4ry.yigd.Yigd;
-import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.DropTypeConfig;
 import com.b1n4ry.yigd.config.RetrievalTypeConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
@@ -41,10 +34,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProvider, Waterloggable {
     public static final DirectionProperty FACING;
@@ -145,17 +135,13 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         };
     }
 
-    public Direction getDirection(BlockState state) {
-        return state.get(FACING);
-    }
-
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext ct) {
         Direction dir = state.get(FACING);
         return getShape(dir);
     }
     @Override
-    public BlockState getPlacementState(ItemPlacementContext context) {;
+    public BlockState getPlacementState(ItemPlacementContext context) {
         BlockPos blockPos = context.getBlockPos();
         FluidState fluidState = context.getWorld().getFluidState(blockPos);
         return this.getDefaultState().with(Properties.HORIZONTAL_FACING, context.getPlayerFacing().getOpposite()).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
