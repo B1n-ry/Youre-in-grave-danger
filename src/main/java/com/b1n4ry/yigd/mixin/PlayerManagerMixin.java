@@ -31,6 +31,8 @@ public abstract class PlayerManagerMixin {
 
         if (player.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return player;
 
+        player.getInventory().clear();
+
         DefaultedList<ItemStack> soulboundItems = DeadPlayerData.getSoulboundInventory(userId);
 
         if (soulboundItems == null) return player;

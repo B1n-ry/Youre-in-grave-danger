@@ -16,6 +16,7 @@ import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
@@ -24,9 +25,9 @@ import java.util.UUID;
 
 @Mixin(value = LivingEntity.class, priority = 9001)
 public abstract class LivingEntityMixin {
-    @Inject(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropInventory()V", shift = At.Shift.BEFORE))
-    private void generateGrave(DamageSource source, CallbackInfo ci) {
-        if (!((LivingEntity)(Object)this instanceof PlayerEntity player)) return;
+    @Redirect(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropInventory()V"))
+    private void generateGrave(LivingEntity livingEntity) {
+        if (!(livingEntity instanceof PlayerEntity player)) return;
         PlayerInventory inventory = player.getInventory();
 
         DefaultedList<ItemStack> items = DefaultedList.of();
@@ -74,6 +75,14 @@ public abstract class LivingEntityMixin {
 
             ItemScatterer.spawn(player.world, player.getBlockPos(), items);
             return;
+        }
+
+        for (int i = 0; i < soulboundInventory.size(); i++) {
+            inventory.setStack(i, soulboundInventory.get(i));
+        }
+        List<Object> modSoulbound = DeadPlayerData.getModdedSoulbound(playerId);
+        for (int i = 0; i < modSoulbound.size(); i++) {
+            Yigd.apiMods.get(i).setInventory(modSoulbound.get(i), player);
         }
 
         GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items, modInventories);
