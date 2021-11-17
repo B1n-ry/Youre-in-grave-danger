@@ -34,6 +34,12 @@ public abstract class LivingEntityMixin {
         items.addAll(inventory.armor);
         items.addAll(inventory.offHand);
 
+        if (inventory.size() > 41) {
+            for (int i = 41; i < inventory.size(); i++) {
+                items.add(inventory.getStack(i));
+            }
+        }
+
         List<Object> modInventories = new ArrayList<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
             modInventories.add(yigdApi.getInventory(player, true));

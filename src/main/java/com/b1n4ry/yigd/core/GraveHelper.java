@@ -219,6 +219,12 @@ public class GraveHelper {
         retrievalInventory.addAll(inventory.armor);
         retrievalInventory.addAll(inventory.offHand);
 
+        if (inventory.size() > 41) {
+            for (int i = 41; i < inventory.size(); i++) {
+                retrievalInventory.add(inventory.getStack(i));
+            }
+        }
+
         List<ItemStack> asIStack = new ArrayList<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
             Object modInv = yigdApi.getInventory(player);
@@ -252,6 +258,12 @@ public class GraveHelper {
         }
 
         player.equipStack(EquipmentSlot.OFFHAND, items.get(40)); // Replace offhand from grave
+
+        if (items.size() > 41) { // Replaced possible extra slots from mods
+            for (int i = 41; i < items.size(); i++) {
+                inventory.setStack(i, items.get(i));
+            }
+        }
 
         for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
             inventory.setStack(i, mainInventory.get(i));
@@ -288,7 +300,15 @@ public class GraveHelper {
         if(offHandItem == ItemStack.EMPTY || offHandItem.getItem() == Items.AIR) player.equipStack(EquipmentSlot.OFFHAND, retrievalInventory.get(40));
         else extraItems.add(retrievalInventory.get(40));
 
-        if (retrievalInventory.size() > 41) extraItems.addAll(retrievalInventory.subList(41, retrievalInventory.size()));
+        if (retrievalInventory.size() > 41) {
+            for (int i = 41; i < retrievalInventory.size(); i++) {
+                if (inventory.getStack(i).isEmpty()) {
+                    inventory.setStack(i, retrievalInventory.get(i));
+                } else {
+                    extraItems.add(retrievalInventory.get(i));
+                }
+            }
+        }
 
         List<Integer> openSlots = getInventoryOpenSlots(inventory.main);
         List<Integer> stillOpen = new ArrayList<>();

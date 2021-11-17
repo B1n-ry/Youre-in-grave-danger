@@ -6,6 +6,7 @@ import com.b1n4ry.yigd.core.DeadPlayerData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -48,8 +49,9 @@ public abstract class PlayerManagerMixin {
 
         player.equipStack(EquipmentSlot.OFFHAND, soulboundItems.get(40));
 
+        PlayerInventory inventory = player.getInventory();
         for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
-            player.getInventory().setStack(i, mainInventory.get(i));
+            inventory.setStack(i, mainInventory.get(i));
         }
 
         List<Object> modSoulbounds = DeadPlayerData.getModdedSoulbound(userId);
@@ -61,12 +63,8 @@ public abstract class PlayerManagerMixin {
         }
 
         if (soulboundItems.size() > 41) {
-            int inventoryOffset = 41;
-            for (YigdApi yigdApi : Yigd.apiMods) {
-                int inventorySize = yigdApi.getInventorySize(player);
-
-                yigdApi.setInventory(soulboundItems.subList(inventoryOffset, inventoryOffset + inventorySize), player);
-                inventoryOffset += inventorySize;
+            for (int i = 41; i < soulboundItems.size(); i++) {
+                inventory.setStack(i, soulboundItems.get(i));
             }
         }
 
