@@ -12,6 +12,9 @@ public class YigdConfig implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     public GraveSettings graveSettings = new GraveSettings();
 
+    @ConfigEntry.Gui.CollapsibleObject
+    public UtilitySettings utilitySettings = new UtilitySettings();
+
     public static class GraveSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean generateGraves = true;
@@ -85,6 +88,10 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public List<String> whiteListBlocks = Arrays.asList("minecraft:air", "minecraft:water", "minecraft:lava");
+    }
+
+    public static class UtilitySettings {
+        public boolean soulboundEnchant = true;
     }
 
     public static YigdConfig getConfig() {

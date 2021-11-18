@@ -11,11 +11,6 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
 	maven { url "https://maven.shedaniel.me/" }
 	maven {
 		name = "TerraformersMC"
@@ -52,7 +47,7 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation 'com.github.Lizard-Of-Oz.Inventorio:inventorio-1.17-fabric:1.17-SNAPSHOT'
+	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.17-fabric:${project.inventorio_version}"
 }
 
 processResources {

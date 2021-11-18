@@ -46,6 +46,10 @@
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player\ntelling them where they died",
 
+  "text.autoconfig.yigd.options.utilitySettings.soulboundEnchant": "Soulbound Enchant",
+  "text.autoconfig.yigd.options.utilitySettings.soulboundEnchant.@Tooltip": "If the mod should use the\nbuilt in soulbound enchant\n[Require restart]",
+
   "block.yigd.grave": "Grave",
-  "enchantment.yigd.soulbound": "Soulbound"
+  "enchantment.yigd.soulbound": "Soulbound",
+  "enchantment.yigd.soulbound.desc": "Keep your items beyond the grave"
 }
