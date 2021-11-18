@@ -91,6 +91,7 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class UtilitySettings {
+        @ConfigEntry.Gui.Tooltip
         public boolean soulboundEnchant = true;
     }
 
