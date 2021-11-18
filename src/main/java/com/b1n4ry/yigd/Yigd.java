@@ -6,11 +6,13 @@ import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.compat.InventorioCompat;
 import com.b1n4ry.yigd.compat.TrinketsCompat;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.SoulboundEnchantment;
 import com.b1n4ry.yigd.core.YigdCommand;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -30,7 +32,7 @@ public class Yigd implements ModInitializer {
     public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
-
+    public static DeadPlayerData deadPlayerData = new DeadPlayerData();
 
     private static final Enchantment SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
 
@@ -54,5 +56,9 @@ public class Yigd implements ModInitializer {
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
         YigdCommand.registerCommands();
+
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            deadPlayerData = new DeadPlayerData();
+        });
     }
 }

@@ -31,9 +31,13 @@ public abstract class PlayerManagerMixin {
 
         if (player.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return player;
 
+        // In case some items are by mistake placed in the inventory that should not be there
         player.getInventory().clear();
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            yigdApi.dropAll(player);
+        }
 
-        DefaultedList<ItemStack> soulboundItems = DeadPlayerData.getSoulboundInventory(userId);
+        DefaultedList<ItemStack> soulboundItems = Yigd.deadPlayerData.getSoulboundInventory(userId);
 
         if (soulboundItems == null) return player;
         if (soulboundItems.size() == 0) return player;
@@ -56,7 +60,7 @@ public abstract class PlayerManagerMixin {
             inventory.setStack(i, mainInventory.get(i));
         }
 
-        List<Object> modSoulbounds = DeadPlayerData.getModdedSoulbound(userId);
+        List<Object> modSoulbounds = Yigd.deadPlayerData.getModdedSoulbound(userId);
         for (int i = 0; i < Yigd.apiMods.size(); i++) {
             YigdApi yigdApi = Yigd.apiMods.get(i);
             Object modSoulbound = modSoulbounds.get(i);
@@ -70,10 +74,10 @@ public abstract class PlayerManagerMixin {
             }
         }
 
-        DeadPlayerData.dropModdedSoulbound(userId);
-        DeadPlayerData.dropSoulbound(userId);
+        Yigd.deadPlayerData.dropModdedSoulbound(userId);
+        Yigd.deadPlayerData.dropSoulbound(userId);
 
-        BlockPos deathPos = DeadPlayerData.getDeathPos(userId);
+        BlockPos deathPos = Yigd.deadPlayerData.getDeathPos(userId);
         if (deathPos != null) {
             player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ()), false);
         }

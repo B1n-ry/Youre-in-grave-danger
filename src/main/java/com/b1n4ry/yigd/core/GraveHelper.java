@@ -156,7 +156,7 @@ public class GraveHelper {
                 moddedInvStacks.get(i).addAll(yigdApi.toStackList(modInventories.get(i)));
             }
 
-            DeadPlayerData.setDeathXp(player.getUuid(), xpPoints);
+            Yigd.deadPlayerData.setDeathXp(player.getUuid(), xpPoints);
 
             placedGraveEntity.setInventory(invItems);
             placedGraveEntity.setGraveOwner(playerProfile);
@@ -172,7 +172,7 @@ public class GraveHelper {
 
             System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
         }
-        if (YigdConfig.getConfig().graveSettings.tellDeathPos) DeadPlayerData.setDeathPos(player.getUuid(), player.getBlockPos()); // Backup of the coordinates where you died
+        if (YigdConfig.getConfig().graveSettings.tellDeathPos) Yigd.deadPlayerData.setDeathPos(player.getUuid(), player.getBlockPos()); // Backup of the coordinates where you died
     }
 
     public static DefaultedList<ItemStack> removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {
@@ -273,7 +273,7 @@ public class GraveHelper {
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
         UUID userId = player.getUuid();
-        List<Object> modInventories = DeadPlayerData.getModdedInventories(userId);
+        List<Object> modInventories = Yigd.deadPlayerData.getModdedInventories(userId);
         if (modInventories == null) modInventories = new ArrayList<>(0);
         for (int i = 0; i < modInventories.size(); i++) {
             YigdApi yigdApi = Yigd.apiMods.get(i);
@@ -340,9 +340,9 @@ public class GraveHelper {
         ItemScatterer.spawn(player.world, playerPos, dropItems);
         player.addExperience(xp);
 
-        DeadPlayerData.dropDeathXp(userId);
-        DeadPlayerData.dropDeathInventory(userId);
-        DeadPlayerData.dropModdedInventory(userId);
-        DeadPlayerData.dropDeathPos(userId);
+        Yigd.deadPlayerData.dropDeathXp(userId);
+        Yigd.deadPlayerData.dropDeathInventory(userId);
+        Yigd.deadPlayerData.dropModdedInventory(userId);
+        Yigd.deadPlayerData.dropDeathPos(userId);
     }
 }

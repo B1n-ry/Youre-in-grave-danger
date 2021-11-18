@@ -3,10 +3,8 @@ package com.b1n4ry.yigd.mixin;
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -15,9 +13,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,9 +56,9 @@ public abstract class LivingEntityMixin {
 
         UUID playerId = player.getUuid();
 
-        DeadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
-        DeadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
-        DeadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
+        Yigd.deadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
+        Yigd.deadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
+        Yigd.deadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
 
         inventory.clear(); // Make sure no items are accidentally dropped, and will render gone from your inventory
 
@@ -80,7 +76,7 @@ public abstract class LivingEntityMixin {
         for (int i = 0; i < soulboundInventory.size(); i++) {
             inventory.setStack(i, soulboundInventory.get(i));
         }
-        List<Object> modSoulbound = DeadPlayerData.getModdedSoulbound(playerId);
+        List<Object> modSoulbound = Yigd.deadPlayerData.getModdedSoulbound(playerId);
         for (int i = 0; i < modSoulbound.size(); i++) {
             Yigd.apiMods.get(i).setInventory(modSoulbound.get(i), player);
         }

@@ -1,5 +1,6 @@
 package com.b1n4ry.yigd.core;
 
+import com.b1n4ry.yigd.Yigd;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -35,14 +36,15 @@ public class YigdCommand {
     private static int retrieveGrave(PlayerEntity player) {
         UUID userId = player.getUuid();
 
-        if (!DeadPlayerData.hasStoredInventory(userId)) {
+        if (!Yigd.deadPlayerData.hasStoredInventory(userId)) {
             player.sendMessage(Text.of("Could not find grave to fetch"), true);
             return -1;
         }
 
-        BlockPos gravePos = DeadPlayerData.getDeathPos(userId);
-        DefaultedList<ItemStack> items = DeadPlayerData.getDeathPlayerInventory(userId);
-        int xp = DeadPlayerData.getDeathXp(userId);
+        BlockPos gravePos = Yigd.deadPlayerData.getDeathPos(userId);
+        DefaultedList<ItemStack> items = Yigd.deadPlayerData.getDeathPlayerInventory(userId);
+
+        int xp = Yigd.deadPlayerData.getDeathXp(userId);
 
         GraveHelper.RetrieveItems(player, items, xp);
 

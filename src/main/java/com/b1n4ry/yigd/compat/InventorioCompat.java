@@ -1,8 +1,8 @@
 package com.b1n4ry.yigd.compat;
 
+import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import me.lizardofoz.inventorio.api.InventorioAPI;
 import me.lizardofoz.inventorio.player.PlayerInventoryAddon;
@@ -37,7 +37,7 @@ public class InventorioCompat implements YigdApi {
             DefaultedList<ItemStack> deletedItems = GraveHelper.getEnchantedItems(inventories, deleteEnchantments);
             inventories = GraveHelper.removeFromList(inventories, deletedItems);
 
-            DeadPlayerData.addModdedSoulbound(player.getUuid(), soulboundItems.stream().toList());
+            Yigd.deadPlayerData.addModdedSoulbound(player.getUuid(), soulboundItems.stream().toList());
         }
 
         return inventories.stream().toList();

@@ -1,8 +1,8 @@
 package com.b1n4ry.yigd.compat;
 
+import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import dev.emi.trinkets.api.*;
 import net.minecraft.entity.player.PlayerEntity;
@@ -39,7 +39,7 @@ public class TrinketsCompat implements YigdApi {
                 }
             }
 
-            DeadPlayerData.addModdedSoulbound(player.getUuid(), soulbound);
+            Yigd.deadPlayerData.addModdedSoulbound(player.getUuid(), soulbound);
         }
 
         return inv;
