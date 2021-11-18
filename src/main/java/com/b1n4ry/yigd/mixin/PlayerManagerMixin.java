@@ -2,7 +2,6 @@ package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
-import com.b1n4ry.yigd.core.DeadPlayerData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
@@ -29,7 +28,7 @@ public abstract class PlayerManagerMixin {
 
         UUID userId = player.getUuid();
 
-        if (player.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return player;
+        if (player.getWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return player;
 
         // In case some items are by mistake placed in the inventory that should not be there
         player.getInventory().clear();

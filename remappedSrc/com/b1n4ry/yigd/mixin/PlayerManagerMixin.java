@@ -2,36 +2,45 @@ package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
-import com.b1n4ry.yigd.core.PlayerEntityExt;
+import com.b1n4ry.yigd.core.DeadPlayerData;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mixin(PlayerManager.class)
 public abstract class PlayerManagerMixin {
+    @ModifyArg(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;isSpaceEmpty(Lnet/minecraft/entity/Entity;)Z"))
+    private Entity equipSoulboundItems(Entity entity) {
+        ServerPlayerEntity player = (ServerPlayerEntity) entity;
 
-    // Will make this work in the future with a custom soulbound enchantment
-    @ModifyArgs(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;setGameMode(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/server/world/ServerWorld;)V"))
-    private void equipSoulboundItems(Args args) {
-        ServerPlayerEntity newPlayer = args.get(0);
-        ServerPlayerEntity oldPlayer = args.get(1);
+        UUID userId = player.getUuid();
 
-        if (oldPlayer.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;
+        if (player.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return player;
 
-        DefaultedList<ItemStack> soulboundItems = ((PlayerEntityExt)oldPlayer).getSoulboundInventory();
+        // In case some items are by mistake placed in the inventory that should not be there
+        player.getInventory().clear();
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            yigdApi.dropAll(player);
+        }
 
-        if (soulboundItems == null) return;
-        if (soulboundItems.size() == 0) return;
+        DefaultedList<ItemStack> soulboundItems = Yigd.deadPlayerData.getSoulboundInventory(userId);
+
+        if (soulboundItems == null) return player;
+        if (soulboundItems.size() == 0) return player;
 
         List<ItemStack> armorInventory = soulboundItems.subList(36, 40);
         List<ItemStack> mainInventory = soulboundItems.subList(0, 36);
@@ -41,25 +50,38 @@ public abstract class PlayerManagerMixin {
 
             if (itemStack.isEmpty()) continue;
 
-            newPlayer.equipStack(equipmentSlot, itemStack);
+            player.equipStack(equipmentSlot, itemStack);
         }
 
-        newPlayer.equipStack(EquipmentSlot.OFFHAND, soulboundItems.get(40));
+        player.equipStack(EquipmentSlot.OFFHAND, soulboundItems.get(40));
 
+        PlayerInventory inventory = player.getInventory();
         for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
-            newPlayer.equip(i, mainInventory.get(i));
+            inventory.setStack(i, mainInventory.get(i));
+        }
+
+        List<Object> modSoulbounds = Yigd.deadPlayerData.getModdedSoulbound(userId);
+        for (int i = 0; i < Yigd.apiMods.size(); i++) {
+            YigdApi yigdApi = Yigd.apiMods.get(i);
+            Object modSoulbound = modSoulbounds.get(i);
+
+            yigdApi.setInventory(modSoulbound, player);
         }
 
         if (soulboundItems.size() > 41) {
-            int inventoryOffset = 41;
-            for (YigdApi yigdApi : Yigd.apiMods) {
-                int inventorySize = yigdApi.getInventorySize(newPlayer);
-
-                yigdApi.setInventory(soulboundItems.subList(inventoryOffset, inventoryOffset + inventorySize), newPlayer);
-                inventoryOffset += inventorySize;
+            for (int i = 41; i < soulboundItems.size(); i++) {
+                inventory.setStack(i, soulboundItems.get(i));
             }
         }
 
-        soulboundItems.clear();
+        Yigd.deadPlayerData.dropModdedSoulbound(userId);
+        Yigd.deadPlayerData.dropSoulbound(userId);
+
+        BlockPos deathPos = Yigd.deadPlayerData.getDeathPos(userId);
+        if (deathPos != null) {
+            player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ()), false);
+        }
+
+        return player;
     }
 }

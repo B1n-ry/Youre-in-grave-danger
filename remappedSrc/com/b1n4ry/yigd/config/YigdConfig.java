@@ -25,7 +25,7 @@ public class YigdConfig implements ConfigData {
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> deleteEnchantments = new ArrayList<>();
+        public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
 
         @ConfigEntry.Gui.Tooltip
         public List<String> soulboundEnchantments = Collections.singletonList("yigd:soulbound");
@@ -38,6 +38,10 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean graveInVoid = true;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 1, max = 255)
+        public int graveSpawnHeight = 2;
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
@@ -56,6 +60,11 @@ public class YigdConfig implements ConfigData {
 
         public boolean renderGraveSkull = true;
         public boolean renderGraveOwner = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean adaptRenderer = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean tellDeathPos = false;
     }
 
     public static class BlockUnderGrave {

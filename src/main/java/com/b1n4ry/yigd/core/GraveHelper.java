@@ -168,7 +168,7 @@ public class GraveHelper {
             player.experienceProgress = 0;
             player.experienceLevel = 0;
 
-            placedGraveEntity.sync();
+//            placedGraveEntity.sync();
 
             System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
         }
