@@ -3,8 +3,8 @@ package com.b1n4ry.yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.GraveBlock;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
-import com.b1n4ry.yigd.compat.InventorioCompat;
-import com.b1n4ry.yigd.compat.TrinketsCompat;
+//import com.b1n4ry.yigd.compat.InventorioCompat;
+//import com.b1n4ry.yigd.compat.TrinketsCompat;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.SoulboundEnchantment;
@@ -34,7 +34,7 @@ public class Yigd implements ModInitializer {
 
     public static DeadPlayerData deadPlayerData = new DeadPlayerData();
 
-    private static final Enchantment SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
+    private static Enchantment SOULBOUND;
 
     public static final ArrayList<YigdApi> apiMods = new ArrayList<>();
 
@@ -47,12 +47,15 @@ public class Yigd implements ModInitializer {
 
         GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
 
-        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
-            apiMods.add(new TrinketsCompat());
+        if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
+            SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
-        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
-            apiMods.add(new InventorioCompat());
-        }
+//        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+//            apiMods.add(new TrinketsCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
+//            apiMods.add(new InventorioCompat());
+//        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
         YigdCommand.registerCommands();

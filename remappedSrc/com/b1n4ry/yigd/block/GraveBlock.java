@@ -32,6 +32,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.tick.OrderedTick;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -150,7 +151,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
         if (state.get(WATERLOGGED)) {
-            world.getFluidTickScheduler().schedule(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+            world.getFluidTickScheduler().scheduleTick(OrderedTick.create(Fluids.WATER, pos));
         }
 
         return direction.getAxis().isHorizontal() ? state : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
@@ -175,7 +176,6 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
         if (graveEntity.getGraveOwner() == null) return false;
-        graveEntity.sync();
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 

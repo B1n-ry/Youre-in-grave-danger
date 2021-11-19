@@ -18,7 +18,6 @@ import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.render.entity.model.EntityModelLoader;
 import net.minecraft.client.render.entity.model.SkullEntityModel;
-import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
@@ -32,12 +31,10 @@ import java.util.Random;
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private final TextRenderer textRenderer;
     private final EntityModelLoader renderLayer;
-    private final TextureManager textureManager;
 
     public GraveBlockEntityRenderer(Context ctx) {
         this.textRenderer = ctx.getTextRenderer();
         this.renderLayer = ctx.getLayerRenderDispatcher();
-        this.textureManager = MinecraftClient.getInstance().getTextureManager();
     }
 
     public SkullBlockEntityModel getSkull() {
@@ -115,7 +112,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 matrices.scale(scale, scale, scale);
                 matrices.translate(-width / 2.0, -4.5, 0);
 
-                this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, true, matrices.peek().getModel(), vertexConsumers, false, 0, light);
+                this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, true, matrices.peek().getPositionMatrix(), vertexConsumers, false, 0, light);
 
                 matrices.pop();
             }
@@ -125,7 +122,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         BlockPos under = pos.down();
         World world = blockEntity.getWorld();
 
-        BlockState blockUnder = world.getBlockState(under);
+        BlockState blockUnder = null;
+        if (world != null) blockUnder = world.getBlockState(under);
         if (YigdConfig.getConfig().graveSettings.adaptRenderer && blockUnder != null) {
 
             matrices.push();

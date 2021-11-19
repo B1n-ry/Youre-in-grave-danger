@@ -2,7 +2,6 @@ package com.b1n4ry.yigd.block.entity;
 
 import com.b1n4ry.yigd.Yigd;
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventories;
@@ -11,13 +10,14 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
+public class GraveBlockEntity extends BlockEntity {
     private GameProfile graveOwner;
     private int storedXp;
     private String customName;
@@ -37,7 +37,7 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag) {
+    public void writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
 
         tag.putInt("StoredXp", storedXp);
@@ -57,7 +57,7 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
             tag.put("ModdedInventoryItems", modList);
         }
 
-        return tag;
+        markDirty();
     }
 
     @Override
@@ -88,16 +88,12 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     }
 
     @Override
-    public void fromClientTag(NbtCompound tag) {
-        if(tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
-        if(tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+    public BlockEntityUpdateS2CPacket toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
     }
-
     @Override
-    public NbtCompound toClientTag(NbtCompound tag) {
-        if (graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
-        if (customName != null) tag.putString("CustomName", customName);
-        return tag;
+    public NbtCompound toInitialChunkDataNbt() {
+        return this.createNbt();
     }
 
     public void setGraveOwner(GameProfile owner) {
