@@ -15,7 +15,7 @@ public class TrinketsCompat implements YigdApi {
     @Override
     public Object getInventory(PlayerEntity player, boolean... handleAsDeath) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
-        if (!optional.isPresent()) return null;
+        if (optional.isEmpty()) return null;
 
         TrinketComponent trinkets = optional.get();
 
@@ -71,7 +71,7 @@ public class TrinketsCompat implements YigdApi {
     @Override
     public int getInventorySize(PlayerEntity player) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
-        if (!optional.isPresent()) return 0;
+        if (optional.isEmpty()) return 0;
 
         int size = 0;
 

@@ -125,7 +125,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         BlockPos under = pos.down();
         World world = blockEntity.getWorld();
 
-        BlockState blockUnder = world.getBlockState(under);
+        BlockState blockUnder = null;
+        if (world != null) blockUnder = world.getBlockState(under);
         if (YigdConfig.getConfig().graveSettings.adaptRenderer && blockUnder != null) {
 
             matrices.push();

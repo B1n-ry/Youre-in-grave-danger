@@ -2,7 +2,6 @@ package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
-import com.b1n4ry.yigd.core.DeadPlayerData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
