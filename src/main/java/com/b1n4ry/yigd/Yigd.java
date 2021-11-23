@@ -13,6 +13,7 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -26,6 +27,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Yigd implements ModInitializer {
 
@@ -37,6 +39,7 @@ public class Yigd implements ModInitializer {
     private static Enchantment SOULBOUND;
 
     public static final ArrayList<YigdApi> apiMods = new ArrayList<>();
+    public static final List<Runnable> NEXT_TICK = new ArrayList<>();
 
     @Override
     public void onInitialize() {
@@ -62,6 +65,13 @@ public class Yigd implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             deadPlayerData = new DeadPlayerData();
+        });
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            List<Runnable> tickFunctions = new ArrayList<>(NEXT_TICK);
+            NEXT_TICK.clear();
+            for (Runnable function : tickFunctions) {
+                function.run();
+            }
         });
     }
 }
