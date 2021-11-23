@@ -12,6 +12,7 @@ import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
@@ -21,9 +22,14 @@ import java.util.UUID;
 
 @Mixin(value = LivingEntity.class, priority = 9001)
 public abstract class LivingEntityMixin {
+    @Shadow protected abstract void dropInventory();
+
     @Redirect(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropInventory()V"))
     private void generateGrave(LivingEntity livingEntity) {
-        if (!(livingEntity instanceof PlayerEntity player)) return;
+        if (!(livingEntity instanceof PlayerEntity player)) {
+            this.dropInventory();
+            return;
+        }
         PlayerInventory inventory = player.getInventory();
 
         DefaultedList<ItemStack> items = DefaultedList.of();
@@ -83,6 +89,7 @@ public abstract class LivingEntityMixin {
             }
         }
 
-        GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items, modInventories);
+        final DefaultedList<ItemStack> graveItems = items; // Necessary for following line to work
+        Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories));
     }
 }

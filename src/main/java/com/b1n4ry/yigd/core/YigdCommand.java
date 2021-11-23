@@ -2,6 +2,7 @@ package com.b1n4ry.yigd.core;
 
 import com.b1n4ry.yigd.Yigd;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.minecraft.block.Blocks;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -48,7 +49,7 @@ public class YigdCommand {
 
         GraveHelper.RetrieveItems(player, items, xp);
 
-        player.world.removeBlock(gravePos, false);
+        if (!player.world.getBlockState(gravePos).isAir() && gravePos != null) player.world.removeBlock(gravePos, false);
         player.sendMessage(Text.of("Retrieved grave remotely successfully"), true);
 
         return 1;
