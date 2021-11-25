@@ -107,7 +107,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
-            if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && player.getGameProfile().equals(graveEntity.getGraveOwner())) || graveEntity.getGraveOwner() == null) {
+            if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner())) || graveEntity.getGraveOwner() == null || YigdConfig.getConfig().graveSettings.graveLooting)) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }
@@ -185,7 +185,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         if (graveOwner == null) return false;
         if (items == null) return false;
 
-        if (!player.getGameProfile().getId().equals(graveOwner.getId())) return false;
+        if (!player.getGameProfile().getId().equals(graveOwner.getId()) && !YigdConfig.getConfig().graveSettings.graveLooting) return false;
 
 
         if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {

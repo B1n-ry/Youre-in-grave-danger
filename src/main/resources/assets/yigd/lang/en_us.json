@@ -7,6 +7,8 @@
   "text.autoconfig.yigd.option.graveSettings.retrievalType.@Tooltip": "How players can retrieve their items from graves\nON_USE: Right click the grave\nON_SNEAK: Sneak on top of th grave\nON_STAND: Step on top of the grave\nON_BREAK: Break the grave",
   "text.autoconfig.yigd.option.graveSettings.dropType": "Drop Type",
   "text.autoconfig.yigd.option.graveSettings.dropType.@Tooltip": "How items should be retrieved from graves\n\nIN_INVENTORY: Items go straight into your inventory,\nin the same slots as when you died\nON_GROUND: All items land on the ground as\nif you broke a chest",
+  "text.autoconfig.yigd.option.graveSettings.graveLooting": "Grave Looting",
+  "text.autoconfig.yigd.option.graveSettings.graveLooting.@Tooltip": "If set to true, other\nplayers will be able to loot\nyour grave",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments": "Remove Enchantments",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments.@Tooltip": "Removes items with this enchantment from\nthe grave. Gives Curse of Vanishing\neffect. Useful if soulbound items are\nignored and ends up in both\nyour inventory and your grave\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments": "Soulbound Enchantments",

@@ -28,6 +28,9 @@ public class YigdConfig implements ConfigData {
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean graveLooting = false;
+
+        @ConfigEntry.Gui.Tooltip
         public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
 
         @ConfigEntry.Gui.Tooltip
