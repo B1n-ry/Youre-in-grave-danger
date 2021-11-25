@@ -11,6 +11,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -19,6 +20,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
@@ -46,7 +48,7 @@ public class GraveHelper {
         return openSlots;
     }
 
-    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories) {
+    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints) {
         if (world.isClient()) return;
         if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < 0) return;
 
@@ -62,7 +64,7 @@ public class GraveHelper {
 
         for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
             if (gravePlaceableAt(world, gravePos)) {
-                placeGraveBlock(player, world, gravePos, invItems, modInventories);
+                placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints);
                 foundViableGrave = true;
                 break;
             }
@@ -71,12 +73,13 @@ public class GraveHelper {
         // If there is nowhere to place the grave for some reason the items should not disappear
         if (!foundViableGrave) { // No grave was placed
             if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                placeGraveBlock(player, world, blockPos, invItems, modInventories);
+                placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints);
             } else {
                 for (YigdApi yigdApi : Yigd.apiMods) {
                     invItems.addAll(yigdApi.toStackList(player));
                 }
                 ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
+                ExperienceOrbEntity.spawn((ServerWorld) world, new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()), xpPoints);
             }
         }
     }
@@ -97,7 +100,7 @@ public class GraveHelper {
         return yPos >= 0 && yPos <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
     }
 
-    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories) {
+    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints) {
         boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing()).with(Properties.WATERLOGGED, waterlogged);
         world.setBlockState(gravePos, graveBlock);
@@ -139,16 +142,6 @@ public class GraveHelper {
 
             GameProfile playerProfile = player.getGameProfile();
 
-            int xpPoints;
-            YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
-            if (graveSettings.defaultXpDrop) {
-                xpPoints = Math.min(7 * player.experienceLevel, 100);
-            } else {
-                int currentLevel = player.experienceLevel;
-                int totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
-                xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
-            }
-
             List<List<ItemStack>> moddedInvStacks = new ArrayList<>();
             for (int i = 0; i < Yigd.apiMods.size(); i++) {
                 YigdApi yigdApi = Yigd.apiMods.get(i);
@@ -156,23 +149,17 @@ public class GraveHelper {
                 moddedInvStacks.get(i).addAll(yigdApi.toStackList(modInventories.get(i)));
             }
 
-            Yigd.deadPlayerData.setDeathXp(player.getUuid(), xpPoints);
-
             placedGraveEntity.setInventory(invItems);
             placedGraveEntity.setGraveOwner(playerProfile);
             placedGraveEntity.setCustomName(playerProfile.getName());
             placedGraveEntity.setStoredXp(xpPoints);
             placedGraveEntity.setModdedInventories(moddedInvStacks);
 
-            player.totalExperience = 0;
-            player.experienceProgress = 0;
-            player.experienceLevel = 0;
-
             placedGraveEntity.sync();
 
             System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
         }
-        if (YigdConfig.getConfig().graveSettings.tellDeathPos) Yigd.deadPlayerData.setDeathPos(player.getUuid(), player.getBlockPos()); // Backup of the coordinates where you died
+        if (YigdConfig.getConfig().graveSettings.tellDeathPos) Yigd.deadPlayerData.setDeathPos(player.getUuid(), gravePos); // Backup of the coordinates where you died
     }
 
     public static DefaultedList<ItemStack> removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {

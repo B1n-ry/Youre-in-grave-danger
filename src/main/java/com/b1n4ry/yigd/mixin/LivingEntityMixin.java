@@ -4,12 +4,15 @@ import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.GraveHelper;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -62,6 +65,21 @@ public abstract class LivingEntityMixin {
 
         UUID playerId = player.getUuid();
 
+        int xpPoints;
+        YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
+        if (graveSettings.defaultXpDrop) {
+            xpPoints = Math.min(7 * player.experienceLevel, 100);
+        } else {
+            int currentLevel = player.experienceLevel;
+            int totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
+            xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
+        }
+
+        player.totalExperience = 0;
+        player.experienceProgress = 0;
+        player.experienceLevel = 0;
+
+        Yigd.deadPlayerData.setDeathXp(playerId, xpPoints);
         Yigd.deadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
         Yigd.deadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
         Yigd.deadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
@@ -76,6 +94,7 @@ public abstract class LivingEntityMixin {
             }
 
             ItemScatterer.spawn(player.world, player.getBlockPos(), items);
+            ExperienceOrbEntity.spawn((ServerWorld) player.world, new Vec3d(player.getX(), player.getY(), player.getZ()), xpPoints);
             return;
         }
 
@@ -89,7 +108,9 @@ public abstract class LivingEntityMixin {
             }
         }
 
-        final DefaultedList<ItemStack> graveItems = items; // Necessary for following line to work
-        Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories));
+        // All variables passed into placeGrave method has to be final to be executed on the end of the tick
+        final int xp = xpPoints;
+        final DefaultedList<ItemStack> graveItems = items;
+        Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories, xp));
     }
 }

@@ -2,33 +2,33 @@ package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 import java.util.UUID;
 
-@Mixin(PlayerManager.class)
-public abstract class PlayerManagerMixin {
-    @ModifyArg(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;isSpaceEmpty(Lnet/minecraft/entity/Entity;)Z"))
-    private Entity equipSoulboundItems(Entity entity) {
-        ServerPlayerEntity player = (ServerPlayerEntity) entity;
+@Mixin(ServerPlayerEntity.class)
+public class ServerPlayerEntityMixin {
+    @Inject(method = "copyFrom", at = @At(value = "HEAD"))
+    private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
+        if (alive) return;
+
+        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 
         UUID userId = player.getUuid();
 
-        if (player.getServerWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return player;
+        if (player.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;
 
         // In case some items are by mistake placed in the inventory that should not be there
         player.getInventory().clear();
@@ -38,8 +38,8 @@ public abstract class PlayerManagerMixin {
 
         DefaultedList<ItemStack> soulboundItems = Yigd.deadPlayerData.getSoulboundInventory(userId);
 
-        if (soulboundItems == null) return player;
-        if (soulboundItems.size() == 0) return player;
+        if (soulboundItems == null) return;
+        if (soulboundItems.size() == 0) return;
 
         List<ItemStack> armorInventory = soulboundItems.subList(36, 40);
         List<ItemStack> mainInventory = soulboundItems.subList(0, 36);
@@ -80,7 +80,5 @@ public abstract class PlayerManagerMixin {
         if (deathPos != null) {
             player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ()), false);
         }
-
-        return player;
     }
 }
