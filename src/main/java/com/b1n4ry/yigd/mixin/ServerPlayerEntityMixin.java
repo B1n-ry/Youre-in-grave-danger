@@ -36,40 +36,43 @@ public class ServerPlayerEntityMixin {
             yigdApi.dropAll(player);
         }
 
+        List<Object> modSoulbounds = Yigd.deadPlayerData.getModdedSoulbound(userId);
         DefaultedList<ItemStack> soulboundItems = Yigd.deadPlayerData.getSoulboundInventory(userId);
 
-        if (soulboundItems == null) return;
-        if (soulboundItems.size() == 0) return;
+        if (soulboundItems == null && modSoulbounds != null) return;
 
-        List<ItemStack> armorInventory = soulboundItems.subList(36, 40);
-        List<ItemStack> mainInventory = soulboundItems.subList(0, 36);
+        if (soulboundItems != null && soulboundItems.size() > 0) {
+            List<ItemStack> armorInventory = soulboundItems.subList(36, 40);
+            List<ItemStack> mainInventory = soulboundItems.subList(0, 36);
 
-        for (ItemStack itemStack : armorInventory) {
-            EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(itemStack); // return EquipmentSlot
+            for (ItemStack itemStack : armorInventory) {
+                EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(itemStack); // return EquipmentSlot
 
-            if (itemStack.isEmpty()) continue;
+                if (itemStack.isEmpty()) continue;
 
-            player.equipStack(equipmentSlot, itemStack);
+                player.equipStack(equipmentSlot, itemStack);
+            }
+
+            player.equipStack(EquipmentSlot.OFFHAND, soulboundItems.get(40));
+
+            PlayerInventory inventory = player.getInventory();
+            for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
+                inventory.setStack(i, mainInventory.get(i));
+            }
+
+            if (soulboundItems.size() > 41) {
+                for (int i = 41; i < soulboundItems.size(); i++) {
+                    inventory.setStack(i, soulboundItems.get(i));
+                }
+            }
         }
 
-        player.equipStack(EquipmentSlot.OFFHAND, soulboundItems.get(40));
+        if (modSoulbounds != null && modSoulbounds.size() > 0) {
+            for (int i = 0; i < Yigd.apiMods.size(); i++) {
+                YigdApi yigdApi = Yigd.apiMods.get(i);
+                Object modSoulbound = modSoulbounds.get(i);
 
-        PlayerInventory inventory = player.getInventory();
-        for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
-            inventory.setStack(i, mainInventory.get(i));
-        }
-
-        List<Object> modSoulbounds = Yigd.deadPlayerData.getModdedSoulbound(userId);
-        for (int i = 0; i < Yigd.apiMods.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            Object modSoulbound = modSoulbounds.get(i);
-
-            yigdApi.setInventory(modSoulbound, player);
-        }
-
-        if (soulboundItems.size() > 41) {
-            for (int i = 41; i < soulboundItems.size(); i++) {
-                inventory.setStack(i, soulboundItems.get(i));
+                yigdApi.setInventory(modSoulbound, player);
             }
         }
 

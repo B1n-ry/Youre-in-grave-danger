@@ -50,14 +50,16 @@ public class GraveHelper {
 
     public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints) {
         if (world.isClient()) return;
-        if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < 0) return;
+        int bottomY = world.getBottomY();
+        int topY = world.getTopY();
+        if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < bottomY + 1) return;
 
         BlockPos blockPos = new BlockPos(pos.x, pos.y - 1, pos.z);
 
-        if (blockPos.getY() < 0) {
+        if (blockPos.getY() < bottomY + 1) {
             blockPos = new BlockPos(blockPos.getX(), YigdConfig.getConfig().graveSettings.graveSpawnHeight, blockPos.getZ());
-        } else if (blockPos.getY() > 255) {
-            blockPos = new BlockPos(blockPos.getX(), 254, blockPos.getZ());
+        } else if (blockPos.getY() > topY - 1) {
+            blockPos = new BlockPos(blockPos.getX(), topY - 2, blockPos.getZ());
         }
 
         boolean foundViableGrave = false;
@@ -97,7 +99,7 @@ public class GraveHelper {
         if (blacklistBlockId.contains(id)) return false;
 
         int yPos = blockPos.getY();
-        return yPos >= 0 && yPos <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
+        return yPos > world.getBottomY() && yPos < world.getTopY(); // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
     }
 
     private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints) {
@@ -110,7 +112,7 @@ public class GraveHelper {
         YigdConfig.BlockUnderGrave blockUnderConfig = YigdConfig.getConfig().graveSettings.blockUnderGrave;
         String replaceUnderBlock;
 
-        if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= 1) { // If block should generate under, and if there is a "block" under that can be replaced
+        if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= world.getBottomY() + 1) { // If block should generate under, and if there is a "block" under that can be replaced
             Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
             String blockId = Registry.BLOCK.getId(blockUnder).toString();
 
