@@ -48,7 +48,7 @@ public class GraveHelper {
         return openSlots;
     }
 
-    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints) {
+    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
         if (world.isClient()) return;
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
@@ -66,7 +66,7 @@ public class GraveHelper {
 
         for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
             if (gravePlaceableAt(world, gravePos)) {
-                placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints);
+                placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
                 foundViableGrave = true;
                 break;
             }
@@ -75,7 +75,7 @@ public class GraveHelper {
         // If there is nowhere to place the grave for some reason the items should not disappear
         if (!foundViableGrave) { // No grave was placed
             if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints);
+                placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, killerId);
             } else {
                 for (YigdApi yigdApi : Yigd.apiMods) {
                     invItems.addAll(yigdApi.toStackList(player));
@@ -102,7 +102,7 @@ public class GraveHelper {
         return yPos > world.getBottomY() + 1 && yPos < world.getTopY() - 1; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space worldBottom < y < worldTop
     }
 
-    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints) {
+    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
         boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing()).with(Properties.WATERLOGGED, waterlogged);
         world.setBlockState(gravePos, graveBlock);
@@ -156,6 +156,7 @@ public class GraveHelper {
             placedGraveEntity.setCustomName(playerProfile.getName());
             placedGraveEntity.setStoredXp(xpPoints);
             placedGraveEntity.setModdedInventories(moddedInvStacks);
+            placedGraveEntity.setKiller(killerId);
 
             System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
         }

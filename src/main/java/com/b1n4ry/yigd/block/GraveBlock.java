@@ -20,6 +20,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -35,6 +36,7 @@ import net.minecraft.world.WorldAccess;
 import net.minecraft.world.tick.OrderedTick;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProvider, Waterloggable {
@@ -107,7 +109,10 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
-            if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || YigdConfig.getConfig().graveSettings.graveLooting)) || graveEntity.getGraveOwner() == null) {
+            YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
+            boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
+            boolean timePassed = graveEntity.getAge() > graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+            if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || (canRobGrave && timePassed))) || graveEntity.getGraveOwner() == null) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }
@@ -185,7 +190,31 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         if (graveOwner == null) return false;
         if (items == null) return false;
 
-        if (!player.getGameProfile().getId().equals(graveOwner.getId()) && !YigdConfig.getConfig().graveSettings.graveLooting) return false;
+        YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
+        boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
+        double age = graveEntity.getAge();
+        int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+
+        boolean timePassed = age > requiredAge;
+        if (!player.getGameProfile().getId().equals(graveOwner.getId()) && !(canRobGrave && timePassed)) {
+            if (canRobGrave) {
+                List<String> timeStrings = new ArrayList<>();
+                double timeRemaining = ((double) requiredAge - age) / 20;
+                if (timeRemaining >= 3600d) {
+                    timeStrings.add((int) (timeRemaining / 36000) + " hours");
+                    timeRemaining %= 3600d;
+                }
+                if (timeRemaining >= 60) {
+                    timeStrings.add((int) (timeRemaining / 60) + " minutes");
+                    timeRemaining %= 60;
+                }
+                timeStrings.add((int) timeRemaining + " seconds");
+                player.sendMessage(Text.of("You can retrieve the items from this grave in: " + String.join(", ", timeStrings)), true);
+            } else {
+                player.sendMessage(Text.of("You are not allowed to retrieve these items"), true);
+            }
+            return false;
+        }
 
 
         if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {

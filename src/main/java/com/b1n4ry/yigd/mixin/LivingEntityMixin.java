@@ -4,8 +4,10 @@ import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.GraveHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -28,7 +30,7 @@ public abstract class LivingEntityMixin {
     @Shadow protected abstract void dropInventory();
 
     @Redirect(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropInventory()V"))
-    private void generateGrave(LivingEntity livingEntity) {
+    private void generateGrave(LivingEntity livingEntity, DamageSource source) {
         if (!(livingEntity instanceof PlayerEntity player)) {
             this.dropInventory();
             return;
@@ -108,9 +110,19 @@ public abstract class LivingEntityMixin {
             }
         }
 
+        // Get killer if killed by a player
+        UUID killerId;
+        Entity e = source.getSource();
+        if (e instanceof PlayerEntity) {
+            killerId = e.getUuid();
+        } else {
+            killerId = null;
+        }
+
         // All variables passed into placeGrave method has to be final to be executed on the end of the tick
         final int xp = xpPoints;
         final DefaultedList<ItemStack> graveItems = items;
-        Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories, xp));
+        final UUID killer = killerId;
+        Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories, xp, killer));
     }
 }

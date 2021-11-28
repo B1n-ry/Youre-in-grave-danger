@@ -15,7 +15,9 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class GraveBlockEntity extends BlockEntity {
     private GameProfile graveOwner;
@@ -23,6 +25,7 @@ public class GraveBlockEntity extends BlockEntity {
     private String customName;
     private DefaultedList<ItemStack> storedInventory;
     private List<List<ItemStack>> moddedInventories;
+    private UUID killer;
 
     public GraveBlockEntity(BlockPos pos, BlockState state) {
         this(null, pos, state);
@@ -111,6 +114,9 @@ public class GraveBlockEntity extends BlockEntity {
     public void setModdedInventories(List<List<ItemStack>> inventories) {
         this.moddedInventories = inventories;
     }
+    public void setKiller(UUID killerId) {
+        this.killer = killerId;
+    }
 
 
     public GameProfile getGraveOwner() {
@@ -127,5 +133,11 @@ public class GraveBlockEntity extends BlockEntity {
     }
     public List<List<ItemStack>> getModdedInventories() {
         return moddedInventories;
+    }
+    public UUID getKiller() {
+        return this.killer;
+    }
+    public double getAge() {
+        return this.getAge();
     }
 }

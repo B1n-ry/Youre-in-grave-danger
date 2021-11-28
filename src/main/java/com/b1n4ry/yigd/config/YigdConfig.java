@@ -28,7 +28,12 @@ public class YigdConfig implements ConfigData {
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean graveLooting = false;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveRobbing graveRobbing = new GraveRobbing();
 
         @ConfigEntry.Gui.Tooltip
         public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
@@ -71,6 +76,22 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean tellDeathPos = false;
+    }
+
+    public static class GraveRobbing {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableRobbing = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean onlyMurderer = false;
+        @ConfigEntry.Gui.Tooltip
+        public int afterTime = 0;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public TimeTypeConfig timeType = TimeTypeConfig.MINUTES;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public PriorityInventoryConfig robPriority = PriorityInventoryConfig.INVENTORY;
     }
 
     public static class BlockUnderGrave {
