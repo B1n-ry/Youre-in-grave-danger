@@ -26,6 +26,7 @@ public class GraveBlockEntity extends BlockEntity {
     private DefaultedList<ItemStack> storedInventory;
     private List<List<ItemStack>> moddedInventories;
     private UUID killer;
+    private final long createdAt;
 
     public GraveBlockEntity(BlockPos pos, BlockState state) {
         this(null, pos, state);
@@ -37,6 +38,12 @@ public class GraveBlockEntity extends BlockEntity {
         this.storedXp = 0;
         this.customName = customName;
         this.storedInventory = DefaultedList.ofSize(41, ItemStack.EMPTY);
+
+        if (world != null) {
+            createdAt = world.getTimeOfDay();
+        } else {
+            createdAt = 0;
+        }
     }
 
     @Override
@@ -49,6 +56,7 @@ public class GraveBlockEntity extends BlockEntity {
 
         if (graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
         if (customName != null) tag.putString("CustomName", customName);
+        if (killer != null) tag.putUuid("killer", killer);
 
         if (moddedInventories != null) {
             NbtList modList = new NbtList();
@@ -73,8 +81,9 @@ public class GraveBlockEntity extends BlockEntity {
 
         this.storedXp = tag.getInt("StoredXp");
 
-        if(tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
-        if(tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+        if (tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
+        if (tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+        if (tag.contains("killer")) this.killer = tag.getUuid("killer");
 
         if (tag.contains("ModdedInventoryItems")) {
             NbtList modList = tag.getList("ModdedInventoryItems", NbtList.LIST_TYPE);
@@ -137,7 +146,7 @@ public class GraveBlockEntity extends BlockEntity {
     public UUID getKiller() {
         return this.killer;
     }
-    public double getAge() {
-        return this.getAge();
+    public long getCreationTime() {
+        return createdAt;
     }
 }

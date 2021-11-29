@@ -7,13 +7,13 @@ public enum TimeTypeConfig {
     public int tickFactor() {
         switch (this) {
             case SECONDS -> {
-                return 20;
+                return 1000;
             }
             case MINUTES -> {
-                return 20 * 60;
+                return 1000 * 60;
             }
             case HOURS -> {
-                return 20 * 60 * 60;
+                return 1000 * 60 * 60;
             }
             default -> {
                 return 1;

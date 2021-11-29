@@ -4,6 +4,7 @@ import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.LastResortConfig;
+import com.b1n4ry.yigd.config.PriorityInventoryConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
@@ -17,7 +18,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.world.ServerWorld;
@@ -31,10 +31,7 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class GraveHelper {
     public static List<Integer> getInventoryOpenSlots(DefaultedList<ItemStack> inventory) {
@@ -64,11 +61,30 @@ public class GraveHelper {
 
         boolean foundViableGrave = false;
 
-        for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
-            if (gravePlaceableAt(world, gravePos)) {
+        for (YigdConfig.BlockPosition blockPosition : YigdConfig.getConfig().graveSettings.graveyard) {
+            BlockPos gravePos = new BlockPos(blockPosition.x, blockPosition.y, blockPosition.z);
+
+            if (gravePlaceableAt(world, gravePos, false)) {
                 placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
-                foundViableGrave = true;
-                break;
+            }
+        }
+
+        if (YigdConfig.getConfig().graveSettings.trySoft) { // Trying soft
+            for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
+                if (gravePlaceableAt(world, gravePos, false)) {
+                    placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    foundViableGrave = true;
+                    break;
+                }
+            }
+        }
+        if (!foundViableGrave && YigdConfig.getConfig().graveSettings.tryStrict) { // Trying strict
+            for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
+                if (gravePlaceableAt(world, gravePos, true)) {
+                    placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    foundViableGrave = true;
+                    break;
+                }
             }
         }
 
@@ -86,17 +102,31 @@ public class GraveHelper {
         }
     }
 
-    private static boolean gravePlaceableAt(World world, BlockPos blockPos) {
+    private static boolean gravePlaceableAt(World world, BlockPos blockPos, boolean strict) {
         BlockEntity blockEntity = world.getBlockEntity(blockPos);
 
         if (blockEntity != null) return false;
 
+        String path;
+        if (strict) {
+            path = "replace_blacklist";
+        } else {
+            path = "soft_whitelist";
+        }
+
+        boolean hasTag = false;
+
         Block block = world.getBlockState(blockPos).getBlock();
+        Collection<Identifier> tagIds = world.getTagManager().getOrCreateTagGroup(Registry.BLOCK_KEY).getTagsFor(block);
+        for (Identifier tagId : tagIds) {
+            if (!tagId.getNamespace().equals("yigd")) continue;
+            if (tagId.getPath().equals(path)) {
+                hasTag = true;
+                break;
+            }
+        }
 
-        List<String> blacklistBlockId = YigdConfig.getConfig().graveSettings.blacklistBlocks;
-        String id = Registry.BLOCK.getId(block).toString();
-
-        if (blacklistBlockId.contains(id)) return false;
+        if ((hasTag && strict) || (!hasTag && !strict)) return false;
 
         int yPos = blockPos.getY();
         return yPos > world.getBottomY() + 1 && yPos < world.getTopY() - 1; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space worldBottom < y < worldTop
@@ -114,9 +144,18 @@ public class GraveHelper {
 
         if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= world.getBottomY() + 1) { // If block should generate under, and if there is a "block" under that can be replaced
             Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
-            String blockId = Registry.BLOCK.getId(blockUnder).toString();
 
-            if (blockUnderConfig.whiteListBlocks.contains(blockId)) {
+            boolean canPlaceUnder = false;
+            Collection<Identifier> tagIds = world.getTagManager().getOrCreateTagGroup(Registry.BLOCK_KEY).getTagsFor(blockUnder);
+            for (Identifier tagId : tagIds) {
+                if (!tagId.getNamespace().equals("yigd")) continue;
+                if (tagId.getPath().equals("support_replace_whitelist")) {
+                    canPlaceUnder = true;
+                    break;
+                }
+            }
+
+            if (canPlaceUnder) {
                 if (world.getRegistryKey() == World.OVERWORLD) {
                     replaceUnderBlock = blockUnderConfig.inOverWorld;
                 } else if (world.getRegistryKey() == World.NETHER) {
@@ -198,139 +237,122 @@ public class GraveHelper {
         return false;
     }
 
-    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> items, int xp) {
+    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, int xp, boolean robbing) {
         PlayerInventory inventory = player.getInventory();
 
-        DefaultedList<ItemStack> retrievalInventory = DefaultedList.of();
+        DefaultedList<ItemStack> invInventory = DefaultedList.of();
 
-        retrievalInventory.addAll(inventory.main);
-        retrievalInventory.addAll(inventory.armor);
-        retrievalInventory.addAll(inventory.offHand);
+        invInventory.addAll(inventory.main);
+        invInventory.addAll(inventory.armor);
+        invInventory.addAll(inventory.offHand);
 
         if (inventory.size() > 41) {
             for (int i = 41; i < inventory.size(); i++) {
-                retrievalInventory.add(inventory.getStack(i));
+                invInventory.add(inventory.getStack(i));
             }
         }
 
-        List<ItemStack> asIStack = new ArrayList<>();
+        List<Object> currentModInv = new ArrayList<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
             Object modInv = yigdApi.getInventory(player);
-            asIStack.addAll(yigdApi.toStackList(modInv));
+            currentModInv.add(modInv);
 
             yigdApi.dropAll(player);
         }
-
+        UUID userId = player.getUuid();
+        List<Object> modInventories = Yigd.deadPlayerData.getModdedInventories(userId);
 
         inventory.clear(); // Delete all items
 
-        List<ItemStack> armorInventory = items.subList(36, 40);
-        List<ItemStack> mainInventory = items.subList(0, 36);
-
-
-        List<String> bindingCurse = Collections.singletonList("minecraft:binding_curse");
-
-        for (int i = 0; i < armorInventory.size(); i++) { // Replace armor from grave
-            EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(armorInventory.get(i)); // return EquipmentSlot
-
-            ItemStack rArmorItem = retrievalInventory.subList(36, 40).get(i);
-            ItemStack gArmorItem = armorInventory.get(i);
-
-            boolean currentHasCurse = hasEnchantments(bindingCurse, rArmorItem); // If retrieval armor has "curse of binding" this will return true
-
-            // If retrieval trip armor has "curse of binding" it should stay on, and if grave armor had "curse of binding" it should end up in the inventory
-            // Grave armor only gets equipped if neither last nor current armor has "curse of binding"
-            if (!currentHasCurse && !hasEnchantments(bindingCurse, gArmorItem)) {
-                player.equipStack(equipmentSlot, gArmorItem); // Both armor parts are free from curse of binding and armor can be replaced
-            }
+        PriorityInventoryConfig priorityInventory;
+        if (robbing) {
+            priorityInventory = YigdConfig.getConfig().graveSettings.graveRobbing.robPriority;
+        } else {
+            priorityInventory = YigdConfig.getConfig().graveSettings.priority;
         }
 
-        player.equipStack(EquipmentSlot.OFFHAND, items.get(40)); // Replace offhand from grave
-
-        if (items.size() > 41) { // Replaced possible extra slots from mods
-            for (int i = 41; i < items.size(); i++) {
-                inventory.setStack(i, items.get(i));
-            }
-        }
-
-        for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
-            inventory.setStack(i, mainInventory.get(i));
-        }
-
-
-        DefaultedList<ItemStack> extraItems = DefaultedList.of();
-
-        UUID userId = player.getUuid();
-        List<Object> modInventories = Yigd.deadPlayerData.getModdedInventories(userId);
-        if (modInventories == null) modInventories = new ArrayList<>(0);
-        for (int i = 0; i < modInventories.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-
-            yigdApi.setInventory(modInventories.get(i), player);
-        }
-
-        extraItems.addAll(retrievalInventory.subList(0, 36));
-        extraItems.addAll(asIStack);
-
-        List<Integer> openArmorSlots = getInventoryOpenSlots(inventory.armor); // Armor slots that does not have armor selected
-
-        for(int i = 0; i < 4; i++) {
-            ItemStack armorPiece = retrievalInventory.subList(36, 40).get(i);
-            if (openArmorSlots.contains(i)) {
-                player.equipStack(EquipmentSlot.fromTypeIndex(EquipmentSlot.Type.ARMOR, i), armorPiece); // Put player armor back
-                extraItems.add(armorInventory.get(i));
-            } else {
-                extraItems.add(armorPiece);
-            }
-        }
-
-        ItemStack offHandItem = inventory.offHand.get(0);
-        if(offHandItem == ItemStack.EMPTY || offHandItem.getItem() == Items.AIR) player.equipStack(EquipmentSlot.OFFHAND, retrievalInventory.get(40));
-        else extraItems.add(retrievalInventory.get(40));
-
-        if (retrievalInventory.size() > 41) {
-            for (int i = 41; i < retrievalInventory.size(); i++) {
-                if (inventory.getStack(i).isEmpty()) {
-                    inventory.setStack(i, retrievalInventory.get(i));
-                } else {
-                    extraItems.add(retrievalInventory.get(i));
-                }
-            }
+        DefaultedList<ItemStack> extraItems;
+        if (priorityInventory == PriorityInventoryConfig.GRAVE) {
+            extraItems = fillInventory(player, graveInv, modInventories, true);
+            extraItems.addAll(fillInventory(player, invInventory, currentModInv, false));
+        } else {
+            extraItems = fillInventory(player, invInventory, currentModInv, false);
+            extraItems.addAll(fillInventory(player, graveInv, modInventories, true));
         }
 
         List<Integer> openSlots = getInventoryOpenSlots(inventory.main);
-        List<Integer> stillOpen = new ArrayList<>();
 
-        int loopIterations = Math.min(openSlots.size(), extraItems.size());
-        for(int i = 0; i < loopIterations; i++) {
-            int currentSlot = openSlots.get(i);
-            ItemStack currentExtra = extraItems.get(i);
-            inventory.setStack(currentSlot, currentExtra);
-
-            if (currentExtra.isEmpty()) {
-                stillOpen.add(currentSlot);
-            }
+        for (int i : openSlots) {
+            if (extraItems.size() <= 0) break;
+            inventory.setStack(i, extraItems.get(0));
+            extraItems.remove(0);
         }
 
-        List<ItemStack> overflow = extraItems.subList(loopIterations, extraItems.size());
-        overflow.removeIf(ItemStack::isEmpty);
-
-        for (int i = 0; i < Math.min(overflow.size(), stillOpen.size()); i++) {
-            inventory.setStack(stillOpen.get(i), overflow.get(i));
-        }
-
-        DefaultedList<ItemStack> dropItems = DefaultedList.of();
-        if (stillOpen.size() < overflow.size()) dropItems.addAll(overflow.subList(stillOpen.size(), overflow.size()));
-
-
-        BlockPos playerPos = player.getBlockPos();
-
-        ItemScatterer.spawn(player.world, playerPos, dropItems);
+        ItemScatterer.spawn(player.world, player.getBlockPos(), extraItems);
         player.addExperience(xp);
 
         Yigd.deadPlayerData.dropDeathXp(userId);
         Yigd.deadPlayerData.dropDeathInventory(userId);
         Yigd.deadPlayerData.dropModdedInventory(userId);
         Yigd.deadPlayerData.dropDeathPos(userId);
+    }
+
+    private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, List<Object> modInv, boolean fromGrave) {
+        List<ItemStack> armorInventory = inv.subList(36, 40);
+        List<ItemStack> mainInventory = inv.subList(0, 36);
+
+        PlayerInventory inventory = player.getInventory();
+
+        List<String> bindingCurse = Collections.singletonList("minecraft:binding_curse");
+        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+
+        for (int i = 0; i < armorInventory.size(); i++) {
+            ItemStack armorItem = armorInventory.get(i);
+            EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(armorItem);
+
+            if (hasEnchantments(bindingCurse, armorItem)) {
+                if (!fromGrave) {
+                    ItemStack equipped = inventory.getArmorStack(i);
+                    if (!equipped.isEmpty()) {
+                        extraItems.add(equipped);
+                    }
+                    player.equipStack(equipmentSlot, armorItem);
+                } else {
+                    extraItems.add(armorItem);
+                }
+            } else {
+                ItemStack equipped = inventory.getArmorStack(i);
+                if (equipped.isEmpty()) {
+                    player.equipStack(equipmentSlot, armorItem);
+                } else {
+                    extraItems.add(armorItem);
+                }
+            }
+        }
+
+        for (int i = 40; i < inventory.size(); i++) {
+            ItemStack stack = inventory.getStack(i);
+            if (stack.isEmpty()) {
+                inventory.setStack(i, inv.get(i));
+            } else {
+                extraItems.add(inv.get(i));
+            }
+        }
+
+        for (int i = 0; i < mainInventory.size(); i++) {
+            ItemStack stack = inventory.getStack(i);
+            if (stack.isEmpty()) {
+                inventory.setStack(i, inv.get(i));
+            } else {
+                extraItems.add(inv.get(i));
+            }
+        }
+
+        for (int i = 0; i < modInv.size(); i++) {
+            YigdApi yigdApi = Yigd.apiMods.get(i);
+            yigdApi.setInventory(modInv.get(i), player);
+        }
+
+        return extraItems;
     }
 }
