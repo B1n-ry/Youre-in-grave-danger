@@ -106,6 +106,7 @@ public abstract class LivingEntityMixin {
         List<Object> modSoulbound = Yigd.deadPlayerData.getModdedSoulbound(playerId);
         if (modSoulbound != null) {
             for (int i = 0; i < modSoulbound.size(); i++) {
+                Yigd.apiMods.get(i).dropAll(player);
                 Yigd.apiMods.get(i).setInventory(modSoulbound.get(i), player);
             }
         }

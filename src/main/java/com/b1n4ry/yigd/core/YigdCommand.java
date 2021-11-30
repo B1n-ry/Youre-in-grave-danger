@@ -46,7 +46,7 @@ public class YigdCommand {
 
         int xp = Yigd.deadPlayerData.getDeathXp(userId);
 
-        GraveHelper.RetrieveItems(player, items, xp, false);
+        GraveHelper.RetrieveItems(player, items, null, xp, false);
 
         player.world.removeBlock(gravePos, false);
         if (!player.world.getBlockState(gravePos).isAir() && gravePos != null) player.world.removeBlock(gravePos, false);

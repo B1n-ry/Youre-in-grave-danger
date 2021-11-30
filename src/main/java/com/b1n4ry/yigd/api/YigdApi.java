@@ -2,6 +2,7 @@ package com.b1n4ry.yigd.api;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.collection.DefaultedList;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ public interface YigdApi {
 
     Object getInventory(PlayerEntity player, boolean... handleAsDeath); // Get a custom return value containing inventory items. If handleAsDeath is true, soulbound and delete methods will be run
 
-    void setInventory(Object inventory, PlayerEntity player); // A method that places all items in a custom object to the player inventory
+    DefaultedList<ItemStack> setInventory(Object inventory, PlayerEntity player); // A method that places all items in a custom object to the player inventory
 
     int getInventorySize(PlayerEntity player); // Get the size of inventory extension (slot size)
 

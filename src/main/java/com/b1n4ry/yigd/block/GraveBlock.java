@@ -224,19 +224,19 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
             }
         }
 
+        DefaultedList<ItemStack> graveModItems = graveEntity.getModdedInventories();
 
         if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
-            List<List<ItemStack>> graveModItems = graveEntity.getModdedInventories();
-            for (List<ItemStack> graveModItem : graveModItems) {
-                items.addAll(graveModItem);
-            }
+            items.addAll(graveModItems);
 
             ItemScatterer.spawn(world, pos, items);
             world.removeBlock(pos, false);
             return true;
         }
 
-        GraveHelper.RetrieveItems(player, items, xp, isRobbing);
+        List<ItemStack> graveModInv = new ArrayList<>(graveModItems);
+
+        GraveHelper.RetrieveItems(player, items, graveModInv, xp, isRobbing);
         world.removeBlock(pos, false);
 
         return true;

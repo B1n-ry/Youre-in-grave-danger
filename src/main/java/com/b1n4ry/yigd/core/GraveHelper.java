@@ -183,11 +183,10 @@ public class GraveHelper {
 
             GameProfile playerProfile = player.getGameProfile();
 
-            List<List<ItemStack>> moddedInvStacks = new ArrayList<>();
+            DefaultedList<ItemStack> moddedInvStacks = DefaultedList.of();
             for (int i = 0; i < Yigd.apiMods.size(); i++) {
                 YigdApi yigdApi = Yigd.apiMods.get(i);
-                moddedInvStacks.add(new ArrayList<>());
-                moddedInvStacks.get(i).addAll(yigdApi.toStackList(modInventories.get(i)));
+                moddedInvStacks.addAll(yigdApi.toStackList(modInventories.get(i)));
             }
 
             placedGraveEntity.setInventory(invItems);
@@ -237,7 +236,7 @@ public class GraveHelper {
         return false;
     }
 
-    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, int xp, boolean robbing) {
+    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, List<ItemStack> graveModInv, int xp, boolean robbing) {
         PlayerInventory inventory = player.getInventory();
 
         DefaultedList<ItemStack> invInventory = DefaultedList.of();
@@ -262,6 +261,7 @@ public class GraveHelper {
         UUID userId = player.getUuid();
         List<Object> modInventories = Yigd.deadPlayerData.getModdedInventories(userId);
 
+
         inventory.clear(); // Delete all items
 
         PriorityInventoryConfig priorityInventory;
@@ -278,6 +278,10 @@ public class GraveHelper {
         } else {
             extraItems = fillInventory(player, invInventory, currentModInv, false);
             extraItems.addAll(fillInventory(player, graveInv, modInventories, true));
+        }
+
+        if (modInventories == null && graveModInv != null) {
+            extraItems.addAll(graveModInv);
         }
 
         List<Integer> openSlots = getInventoryOpenSlots(inventory.main);
@@ -348,9 +352,11 @@ public class GraveHelper {
             }
         }
 
-        for (int i = 0; i < modInv.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            yigdApi.setInventory(modInv.get(i), player);
+        if (modInv != null) {
+            for (int i = 0; i < modInv.size(); i++) {
+                YigdApi yigdApi = Yigd.apiMods.get(i);
+                extraItems.addAll(yigdApi.setInventory(modInv.get(i), player));
+            }
         }
 
         return extraItems;
