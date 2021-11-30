@@ -78,9 +78,6 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean tellDeathPos = true;
-
-        @ConfigEntry.Gui.Tooltip
-        public List<BlockPosition> graveyard = new ArrayList<>();
     }
 
     public static class GraveRobbing {
@@ -118,11 +115,6 @@ public class YigdConfig implements ConfigData {
     public static class UtilitySettings {
         @ConfigEntry.Gui.Tooltip
         public boolean soulboundEnchant = true;
-    }
-    public static class BlockPosition {
-        public int x = 0;
-        public int y = 0;
-        public int z = 0;
     }
 
     public static YigdConfig getConfig() {

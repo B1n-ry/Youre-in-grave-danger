@@ -40,10 +40,12 @@ A minecraft mod which so far adds one single block. The grave, which will genera
 * Render Grave Owner Name: If grave should render the playername of the grave owner (CLIENT SIDE). Does not affect non player graves
 * Adapt Grave Renderer: If true, the ground layer in the grave will turn into the block the grave is on top of. The side textures will still render the same amount of pixels as the actual block, so it will look squished
 * Tell Death Pos: If players should get a message with info about where their grave generated
-* Graveyard: You can have a public graveyard on the server that graves are defaulted to. Add block positions to the list for more possible grave spots. If no position is empty, default grave position will be used (where you died)
 
 
 * Soulbound Enchant: If the default soulbound enchantment should be used. Changing this requires a restart
+
+
+* Additionally, you can specify specific coordinates graves will attempt to generate at before death position. This is located in `data/yigd/custom/graveyard.json`. See source to see template
 
 You can build the mod yourself, or download it from here: <br>
 CurseForge: https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger <br>

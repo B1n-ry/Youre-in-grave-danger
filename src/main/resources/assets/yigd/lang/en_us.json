@@ -59,13 +59,6 @@
   "text.autoconfig.yigd.option.graveSettings.adaptRenderer.@Tooltip": "Render grave ground layer as\nthe block the grave is on top of",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player\ntelling them where they died",
-  "text.autoconfig.yigd.option.graveSettings.graveyard": "Graveyard",
-  "text.autoconfig.yigd.option.graveSettings.graveyard.@Tooltip": "If any block position defined\nhere are empty, graves will generate\nhere instead of on death pos\nUseful for map makers or\nsome server admins",
-
-  "text.autoconfig.yigd.option.BlockPosition": "Block Pos",
-  "text.autoconfig.yigd.option.BlockPosition.x": "X:",
-  "text.autoconfig.yigd.option.BlockPosition.y": "Y:",
-  "text.autoconfig.yigd.option.BlockPosition.z": "Z:",
 
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",
