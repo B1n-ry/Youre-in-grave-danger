@@ -16,13 +16,16 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
     private GameProfile graveOwner;
     private int storedXp;
     private String customName;
     private DefaultedList<ItemStack> storedInventory;
-    private List<List<ItemStack>> moddedInventories;
+    private DefaultedList<ItemStack> moddedInventories;
+    private UUID killer;
+    private long createdAt;
 
     public GraveBlockEntity(BlockPos pos, BlockState state) {
         this(null, pos, state);
@@ -34,6 +37,12 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
         this.storedXp = 0;
         this.customName = customName;
         this.storedInventory = DefaultedList.ofSize(41, ItemStack.EMPTY);
+
+        if (world != null) {
+            this.createdAt = world.getTimeOfDay();
+        } else {
+            this.createdAt = 0;
+        }
     }
 
     @Override
@@ -43,18 +52,14 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
         tag.putInt("StoredXp", storedXp);
         tag.put("Items", Inventories.writeNbt(new NbtCompound(), this.storedInventory, true));
         tag.putInt("ItemCount", this.storedInventory.size());
+        tag.putLong("CreatedAt", this.createdAt);
 
         if (graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
         if (customName != null) tag.putString("CustomName", customName);
+        if (killer != null) tag.putUuid("killer", killer);
 
         if (moddedInventories != null) {
-            NbtList modList = new NbtList();
-            for (List<ItemStack> inv : moddedInventories) {
-                DefaultedList<ItemStack> list = DefaultedList.of();
-                list.addAll(inv);
-                modList.add(Inventories.writeNbt(new NbtCompound(), list));
-            }
-            tag.put("ModdedInventoryItems", modList);
+            tag.put("ModdedInventoryItems", Inventories.writeNbt(new NbtCompound(), this.moddedInventories, true));
         }
 
         return tag;
@@ -69,21 +74,17 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
         Inventories.readNbt(tag.getCompound("Items"), this.storedInventory);
 
         this.storedXp = tag.getInt("StoredXp");
+        this.createdAt = tag.getLong("CreatedAt");
 
-        if(tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
-        if(tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+        if (tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
+        if (tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+        if (tag.contains("killer")) this.killer = tag.getUuid("killer");
 
         if (tag.contains("ModdedInventoryItems")) {
-            NbtList modList = tag.getList("ModdedInventoryItems", NbtList.LIST_TYPE);
+            int modInvSize = tag.getCompound("ModdedInventoryItems").getList("Items", 10).size();
+            this.moddedInventories = DefaultedList.ofSize(modInvSize, ItemStack.EMPTY);
 
-            moddedInventories = new ArrayList<>();
-            for (NbtElement mod : modList) {
-                if (!(mod instanceof NbtCompound modNbt)) continue;
-                DefaultedList<ItemStack> inventory = DefaultedList.of();
-                Inventories.readNbt(modNbt, inventory);
-
-                moddedInventories.add(inventory.stream().toList());
-            }
+            Inventories.readNbt(tag.getCompound("ModdedInventoryItems"), this.moddedInventories);
         }
     }
 
@@ -112,8 +113,11 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     public void setInventory(DefaultedList<ItemStack> inventory) {
         this.storedInventory = inventory;
     }
-    public void setModdedInventories(List<List<ItemStack>> inventories) {
+    public void setModdedInventories(DefaultedList<ItemStack> inventories) {
         this.moddedInventories = inventories;
+    }
+    public void setKiller(UUID killerId) {
+        this.killer = killerId;
     }
 
 
@@ -129,7 +133,13 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     public int getStoredXp() {
         return storedXp;
     }
-    public List<List<ItemStack>> getModdedInventories() {
+    public DefaultedList<ItemStack> getModdedInventories() {
         return moddedInventories;
+    }
+    public UUID getKiller() {
+        return this.killer;
+    }
+    public long getCreationTime() {
+        return this.createdAt;
     }
 }

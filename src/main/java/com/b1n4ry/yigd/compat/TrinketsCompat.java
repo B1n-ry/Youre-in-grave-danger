@@ -8,6 +8,7 @@ import dev.emi.trinkets.api.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Pair;
+import net.minecraft.util.collection.DefaultedList;
 
 import java.util.*;
 
@@ -46,26 +47,34 @@ public class TrinketsCompat implements YigdApi {
     }
 
     @Override
-    public void setInventory(Object inventory, PlayerEntity player) {
-        if (!(inventory instanceof List)) return;
+    public DefaultedList<ItemStack> setInventory(Object inventory, PlayerEntity player) {
+        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        if (!(inventory instanceof List)) return extraItems;
         List<Pair<SlotReference, ItemStack>> toEquip = (List<Pair<SlotReference, ItemStack>>) inventory;
 
         TrinketsApi.getTrinketComponent(player).ifPresent(trinkets -> {
             for (Pair<SlotReference, ItemStack> pair : toEquip) {
                 SlotReference ref = pair.getLeft();
                 SlotType slotType = ref.inventory().getSlotType();
-                ref.inventory().setStack(ref.index(), pair.getRight());
+                ItemStack stack = pair.getRight();
 
                 trinkets.forEach(((slotReference, itemStack) -> {
                     SlotType type = slotReference.inventory().getSlotType();
 
                     if (type.equals(slotType)) {
-                        slotReference.inventory().setStack(ref.index(), pair.getRight());
+                        TrinketInventory trinketInventory = slotReference.inventory();
+                        int index = ref.index();
+                        if (trinketInventory.getStack(index).isEmpty()) {
+                            trinketInventory.setStack(index, stack);
+                        } else {
+                            extraItems.add(stack);
+                        }
                     }
                 }));
             }
         });
 
+        return extraItems;
     }
 
     @Override

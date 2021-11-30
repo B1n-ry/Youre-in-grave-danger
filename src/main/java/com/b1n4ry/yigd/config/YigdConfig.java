@@ -28,7 +28,12 @@ public class YigdConfig implements ConfigData {
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean graveLooting = false;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveRobbing graveRobbing = new GraveRobbing();
 
         @ConfigEntry.Gui.Tooltip
         public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
@@ -37,7 +42,9 @@ public class YigdConfig implements ConfigData {
         public List<String> soulboundEnchantments = Collections.singletonList("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> blacklistBlocks = Collections.singletonList("minecraft:bedrock");
+        public boolean trySoft = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean tryStrict = true;
 
         @ConfigEntry.Gui.Tooltip
         public List<Integer> blacklistDimensions = new ArrayList<>();
@@ -70,7 +77,26 @@ public class YigdConfig implements ConfigData {
         public boolean adaptRenderer = false;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean tellDeathPos = false;
+        public boolean tellDeathPos = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public List<BlockPosition> graveyard = new ArrayList<>();
+    }
+
+    public static class GraveRobbing {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableRobbing = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean onlyMurderer = false;
+        @ConfigEntry.Gui.Tooltip
+        public int afterTime = 0;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public TimeTypeConfig timeType = TimeTypeConfig.MINUTES;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public PriorityInventoryConfig robPriority = PriorityInventoryConfig.INVENTORY;
     }
 
     public static class BlockUnderGrave {
@@ -88,14 +114,15 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public String inCustom = "minecraft:dirt";
-
-        @ConfigEntry.Gui.Tooltip
-        public List<String> whiteListBlocks = Arrays.asList("minecraft:air", "minecraft:water", "minecraft:lava");
     }
-
     public static class UtilitySettings {
         @ConfigEntry.Gui.Tooltip
         public boolean soulboundEnchant = true;
+    }
+    public static class BlockPosition {
+        public int x = 0;
+        public int y = 0;
+        public int z = 0;
     }
 
     public static YigdConfig getConfig() {
