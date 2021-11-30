@@ -7,16 +7,11 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 public class GraveBlockEntity extends BlockEntity {
@@ -62,8 +57,6 @@ public class GraveBlockEntity extends BlockEntity {
         if (moddedInventories != null) {
             tag.put("ModdedInventoryItems", Inventories.writeNbt(new NbtCompound(), this.moddedInventories, true));
         }
-
-        markDirty();
     }
 
     @Override
