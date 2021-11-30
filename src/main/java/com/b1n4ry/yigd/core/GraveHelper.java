@@ -66,10 +66,12 @@ public class GraveHelper {
 
             if (gravePlaceableAt(world, gravePos, false)) {
                 placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                foundViableGrave = true;
+                break;
             }
         }
 
-        if (YigdConfig.getConfig().graveSettings.trySoft) { // Trying soft
+        if (!foundViableGrave && YigdConfig.getConfig().graveSettings.trySoft) { // Trying soft
             for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
                 if (gravePlaceableAt(world, gravePos, false)) {
                     placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
