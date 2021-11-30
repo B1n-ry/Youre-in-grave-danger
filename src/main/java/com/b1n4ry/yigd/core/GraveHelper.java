@@ -6,6 +6,9 @@ import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.LastResortConfig;
 import com.b1n4ry.yigd.config.PriorityInventoryConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -22,6 +25,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -60,14 +64,22 @@ public class GraveHelper {
         }
 
         boolean foundViableGrave = false;
+        JsonElement json = Yigd.graveyard.get("coordinates");
+        if (json instanceof JsonArray coordinates) {
+            for (JsonElement blockPosition : coordinates) {
+                if (blockPosition instanceof JsonObject xyz) {
+                    int x = xyz.get("x").getAsInt();
+                    int y = xyz.get("y").getAsInt();
+                    int z = xyz.get("z").getAsInt();
 
-        for (YigdConfig.BlockPosition blockPosition : YigdConfig.getConfig().graveSettings.graveyard) {
-            BlockPos gravePos = new BlockPos(blockPosition.x, blockPosition.y, blockPosition.z);
+                    BlockPos gravePos = new BlockPos(x, y, z);
 
-            if (gravePlaceableAt(world, gravePos, false)) {
-                placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
-                foundViableGrave = true;
-                break;
+                    if (gravePlaceableAt(world, gravePos, false)) {
+                        placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                        foundViableGrave = true;
+                        break;
+                    }
+                }
             }
         }
 
@@ -238,7 +250,7 @@ public class GraveHelper {
         return false;
     }
 
-    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, List<ItemStack> graveModInv, int xp, boolean robbing) {
+    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, List<ItemStack> graveModInv, int xp, boolean robbing, ItemStack usedItem, Hand hand) {
         PlayerInventory inventory = player.getInventory();
 
         DefaultedList<ItemStack> invInventory = DefaultedList.of();
@@ -246,6 +258,14 @@ public class GraveHelper {
         invInventory.addAll(inventory.main);
         invInventory.addAll(inventory.armor);
         invInventory.addAll(inventory.offHand);
+
+        if (hand != null && usedItem != null) {
+            if (hand == Hand.MAIN_HAND) {
+                invInventory.set(EquipmentSlot.MAINHAND.getEntitySlotId(), usedItem);
+            } else {
+                invInventory.set(EquipmentSlot.OFFHAND.getEntitySlotId(), usedItem);
+            }
+        }
 
         if (inventory.size() > 41) {
             for (int i = 41; i < inventory.size(); i++) {

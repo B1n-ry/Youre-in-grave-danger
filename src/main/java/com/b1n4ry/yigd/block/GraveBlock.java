@@ -81,7 +81,9 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
         if (retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) {
-            RetrieveItems(player, world, pos);
+            ItemStack usedItem = player.getStackInHand(hand);
+            RetrieveItems(player, world, pos, usedItem, hand);
+            return ActionResult.SUCCESS;
         }
 
         return super.onUse(state, world, pos, player, hand, hit);
@@ -173,6 +175,9 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
     }
 
     private boolean RetrieveItems(PlayerEntity playerEntity, World world, BlockPos pos) {
+        return this.RetrieveItems(playerEntity, world, pos, null, null);
+    }
+    private boolean RetrieveItems(PlayerEntity playerEntity, World world, BlockPos pos, ItemStack usedItem, Hand hand) {
         if (world.isClient) return false;
 
         if (!(playerEntity instanceof ServerPlayerEntity player)) return false;
@@ -236,7 +241,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
         List<ItemStack> graveModInv = new ArrayList<>(graveModItems);
 
-        GraveHelper.RetrieveItems(player, items, graveModInv, xp, isRobbing);
+        GraveHelper.RetrieveItems(player, items, graveModInv, xp, isRobbing, usedItem, hand);
         world.removeBlock(pos, false);
 
         return true;
