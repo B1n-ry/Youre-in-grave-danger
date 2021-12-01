@@ -5,7 +5,7 @@ import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.GraveBlock;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 //import com.b1n4ry.yigd.compat.InventorioCompat;
-//import com.b1n4ry.yigd.compat.TrinketsCompat;
+import com.b1n4ry.yigd.compat.TrinketsCompat;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.SoulboundEnchantment;
@@ -57,12 +57,13 @@ public class Yigd implements ModInitializer {
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public void reload(ResourceManager manager) {
+                System.out.println("[YIGD] Reloading graveyard");
                 graveyard = null;
 
                 for(Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
                     try(InputStream stream = manager.getResource(id).getInputStream()) {
                         graveyard = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
-                    } catch(Exception e) { System.out.println("Error occurred while loading resource json " + id.toString()); }
+                    } catch(Exception e) { System.out.println("[YIGD] Error occurred while loading resource json " + id.toString()); }
                 }
             }
 
@@ -80,9 +81,9 @@ public class Yigd implements ModInitializer {
         if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
             SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
-//        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
-//            apiMods.add(new TrinketsCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            apiMods.add(new TrinketsCompat());
+        }
 //        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
 //            apiMods.add(new InventorioCompat());
 //        }

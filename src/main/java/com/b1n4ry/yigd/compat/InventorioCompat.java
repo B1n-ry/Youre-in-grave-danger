@@ -44,19 +44,26 @@
 //    }
 //
 //    @Override
-//    public void setInventory(Object inventory, PlayerEntity player) {
-//        if (!(inventory instanceof List)) return;
+//    public DefaultedList<ItemStack> setInventory(Object inventory, PlayerEntity player) {
+//        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+//        if (!(inventory instanceof List)) return extraItems;
 //
 //        List<ItemStack> inventories = (List<ItemStack>) inventory;
 //        PlayerInventoryAddon inventoryAddon = InventorioAPI.getInventoryAddon(player);
 //
-//        if (inventoryAddon == null) return;
+//        if (inventoryAddon == null) return extraItems;
 //
 //        inventoryAddon.setSelectedUtility(4);
 //        for (int i = 0; i < inventories.size(); i++) {
 //            ItemStack stack = inventories.get(i);
-//            inventoryAddon.setStack(i, stack);
+//            if (inventoryAddon.getStack(i).isEmpty()) {
+//                inventoryAddon.setStack(i, stack);
+//            } else {
+//                extraItems.add(stack);
+//            }
 //        }
+//
+//        return extraItems;
 //    }
 //
 //    @Override
@@ -77,6 +84,11 @@
 //    @Override
 //    public List<ItemStack> toStackList(Object inventory) {
 //        if (!(inventory instanceof List)) return new ArrayList<>(0);
-//        return (List<ItemStack>) inventory;
+//        List<ItemStack> stacks = (List<ItemStack>) inventory;
+//        List<ItemStack> newList = new ArrayList<>();
+//        for (ItemStack stack : stacks) {
+//            if (!stack.isEmpty()) newList.add(stack);
+//        }
+//        return newList;
 //    }
 //}

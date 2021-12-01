@@ -36,12 +36,16 @@ public class YigdCommand {
     private static int retrieveGrave(PlayerEntity player) {
         UUID userId = player.getUuid();
 
+        BlockPos gravePos = Yigd.deadPlayerData.getDeathPos(userId);
+        if (player.world.getBlockState(gravePos).getBlock() != Yigd.GRAVE_BLOCK) {
+            player.sendMessage(Text.of("Please go to the dimension you died in to retrieve your items"), true);
+        }
+
         if (!Yigd.deadPlayerData.hasStoredInventory(userId)) {
             player.sendMessage(Text.of("Could not find grave to fetch"), true);
             return -1;
         }
 
-        BlockPos gravePos = Yigd.deadPlayerData.getDeathPos(userId);
         DefaultedList<ItemStack> items = Yigd.deadPlayerData.getDeathPlayerInventory(userId);
 
         int xp = Yigd.deadPlayerData.getDeathXp(userId);

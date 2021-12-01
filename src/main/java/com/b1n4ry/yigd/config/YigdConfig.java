@@ -36,6 +36,10 @@ public class YigdConfig implements ConfigData {
         public GraveRobbing graveRobbing = new GraveRobbing();
 
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveDeletion graveDeletion = new GraveDeletion();
+
+        @ConfigEntry.Gui.Tooltip
         public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
 
         @ConfigEntry.Gui.Tooltip
@@ -94,6 +98,16 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig robPriority = PriorityInventoryConfig.INVENTORY;
+    }
+
+    public static class GraveDeletion {
+        @ConfigEntry.Gui.Tooltip
+        public boolean canDelete = false;
+        @ConfigEntry.Gui.Tooltip
+        public int afterTime = 1;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public TimeTypeConfig timeType = TimeTypeConfig.HOURS;
     }
 
     public static class BlockUnderGrave {

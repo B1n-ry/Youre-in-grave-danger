@@ -23,6 +23,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Hand;
@@ -34,6 +35,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 
 import java.util.*;
 
@@ -64,20 +66,24 @@ public class GraveHelper {
         }
 
         boolean foundViableGrave = false;
-        JsonElement json = Yigd.graveyard.get("coordinates");
-        if (json instanceof JsonArray coordinates) {
-            for (JsonElement blockPosition : coordinates) {
-                if (blockPosition instanceof JsonObject xyz) {
-                    int x = xyz.get("x").getAsInt();
-                    int y = xyz.get("y").getAsInt();
-                    int z = xyz.get("z").getAsInt();
+        MinecraftServer server = world.getServer();
+        if (server != null) {
+            JsonElement json = Yigd.graveyard.get("coordinates");
+            ServerWorld overworld = world.getServer().getOverworld();
+            if (json instanceof JsonArray coordinates) {
+                for (JsonElement blockPosition : coordinates) {
+                    if (blockPosition instanceof JsonObject xyz) {
+                        int x = xyz.get("x").getAsInt();
+                        int y = xyz.get("y").getAsInt();
+                        int z = xyz.get("z").getAsInt();
 
-                    BlockPos gravePos = new BlockPos(x, y, z);
+                        BlockPos gravePos = new BlockPos(x, y, z);
 
-                    if (gravePlaceableAt(world, gravePos, false)) {
-                        placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
-                        foundViableGrave = true;
-                        break;
+                        if (gravePlaceableAt(overworld, gravePos, false)) {
+                            placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                            foundViableGrave = true;
+                            break;
+                        }
                     }
                 }
             }
