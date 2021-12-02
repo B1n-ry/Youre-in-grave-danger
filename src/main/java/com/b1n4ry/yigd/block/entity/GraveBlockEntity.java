@@ -1,24 +1,22 @@
 package com.b1n4ry.yigd.block.entity;
 
 import com.b1n4ry.yigd.Yigd;
+import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
+import me.shedaniel.clothconfig2.api.TickableWidget;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
+public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSerializable, TickableWidget {
     private GameProfile graveOwner;
     private int storedXp;
     private String customName;
@@ -141,5 +139,16 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
     }
     public long getCreationTime() {
         return this.createdAt;
+    }
+
+    @Override
+    public void tick() {
+        YigdConfig.GraveDeletion deletion = YigdConfig.getConfig().graveSettings.graveDeletion;
+        if (!deletion.canDelete) return;
+
+        if (world == null) return;
+        boolean timeHasPassed = (int) (world.getTimeOfDay() - createdAt) > deletion.afterTime * deletion.timeType.tickFactor();
+
+        if (timeHasPassed) world.removeBlock(this.getPos(), false);
     }
 }

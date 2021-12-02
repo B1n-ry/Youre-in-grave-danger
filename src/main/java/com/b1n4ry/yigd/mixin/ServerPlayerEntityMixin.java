@@ -56,19 +56,19 @@ public class ServerPlayerEntityMixin {
             player.equipStack(EquipmentSlot.OFFHAND, soulboundItems.get(40));
 
             PlayerInventory inventory = player.getInventory();
-            for (int i = 0; i < mainInventory.size(); i++) { // Replace main inventory from grave
+            for (int i = 0; i < Math.min(inventory.size(), mainInventory.size()); i++) { // Replace main inventory from grave
                 inventory.setStack(i, mainInventory.get(i));
             }
 
             if (soulboundItems.size() > 41) {
-                for (int i = 41; i < soulboundItems.size(); i++) {
+                for (int i = 41; i < Math.min(soulboundItems.size(), inventory.size()); i++) {
                     inventory.setStack(i, soulboundItems.get(i));
                 }
             }
         }
 
         if (modSoulbounds != null && modSoulbounds.size() > 0) {
-            for (int i = 0; i < Yigd.apiMods.size(); i++) {
+            for (int i = 0; i < Math.min(Yigd.apiMods.size(), modSoulbounds.size()); i++) {
                 YigdApi yigdApi = Yigd.apiMods.get(i);
                 Object modSoulbound = modSoulbounds.get(i);
 
