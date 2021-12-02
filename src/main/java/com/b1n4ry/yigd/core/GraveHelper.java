@@ -266,11 +266,13 @@ public class GraveHelper {
         invInventory.addAll(inventory.armor);
         invInventory.addAll(inventory.offHand);
 
-        if (hand != null && usedItem != null) {
+        if (hand != null && usedItem != null && !usedItem.isEmpty()) {
             if (hand == Hand.MAIN_HAND) {
-                invInventory.set(EquipmentSlot.MAINHAND.getEntitySlotId(), usedItem);
+                int mainHandSlot = inventory.selectedSlot;
+                invInventory.set(mainHandSlot, usedItem);
             } else {
-                invInventory.set(EquipmentSlot.OFFHAND.getEntitySlotId(), usedItem);
+                int offHandSlot = 40;
+                invInventory.set(offHandSlot, usedItem);
             }
         }
 

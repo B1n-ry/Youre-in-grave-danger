@@ -24,10 +24,10 @@ repositories {
 		name = "Jitpack"
 		url = "https://jitpack.io"
 	}
-	maven {
-		url "https://cursemaven.com"
+	flatDir {
+		dirs "./modsWithCompat"
 		content {
-			includeGroup "curse.maven"
+			includeGroup "mods.compat"
 		}
 	}
 }
@@ -54,7 +54,7 @@ dependencies {
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
 	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.17-fabric:${project.inventorio_version}"
-	modImplementation "curse.maven:tivacz.backpack-541171:${project.backpack_version}"
+	modImplementation "mods.compat:travelers-backpack-${project.backpack_version}"
 }
 
 processResources {

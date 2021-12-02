@@ -34,7 +34,10 @@ public class TravelersBackpackCompat implements YigdApi {
 
     @Override
     public void dropAll(PlayerEntity player) {
-        ComponentUtils.equipBackpack(player, ItemStack.EMPTY);
+        ComponentUtils.getComponent(player).setWearable(ItemStack.EMPTY);
+
+        ComponentUtils.sync(player);
+        ComponentUtils.syncToTracking(player);
     }
 
     @Override
