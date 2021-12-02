@@ -35,7 +35,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 
 import java.util.*;
 
@@ -265,11 +264,14 @@ public class GraveHelper {
         invInventory.addAll(inventory.armor);
         invInventory.addAll(inventory.offHand);
 
-        if (hand != null && usedItem != null) {
+        // Necessary to counter a bug where your selected item disappears when clicking on a grave
+        if (hand != null && usedItem != null && !usedItem.isEmpty()) {
             if (hand == Hand.MAIN_HAND) {
-                invInventory.set(EquipmentSlot.MAINHAND.getEntitySlotId(), usedItem);
+                int mainHandSlot = inventory.selectedSlot;
+                invInventory.set(mainHandSlot, usedItem);
             } else {
-                invInventory.set(EquipmentSlot.OFFHAND.getEntitySlotId(), usedItem);
+                int offHandSlot = 40;
+                invInventory.set(offHandSlot, usedItem);
             }
         }
 

@@ -39,6 +39,7 @@ public class YigdCommand {
         BlockPos gravePos = Yigd.deadPlayerData.getDeathPos(userId);
         if (player.world.getBlockState(gravePos).getBlock() != Yigd.GRAVE_BLOCK) {
             player.sendMessage(Text.of("Please go to the dimension you died in to retrieve your items"), true);
+            return -1;
         }
 
         if (!Yigd.deadPlayerData.hasStoredInventory(userId)) {
