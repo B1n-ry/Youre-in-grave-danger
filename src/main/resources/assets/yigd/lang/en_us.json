@@ -29,6 +29,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.afterTime.@Tooltip": "After how long graves expire",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.timeType": "Time Unit",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.timeType.@Tooltip": "The time unit used by After Time",
+  "text.autoconfig.yigd.option.graveSettings.graveDeletion.dropInventory": "Drop Grave Inventory",
+  "text.autoconfig.yigd.option.graveSettings.graveDeletion.dropInventory.@Tooltip": "If true, grave will drop its items on despawn",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments": "Remove Enchantments",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments.@Tooltip": "Removes items with this enchantment from\nthe grave. Gives Curse of Vanishing\neffect. Useful if soulbound items are\nignored and ends up in both\nyour inventory and your grave\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments": "Soulbound Enchantments",

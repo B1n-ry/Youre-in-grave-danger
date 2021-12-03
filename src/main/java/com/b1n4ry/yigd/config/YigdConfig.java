@@ -108,6 +108,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public TimeTypeConfig timeType = TimeTypeConfig.HOURS;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean dropInventory = false;
     }
 
     public static class BlockUnderGrave {

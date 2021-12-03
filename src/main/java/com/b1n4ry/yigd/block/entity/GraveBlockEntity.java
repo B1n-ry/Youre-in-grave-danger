@@ -3,29 +3,31 @@ package com.b1n4ry.yigd.block.entity;
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
-import me.shedaniel.clothconfig2.api.TickableWidget;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 
-public class GraveBlockEntity extends BlockEntity implements TickableWidget {
+public class GraveBlockEntity extends BlockEntity {
     private GameProfile graveOwner;
     private int storedXp;
     private String customName;
     private DefaultedList<ItemStack> storedInventory;
     private DefaultedList<ItemStack> moddedInventories;
     private UUID killer;
-    private long createdAt;
+    public int age;
 
     public GraveBlockEntity(BlockPos pos, BlockState state) {
         this(null, pos, state);
@@ -38,11 +40,7 @@ public class GraveBlockEntity extends BlockEntity implements TickableWidget {
         this.customName = customName;
         this.storedInventory = DefaultedList.ofSize(41, ItemStack.EMPTY);
 
-        if (world != null) {
-            this.createdAt = world.getTimeOfDay();
-        } else {
-            this.createdAt = 0;
-        }
+        this.age = 0;
     }
 
     @Override
@@ -52,7 +50,7 @@ public class GraveBlockEntity extends BlockEntity implements TickableWidget {
         tag.putInt("StoredXp", storedXp);
         tag.put("Items", Inventories.writeNbt(new NbtCompound(), this.storedInventory, true));
         tag.putInt("ItemCount", this.storedInventory.size());
-        tag.putLong("CreatedAt", this.createdAt);
+        tag.putLong("age", this.age);
 
         if (graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
         if (customName != null) tag.putString("CustomName", customName);
@@ -72,7 +70,7 @@ public class GraveBlockEntity extends BlockEntity implements TickableWidget {
         Inventories.readNbt(tag.getCompound("Items"), this.storedInventory);
 
         this.storedXp = tag.getInt("StoredXp");
-        this.createdAt = tag.getLong("CreatedAt");
+        this.age = tag.getInt("age");
 
         if (tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
         if (tag.contains("CustomName")) this.customName = tag.getString("CustomName");
@@ -95,15 +93,37 @@ public class GraveBlockEntity extends BlockEntity implements TickableWidget {
         return this.createNbt();
     }
 
-    @Override
-    public void tick() {
+    public static void tick(World world, BlockPos pos, BlockEntity blockEntity) {
+        if (!(blockEntity instanceof GraveBlockEntity grave)) return;
+        if (grave.getGraveOwner() == null) return;
+        grave.age++;
+
         YigdConfig.GraveDeletion deletion = YigdConfig.getConfig().graveSettings.graveDeletion;
         if (!deletion.canDelete) return;
 
         if (world == null) return;
-        boolean timeHasPassed = (int) (world.getTimeOfDay() - createdAt) > deletion.afterTime * deletion.timeType.tickFactor();
+        boolean timeHasPassed = grave.age > deletion.afterTime * deletion.timeType.tickFactor();
 
-        if (timeHasPassed) world.removeBlock(this.getPos(), false);
+        if (!timeHasPassed) return;
+        if (deletion.dropInventory) {
+            int xp = grave.getStoredXp();
+            DefaultedList<ItemStack> dropItems = DefaultedList.of();
+            for (ItemStack stack : grave.getStoredInventory()) {
+                if (stack.isEmpty()) continue;
+                dropItems.add(stack);
+            }
+            for (ItemStack stack : grave.getModdedInventories()) {
+                if (stack.isEmpty()) continue;
+                dropItems.add(stack);
+            }
+            if (!dropItems.isEmpty()) {
+                ItemScatterer.spawn(world, pos, dropItems);
+            }
+            if (xp > 0) {
+                ExperienceOrbEntity.spawn((ServerWorld) world, new Vec3d(pos.getX(), pos.getY(), pos.getZ()), xp);
+            }
+        }
+        world.removeBlock(pos, false);
     }
 
     public void setGraveOwner(GameProfile owner) {
@@ -143,8 +163,5 @@ public class GraveBlockEntity extends BlockEntity implements TickableWidget {
     }
     public UUID getKiller() {
         return this.killer;
-    }
-    public long getCreationTime() {
-        return createdAt;
     }
 }

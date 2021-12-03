@@ -313,6 +313,7 @@ public class GraveHelper {
         }
 
         List<Integer> openSlots = getInventoryOpenSlots(inventory.main);
+        extraItems.removeIf(ItemStack::isEmpty);
 
         for (int i : openSlots) {
             if (extraItems.size() <= 0) break;
