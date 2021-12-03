@@ -14,9 +14,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
@@ -342,7 +340,6 @@ public class GraveHelper {
 
         for (int i = 0; i < armorInventory.size(); i++) {
             ItemStack armorItem = armorInventory.get(i);
-            EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(armorItem);
 
             if (hasEnchantments(bindingCurse, armorItem)) {
                 if (!fromGrave) {
@@ -350,14 +347,14 @@ public class GraveHelper {
                     if (!equipped.isEmpty()) {
                         extraItems.add(equipped);
                     }
-                    player.equipStack(equipmentSlot, armorItem);
+                    inventory.setStack(mainInventory.size() + i, armorItem);
                 } else {
                     extraItems.add(armorItem);
                 }
             } else {
                 ItemStack equipped = inventory.getArmorStack(i);
                 if (equipped.isEmpty()) {
-                    player.equipStack(equipmentSlot, armorItem);
+                    inventory.setStack(mainInventory.size() + i, armorItem);
                 } else {
                     extraItems.add(armorItem);
                 }
