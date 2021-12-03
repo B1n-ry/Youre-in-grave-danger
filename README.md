@@ -1,52 +1,47 @@
-# Youre-in-grave-danger
-A minecraft mod which so far adds one single block. The grave, which will generate when you die, and store your items
+# You're in Grave Danger
 
-### Configs
-* Generate Graves: If set to true, graves will spawn on death, and if set to false, they will not. You will instead drop your items
-* Retrieval Type: How you should interact with the grave to retrieve your items.
-   * ON_USE: Right click the grave
-   * ON_BREAK: Break the grave block
-   * ON_STAND: Walk on top of the grave
-   * ON_SNEAK: Walk on top of the grave sneaking
-* Drop Type: What would happen to your items as you interact with the grave
-   * IN_INVENTORY: Put all your items back in your inventory, with the same layout as before you died
-   * ON_GROUND: Drop all items from the grave similar to what happens to items in chests when broken
-* Inventory Priority: Which inventory should be generated on top of the other. If GRAVE the layout from the grave will be the same. if INVENTORY your grave items will be added on top of your inventory
-* Grave Robbing: If someone else than the grave owner should be able to retrieve items from a grave
-   * Enable Robbing: If the robbing mechanic should be allowed at all
-   * Only Murderer: Only allow murderer to rob the victims grave
-   * After Time: After how long the grave can be robbed
-   * Time Unit: Goes hand in hand with `After Time` by setting a time unit
-   * Inventory Priority: Which inventory should be generated on top of the other. If GRAVE the layout from the grave will be the same. if INVENTORY your grave items will be added on top of your inventory. Specific for robbing
-* Remove Enchantments: A list with enchantment identifiers of which items should be deleted on death. (E.g. `minecraft:vanishing_curse`)
-* Soulbound Enchantments: A list with enchantment identifiers of which items should be kept after death. (E.g. `yigd:soulbound`)
-* Try Soft Replace: If grave should try to generate based on a block whitelist located in `data/yigd/tags/soft_whitelist.json`
-* Try Strict Replace: If grave should try to generate based on a block blacklist located in `data/yigd/tags/blocks/replace_blacklist.json`
-* Grave Dimension Blacklist: Dimension IDs of what dimensions should be blacklisted from using graves. In these dimensions graves won't generate. You can find the dimension in the F3 screen in the top left
-* Spawn Grave in Void: Pretty self explanatory. If graves should generate when you fall out of the world.
-* Grave Spawn Height: If `Spawn Grave in Void` is set to true, this will determine the y-level graves will try to generate at when you fall in the void
-* Last Resort: If no valid block is found for your grave, what should happen?
-   * SET_GRAVE: Override invalid block where you died with a grave
-   * DROP_ITEMS: Drop your items where you died.
-* Default XP Drop: If the grave should opt for the default amount of XP dropped on minecraft, which goes to a max of 7 levels.
-* XP Drop Percent: If `Default XP Drop` is set to false, this will determine how many percent of your total XP will transfer through your grave
-* Grave Support Block: What block should generate under the grave if the block under matches a list of blocks (Defaulted to air, water, and lava)
-   * Generate Block Under Grave: If a block should generate under the grave or not. You can specify what blocks can be overwritten by support block in `data/yigd/tags/blocks/supprt_replace_whitelist.json`
-   * Overworld: What block should generate under the grave in the overworld
-   * Nether: What block should generate under the grave in the nether
-   * The End: What block should generate under the grave in the end
-   * Custom Dimensions: What block should generate under the grave in custom dimensions
-* Render Grave Owner Skull: If graves should render the head of the grave owner (CLIENT SIDE)
-* Render Grave Owner Name: If grave should render the playername of the grave owner (CLIENT SIDE). Does not affect non player graves
-* Adapt Grave Renderer: If true, the ground layer in the grave will turn into the block the grave is on top of. The side textures will still render the same amount of pixels as the actual block, so it will look squished
-* Tell Death Pos: If players should get a message with info about where their grave generated
+Get it?
+
+![Requires Fabric API](https://i.imgur.com/Ol1Tcf8.png)
+
+## About
+
+You're in Grave Danger is a mod centered around death.
+So far this mod will only add graves to your game, which will spawn at your death location with all your items. You can then go back and retrieve your lost items. The mod will remember your inventory layout and put everything back to where it was before you died. The mod is highly configurable. In fact, if you think a config is missing that has anything to do with what happens when you die, it's not refered to as a missing feature, but a bug. (Not really but that's how serious I am about everything being configurable). 
+
+ 
+
+If you play multiplayer you'll have no trouble finding which grave is yours, as both your face and player name will render on it (if you've enabled it in the config of course)
+
+ 
+
+## Features
+
+The mod is available for both 1.16.5, 1.17.1, and 1.18!
+1.6.5 and 1.17.1 versions have compatibility for trinkets. All versions will work with every soulbound enchantment mod that exists (technically). You can add enchantment ids in the configs that should have the soulbound trait. You can even add the soulbound function to normal vanilla enchantments such as mending or efficiency.
+
+The 1.16.5 version has compatibility with curios, which is missing from the 1.17.1 and 1.18 version as curios is only available up to 1.16. for fabric. The 1.16.5 version will not be actively updated, but if any bugs gets reported I'll try my best to fix them.
 
 
-* Soulbound Enchant: If the default soulbound enchantment should be used. Changing this requires a restart
+The 1.17.1 version have lots of features that the 1.16.5 version does not. These includes
+ * Inventorio compat
+
+ * Waterloggable graves
+ * Adaptive renders for the ground layer of the grave model
+
+ * And more!
 
 
-* Additionally, you can specify specific coordinates graves will attempt to generate at before death position. This is located in `data/yigd/custom/graveyard.json`. See source to see template
+The 1.18 version will include the same features as the 1.17.1 version, except some mod compatibilities since these mods does not currently have a 1.18 version
 
-You can build the mod yourself, or download it from here: <br>
-CurseForge: https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger <br>
-Modrinth: https://modrinth.com/mod/yigd/versions
+
+## Misc info
+
+If you find any bug/missing config, or have a cool idea that would fit in the theme of the mod, please open an issue on the [issue tracker](https://github.com/B1n-ry/Youre-in-grave-danger/issues)
+
+The mod is under MIT license, so feel free to use this in your modpack!
+This mod is required both on client and server, as it will add custom blocks and renderers.
+Want more info about how to configure the mod for modpacks and servers or similar? Visit the [wiki](https://github.com/B1n-ry/Youre-in-grave-danger/wiki)
+
+
+You can build the mod yourself, or download it from either [CurseForge](https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger) or [Modrinth](https://modrinth.com/mod/yigd/versions)
