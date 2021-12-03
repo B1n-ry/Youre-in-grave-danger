@@ -1,5 +1,6 @@
 package com.b1n4ry.yigd.block;
 
+import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.DropTypeConfig;
 import com.b1n4ry.yigd.config.RetrievalTypeConfig;
@@ -8,6 +9,8 @@ import com.b1n4ry.yigd.core.GraveHelper;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProvider, Waterloggable {
+@SuppressWarnings("deprecation")
+public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
     public static final DirectionProperty FACING;
     protected static final VoxelShape SHAPE_NORTH;
     protected static final VoxelShape SHAPE_BASE_NORTH;
@@ -112,7 +116,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
             YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
             boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-            boolean timePassed = (int) (player.world.getTimeOfDay() - graveEntity.getCreationTime()) > graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+            boolean timePassed = graveEntity.age > graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
             if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || (canRobGrave && timePassed))) || graveEntity.getGraveOwner() == null) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
@@ -167,6 +171,16 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
         return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
 
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+        return checkType(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
+    }
+
+    @Override
+    public BlockRenderType getRenderType(BlockState state) {
+        return BlockRenderType.MODEL;
+    }
+
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
@@ -198,9 +212,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
         YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
         boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-        long createdAt = graveEntity.getCreationTime();
-        long worldTime = world.getTimeOfDay();
-        long age = worldTime - createdAt;
+        int age = graveEntity.age;
         int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
 
         boolean isRobbing = false;
