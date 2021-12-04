@@ -173,7 +173,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return checkType(type, Yigd.GRAVE_BLOCK_ENTITY, (world1, pos, state1, blockEntity) -> GraveBlockEntity.tick(world1, pos, blockEntity));
+        return checkType(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
     }
 
     @Override
