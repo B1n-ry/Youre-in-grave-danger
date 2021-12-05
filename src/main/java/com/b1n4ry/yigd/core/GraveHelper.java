@@ -24,7 +24,6 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -54,12 +53,30 @@ public class GraveHelper {
         int topY = world.getTopY();
         if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < bottomY + 1) return;
 
-        BlockPos blockPos = new BlockPos(pos.x, pos.y - 1, pos.z);
+        double yPos = pos.y - 1D;
+        if ((int) yPos != (int) (yPos + 0.5D)) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
 
-        if (blockPos.getY() < bottomY + 1) {
+        BlockPos blockPos = new BlockPos(pos.x, (int) yPos, pos.z);
+
+        if (blockPos.getY() <= bottomY) {
             blockPos = new BlockPos(blockPos.getX(), bottomY + YigdConfig.getConfig().graveSettings.graveSpawnHeight, blockPos.getZ());
-        } else if (blockPos.getY() > topY - 1) {
+        } else if (blockPos.getY() >= topY) {
             blockPos = new BlockPos(blockPos.getX(), topY - 2, blockPos.getZ());
+        }
+
+        double boundEast = world.getWorldBorder().getBoundEast();
+        double boundWest = world.getWorldBorder().getBoundWest();
+        double boundSouth = world.getWorldBorder().getBoundSouth();
+        double boundNorth = world.getWorldBorder().getBoundNorth();
+        if (blockPos.getX() >= boundEast) {
+            blockPos = new BlockPos(boundEast - 1, blockPos.getY(), blockPos.getZ());
+        } else if (blockPos.getX() <= boundWest) {
+            blockPos = new BlockPos(boundWest + 1, blockPos.getY(), blockPos.getZ());
+        }
+        if (blockPos.getZ() >= boundSouth) {
+            blockPos = new BlockPos(blockPos.getX(), blockPos.getY(), boundSouth - 1);
+        } else if (blockPos.getZ() <= boundNorth) {
+            blockPos = new BlockPos(blockPos.getX(), blockPos.getY(), boundNorth + 1);
         }
 
         boolean foundViableGrave = false;
@@ -124,6 +141,11 @@ public class GraveHelper {
 
         if (blockEntity != null) return false;
 
+        double boundEast = world.getWorldBorder().getBoundEast();
+        double boundWest = world.getWorldBorder().getBoundWest();
+        double boundSouth = world.getWorldBorder().getBoundSouth();
+        double boundNorth = world.getWorldBorder().getBoundNorth();
+
         String path;
         if (strict) {
             path = "replace_blacklist";
@@ -145,8 +167,11 @@ public class GraveHelper {
 
         if ((hasTag && strict) || (!hasTag && !strict)) return false;
 
+        int xPos = blockPos.getX();
         int yPos = blockPos.getY();
-        return yPos > world.getBottomY() + 1 && yPos < world.getTopY() - 1; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space worldBottom < y < worldTop
+        int zPos = blockPos.getZ();
+        // Return false if block exists outside the map and true if the block exists within the world border and build height
+        return !(xPos >= boundEast && xPos <= boundWest && yPos <= world.getBottomY() && yPos >= world.getTopY() && zPos <= boundNorth && zPos >= boundSouth);
     }
 
     private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
@@ -253,7 +278,7 @@ public class GraveHelper {
         return false;
     }
 
-    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, List<ItemStack> graveModInv, int xp, boolean robbing, ItemStack usedItem, Hand hand) {
+    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, List<ItemStack> graveModInv, int xp, boolean robbing) {
         PlayerInventory inventory = player.getInventory();
 
         DefaultedList<ItemStack> invInventory = DefaultedList.of();
@@ -261,17 +286,6 @@ public class GraveHelper {
         invInventory.addAll(inventory.main);
         invInventory.addAll(inventory.armor);
         invInventory.addAll(inventory.offHand);
-
-        // Necessary to counter a bug where your selected item disappears when clicking on a grave
-        if (hand != null && usedItem != null && !usedItem.isEmpty()) {
-            if (hand == Hand.MAIN_HAND) {
-                int mainHandSlot = inventory.selectedSlot;
-                invInventory.set(mainHandSlot, usedItem);
-            } else {
-                int offHandSlot = 40;
-                invInventory.set(offHandSlot, usedItem);
-            }
-        }
 
         if (inventory.size() > 41) {
             for (int i = 41; i < inventory.size(); i++) {

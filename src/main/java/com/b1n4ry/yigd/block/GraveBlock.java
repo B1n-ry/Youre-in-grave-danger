@@ -85,8 +85,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
         if (retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) {
-            ItemStack usedItem = player.getStackInHand(hand);
-            RetrieveItems(player, world, pos, usedItem, hand);
+            RetrieveItems(player, world, pos);
             return ActionResult.SUCCESS;
         }
 
@@ -188,9 +187,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
 
     private boolean RetrieveItems(PlayerEntity playerEntity, World world, BlockPos pos) {
-        return this.RetrieveItems(playerEntity, world, pos, null, null);
-    }
-    private boolean RetrieveItems(PlayerEntity playerEntity, World world, BlockPos pos, ItemStack usedItem, Hand hand) {
         if (world.isClient) return false;
 
         if (!(playerEntity instanceof ServerPlayerEntity player)) return false;
@@ -252,7 +248,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         List<ItemStack> graveModInv = new ArrayList<>(graveModItems);
 
-        GraveHelper.RetrieveItems(player, items, graveModInv, xp, isRobbing, usedItem, hand);
+        GraveHelper.RetrieveItems(player, items, graveModInv, xp, isRobbing);
         world.removeBlock(pos, false);
 
         return true;
