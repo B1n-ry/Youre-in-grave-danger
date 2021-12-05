@@ -83,20 +83,51 @@ public class GraveHelper {
         MinecraftServer server = world.getServer();
         if (server != null) {
             JsonElement json = Yigd.graveyard.get("coordinates");
+            boolean point2point = Yigd.graveyard.get("point2point").getAsBoolean();
             ServerWorld overworld = world.getServer().getOverworld();
             if (json instanceof JsonArray coordinates) {
-                for (JsonElement blockPosition : coordinates) {
-                    if (blockPosition instanceof JsonObject xyz) {
-                        int x = xyz.get("x").getAsInt();
-                        int y = xyz.get("y").getAsInt();
-                        int z = xyz.get("z").getAsInt();
+                if (!point2point) {
+                    for (JsonElement blockPosition : coordinates) {
+                        if (blockPosition instanceof JsonObject xyz) {
+                            int x = xyz.get("x").getAsInt();
+                            int y = xyz.get("y").getAsInt();
+                            int z = xyz.get("z").getAsInt();
 
-                        BlockPos gravePos = new BlockPos(x, y, z);
+                            BlockPos gravePos = new BlockPos(x, y, z);
 
-                        if (gravePlaceableAt(overworld, gravePos, false)) {
-                            placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
-                            foundViableGrave = true;
-                            break;
+                            if (gravePlaceableAt(overworld, gravePos, false)) {
+                                placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                foundViableGrave = true;
+                                break;
+                            }
+                        }
+                    }
+                } else if(coordinates.size() >= 2) {
+                    if (coordinates.get(0) instanceof JsonObject pos1 && coordinates.get(1) instanceof JsonObject pos2) {
+                        int x1 = pos1.get("x").getAsInt();
+                        int x2 = pos2.get("x").getAsInt();
+                        int y1 = pos1.get("y").getAsInt();
+                        int y2 = pos2.get("y").getAsInt();
+                        int z1 = pos1.get("z").getAsInt();
+                        int z2 = pos2.get("z").getAsInt();
+                        int changeX = (x2 - x1) / Math.abs(x2 - x1 != 0 ? x2 - x1 : 1);
+                        int changeY = (y2 - y1) / Math.abs(y2 - y1 != 0 ? y2 - y1 : 1);
+                        int changeZ = (z2 - z1) / Math.abs(z2 - z1 != 0 ? z2 - z1 : 1);
+
+                        for (int y = y1; y != y2; y += changeY) {
+                            if (foundViableGrave) break;
+                            for (int z = z1; z != z2; z += changeZ) {
+                                if (foundViableGrave) break;
+                                for (int x = x1; x != x2; x += changeX) {
+                                    BlockPos gravePos = new BlockPos(x, y, z);
+
+                                    if (gravePlaceableAt(overworld, gravePos, false)) {
+                                        placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                        foundViableGrave = true;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                 }

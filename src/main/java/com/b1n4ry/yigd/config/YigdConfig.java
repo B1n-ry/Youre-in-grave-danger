@@ -15,6 +15,9 @@ public class YigdConfig implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     public UtilitySettings utilitySettings = new UtilitySettings();
 
+    @ConfigEntry.Gui.CollapsibleObject
+    public CommandToggles commandToggles = new CommandToggles();
+
     public static class GraveSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean generateGraves = true;
@@ -55,6 +58,9 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean graveInVoid = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public List<String> ignoreDeathTypes = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 1, max = 255)
@@ -129,9 +135,14 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public String inCustom = "minecraft:dirt";
     }
+
     public static class UtilitySettings {
         @ConfigEntry.Gui.Tooltip
         public boolean soulboundEnchant = true;
+    }
+
+    public static class CommandToggles {
+        public boolean retrieveGrave = true;
     }
 
     public static YigdConfig getConfig() {

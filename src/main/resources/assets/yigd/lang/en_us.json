@@ -30,7 +30,7 @@
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.timeType": "Time Unit",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.timeType.@Tooltip": "The time unit used by After Time",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.dropInventory": "Drop Grave Inventory",
-  "text.autoconfig.yigd.option.graveSettings.graveDeletion.dropInventory.@Tooltip": "If true, grave will drop its items on despawn",
+  "text.autoconfig.yigd.option.graveSettings.graveDeletion.dropInventory.@Tooltip": "If true, grave will drop its items on de-spawn",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments": "Remove Enchantments",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments.@Tooltip": "Removes items with this enchantment from\nthe grave. Gives Curse of Vanishing\neffect. Useful if soulbound items are\nignored and ends up in both\nyour inventory and your grave\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments": "Soulbound Enchantments",
@@ -43,6 +43,8 @@
   "text.autoconfig.yigd.option.graveSettings.blacklistDimensions.@Tooltip": "Dimensions with their ID in this list\nwill not generate graves\n\nYou can see the dimension ID\nin the bottom of the top left\nF3 display (9th row from the top)",
   "text.autoconfig.yigd.option.graveSettings.graveInVoid": "Spawn Grave in Void",
   "text.autoconfig.yigd.option.graveSettings.graveInVoid.@Tooltip": "If a grave should generate when you fall into the void",
+  "text.autoconfig.yigd.option.graveSettings.ignoreDeathTypes": "Ignore Death Types",
+  "text.autoconfig.yigd.option.graveSettings.ignoreDeathTypes.@Tooltip": "Define a list with damage source\nnames that should result in no\ngrave generating",
   "text.autoconfig.yigd.option.graveSettings.graveSpawnHeight": "Grave Spawn Height",
   "text.autoconfig.yigd.option.graveSettings.graveSpawnHeight.@Tooltip": "What Y level a grave should spawn at when you die in the void",
   "text.autoconfig.yigd.option.graveSettings.lastResort": "Last Resort",
@@ -73,6 +75,9 @@
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant.@Tooltip": "If the mod should use the\nbuilt in soulbound enchant\n[Require restart]",
+
+  "text.autoconfig.yigd.option.commandToggles": "Toggle Commands",
+  "text.autoconfig.yigd.option.commandToggles.retrieveGrave": "/retrieve_grave",
 
   "block.yigd.grave": "Grave",
   "enchantment.yigd.soulbound": "Soulbound",

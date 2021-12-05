@@ -59,11 +59,11 @@ public abstract class LivingEntityMixin {
         DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
 
-        items = GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
+        GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
 
         List<String> removeEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments; // List with enchantments to delete
         DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
-        items = GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
+        GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
 
         UUID playerId = player.getUuid();
 
@@ -89,7 +89,8 @@ public abstract class LivingEntityMixin {
         player.experienceLevel = 0;
 
         int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
-        if (!YigdConfig.getConfig().graveSettings.generateGraves || YigdConfig.getConfig().graveSettings.blacklistDimensions.contains(dimId)) {
+        YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+        if (!config.generateGraves || config.blacklistDimensions.contains(dimId) || config.ignoreDeathTypes.contains(source.name)) {
             for (int i = 0; i < Yigd.apiMods.size(); i++) {
                 YigdApi yigdApi = Yigd.apiMods.get(i);
                 items.addAll(yigdApi.toStackList(modInventories.get(i)));
