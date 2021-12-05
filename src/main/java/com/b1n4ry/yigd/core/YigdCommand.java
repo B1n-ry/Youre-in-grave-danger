@@ -1,6 +1,7 @@
 package com.b1n4ry.yigd.core;
 
 import com.b1n4ry.yigd.Yigd;
+import com.b1n4ry.yigd.config.YigdConfig;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,21 +16,23 @@ import java.util.UUID;
 public class YigdCommand {
     public static void registerCommands() {
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
-            dispatcher.register(CommandManager.literal("retrieve_grave")
-                .requires(source -> source.hasPermissionLevel(4))
-                .then(CommandManager.argument("player", EntityArgumentType.player())
-                    .executes(context -> {
-                        PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+            if (YigdConfig.getConfig().commandToggles.retrieveGrave) {
+                dispatcher.register(CommandManager.literal("retrieve_grave")
+                        .requires(source -> source.hasPermissionLevel(4))
+                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                .executes(context -> {
+                                    PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
 
-                        return retrieveGrave(player);
-                    })
-                )
-                .executes(context -> {
-                    PlayerEntity player = context.getSource().getPlayer();
+                                    return retrieveGrave(player);
+                                })
+                        )
+                        .executes(context -> {
+                            PlayerEntity player = context.getSource().getPlayer();
 
-                    return retrieveGrave(player);
-                })
-            );
+                            return retrieveGrave(player);
+                        })
+                );
+            }
         });
     }
 
