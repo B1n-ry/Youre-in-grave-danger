@@ -18,7 +18,7 @@ public class TravelersBackpackCompat implements YigdApi {
     @Override
     public DefaultedList<ItemStack> setInventory(Object inventory, PlayerEntity player) {
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
-        if (!(inventory instanceof ItemStack stack)) return extraItems;
+        if (!(inventory instanceof ItemStack stack) || stack.isEmpty()) return extraItems;
         if (ComponentUtils.isWearingBackpack(player)) {
             extraItems.add(stack);
         } else {

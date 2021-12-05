@@ -51,7 +51,7 @@ public class YigdCommand {
 
         int xp = Yigd.deadPlayerData.getDeathXp(userId);
 
-        GraveHelper.RetrieveItems(player, items, null, xp, false, null, null);
+        GraveHelper.RetrieveItems(player, items, null, xp, false);
 
         if (!player.world.getBlockState(gravePos).isAir() && gravePos != null) player.world.removeBlock(gravePos, false);
         player.sendMessage(Text.of("Retrieved grave remotely successfully"), true);
