@@ -24,6 +24,12 @@ repositories {
 		name = "Jitpack"
 		url = "https://jitpack.io"
 	}
+	flatDir {
+		dirs "./modsWithCompat"
+		content {
+			includeGroup "mods.compat"
+		}
+	}
 }
 
 dependencies {
@@ -47,7 +53,7 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-//	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.17-fabric:${project.inventorio_version}"
+	modImplementation "mods.compat:inventorio-1.18-fabric-${project.inventorio_version}"
 }
 
 processResources {
