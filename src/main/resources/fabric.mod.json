@@ -35,7 +35,8 @@
     "fabricloader": ">=0.11.3",
     "fabric": "*",
     "minecraft": "1.18.x",
-    "java": ">=17"
+    "java": ">=17",
+    "cloth-config2": ">=6.0.42"
   },
   "suggests": {
     "another-mod": "*"
