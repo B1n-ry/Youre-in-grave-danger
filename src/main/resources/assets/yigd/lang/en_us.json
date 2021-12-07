@@ -7,6 +7,8 @@
   "text.autoconfig.yigd.option.graveSettings.retrievalType.@Tooltip": "How players can retrieve their items from graves\nON_USE: Right click the grave\nON_SNEAK: Sneak on top of th grave\nON_STAND: Step on top of the grave\nON_BREAK: Break the grave",
   "text.autoconfig.yigd.option.graveSettings.dropType": "Drop Type",
   "text.autoconfig.yigd.option.graveSettings.dropType.@Tooltip": "How items should be retrieved from graves\n\nIN_INVENTORY: Items go straight into your inventory,\nin the same slots as when you died\nON_GROUND: All items land on the ground as\nif you broke a chest",
+  "text.autoconfig.yigd.option.graveSettings.dropPlayerHead": "Drop Player Head",
+  "text.autoconfig.yigd.option.graveSettings.dropPlayerHead.@Tooltip": "If true, players will drop\ntheir head when they die",
   "text.autoconfig.yigd.option.graveSettings.priority": "Inventory Priority",
   "text.autoconfig.yigd.option.graveSettings.priority.@Tooltip": "What inventory should be prioritized.\nGRAVE: Your inventory will be\ngenerated on top of grave inventory\nINVENTORY: Grave inventory will be\ngenerated on top of your inventory",
   "text.autoconfig.yigd.option.graveSettings.graveRobbing": "Grave Robbing",

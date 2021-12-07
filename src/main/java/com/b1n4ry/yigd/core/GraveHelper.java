@@ -407,9 +407,11 @@ public class GraveHelper {
             }
         }
 
-        for (int i = 40; i < inventory.size(); i++) {
+        for (int i = 40; i < inv.size(); i++) {
             ItemStack stack = inventory.getStack(i);
-            if (stack.isEmpty()) {
+            if (inventory.size() <= i) {
+                extraItems.add(inv.get(i));
+            } else if (stack.isEmpty()) {
                 inventory.setStack(i, inv.get(i));
             } else {
                 extraItems.add(inv.get(i));

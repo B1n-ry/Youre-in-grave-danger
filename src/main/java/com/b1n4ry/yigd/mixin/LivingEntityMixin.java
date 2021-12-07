@@ -4,13 +4,19 @@ import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.GraveHelper;
+import net.minecraft.block.Blocks;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.item.SkullItem;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -77,7 +83,7 @@ public abstract class LivingEntityMixin {
             xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
         }
 
-        Yigd.deadPlayerData.setDeathXp(player.getUuid(), xpPoints);
+        Yigd.deadPlayerData.setDeathXp(playerId, xpPoints);
         Yigd.deadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
         Yigd.deadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
         Yigd.deadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
@@ -87,6 +93,14 @@ public abstract class LivingEntityMixin {
         player.totalExperience = 0;
         player.experienceProgress = 0;
         player.experienceLevel = 0;
+
+        if (YigdConfig.getConfig().graveSettings.dropPlayerHead) {
+            ItemStack stack = new ItemStack(Items.PLAYER_HEAD, 1);
+            NbtCompound nbt = new NbtCompound();
+            nbt.putString("SkullOwner", player.getName().asString());
+            stack.setNbt(nbt);
+            items.add(stack);
+        }
 
         int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
         YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
@@ -126,5 +140,7 @@ public abstract class LivingEntityMixin {
         final DefaultedList<ItemStack> graveItems = items;
         final UUID killer = killerId;
         Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories, xp, killer));
+
+        this.dropInventory();
     }
 }

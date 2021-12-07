@@ -31,6 +31,9 @@ public class YigdConfig implements ConfigData {
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean dropPlayerHead = false;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
 
