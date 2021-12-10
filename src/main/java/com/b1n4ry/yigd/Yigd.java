@@ -83,6 +83,7 @@ public class Yigd implements ModInitializer {
         if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
             SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
+
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {
             apiMods.add(new TrinketsCompat());
         }
