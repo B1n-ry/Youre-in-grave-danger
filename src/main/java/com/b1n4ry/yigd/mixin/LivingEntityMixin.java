@@ -118,13 +118,6 @@ public abstract class LivingEntityMixin {
         for (int i = 0; i < soulboundInventory.size(); i++) {
             inventory.setStack(i, soulboundInventory.get(i));
         }
-        List<Object> modSoulbound = Yigd.deadPlayerData.getModdedSoulbound(playerId);
-        if (modSoulbound != null) {
-            for (int i = 0; i < modSoulbound.size(); i++) {
-                Yigd.apiMods.get(i).dropAll(player);
-                Yigd.apiMods.get(i).setInventory(modSoulbound.get(i), player);
-            }
-        }
 
         // Get killer if killed by a player
         UUID killerId;

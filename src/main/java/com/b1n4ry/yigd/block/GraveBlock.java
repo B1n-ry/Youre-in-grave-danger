@@ -1,6 +1,7 @@
 package com.b1n4ry.yigd.block;
 
 import com.b1n4ry.yigd.Yigd;
+import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.DropTypeConfig;
 import com.b1n4ry.yigd.config.RetrievalTypeConfig;
@@ -41,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("deprecation")
 public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
@@ -236,19 +238,20 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             }
         }
 
-        DefaultedList<ItemStack> graveModItems = graveEntity.getModdedInventories();
+        Map<String, Object> graveModItems = graveEntity.getModdedInventories();
 
         if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
-            items.addAll(graveModItems);
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                Object o = graveModItems.get(yigdApi.getModName());
+                items.addAll(yigdApi.toStackList(o));
+            }
 
             ItemScatterer.spawn(world, pos, items);
             world.removeBlock(pos, false);
             return true;
         }
 
-        List<ItemStack> graveModInv = new ArrayList<>(graveModItems);
-
-        GraveHelper.RetrieveItems(player, items, graveModInv, xp, isRobbing);
+        GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
         world.removeBlock(pos, false);
 
         return true;

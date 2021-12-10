@@ -1,6 +1,7 @@
 package com.b1n4ry.yigd.core;
 
 import com.b1n4ry.yigd.Yigd;
+import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -11,6 +12,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class YigdCommand {
@@ -53,11 +57,19 @@ public class YigdCommand {
         DefaultedList<ItemStack> items = Yigd.deadPlayerData.getDeathPlayerInventory(userId);
 
         int xp = Yigd.deadPlayerData.getDeathXp(userId);
+        List<Object> modInventories = Yigd.deadPlayerData.getModdedInventories(userId);
+        Map<String, Object> modInv = new HashMap<>();
+        for (int i = 0; i < Yigd.apiMods.size(); i++) {
+            YigdApi yigdApi = Yigd.apiMods.get(i);
+            modInv.put(yigdApi.getModName(), modInventories.get(i));
+        }
 
-        GraveHelper.RetrieveItems(player, items, null, xp, false);
+        GraveHelper.RetrieveItems(player, items, modInv, xp, false);
 
         player.world.removeBlock(gravePos, false);
-        if (!player.world.getBlockState(gravePos).isAir() && gravePos != null) player.world.removeBlock(gravePos, false);
+        if (!player.world.getBlockState(gravePos).isAir() && gravePos != null) {
+            player.world.removeBlock(gravePos, false);
+        }
         player.sendMessage(Text.of("Retrieved grave remotely successfully"), true);
 
         return 1;

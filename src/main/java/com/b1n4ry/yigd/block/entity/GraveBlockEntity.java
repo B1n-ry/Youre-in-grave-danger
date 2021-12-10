@@ -1,6 +1,7 @@
 package com.b1n4ry.yigd.block.entity;
 
 import com.b1n4ry.yigd.Yigd;
+import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
@@ -18,6 +19,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class GraveBlockEntity extends BlockEntity {
@@ -25,7 +28,7 @@ public class GraveBlockEntity extends BlockEntity {
     private int storedXp;
     private String customName;
     private DefaultedList<ItemStack> storedInventory;
-    private DefaultedList<ItemStack> moddedInventories;
+    private Map<String, Object> moddedInventories;
     private UUID killer;
     public int age;
 
@@ -57,7 +60,13 @@ public class GraveBlockEntity extends BlockEntity {
         if (killer != null) tag.putUuid("killer", killer);
 
         if (moddedInventories != null) {
-            tag.put("ModdedInventoryItems", Inventories.writeNbt(new NbtCompound(), this.moddedInventories, true));
+            NbtCompound modNbt = new NbtCompound();
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                String modName = yigdApi.getModName();
+                if (modName == null || !moddedInventories.containsKey(modName)) continue;
+                modNbt.put(modName, yigdApi.writeNbt(moddedInventories.get(modName)));
+            }
+            tag.put("ModdedInventoryItems", modNbt);
         }
     }
 
@@ -77,10 +86,15 @@ public class GraveBlockEntity extends BlockEntity {
         if (tag.contains("killer")) this.killer = tag.getUuid("killer");
 
         if (tag.contains("ModdedInventoryItems")) {
-            int modInvSize = tag.getCompound("ModdedInventoryItems").getList("Items", 10).size();
-            this.moddedInventories = DefaultedList.ofSize(modInvSize, ItemStack.EMPTY);
+            this.moddedInventories = new HashMap<>();
+            NbtCompound modNbt = tag.getCompound("ModdedInventoryItems");
 
-            Inventories.readNbt(tag.getCompound("ModdedInventoryItems"), this.moddedInventories);
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                String modName = yigdApi.getModName();
+
+                NbtCompound nbt = modNbt.getCompound(modName);
+                this.moddedInventories.computeIfAbsent(modName, s -> yigdApi.readNbt(nbt));
+            }
         }
     }
 
@@ -112,9 +126,9 @@ public class GraveBlockEntity extends BlockEntity {
                 if (stack.isEmpty()) continue;
                 dropItems.add(stack);
             }
-            for (ItemStack stack : grave.getModdedInventories()) {
-                if (stack.isEmpty()) continue;
-                dropItems.add(stack);
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                Object o = grave.moddedInventories.get(yigdApi.getModName());
+                dropItems.addAll(yigdApi.toStackList(o));
             }
             if (!dropItems.isEmpty()) {
                 ItemScatterer.spawn(world, pos, dropItems);
@@ -138,7 +152,7 @@ public class GraveBlockEntity extends BlockEntity {
     public void setInventory(DefaultedList<ItemStack> inventory) {
         this.storedInventory = inventory;
     }
-    public void setModdedInventories(DefaultedList<ItemStack> inventories) {
+    public void setModdedInventories(Map<String, Object> inventories) {
         this.moddedInventories = inventories;
     }
     public void setKiller(UUID killerId) {
@@ -158,7 +172,7 @@ public class GraveBlockEntity extends BlockEntity {
     public int getStoredXp() {
         return storedXp;
     }
-    public DefaultedList<ItemStack> getModdedInventories() {
+    public Map<String, Object> getModdedInventories() {
         return moddedInventories;
     }
     public UUID getKiller() {

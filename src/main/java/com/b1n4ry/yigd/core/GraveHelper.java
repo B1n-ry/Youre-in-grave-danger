@@ -256,10 +256,10 @@ public class GraveHelper {
 
             GameProfile playerProfile = player.getGameProfile();
 
-            DefaultedList<ItemStack> moddedInvStacks = DefaultedList.of();
+            Map<String, Object> moddedInvStacks = new HashMap<>();
             for (int i = 0; i < Yigd.apiMods.size(); i++) {
                 YigdApi yigdApi = Yigd.apiMods.get(i);
-                moddedInvStacks.addAll(yigdApi.toStackList(modInventories.get(i)));
+                moddedInvStacks.put(yigdApi.getModName(), modInventories.get(i));
             }
 
             placedGraveEntity.setInventory(invItems);
@@ -274,15 +274,13 @@ public class GraveHelper {
         if (YigdConfig.getConfig().graveSettings.tellDeathPos) Yigd.deadPlayerData.setDeathPos(player.getUuid(), gravePos); // Backup of the coordinates where you died
     }
 
-    public static DefaultedList<ItemStack> removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {
+    public static void removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {
         for (ItemStack item : remove) {
             int match = list.indexOf(item);
             if (match < 0) continue;
 
             list.set(match, ItemStack.EMPTY);
         }
-
-        return list;
     }
 
     public static DefaultedList<ItemStack> getEnchantedItems(DefaultedList<ItemStack> items, List<String> enchantStrings) {
@@ -309,7 +307,7 @@ public class GraveHelper {
         return false;
     }
 
-    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, List<ItemStack> graveModInv, int xp, boolean robbing) {
+    public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, Map<String, Object> modInventories, int xp, boolean robbing) {
         PlayerInventory inventory = player.getInventory();
 
         DefaultedList<ItemStack> invInventory = DefaultedList.of();
@@ -324,15 +322,14 @@ public class GraveHelper {
             }
         }
 
-        List<Object> currentModInv = new ArrayList<>();
+        Map<String, Object> currentModInv = new HashMap<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
             Object modInv = yigdApi.getInventory(player);
-            currentModInv.add(modInv);
+            currentModInv.put(yigdApi.getModName(), modInv);
 
             yigdApi.dropAll(player);
         }
         UUID userId = player.getUuid();
-        List<Object> modInventories = Yigd.deadPlayerData.getModdedInventories(userId);
 
 
         inventory.clear(); // Delete all items
@@ -353,10 +350,6 @@ public class GraveHelper {
             extraItems.addAll(fillInventory(player, graveInv, modInventories, true));
         }
 
-        if (modInventories == null && graveModInv != null) {
-            extraItems.addAll(graveModInv);
-        }
-
         List<Integer> openSlots = getInventoryOpenSlots(inventory.main);
         extraItems.removeIf(ItemStack::isEmpty);
 
@@ -375,7 +368,7 @@ public class GraveHelper {
         Yigd.deadPlayerData.dropDeathPos(userId);
     }
 
-    private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, List<Object> modInv, boolean fromGrave) {
+    private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {
         List<ItemStack> armorInventory = inv.subList(36, 40);
         List<ItemStack> mainInventory = inv.subList(0, 36);
 
@@ -387,7 +380,14 @@ public class GraveHelper {
         for (int i = 0; i < armorInventory.size(); i++) {
             ItemStack armorItem = armorInventory.get(i);
 
-            if (hasEnchantments(bindingCurse, armorItem)) {
+            Collection<Identifier> tags = player.world.getTagManager().getOrCreateTagGroup(Registry.ITEM_KEY).getTagsFor(armorItem.getItem());
+            if (tags.contains(new Identifier("yigd", "force_item_slot"))) {
+                ItemStack equipped = inventory.getArmorStack(i);
+                if (!equipped.isEmpty()) {
+                    extraItems.add(equipped);
+                }
+                inventory.setStack(mainInventory.size() + i, armorItem);
+            } else if (hasEnchantments(bindingCurse, armorItem)) {
                 if (!fromGrave) {
                     ItemStack equipped = inventory.getArmorStack(i);
                     if (!equipped.isEmpty()) {
@@ -430,7 +430,7 @@ public class GraveHelper {
         if (modInv != null) {
             for (int i = 0; i < modInv.size(); i++) {
                 YigdApi yigdApi = Yigd.apiMods.get(i);
-                extraItems.addAll(yigdApi.setInventory(modInv.get(i), player));
+                extraItems.addAll(yigdApi.setInventory(modInv.get(yigdApi.getModName()), player));
             }
         }
 

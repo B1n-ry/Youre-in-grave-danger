@@ -1,77 +1,104 @@
 package com.b1n4ry.yigd.compat;
 
+
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.GraveHelper;
-import dev.emi.trinkets.api.*;
+import dev.emi.trinkets.api.TrinketComponent;
+import dev.emi.trinkets.api.TrinketInventory;
+import dev.emi.trinkets.api.TrinketsApi;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Pair;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.*;
 
+@SuppressWarnings("unchecked")
 public class TrinketsCompat implements YigdApi {
+    @Override
+    public String getModName() {
+        return "trinkets";
+    }
+
     @Override
     public Object getInventory(PlayerEntity player, boolean... handleAsDeath) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
-        if (optional.isEmpty()) return null;
+        if (optional.isEmpty()) return new HashMap<String, Map<String, TrinketInventory>>();
 
-        TrinketComponent trinkets = optional.get();
+        TrinketComponent component = optional.get();
+        Map<String, Map<String, TrinketInventory>> inventory = component.getInventory();
+        Map<String, Map<String, DefaultedList<ItemStack>>> playerInv = new HashMap<>();
 
-        List<Pair<SlotReference, ItemStack>> inv = trinkets.getAllEquipped();
+        boolean onDeath = handleAsDeath.length > 0 && handleAsDeath[0];
 
-        if (handleAsDeath.length > 0 && handleAsDeath[0]) {
-            List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
-            List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
+        List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
+        List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
 
-            List<Pair<SlotReference, ItemStack>> soulbound = new ArrayList<>();
+        Map<String, Map<String, DefaultedList<ItemStack>>> soulbound = new HashMap<>();
+        inventory.forEach((group, slots) -> {
+            Map<String, DefaultedList<ItemStack>> soulGroupRef = soulbound.computeIfAbsent(group, s -> new HashMap<>());
+            Map<String, DefaultedList<ItemStack>> invGroupRef = playerInv.computeIfAbsent(group, s -> new HashMap<>());
 
-            for (Pair<SlotReference, ItemStack> pair : inv) {
-                SlotReference ref = pair.getLeft();
-                ItemStack stack = pair.getRight();
-                if (GraveHelper.hasEnchantments(soulboundEnchantments, stack)) {
-                    soulbound.add(new Pair<>(ref, stack.copy()));
-                    pair.setRight(ItemStack.EMPTY);
+            slots.forEach((slot, trinkets) -> {
+                DefaultedList<ItemStack> soulInv = DefaultedList.of();
+                DefaultedList<ItemStack> stacks = DefaultedList.of();
+                for (int i = 0; i < trinkets.size(); i++) {
+                    ItemStack stack = trinkets.getStack(i);
+                    if (stack.isEmpty()) continue;
+
+                    boolean removed = false;
+
+                    if (onDeath) {
+                        if (GraveHelper.hasEnchantments(deleteEnchantments, stack)) {
+                            trinkets.setStack(i, ItemStack.EMPTY);
+                            removed = true;
+                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack)) {
+                            trinkets.setStack(i, ItemStack.EMPTY);
+                            soulInv.add(stack);
+                            removed = true;
+                        }
+                    }
+                    if (!removed) stacks.add(stack);
                 }
-                if (GraveHelper.hasEnchantments(deleteEnchantments, stack)) {
-                    pair.setRight(ItemStack.EMPTY);
-                }
-            }
-
-            Yigd.deadPlayerData.addModdedSoulbound(player.getUuid(), soulbound);
-        }
-
-        return inv;
+                soulGroupRef.computeIfAbsent(slot, s -> soulInv);
+                invGroupRef.computeIfAbsent(slot, s -> stacks);
+            });
+        });
+        if (onDeath) Yigd.deadPlayerData.addModdedSoulbound(player.getUuid(), soulbound);
+        return playerInv;
     }
 
     @Override
     public DefaultedList<ItemStack> setInventory(Object inventory, PlayerEntity player) {
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
-        if (!(inventory instanceof List)) return extraItems;
-        List<Pair<SlotReference, ItemStack>> toEquip = (List<Pair<SlotReference, ItemStack>>) inventory;
 
-        TrinketsApi.getTrinketComponent(player).ifPresent(trinkets -> {
-            for (Pair<SlotReference, ItemStack> pair : toEquip) {
-                SlotReference ref = pair.getLeft();
-                SlotType slotType = ref.inventory().getSlotType();
-                ItemStack stack = pair.getRight();
+        Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
+        if (optional.isEmpty()) return extraItems;
+        TrinketComponent playerComponent = optional.get();
 
-                trinkets.forEach(((slotReference, itemStack) -> {
-                    SlotType type = slotReference.inventory().getSlotType();
+        if (!(inventory instanceof Map fullInv)) return extraItems;
+        fullInv.forEach((group, map) -> {
+            if (!(map instanceof Map groupInv && group instanceof String)) return;
+            groupInv.forEach((slot, trinket) -> {
+                if (!(trinket instanceof DefaultedList stacks && slot instanceof String)) return;
+                TrinketInventory equippedInv = playerComponent.getInventory().get(group).get(slot);
+                if (equippedInv == null) return;
 
-                    if (type.equals(slotType)) {
-                        TrinketInventory trinketInventory = slotReference.inventory();
-                        int index = ref.index();
-                        if (trinketInventory.getStack(index).isEmpty()) {
-                            trinketInventory.setStack(index, stack);
-                        } else {
-                            extraItems.add(stack);
-                        }
+                for (int i = 0; i < Math.min(equippedInv.size(), stacks.size()); i++) {
+                    if (!(stacks.get(i) instanceof ItemStack stack)) continue;
+
+                    ItemStack equipped = equippedInv.getStack(i);
+                    if (!equipped.isEmpty()) {
+                        extraItems.add(stack);
+                        continue;
                     }
-                }));
-            }
+                    equippedInv.setStack(i, stack);
+                }
+            });
         });
 
         return extraItems;
@@ -81,37 +108,84 @@ public class TrinketsCompat implements YigdApi {
     public int getInventorySize(PlayerEntity player) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
         if (optional.isEmpty()) return 0;
-
-        int size = 0;
-
         TrinketComponent component = optional.get();
 
-        Set<TrinketInventory> inventorySet = component.getTrackingUpdates();
-        for (TrinketInventory inventory : inventorySet) {
-            size += inventory.size();
-        }
-
-        return size;
+        List<Integer> list = new ArrayList<>();
+        component.forEach((ref, stack) -> list.add(0));
+        return list.size();
     }
 
     @Override
     public void dropAll(PlayerEntity player) {
-        TrinketsApi.getTrinketComponent(player).ifPresent(trinketComponent -> {
-            trinketComponent.forEach((slotReference, itemStack) -> slotReference.inventory().clear());
+        Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
+        if (optional.isEmpty()) return;
+        TrinketComponent component = optional.get();
+
+        component.forEach((ref, stack) -> {
+            if (stack.isEmpty()) return;
+            ref.inventory().clear();
         });
     }
 
     @Override
     public List<ItemStack> toStackList(Object inventory) {
-        if (!(inventory instanceof List)) return null;
-        List<Pair<SlotReference, ItemStack>> nested = (List<Pair<SlotReference, ItemStack>>) inventory;
+        List<ItemStack> stacks = new ArrayList<>();
+        if (!(inventory instanceof Map inv)) return stacks;
+        inv.forEach((group, slots) -> {
+            if (!(slots instanceof Map slotMap)) return;
+            slotMap.forEach((slot, items) -> {
+                if (!(items instanceof DefaultedList trinketInv)) return;
+                for (ItemStack item : (DefaultedList<ItemStack>) trinketInv) {
+                    if (item.isEmpty()) continue;
+                    stacks.add(item);
+                }
+            });
+        });
 
-        List<ItemStack> items = new ArrayList<>();
-        for (Pair<SlotReference, ItemStack> pair : nested) {
-            ItemStack stack = pair.getRight();
-            if (!stack.isEmpty()) items.add(stack);
+        return stacks;
+    }
+
+    @Override
+    public NbtCompound writeNbt(Object o) {
+        NbtCompound nbt = new NbtCompound();
+        if (!(o instanceof Map inv)) return nbt;
+        inv.forEach((group, slots) -> {
+            if (!(group instanceof String groupName && slots instanceof Map slotMap)) return;
+            NbtCompound groupNbt = new NbtCompound();
+
+            slotMap.forEach((slot, items) -> {
+                if (!(slot instanceof String slotName && items instanceof DefaultedList stacks)) return;
+                groupNbt.put(slotName, Inventories.writeNbt(new NbtCompound(), (DefaultedList<ItemStack>) stacks));
+            });
+
+            nbt.put(groupName, groupNbt);
+        });
+
+        return nbt;
+    }
+
+    @Override
+    public Object readNbt(NbtCompound nbt) {
+        Map<String, Map<String, DefaultedList<ItemStack>>> inventory = new HashMap<>();
+        Set<String> groupKeys = nbt.getKeys();
+        for (String groupKey : groupKeys) {
+            NbtCompound groupNbt = (NbtCompound) nbt.get(groupKey);
+            Map<String, DefaultedList<ItemStack>> groupMap = inventory.computeIfAbsent(groupKey, s -> new HashMap<>());
+            if (groupNbt == null) continue;
+
+            Set<String> slotKeys = groupNbt.getKeys();
+            for (String slotKey : slotKeys) {
+                NbtCompound itemsNbt = (NbtCompound) groupNbt.get(slotKey);
+                if (itemsNbt == null) continue;
+                NbtList nbtList = itemsNbt.getList("Items", 10);
+
+                DefaultedList<ItemStack> items = DefaultedList.ofSize(nbtList.size(), ItemStack.EMPTY);
+                Inventories.readNbt(itemsNbt, items);
+
+                groupMap.putIfAbsent(slotKey, items);
+            }
         }
 
-        return items;
+        return inventory;
     }
 }

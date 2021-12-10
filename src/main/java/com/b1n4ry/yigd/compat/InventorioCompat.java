@@ -7,14 +7,21 @@ import com.b1n4ry.yigd.core.GraveHelper;
 import me.lizardofoz.inventorio.api.InventorioAPI;
 import me.lizardofoz.inventorio.player.PlayerInventoryAddon;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
+@SuppressWarnings("unchecked")
 public class InventorioCompat implements YigdApi {
+    @Override
+    public String getModName() {
+        return "inventorio";
+    }
+
     @Override
     public Object getInventory(PlayerEntity player, boolean... handleAsDeath) {
         DefaultedList<ItemStack> inventories = DefaultedList.of();
@@ -90,5 +97,24 @@ public class InventorioCompat implements YigdApi {
             if (!stack.isEmpty()) newList.add(stack);
         }
         return newList;
+    }
+
+    @Override
+    public NbtCompound writeNbt(Object o) {
+        if (!(o instanceof List)) return new NbtCompound();
+        List<ItemStack> items = (List<ItemStack>) o;
+
+        DefaultedList<ItemStack> stacks = DefaultedList.of();
+        stacks.addAll(items);
+
+        return Inventories.writeNbt(new NbtCompound(), stacks);
+    }
+
+    @Override
+    public Object readNbt(NbtCompound nbt) {
+        DefaultedList<ItemStack> items = DefaultedList.of();
+        Inventories.readNbt(nbt, items);
+
+        return new ArrayList<>(items);
     }
 }
