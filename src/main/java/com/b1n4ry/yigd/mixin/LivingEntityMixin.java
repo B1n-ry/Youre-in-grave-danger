@@ -4,18 +4,14 @@ import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.GraveHelper;
-import net.minecraft.block.Blocks;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.SkullItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ItemScatterer;
@@ -102,9 +98,20 @@ public abstract class LivingEntityMixin {
             items.add(stack);
         }
 
+        boolean canGenerate = true;
+        if (YigdConfig.getConfig().graveSettings.requireGraveItem) {
+            canGenerate = false;
+            for (ItemStack stack : items) {
+                if (stack.getItem() == Yigd.GRAVE_BLOCK.asItem()) {
+                    canGenerate = true;
+                    stack.decrement(1);
+                }
+            }
+        }
+
         int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
         YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
-        if (!config.generateGraves || config.blacklistDimensions.contains(dimId) || config.ignoreDeathTypes.contains(source.name)) {
+        if (!config.generateGraves || config.blacklistDimensions.contains(dimId) || config.ignoreDeathTypes.contains(source.name) || !canGenerate) {
             for (int i = 0; i < Yigd.apiMods.size(); i++) {
                 YigdApi yigdApi = Yigd.apiMods.get(i);
                 items.addAll(yigdApi.toStackList(modInventories.get(i)));

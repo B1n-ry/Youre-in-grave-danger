@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.text.Text;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 
@@ -69,6 +70,9 @@ public class YigdCommand {
         player.world.removeBlock(gravePos, false);
         if (!player.world.getBlockState(gravePos).isAir() && gravePos != null) {
             player.world.removeBlock(gravePos, false);
+            if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
+                ItemScatterer.spawn(player.world, gravePos.getX(), gravePos.getY(), gravePos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+            }
         }
         player.sendMessage(Text.of("Retrieved grave remotely successfully"), true);
 

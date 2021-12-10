@@ -6,6 +6,7 @@ import com.b1n4ry.yigd.block.GraveBlock;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.compat.InventorioCompat;
 import com.b1n4ry.yigd.compat.TrinketsCompat;
+import com.b1n4ry.yigd.config.PriorityInventoryConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.SoulboundEnchantment;
@@ -31,11 +32,11 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.registry.Registry;
 
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Yigd implements ModInitializer {
 
@@ -44,6 +45,7 @@ public class Yigd implements ModInitializer {
 
     public static DeadPlayerData deadPlayerData = new DeadPlayerData();
     public static JsonObject graveyard;
+    public static Map<UUID, Pair<PriorityInventoryConfig, PriorityInventoryConfig>> clientPriority = new HashMap<>();
 
     private static Enchantment SOULBOUND;
 

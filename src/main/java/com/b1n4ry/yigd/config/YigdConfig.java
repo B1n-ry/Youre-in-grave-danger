@@ -34,6 +34,11 @@ public class YigdConfig implements ConfigData {
         public boolean dropPlayerHead = false;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean dropGraveBlock = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean requireGraveItem = false;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
 

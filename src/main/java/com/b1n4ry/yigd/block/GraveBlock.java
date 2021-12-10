@@ -248,11 +248,17 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
             ItemScatterer.spawn(world, pos, items);
             world.removeBlock(pos, false);
+            if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
+                ItemScatterer.spawn(player.world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+            }
             return true;
         }
 
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
         world.removeBlock(pos, false);
+        if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
+            ItemScatterer.spawn(player.world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+        }
 
         return true;
     }
