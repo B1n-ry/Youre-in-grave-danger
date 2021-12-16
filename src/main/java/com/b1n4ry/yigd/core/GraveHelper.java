@@ -96,7 +96,8 @@ public class GraveHelper {
                             BlockPos gravePos = new BlockPos(x, y, z);
 
                             if (gravePlaceableAt(overworld, gravePos, false)) {
-                                placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                if (!isPlaced) continue;
                                 foundViableGrave = true;
                                 break;
                             }
@@ -122,7 +123,8 @@ public class GraveHelper {
                                     BlockPos gravePos = new BlockPos(x, y, z);
 
                                     if (gravePlaceableAt(overworld, gravePos, false)) {
-                                        placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                        boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                        if (!isPlaced) continue;
                                         foundViableGrave = true;
                                         break;
                                     }
@@ -137,7 +139,9 @@ public class GraveHelper {
         if (!foundViableGrave && YigdConfig.getConfig().graveSettings.trySoft) { // Trying soft
             for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
                 if (gravePlaceableAt(world, gravePos, false)) {
-                    placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    if (!isPlaced) continue;
+
                     foundViableGrave = true;
                     break;
                 }
@@ -146,7 +150,8 @@ public class GraveHelper {
         if (!foundViableGrave && YigdConfig.getConfig().graveSettings.tryStrict) { // Trying strict
             for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
                 if (gravePlaceableAt(world, gravePos, true)) {
-                    placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    if (!isPlaced) continue;
                     foundViableGrave = true;
                     break;
                 }
@@ -155,9 +160,14 @@ public class GraveHelper {
 
         // If there is nowhere to place the grave for some reason the items should not disappear
         if (!foundViableGrave) { // No grave was placed
+            boolean isPlaced = false;
             if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, killerId);
-            } else {
+                isPlaced = placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, killerId);
+                if (!isPlaced) {
+                    System.out.println("Failed to set grave as a last resort");
+                }
+            }
+            if (!isPlaced) {
                 for (YigdApi yigdApi : Yigd.apiMods) {
                     invItems.addAll(yigdApi.toStackList(player));
                 }
@@ -205,10 +215,13 @@ public class GraveHelper {
         return !(xPos >= boundEast && xPos <= boundWest && yPos <= world.getBottomY() && yPos >= world.getTopY() && zPos <= boundNorth && zPos >= boundSouth);
     }
 
-    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
+    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
         boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing()).with(Properties.WATERLOGGED, waterlogged);
-        world.setBlockState(gravePos, graveBlock);
+        boolean isPlaced = world.setBlockState(gravePos, graveBlock);
+        if (!isPlaced) {
+            return false;
+        }
 
         BlockPos blockPosUnder = new BlockPos(gravePos.getX(), gravePos.getY() - 1, gravePos.getZ());
 
@@ -272,6 +285,7 @@ public class GraveHelper {
             System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
         }
         if (YigdConfig.getConfig().graveSettings.tellDeathPos) Yigd.deadPlayerData.setDeathPos(player.getUuid(), gravePos); // Backup of the coordinates where you died
+        return true;
     }
 
     public static void removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {
@@ -361,6 +375,8 @@ public class GraveHelper {
 
         ItemScatterer.spawn(player.world, player.getBlockPos(), extraItems);
         player.addExperience(xp);
+
+        System.out.println(player.getDisplayName().asString() + " retrieved items from grave");
 
         Yigd.deadPlayerData.dropDeathXp(userId);
         Yigd.deadPlayerData.dropDeathInventory(userId);

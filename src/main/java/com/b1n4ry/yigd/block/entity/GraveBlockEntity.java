@@ -32,6 +32,8 @@ public class GraveBlockEntity extends BlockEntity {
     private UUID killer;
     public int age;
 
+    private boolean glowing;
+
     public GraveBlockEntity(BlockPos pos, BlockState state) {
         this(null, pos, state);
     }
@@ -44,6 +46,8 @@ public class GraveBlockEntity extends BlockEntity {
         this.storedInventory = DefaultedList.ofSize(41, ItemStack.EMPTY);
 
         this.age = 0;
+
+        this.glowing = YigdConfig.getConfig().graveSettings.glowingGrave;
     }
 
     @Override
@@ -96,6 +100,9 @@ public class GraveBlockEntity extends BlockEntity {
                 this.moddedInventories.computeIfAbsent(modName, s -> yigdApi.readNbt(nbt));
             }
         }
+
+        // Not from NBT. Static definitions
+        this.glowing = YigdConfig.getConfig().graveSettings.glowingGrave;
     }
 
     @Override
@@ -177,5 +184,8 @@ public class GraveBlockEntity extends BlockEntity {
     }
     public UUID getKiller() {
         return this.killer;
+    }
+    public boolean canGlow() {
+        return glowing;
     }
 }

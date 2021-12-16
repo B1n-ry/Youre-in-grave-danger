@@ -77,6 +77,8 @@
   "text.autoconfig.yigd.option.graveSettings.adaptRenderer.@Tooltip": "Render grave ground layer as\nthe block the grave is on top of",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player\ntelling them where they died",
+  "text.autoconfig.yigd.option.graveSettings.glowingGrave": "Glowing Graves",
+  "text.autoconfig.yigd.option.graveSettings.glowingGrave.@Tooltip": "If true graves will render\nsimilar to the glowing effect\nfor the grave owner",
 
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",

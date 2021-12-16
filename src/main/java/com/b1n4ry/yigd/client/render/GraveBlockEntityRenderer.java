@@ -28,13 +28,14 @@ import net.minecraft.world.World;
 import java.util.Random;
 
 @Environment(EnvType.CLIENT)
-public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
+public class GraveBlockEntityRenderer<T extends GraveBlockEntity> implements BlockEntityRenderer<T> {
     private final TextRenderer textRenderer;
     private final EntityModelLoader renderLayer;
 
     public GraveBlockEntityRenderer(Context ctx) {
         this.textRenderer = ctx.getTextRenderer();
         this.renderLayer = ctx.getLayerRenderDispatcher();
+
     }
 
     public SkullBlockEntityModel getSkull() {
@@ -121,6 +122,34 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         BlockPos pos = blockEntity.getPos();
         BlockPos under = pos.down();
         World world = blockEntity.getWorld();
+
+//        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+//        if (player != null) {
+//            if (blockEntity.canGlow() && graveOwner != null && graveOwner.getId() == player.getUuid()) {
+//                VertexConsumer consumer = vertexConsumers.getBuffer(RenderLayer.getSolid());
+//                // Init stencil
+//                GL20C.glEnable(GL20C.GL_STENCIL_TEST);
+//                RenderSystem.clear(GL20C.GL_STENCIL_BUFFER_BIT, true);
+//                RenderSystem.stencilMask(0xFF);
+//                RenderSystem.clearStencil(0);
+//
+//                RenderSystem.stencilOp(GL20C.GL_KEEP, GL20C.GL_KEEP, GL20C.GL_REPLACE);
+//
+//                // Write modelPart to the stencil buffer
+//                RenderSystem.stencilMask(0xFF);
+//                RenderSystem.stencilFunc(GL20C.GL_ALWAYS, 1, 0xFF);
+//                this.modelPart.render(matrices, consumer, light, overlay, 0, 0, 0, 255);
+//
+//                // Let's render the same model excluding its own pixels
+//                // I.e., we should see nothing, I suppose
+//                RenderSystem.stencilMask(0x00);
+//                RenderSystem.stencilFunc(GL20C.GL_NOTEQUAL, 1, 0xFF);
+//                matrices.scale(0.99f, 0.99f, 0.99f);
+//                this.modelPart.render(matrices, consumer, light, overlay, 255, 255, 255, 255);
+//
+//                GL20C.glDisable(GL20C.GL_STENCIL_TEST);
+//            }
+//        }
 
         BlockState blockUnder = null;
         if (world != null) blockUnder = world.getBlockState(under);

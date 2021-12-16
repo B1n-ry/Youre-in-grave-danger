@@ -93,6 +93,8 @@ public class YigdConfig implements ConfigData {
         public boolean renderGraveOwner = true;
         @ConfigEntry.Gui.Tooltip
         public boolean adaptRenderer = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean glowingGrave = false;
 
         @ConfigEntry.Gui.Tooltip
         public boolean tellDeathPos = true;

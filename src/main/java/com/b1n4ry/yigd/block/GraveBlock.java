@@ -19,7 +19,6 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
@@ -113,6 +112,12 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         super.onBreak(world, pos, state, player);
     }
+
+    @Override
+    public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
+        RetrieveItems(null, (World) world, pos);
+    }
+
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
@@ -188,10 +193,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         return new GraveBlockEntity(customName, pos, state);
     }
 
-    private boolean RetrieveItems(PlayerEntity playerEntity, World world, BlockPos pos) {
+    private boolean RetrieveItems(PlayerEntity player, World world, BlockPos pos) {
         if (world.isClient) return false;
-
-        if (!(playerEntity instanceof ServerPlayerEntity player)) return false;
 
         BlockEntity blockEntity = world.getBlockEntity(pos);
 
@@ -206,38 +209,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (graveOwner == null) return false;
         if (items == null) return false;
 
-        YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
-        boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-        int age = graveEntity.age;
-        int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
-
-        boolean isRobbing = false;
-
-        boolean timePassed = age > requiredAge;
-        if (!player.getGameProfile().getId().equals(graveOwner.getId())) {
-            if (!(canRobGrave && timePassed)) {
-                if (canRobGrave) {
-                    List<String> timeStrings = new ArrayList<>();
-                    double timeRemaining = ((double) requiredAge - age) / 20;
-                    if (timeRemaining >= 3600d) {
-                        timeStrings.add((int) (timeRemaining / 36000) + " hours");
-                        timeRemaining %= 3600d;
-                    }
-                    if (timeRemaining >= 60) {
-                        timeStrings.add((int) (timeRemaining / 60) + " minutes");
-                        timeRemaining %= 60;
-                    }
-                    timeStrings.add((int) timeRemaining + " seconds");
-                    player.sendMessage(Text.of("You can retrieve the items from this grave in: " + String.join(", ", timeStrings)), true);
-                } else {
-                    player.sendMessage(Text.of("You are not allowed to retrieve these items"), true);
-                }
-                return false;
-            } else {
-                isRobbing = true;
-            }
-        }
-
         Map<String, Object> graveModItems = graveEntity.getModdedInventories();
 
         if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
@@ -249,17 +220,51 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             ItemScatterer.spawn(world, pos, items);
             world.removeBlock(pos, false);
             if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
-                ItemScatterer.spawn(player.world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
             return true;
         }
-
-        GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
-        world.removeBlock(pos, false);
         if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
-            ItemScatterer.spawn(player.world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+            ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
         }
+        world.removeBlock(pos, false);
 
+
+        if (player != null) {
+            YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
+            boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
+            int age = graveEntity.age;
+            int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+
+            boolean isRobbing = false;
+            boolean timePassed = age > requiredAge;
+            if (!player.getGameProfile().getId().equals(graveOwner.getId())) {
+                if (!(canRobGrave && timePassed)) {
+                    if (canRobGrave) {
+                        List<String> timeStrings = new ArrayList<>();
+                        double timeRemaining = ((double) requiredAge - age) / 20;
+                        if (timeRemaining >= 3600d) {
+                            timeStrings.add((int) (timeRemaining / 36000) + " hours");
+                            timeRemaining %= 3600d;
+                        }
+                        if (timeRemaining >= 60) {
+                            timeStrings.add((int) (timeRemaining / 60) + " minutes");
+                            timeRemaining %= 60;
+                        }
+                        timeStrings.add((int) timeRemaining + " seconds");
+                        player.sendMessage(Text.of("You can retrieve the items from this grave in: " + String.join(", ", timeStrings)), true);
+                    } else {
+                        player.sendMessage(Text.of("You are not allowed to retrieve these items"), true);
+                    }
+                    return false;
+                } else {
+                    isRobbing = true;
+                }
+            }
+
+            System.out.println("[YIGD] " + player.getDisplayName().asString() + " is retrieving their grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+            GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
+        }
         return true;
     }
 

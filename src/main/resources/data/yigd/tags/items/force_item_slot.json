@@ -1,6 +1,34 @@
 {
   "replace": false,
   "values": [
-    "camsbackpacks:white_backpack"
+    "camsbackpacks:white_backpack",
+    "camsbackpacks:orange_backpack",
+    "camsbackpacks:magenta_backpack",
+    "camsbackpacks:light_blue_backpack",
+    "camsbackpacks:yellow_backpack",
+    "camsbackpacks:lime_backpack",
+    "camsbackpacks:pink_backpack",
+    "camsbackpacks:gray_backpack",
+    "camsbackpacks:light_gray_backpack",
+    "camsbackpacks:cyan_backpack",
+    "camsbackpacks:purple_backpack",
+    "camsbackpacks:blue_backpack",
+    "camsbackpacks:brown_backpack",
+    "camsbackpacks:green_backpack",
+    "camsbackpacks:red_backpack",
+    "camsbackpacks:black_backpack",
+    "camsbackpacks:gay_pride_backpack",
+    "camsbackpacks:lesbian_pride_backpack",
+    "camsbackpacks:qpoc_pride_backpack",
+    "camsbackpacks:bi_pride_backpack",
+    "camsbackpacks:pan_pride_backpack",
+    "camsbackpacks:trans_pride_backpack",
+    "camsbackpacks:genderqueer_pride_backpack",
+    "camsbackpacks:genderfluid_pride_backpack",
+    "camsbackpacks:enby_pride_backpack",
+    "camsbackpacks:ace_pride_backpack",
+    "camsbackpacks:demi_pride_backpack",
+    "camsbackpacks:aro_pride_backpack",
+    "camsbackpacks:agender_pride_backpack"
   ]
 }
