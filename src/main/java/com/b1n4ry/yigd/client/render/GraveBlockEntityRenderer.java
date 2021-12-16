@@ -9,6 +9,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
@@ -24,18 +25,18 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.World;
+import org.lwjgl.opengl.GL11;
 
 import java.util.Random;
 
 @Environment(EnvType.CLIENT)
-public class GraveBlockEntityRenderer<T extends GraveBlockEntity> implements BlockEntityRenderer<T> {
+public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private final TextRenderer textRenderer;
     private final EntityModelLoader renderLayer;
 
     public GraveBlockEntityRenderer(Context ctx) {
         this.textRenderer = ctx.getTextRenderer();
         this.renderLayer = ctx.getLayerRenderDispatcher();
-
     }
 
     public SkullBlockEntityModel getSkull() {
@@ -123,33 +124,19 @@ public class GraveBlockEntityRenderer<T extends GraveBlockEntity> implements Blo
         BlockPos under = pos.down();
         World world = blockEntity.getWorld();
 
-//        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-//        if (player != null) {
-//            if (blockEntity.canGlow() && graveOwner != null && graveOwner.getId() == player.getUuid()) {
-//                VertexConsumer consumer = vertexConsumers.getBuffer(RenderLayer.getSolid());
-//                // Init stencil
-//                GL20C.glEnable(GL20C.GL_STENCIL_TEST);
-//                RenderSystem.clear(GL20C.GL_STENCIL_BUFFER_BIT, true);
-//                RenderSystem.stencilMask(0xFF);
-//                RenderSystem.clearStencil(0);
-//
-//                RenderSystem.stencilOp(GL20C.GL_KEEP, GL20C.GL_KEEP, GL20C.GL_REPLACE);
-//
-//                // Write modelPart to the stencil buffer
-//                RenderSystem.stencilMask(0xFF);
-//                RenderSystem.stencilFunc(GL20C.GL_ALWAYS, 1, 0xFF);
-//                this.modelPart.render(matrices, consumer, light, overlay, 0, 0, 0, 255);
-//
-//                // Let's render the same model excluding its own pixels
-//                // I.e., we should see nothing, I suppose
-//                RenderSystem.stencilMask(0x00);
-//                RenderSystem.stencilFunc(GL20C.GL_NOTEQUAL, 1, 0xFF);
-//                matrices.scale(0.99f, 0.99f, 0.99f);
-//                this.modelPart.render(matrices, consumer, light, overlay, 255, 255, 255, 255);
-//
-//                GL20C.glDisable(GL20C.GL_STENCIL_TEST);
-//            }
-//        }
+        // Why is this not doing what I want?!
+        MinecraftClient client = MinecraftClient.getInstance();
+        ClientPlayerEntity player = client.player;
+        if (player != null && world != null) {
+            if (blockEntity.canGlow() && graveOwner != null && graveOwner.getId().equals(player.getUuid()) && YigdConfig.getConfig().graveSettings.glowingGrave) {
+                BlockState graveState = world.getBlockState(pos);
+                GL11.glDepthFunc(GL11.GL_ALWAYS);
+                matrices.push();
+                client.getBlockRenderManager().renderBlock(graveState, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), false, new Random());
+                matrices.pop();
+                GL11.glDepthFunc(GL11.GL_LEQUAL);
+            }
+        }
 
         BlockState blockUnder = null;
         if (world != null) blockUnder = world.getBlockState(under);
@@ -159,7 +146,7 @@ public class GraveBlockEntityRenderer<T extends GraveBlockEntity> implements Blo
 
             matrices.scale(1.001f, 0.0626f, 1.001f);
             matrices.translate(-0.0005f, 0, -0.0005f);
-            MinecraftClient.getInstance().getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), false, new Random());
+            client.getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), false, new Random());
 
             matrices.pop();
         }
