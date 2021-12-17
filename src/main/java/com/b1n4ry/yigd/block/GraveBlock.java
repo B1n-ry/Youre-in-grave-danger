@@ -105,12 +105,23 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         super.onSteppedOn(world, pos, state, entity);
     }
     @Override
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+    public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity be, ItemStack stack) {
         if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK) {
             if (RetrieveItems(player, world, pos)) return;
         }
 
-        super.onBreak(world, pos, state, player);
+        boolean bs = world.setBlockState(pos, state);
+        if (bs) {
+            world.addBlockEntity(be);
+        } else {
+            System.out.println("[YIGD] Did not manage to safely replace grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ". Items were deleted ;(");
+        }
+    }
+
+    @Override
+    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        System.out.println("[YIGD] Grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " was replaced with " + newState.getBlock().getName().asString());
+        super.onStateReplaced(state, world, pos, newState, moved);
     }
 
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
