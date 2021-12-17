@@ -107,7 +107,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity be, ItemStack stack) {
         if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK) {
-            if (RetrieveItems(player, world, pos)) return;
+            if (RetrieveItems(player, world, pos, be)) return;
         }
 
         boolean bs = world.setBlockState(pos, state);
@@ -120,10 +120,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        System.out.println("[YIGD] Grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " was replaced with " + newState.getBlock().getName().asString());
+        System.out.println("[YIGD] Grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " was replaced with " + newState.getBlock());
         super.onStateReplaced(state, world, pos, newState, moved);
     }
 
+    @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
@@ -198,11 +199,12 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new GraveBlockEntity(customName, pos, state);
     }
-
-    private boolean RetrieveItems(PlayerEntity player, World world, BlockPos pos) {
-        if (world.isClient) return false;
-
+    private void RetrieveItems(PlayerEntity player, World world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
+        RetrieveItems(player, world, pos, blockEntity);
+    }
+    private boolean RetrieveItems(PlayerEntity player, World world, BlockPos pos, BlockEntity blockEntity) {
+        if (world.isClient) return false;
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
         if (graveEntity.getGraveOwner() == null) return false;
@@ -230,10 +232,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             }
             return true;
         }
-        if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
-            ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
-        }
-        world.removeBlock(pos, false);
 
 
         YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
@@ -266,6 +264,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 isRobbing = true;
             }
         }
+
+        if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
+            ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+        }
+        world.removeBlock(pos, false);
 
         System.out.println("[YIGD] " + player.getDisplayName().asString() + " is retrieving their grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
