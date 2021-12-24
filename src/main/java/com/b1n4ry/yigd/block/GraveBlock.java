@@ -106,6 +106,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
     @Override
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity be, ItemStack stack) {
+        if (be instanceof GraveBlockEntity graveBlockEntity && graveBlockEntity.getGraveOwner() == null) {
+            super.afterBreak(world, player, pos, state, be, stack);
+            return;
+        }
+
         if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK) {
             if (RetrieveItems(player, world, pos, be)) return;
         }
@@ -190,8 +195,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public boolean canReplace(BlockState state, ItemPlacementContext context) {
+        return false;
     }
 
     @Nullable
@@ -279,23 +284,23 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         FACING = HorizontalFacingBlock.FACING;
         SHAPE_BASE_NORTH = Block.createCuboidShape(0.0f, 0.0f, 0.0f, 16.0f, 1.0f, 16.0f);
         SHAPE_FOOT_NORTH = Block.createCuboidShape(2.0f, 1.0f, 10.0f, 14.0f, 3.0f, 15.0f);
-        SHAPE_CORE_NORTH = Block.createCuboidShape(3.0f, 3.0f, 11.0f, 13.0f, 14.0f, 14.0f);
-        SHAPE_TOP_NORTH = Block.createCuboidShape(4.0f, 14.0f, 11.0f, 12.0f, 15.0f, 14.0f);
+        SHAPE_CORE_NORTH = Block.createCuboidShape(3.0f, 3.0f, 11.0f, 13.0f, 15.0f, 14.0f);
+        SHAPE_TOP_NORTH = Block.createCuboidShape(4.0f, 15.0f, 11.0f, 12.0f, 16.0f, 14.0f);
 
         SHAPE_BASE_EAST = Block.createCuboidShape(0.0f, 0.0f, 0.0f, 16.0f, 1.0f, 16.0f);
         SHAPE_FOOT_EAST = Block.createCuboidShape(1.0f, 1.0f, 2.0f, 6.0f, 3.0f, 14.0f);
-        SHAPE_CORE_EAST = Block.createCuboidShape(2.0f, 3.0f, 3.0f, 5.0f, 14.0f, 13.0f);
-        SHAPE_TOP_EAST = Block.createCuboidShape(2.0f, 14.0f, 4.0f, 5.0f, 15.0f, 12.0f);
+        SHAPE_CORE_EAST = Block.createCuboidShape(2.0f, 3.0f, 3.0f, 5.0f, 15.0f, 13.0f);
+        SHAPE_TOP_EAST = Block.createCuboidShape(2.0f, 15.0f, 4.0f, 5.0f, 16.0f, 12.0f);
 
         SHAPE_BASE_WEST = Block.createCuboidShape(0.0f, 0.0f, 0.0f, 16.0f, 1.0f, 16.0f);
         SHAPE_FOOT_WEST = Block.createCuboidShape(10.0f, 1.0f, 2.0f, 15.0f, 3.0f, 14.0f);
-        SHAPE_CORE_WEST = Block.createCuboidShape(11.0f, 3.0f, 3.0f, 14.0f, 14.0f, 13.0f);
-        SHAPE_TOP_WEST = Block.createCuboidShape(11.0f, 14.0f, 4.0f, 14.0f, 15.0f, 12.0f);
+        SHAPE_CORE_WEST = Block.createCuboidShape(11.0f, 3.0f, 3.0f, 14.0f, 15.0f, 13.0f);
+        SHAPE_TOP_WEST = Block.createCuboidShape(11.0f, 15.0f, 4.0f, 14.0f, 16.0f, 12.0f);
 
         SHAPE_BASE_SOUTH = Block.createCuboidShape(0.0f, 0.0f, 0.0f, 16.0f, 1.0f, 16.0f);
         SHAPE_FOOT_SOUTH = Block.createCuboidShape(2.0f, 1.0f, 1.0f, 14.0f, 3.0f, 6.0f);
-        SHAPE_CORE_SOUTH = Block.createCuboidShape(3.0f, 3.0f, 2.0f, 13.0f, 14.0f, 5.0f);
-        SHAPE_TOP_SOUTH = Block.createCuboidShape(4.0f, 14.0f, 2.0f, 12.0f, 15.0f, 5.0f);
+        SHAPE_CORE_SOUTH = Block.createCuboidShape(3.0f, 3.0f, 2.0f, 13.0f, 15.0f, 5.0f);
+        SHAPE_TOP_SOUTH = Block.createCuboidShape(4.0f, 15.0f, 2.0f, 12.0f, 16.0f, 5.0f);
 
         SHAPE_NORTH = VoxelShapes.union(SHAPE_BASE_NORTH, SHAPE_FOOT_NORTH, SHAPE_CORE_NORTH, SHAPE_TOP_NORTH);
         SHAPE_WEST = VoxelShapes.union(SHAPE_BASE_WEST, SHAPE_FOOT_WEST, SHAPE_CORE_WEST, SHAPE_TOP_WEST);

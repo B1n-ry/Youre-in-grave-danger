@@ -40,7 +40,7 @@ import java.util.*;
 
 public class Yigd implements ModInitializer {
 
-    public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3000.0f));
+    public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
     public static DeadPlayerData deadPlayerData = new DeadPlayerData();

@@ -77,8 +77,8 @@
   "text.autoconfig.yigd.option.graveSettings.adaptRenderer.@Tooltip": "Render grave ground layer as\nthe block the grave is on top of",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player\ntelling them where they died",
-  "text.autoconfig.yigd.option.graveSettings.glowingGrave": "Grave xRay",
-  "text.autoconfig.yigd.option.graveSettings.glowingGrave.@Tooltip": "If true player will see their\nname on their graves through blocks",
+  "text.autoconfig.yigd.option.graveSettings.glowingGrave": "Glowing Graves",
+  "text.autoconfig.yigd.option.graveSettings.glowingGrave.@Tooltip": "If true player will see their\ngraves in full white and\nthrough walls when more than\n10 blocks away from the grave",
 
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",

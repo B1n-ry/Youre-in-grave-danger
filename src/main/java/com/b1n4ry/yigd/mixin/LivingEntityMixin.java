@@ -38,6 +38,7 @@ public abstract class LivingEntityMixin {
             return;
         }
         PlayerInventory inventory = player.getInventory();
+        DefaultedList<ItemStack> allItems = DefaultedList.of();
 
         DefaultedList<ItemStack> items = DefaultedList.of();
         items.addAll(inventory.main);
@@ -46,13 +47,16 @@ public abstract class LivingEntityMixin {
 
         if (inventory.size() > 41) {
             for (int i = 41; i < inventory.size(); i++) {
-                items.add(inventory.getStack(i));
+                ItemStack stack = inventory.getStack(i);
+                items.add(stack);
             }
         }
 
         List<Object> modInventories = new ArrayList<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
-            modInventories.add(yigdApi.getInventory(player, true));
+            Object modInv = yigdApi.getInventory(player, true);
+            modInventories.add(modInv);
+            allItems.addAll(yigdApi.toStackList(modInv));
 
             yigdApi.dropAll(player);
         }
@@ -66,6 +70,9 @@ public abstract class LivingEntityMixin {
         List<String> removeEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments; // List with enchantments to delete
         DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
         GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
+
+        allItems.addAll(items);
+        allItems.removeIf(ItemStack::isEmpty);
 
         UUID playerId = player.getUuid();
 
@@ -126,20 +133,22 @@ public abstract class LivingEntityMixin {
             inventory.setStack(i, soulboundInventory.get(i));
         }
 
-        // Get killer if killed by a player
-        UUID killerId;
-        Entity e = source.getSource();
-        if (e instanceof PlayerEntity) {
-            killerId = e.getUuid();
-        } else {
-            killerId = null;
-        }
+        if (allItems.size() > 0 || xpPoints > 0 || YigdConfig.getConfig().graveSettings.generateEmptyGraves) {
+            // Get killer if killed by a player
+            UUID killerId;
+            Entity e = source.getSource();
+            if (e instanceof PlayerEntity) {
+                killerId = e.getUuid();
+            } else {
+                killerId = null;
+            }
 
-        // All variables passed into placeGrave method has to be final to be executed on the end of the tick
-        final int xp = xpPoints;
-        final DefaultedList<ItemStack> graveItems = items;
-        final UUID killer = killerId;
-        Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories, xp, killer));
+            // All variables passed into placeGrave method has to be final to be executed on the end of the tick
+            final int xp = xpPoints;
+            final DefaultedList<ItemStack> graveItems = items;
+            final UUID killer = killerId;
+            Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories, xp, killer));
+        }
 
         this.dropInventory();
     }

@@ -39,6 +39,9 @@ public class YigdConfig implements ConfigData {
         public boolean requireGraveItem = false;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean generateEmptyGraves = false;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
 
