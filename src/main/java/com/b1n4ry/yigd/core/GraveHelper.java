@@ -28,6 +28,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
@@ -93,10 +94,20 @@ public class GraveHelper {
                             int y = xyz.get("y").getAsInt();
                             int z = xyz.get("z").getAsInt();
 
+                            Direction direction;
+                            String dir = xyz.get("direction") != null ? xyz.get("direction").getAsString() : "none";
+                            switch (dir) {
+                                case "NORTH" -> direction = Direction.NORTH;
+                                case "SOUTH" -> direction = Direction.SOUTH;
+                                case "WEST" -> direction = Direction.WEST;
+                                case "EAST" -> direction = Direction.EAST;
+                                default -> direction = player.getHorizontalFacing();
+                            }
+
                             BlockPos gravePos = new BlockPos(x, y, z);
 
                             if (gravePlaceableAt(overworld, gravePos, false)) {
-                                boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId, direction);
                                 if (!isPlaced) continue;
                                 foundViableGrave = true;
                                 break;
@@ -217,8 +228,13 @@ public class GraveHelper {
     }
 
     private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
+        Direction direction = player.getHorizontalFacing();
+        return placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId, direction);
+    }
+
+    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId, Direction direction) {
         boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
-        BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing()).with(Properties.WATERLOGGED, waterlogged);
+        BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, direction).with(Properties.WATERLOGGED, waterlogged);
         boolean isPlaced = world.setBlockState(gravePos, graveBlock);
         if (!isPlaced) {
             return false;
