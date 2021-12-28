@@ -71,7 +71,9 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         JsonArray textureSize = GraveBlock.customModel.getAsJsonArray("texture_size");
         JsonObject textures = GraveBlock.customModel.getAsJsonObject("textures");
         JsonArray elements = modelObject.getAsJsonArray("elements");
+        int i = 0;
         for (JsonElement element : elements) {
+            i++;
             JsonObject o = element.getAsJsonObject();
             JsonObject faces = o.getAsJsonObject("faces");
             float minX = Float.NaN;
@@ -109,7 +111,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             float y2 = to.get(1).getAsFloat();
             float z2 = to.get(2).getAsFloat();
 
-            String name = o.get("name").getAsString();
+            String name = o.get("name") != null ? o.get("name").getAsString() : "" + i;
             String textureLocation = textures.get(textureName).getAsString();
             modelTextures.put(name, textureLocation);
 
@@ -162,18 +164,33 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             float scaleXY = 1f;
             float scaleZ = 0.25f;
 
+            boolean showSkull = false;
             if (featureRenders != null) {
                 JsonObject headRender = featureRenders.getAsJsonObject("skull");
                 if (headRender != null) {
                     midY = headRender.get("height").getAsFloat();
                     midZ = headRender.get("depth").getAsFloat();
 
-                    rotX = headRender.getAsJsonArray("rotation").get(0).getAsFloat();
-                    rotY = headRender.getAsJsonArray("rotation").get(1).getAsFloat();
-                    rotZ = headRender.getAsJsonArray("rotation").get(2).getAsFloat();
+                    if (headRender.getAsJsonArray("rotation") != null) {
+                        rotX = headRender.getAsJsonArray("rotation").get(0).getAsFloat();
+                        rotY = headRender.getAsJsonArray("rotation").get(1).getAsFloat();
+                        rotZ = headRender.getAsJsonArray("rotation").get(2).getAsFloat();
+                    } else {
+                        rotX = 0;
+                        rotY = 0;
+                        rotZ = 0;
+                    }
 
-                    scaleXY = headRender.get("scaleFace").getAsFloat();
-                    scaleZ = headRender.get("scaleDepth").getAsFloat();
+                    if (headRender.get("scaleFace") != null) {
+                        scaleXY = headRender.get("scaleFace").getAsFloat();
+                    }
+                    if (headRender.get("scaleDepth") != null) {
+                        scaleZ = headRender.get("scaleDepth").getAsFloat();
+                    } else {
+                        scaleZ = 1;
+                    }
+
+                    showSkull = true;
                 }
             }
 
@@ -184,8 +201,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
             matrices.translate(-0.5f, -0.25f, -0.5f);
 
-            SkullBlockEntityModel skull = getSkull();
-            SkullBlockEntityRenderer.renderSkull(null, 0, 0f, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
+            if (showSkull) {
+                SkullBlockEntityModel skull = getSkull();
+                SkullBlockEntityRenderer.renderSkull(null, 0, 0f, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
+            }
 
             matrices.pop();
         }
@@ -203,12 +222,15 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 float textDepth = 11f;
                 float textHeight = 9.6f;
 
+                boolean showText = false;
                 if (featureRenders != null) {
                     JsonObject textRender = featureRenders.getAsJsonObject("text");
                     if (textRender != null) {
                         textWidth = textRender.get("width").getAsFloat();
                         textDepth = textRender.get("depth").getAsFloat();
                         textHeight = textRender.get("height").getAsFloat();
+
+                        showText = true;
                     }
                 }
 
@@ -235,7 +257,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 matrices.scale(scale, scale, scale);
                 matrices.translate(-width / 2.0, -4.5, 0);
 
-                this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, true, matrices.peek().getPositionMatrix(), vertexConsumers, false, 0, light);
+                if (showText) this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, true, matrices.peek().getPositionMatrix(), vertexConsumers, false, 0, light);
 
                 matrices.pop();
             }

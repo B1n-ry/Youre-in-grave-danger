@@ -101,7 +101,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             if (!e.isJsonObject()) continue;
             JsonObject o = e.getAsJsonObject();
 
-            if (o.get("name").getAsString().equals("Base_Layer")) {
+            if (o.get("name") != null && o.get("name").getAsString().equals("Base_Layer")) {
                 Map<String, VoxelShape> groundShapes = getShapeFromJson(o);
                 groundShapeNorth = groundShapes.get("NORTH");
                 groundShapeWest = groundShapes.get("WEST");
