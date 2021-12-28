@@ -79,7 +79,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
 
     public GraveBlock(Settings settings) {
-        super(settings);
+        super(settings.nonOpaque());
         this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.WATERLOGGED, false));
     }
 

@@ -39,7 +39,6 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     private final TextRenderer textRenderer;
     private final EntityModelLoader renderLayer;
 
-//    private static List<String> modelNames;
     private static Map<String, String> modelTextures;
     private static ModelPart graveModel;
 
