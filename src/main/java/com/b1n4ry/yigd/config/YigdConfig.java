@@ -92,15 +92,12 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public BlockUnderGrave blockUnderGrave = new BlockUnderGrave();
 
-        public boolean renderGraveSkull = true;
-        public boolean renderGraveOwner = true;
-        @ConfigEntry.Gui.Tooltip
-        public boolean adaptRenderer = false;
-        @ConfigEntry.Gui.Tooltip
-        public boolean glowingGrave = false;
-
         @ConfigEntry.Gui.Tooltip
         public boolean tellDeathPos = true;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveRenderSettings graveRenderSettings = new GraveRenderSettings();
     }
 
     public static class GraveRobbing {
@@ -147,6 +144,19 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public String inCustom = "minecraft:dirt";
+    }
+
+    public static class GraveRenderSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean useRenderFeatures = true;
+
+        public boolean renderGraveSkull = true;
+        public boolean renderGraveOwner = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean adaptRenderer = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean glowingGrave = false;
     }
 
     public static class UtilitySettings {

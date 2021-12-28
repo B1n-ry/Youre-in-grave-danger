@@ -47,7 +47,7 @@ public class GraveBlockEntity extends BlockEntity {
 
         this.age = 0;
 
-        this.glowing = YigdConfig.getConfig().graveSettings.glowingGrave;
+        this.glowing = YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave;
     }
 
     @Override
@@ -102,7 +102,7 @@ public class GraveBlockEntity extends BlockEntity {
         }
 
         // Not from NBT. Static definitions
-        this.glowing = YigdConfig.getConfig().graveSettings.glowingGrave;
+        this.glowing = YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave;
     }
 
     @Override

@@ -7,6 +7,9 @@ import com.b1n4ry.yigd.config.DropTypeConfig;
 import com.b1n4ry.yigd.config.RetrievalTypeConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.GraveHelper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
@@ -40,28 +43,31 @@ import net.minecraft.world.tick.OrderedTick;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("deprecation")
 public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
+    public static JsonObject customModel;
+
     public static final DirectionProperty FACING;
-    protected static final VoxelShape SHAPE_NORTH;
+    protected static VoxelShape SHAPE_NORTH;
     protected static final VoxelShape SHAPE_BASE_NORTH;
     protected static final VoxelShape SHAPE_FOOT_NORTH;
     protected static final VoxelShape SHAPE_CORE_NORTH;
     protected static final VoxelShape SHAPE_TOP_NORTH;
-    protected static final VoxelShape SHAPE_WEST;
+    protected static VoxelShape SHAPE_WEST;
     protected static final VoxelShape SHAPE_BASE_WEST;
     protected static final VoxelShape SHAPE_FOOT_WEST;
     protected static final VoxelShape SHAPE_CORE_WEST;
     protected static final VoxelShape SHAPE_TOP_WEST;
-    protected static final VoxelShape SHAPE_EAST;
+    protected static VoxelShape SHAPE_EAST;
     protected static final VoxelShape SHAPE_BASE_EAST;
     protected static final VoxelShape SHAPE_FOOT_EAST;
     protected static final VoxelShape SHAPE_CORE_EAST;
     protected static final VoxelShape SHAPE_TOP_EAST;
-    protected static final VoxelShape SHAPE_SOUTH;
+    protected static VoxelShape SHAPE_SOUTH;
     protected static final VoxelShape SHAPE_BASE_SOUTH;
     protected static final VoxelShape SHAPE_FOOT_SOUTH;
     protected static final VoxelShape SHAPE_CORE_SOUTH;
@@ -75,6 +81,72 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public GraveBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.WATERLOGGED, false));
+    }
+
+    public static void reloadVoxelShapes() {
+        if (customModel == null) return;
+
+        JsonElement shapesArray = customModel.get("elements");
+        if (shapesArray == null || !shapesArray.isJsonArray()) return;
+
+        VoxelShape groundShapeNorth = Block.createCuboidShape(0, 0, 0, 0, 0, 0);
+        VoxelShape groundShapeWest = Block.createCuboidShape(0, 0, 0, 0, 0, 0);
+        VoxelShape groundShapeSouth = Block.createCuboidShape(0, 0, 0, 0, 0, 0);
+        VoxelShape groundShapeEast = Block.createCuboidShape(0, 0, 0, 0, 0, 0);
+        List<VoxelShape> shapesNorth = new ArrayList<>();
+        List<VoxelShape> shapesWest = new ArrayList<>();
+        List<VoxelShape> shapesSouth = new ArrayList<>();
+        List<VoxelShape> shapesEast = new ArrayList<>();
+        for (JsonElement e : (JsonArray) shapesArray) {
+            if (!e.isJsonObject()) continue;
+            JsonObject o = e.getAsJsonObject();
+
+            if (o.get("name").getAsString().equals("Base_Layer")) {
+                Map<String, VoxelShape> groundShapes = getShapeFromJson(o);
+                groundShapeNorth = groundShapes.get("NORTH");
+                groundShapeWest = groundShapes.get("WEST");
+                groundShapeSouth = groundShapes.get("SOUTH");
+                groundShapeEast = groundShapes.get("EAST");
+            } else {
+                Map<String, VoxelShape> directionShapes = getShapeFromJson(o);
+                shapesNorth.add(directionShapes.get("NORTH"));
+                shapesWest.add(directionShapes.get("WEST"));
+                shapesSouth.add(directionShapes.get("SOUTH"));
+                shapesEast.add(directionShapes.get("EAST"));
+            }
+        }
+
+        SHAPE_NORTH = VoxelShapes.union(groundShapeNorth, shapesNorth.toArray(new VoxelShape[0]));
+        SHAPE_WEST = VoxelShapes.union(groundShapeWest, shapesWest.toArray(new VoxelShape[0]));
+        SHAPE_SOUTH = VoxelShapes.union(groundShapeSouth, shapesSouth.toArray(new VoxelShape[0]));
+        SHAPE_EAST = VoxelShapes.union(groundShapeEast, shapesEast.toArray(new VoxelShape[0]));
+    }
+
+    private static Map<String, VoxelShape> getShapeFromJson(JsonObject object) {
+        Map<String, VoxelShape> shapes = new HashMap<>();
+
+        JsonArray from = object.get("from").getAsJsonArray();
+        int x1 = from.get(0).getAsInt();
+        int y1 = from.get(1).getAsInt();
+        int z1 = from.get(2).getAsInt();
+
+        JsonArray to = object.getAsJsonArray("to").getAsJsonArray();
+        int x2 = to.get(0).getAsInt();
+        int y2 = to.get(1).getAsInt();
+        int z2 = to.get(2).getAsInt();
+
+        shapes.put("NORTH", Block.createCuboidShape(x1, y1, z1, x2, y2, z2));
+        shapes.put("EAST", Block.createCuboidShape(16 - z2, y1, x1, 16 - z1, y2, x2));
+        shapes.put("SOUTH", Block.createCuboidShape(16 - x2, y1, 16 - z2, 16 - x1, y2, 16 - z1));
+        shapes.put("WEST", Block.createCuboidShape(z1, y1, 16 - x2, z2, y2, 16 - x1));
+
+        return shapes;
+    }
+
+    @Override
+    public BlockRenderType getRenderType(BlockState state) {
+        if (YigdConfig.getConfig().graveSettings.graveRenderSettings.useRenderFeatures) return BlockRenderType.INVISIBLE;
+        return BlockRenderType.MODEL;
     }
 
     @Override
@@ -282,6 +354,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     static {
         FACING = HorizontalFacingBlock.FACING;
+
         SHAPE_BASE_NORTH = Block.createCuboidShape(0.0f, 0.0f, 0.0f, 16.0f, 1.0f, 16.0f);
         SHAPE_FOOT_NORTH = Block.createCuboidShape(2.0f, 1.0f, 10.0f, 14.0f, 3.0f, 15.0f);
         SHAPE_CORE_NORTH = Block.createCuboidShape(3.0f, 3.0f, 11.0f, 13.0f, 15.0f, 14.0f);

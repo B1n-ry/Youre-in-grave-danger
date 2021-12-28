@@ -1,7 +1,11 @@
 package com.b1n4ry.yigd.client.render;
 
+import com.b1n4ry.yigd.block.GraveBlock;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,31 +29,94 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
-import java.util.Random;
+import java.util.*;
 
 @Environment(EnvType.CLIENT)
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private final TextRenderer textRenderer;
     private final EntityModelLoader renderLayer;
 
-    private final ModelPart graveModel;
+//    private static List<String> modelNames;
+    private static Map<String, String> modelTextures;
+    private static ModelPart graveModel;
 
     public GraveBlockEntityRenderer(Context ctx) {
         this.textRenderer = ctx.getTextRenderer();
         this.renderLayer = ctx.getLayerRenderDispatcher();
 
+        if (GraveBlock.customModel == null || !GraveBlock.customModel.isJsonObject()) {
+            ModelPartData data = new ModelData().getRoot();
+            data.addChild("Base_Layer", ModelPartBuilder.create().uv(0, 0).cuboid(0, 0, 0, 16, 1, 16), ModelTransform.NONE);
+            data.addChild("grave_base", ModelPartBuilder.create().uv(0, 21).cuboid(2, 1, 10, 12, 2, 5), ModelTransform.NONE);
+            data.addChild("grave_core", ModelPartBuilder.create().uv(0, 28).cuboid(3, 3, 11, 10, 12, 3), ModelTransform.NONE);
+            data.addChild("grave_top", ModelPartBuilder.create().uv(0, 17).cuboid(4, 15, 11, 8, 1, 3), ModelTransform.NONE);
+            List<String> modelNames = Arrays.asList("Base_Layer", "grave_base", "grave_core", "grave_top");
+            List<String> textureLocations = Arrays.asList("yigd:block/grave", "yigd:block/grave", "yigd:block/grave", "yigd:block/grave");
+            modelTextures = new HashMap<>();
+            for (int i = 0; i < modelNames.size(); i++)
+                modelTextures.put(modelNames.get(i), textureLocations.get(i));
+            graveModel = data.createPart(64, 64);
+        } else {
+            reloadCustomModel();
+        }
+    }
+
+    public static void reloadCustomModel() {
         ModelPartData data = new ModelData().getRoot();
-        data.addChild("ground_base", ModelPartBuilder.create().uv(0, 0).cuboid(0, 0, 0, 16, 1, 16), ModelTransform.NONE);
-        data.addChild("grave_base", ModelPartBuilder.create().uv(0, 21).cuboid(2, 1, 1, 12, 2, 5), ModelTransform.NONE);
-        data.addChild("grave_core", ModelPartBuilder.create().uv(0, 28).cuboid(3, 3, 2, 10, 12, 3), ModelTransform.NONE);
-        data.addChild("grave_top", ModelPartBuilder.create().uv(0, 17).cuboid(4, 15, 2, 8, 1, 3), ModelTransform.NONE);
-        graveModel = data.createPart(64, 64);
+        modelTextures = new HashMap<>();
+
+        JsonObject modelObject = GraveBlock.customModel.getAsJsonObject();
+        JsonArray textureSize = GraveBlock.customModel.getAsJsonArray("texture_size");
+        JsonObject textures = GraveBlock.customModel.getAsJsonObject("textures");
+        JsonArray elements = modelObject.getAsJsonArray("elements");
+        for (JsonElement element : elements) {
+            JsonObject o = element.getAsJsonObject();
+            JsonObject faces = o.getAsJsonObject("faces");
+            float minX = Float.NaN;
+            float maxX = Float.NaN;
+            float minY = Float.NaN;
+            float maxY = Float.NaN;
+            String textureName = "";
+            for (Map.Entry<String, JsonElement> entry : faces.entrySet()) {
+                textureName = entry.getValue().getAsJsonObject().get("texture").getAsString();
+                JsonArray uv = entry.getValue().getAsJsonObject().getAsJsonArray("uv");
+                float localMinX = Math.min(uv.get(0).getAsFloat(), uv.get(2).getAsFloat());
+                float localMaxX = Math.max(uv.get(0).getAsFloat(), uv.get(2).getAsFloat());
+
+                float localMinY = Math.min(uv.get(1).getAsFloat(), uv.get(3).getAsFloat());
+                float localMaxY = Math.max(uv.get(1).getAsFloat(), uv.get(3).getAsFloat());
+
+                minX = !Float.isNaN(minX) ? Math.min(minX, localMinX) : localMinX;
+                maxX = !Float.isNaN(maxX) ? Math.max(maxX, localMaxX) : localMaxX;
+                minY = !Float.isNaN(minY) ? Math.min(minY, localMinY) : localMinY;
+                maxY = !Float.isNaN(maxY) ? Math.max(maxY, localMaxY) : localMaxY;
+            }
+            textureName = textureName.replaceFirst("#", "");
+
+            if (Float.isNaN(minX) || Float.isNaN(minY) || Float.isNaN(maxX) || Float.isNaN(maxY)) continue;
+            minX *= (textureSize.get(0).getAsFloat() / 16f);
+            minY *= (textureSize.get(1).getAsFloat() / 16f);
+
+            JsonArray from = o.getAsJsonArray("from");
+            JsonArray to = o.getAsJsonArray("to");
+            float x1 = from.get(0).getAsFloat();
+            float y1 = from.get(1).getAsFloat();
+            float z1 = from.get(2).getAsFloat();
+
+            float x2 = to.get(0).getAsFloat();
+            float y2 = to.get(1).getAsFloat();
+            float z2 = to.get(2).getAsFloat();
+
+            String name = o.get("name").getAsString();
+            String textureLocation = textures.get(textureName).getAsString();
+            modelTextures.put(name, textureLocation);
+
+            data.addChild(name, ModelPartBuilder.create().uv((int) minX, (int) minY).cuboid(x1, y1, z1, x2 - x1, y2 - y1, z2 - z1), ModelTransform.NONE);
+        }
+        graveModel = data.createPart(textureSize.get(0).getAsInt(), textureSize.get(1).getAsInt());
     }
 
     public SkullBlockEntityModel getSkull() {
@@ -58,6 +125,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     @Override
     public void render(GraveBlockEntity blockEntity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        if (!YigdConfig.getConfig().graveSettings.graveRenderSettings.useRenderFeatures) return;
         if (blockEntity == null) {
             return;
         }
@@ -68,28 +136,54 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         BlockPos under = pos.down();
         World world = blockEntity.getWorld();
 
+        JsonObject featureRenders = GraveBlock.customModel.getAsJsonObject("features");
+
         GameProfile graveOwner = blockEntity.getGraveOwner();
-        if (graveOwner != null && YigdConfig.getConfig().graveSettings.renderGraveSkull) {
+        if (graveOwner != null && YigdConfig.getConfig().graveSettings.graveRenderSettings.renderGraveSkull) {
             matrices.push();
 
+            matrices.translate(0.5f, 0.25f, 0.5f);
+            float yRotation;
             switch (direction) {
-                case SOUTH -> {
-                    matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180f));
-                    matrices.translate(-1.0, 0.25, -0.9375);
-                }
-                case NORTH -> matrices.translate(0.0, 0.25, 0.0625);
-                case WEST -> {
-                    matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90f));
-                    matrices.translate(-1.0, 0.25, 0.0625);
-                }
-                case EAST -> {
-                    matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(270f));
-                    matrices.translate(0.0, 0.25, -0.9375);
+                case SOUTH -> yRotation = 180f;
+                case WEST -> yRotation = 90f;
+                case EAST -> yRotation = 270f;
+                default -> yRotation = 0;
+            }
+            matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(yRotation));
+
+
+            float midY = 2f;
+            float midZ = 5f;
+
+            float rotX = 90f;
+            float rotY = 0;
+            float rotZ = 0;
+
+            float scaleXY = 1f;
+            float scaleZ = 0.25f;
+
+            if (featureRenders != null) {
+                JsonObject headRender = featureRenders.getAsJsonObject("skull");
+                if (headRender != null) {
+                    midY = headRender.get("height").getAsFloat();
+                    midZ = headRender.get("depth").getAsFloat();
+
+                    rotX = headRender.getAsJsonArray("rotation").get(0).getAsFloat();
+                    rotY = headRender.getAsJsonArray("rotation").get(1).getAsFloat();
+                    rotZ = headRender.getAsJsonArray("rotation").get(2).getAsFloat();
+
+                    scaleXY = headRender.get("scaleFace").getAsFloat();
+                    scaleZ = headRender.get("scaleDepth").getAsFloat();
                 }
             }
-            matrices.multiply(Vec3f.NEGATIVE_X.getDegreesQuaternion(270f));
 
-            matrices.scale(1f, 1f, 0.25f);
+            matrices.translate(0, -(4f - midY) / 16f, -(8f - midZ) / 16f);
+            matrices.multiply(new Quaternion(rotX, rotY, rotZ, true));
+
+            matrices.scale(scaleXY, scaleXY, scaleZ);
+
+            matrices.translate(-0.5f, -0.25f, -0.5f);
 
             SkullBlockEntityModel skull = getSkull();
             SkullBlockEntityRenderer.renderSkull(null, 0, 0f, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
@@ -99,33 +193,44 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         String customName = blockEntity.getCustomName();
         if (customName != null) {
-            boolean renderText = YigdConfig.getConfig().graveSettings.renderGraveOwner;
+            boolean renderText = YigdConfig.getConfig().graveSettings.graveRenderSettings.renderGraveOwner;
             if (renderText || blockEntity.getGraveOwner() == null) {
                 matrices.push();
 
                 int width = this.textRenderer.getWidth(customName);
 
-                float scale = 0.55f / width;
+                float scale = 1f / width;
+                float textWidth = 8.8f;
+                float textDepth = 11f;
+                float textHeight = 9.6f;
 
-
-                switch (direction) {
-                    case SOUTH:
-                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180));
-                        matrices.translate(-1, 0, -1);
-                        break;
-                    case NORTH:
-                        break;
-                    case WEST:
-                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90));
-                        matrices.translate(-1, 0, 0);
-                        break;
-                    case EAST:
-                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(270));
-                        matrices.translate(0, 0, -1);
-                        break;
+                if (featureRenders != null) {
+                    JsonObject textRender = featureRenders.getAsJsonObject("text");
+                    if (textRender != null) {
+                        textWidth = textRender.get("width").getAsFloat();
+                        textDepth = textRender.get("depth").getAsFloat();
+                        textHeight = textRender.get("height").getAsFloat();
+                    }
                 }
 
-                matrices.translate(0.5, 0.6, 0.675); // Render text 0.0125 from the edge of the grave to avoid clipping
+                scale *= (textWidth / 16f);
+
+                switch (direction) {
+                    case SOUTH -> {
+                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180));
+                        matrices.translate(-1, 0, -1);
+                    }
+                    case WEST -> {
+                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90));
+                        matrices.translate(-1, 0, 0);
+                    }
+                    case EAST -> {
+                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(270));
+                        matrices.translate(0, 0, -1);
+                    }
+                }
+
+                matrices.translate(0.5, textHeight / 16, (textDepth / 16f) - 0.001f); // Render text 0.001 from the edge of the grave to avoid clipping
                 matrices.scale(-1, -1, 0);
 
                 matrices.scale(scale, scale, scale);
@@ -139,15 +244,15 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         matrices.push();
 
         switch (direction) {
-            case WEST -> {
+            case EAST -> {
                 matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(270f));
                 matrices.translate(0, 0, -1);
             }
-            case EAST -> {
+            case WEST -> {
                 matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90f));
                 matrices.translate(-1, 0, 0);
             }
-            case NORTH -> {
+            case SOUTH -> {
                 matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180));
                 matrices.translate(-1, 0, -1);
             }
@@ -155,24 +260,38 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         BlockState blockUnder = null;
         if (world != null) blockUnder = world.getBlockState(under);
 
-        if (YigdConfig.getConfig().graveSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), 10)) {
+        if (YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), 10)) {
             graveModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getOutline(new Identifier("yigd", "textures/block/grave.png"))), light, overlay);
         }
 
-        Identifier identifier = new Identifier("yigd", "block/grave");
-        SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);
-        VertexConsumer vertexConsumer = texture.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
 
-        graveModel.getChild("grave_base").render(matrices, vertexConsumer, light, overlay);
-        graveModel.getChild("grave_core").render(matrices, vertexConsumer, light, overlay);
-        graveModel.getChild("grave_top").render(matrices, vertexConsumer, light, overlay);
+        for (Map.Entry<String, String> entry : modelTextures.entrySet()) {
+            if (entry.getKey().equals("Base_Layer")) continue;
 
-        if (YigdConfig.getConfig().graveSettings.adaptRenderer && blockUnder != null && blockUnder.isOpaqueFullCube(world, pos)) {
-            matrices.scale(0.999f, 1, 0.999f);
-            matrices.translate(0.0005f, -0.9375f, 0.0005f);
-            client.getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, new Random());
-        } else {
-            graveModel.getChild("ground_base").render(matrices, vertexConsumer, light, overlay);
+            Identifier identifier = new Identifier(entry.getValue());
+            SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);
+            VertexConsumer vertexConsumer = texture.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
+
+            graveModel.getChild(entry.getKey()).render(matrices, vertexConsumer, light, overlay);
+        }
+
+        if (modelTextures.containsKey("Base_Layer")) {
+            if (YigdConfig.getConfig().graveSettings.graveRenderSettings.adaptRenderer && blockUnder != null && blockUnder.isOpaqueFullCube(world, pos)) {
+                ModelPart baseLayer = graveModel.getChild("Base_Layer");
+                ModelPart.Cuboid cuboid = baseLayer.getRandomCuboid(new Random());
+                float scaleX = cuboid.maxX - cuboid.minX;
+                float scaleZ = cuboid.maxZ - cuboid.minZ;
+
+                matrices.translate((cuboid.minX / 16f) + 0.0005f, (cuboid.maxY / 16f) - 1, (cuboid.minZ / 16f) + 0.0005f);
+                matrices.scale(0.999f * (scaleX / 16f), 1, 0.999f * (scaleZ / 16f));
+                client.getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, new Random());
+            } else {
+                Identifier identifier = new Identifier(modelTextures.get("Base_Layer"));
+                SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);
+                VertexConsumer vertexConsumer = texture.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
+
+                graveModel.getChild("Base_Layer").render(matrices, vertexConsumer, light, overlay);
+            }
         }
 
         matrices.pop();

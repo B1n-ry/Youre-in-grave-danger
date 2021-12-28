@@ -4,6 +4,7 @@ import java.io.InputStream;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.GraveBlock;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n4ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n4ry.yigd.compat.InventorioCompat;
 import com.b1n4ry.yigd.compat.TrinketsCompat;
 import com.b1n4ry.yigd.config.PriorityInventoryConfig;
@@ -63,9 +64,10 @@ public class Yigd implements ModInitializer {
                 graveyard = null;
 
                 for(Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
-                    try(InputStream stream = manager.getResource(id).getInputStream()) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
                         graveyard = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
-                    } catch(Exception e) { System.out.println("[YIGD] Error occurred while loading resource json " + id.toString()); }
+                    } catch(Exception e) { System.out.println("[YIGD] Error occurred while loading resource json " + id + "\n" + e); }
                 }
             }
 
@@ -74,11 +76,36 @@ public class Yigd implements ModInitializer {
                 return new Identifier("yigd", "graveyard");
             }
         });
+        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            public void reload(ResourceManager manager) {
+                System.out.println("[YIGD] Reloading grave shape");
+                GraveBlock.customModel = null;
+
+                Collection<Identifier> ids = manager.findResources("models/block", path -> path.equals("grave.json"));
+
+                for (Identifier id : ids) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        GraveBlock.customModel = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
+                        GraveBlock.reloadVoxelShapes();
+                        GraveBlockEntityRenderer.reloadCustomModel();
+                    } catch (Exception e) {
+                        System.out.println("[YIGD] Error occurred while loading custom grave model " + id + "\n" + e);
+                    }
+                }
+            }
+
+            @Override
+            public Identifier getFabricId() {
+                return new Identifier("yigd", "models/block/grave");
+            }
+        });
+
+        GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
 
         Registry.register(Registry.BLOCK, new Identifier("yigd", "grave"), GRAVE_BLOCK);
         Registry.register(Registry.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
-
-        GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
 
         if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
             SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
