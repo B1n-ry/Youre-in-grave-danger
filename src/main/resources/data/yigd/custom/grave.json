@@ -1,0 +1,11 @@
+{
+	"credit": "Made with Blockbench",
+	"ambientocclusion": false,
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "yigd:block/grave",
+		"particle": "minecraft:block/stone"
+	},
+	"elements": [
+	]
+}

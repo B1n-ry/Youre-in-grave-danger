@@ -83,10 +83,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.WATERLOGGED, false));
     }
 
-    public static void reloadVoxelShapes() {
-        if (customModel == null) return;
+    public static void reloadVoxelShapes(JsonObject graveModel) {
+        if (graveModel == null) return;
 
-        JsonElement shapesArray = customModel.get("elements");
+        JsonElement shapesArray = graveModel.get("elements");
         if (shapesArray == null || !shapesArray.isJsonArray()) return;
 
         VoxelShape groundShapeNorth = Block.createCuboidShape(0, 0, 0, 0, 0, 0);
