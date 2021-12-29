@@ -81,6 +81,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.useRenderFeatures.@Tooltip": "If false, grave will only\nhave a static model, and\nno dynamic render",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.renderGraveSkull": "Render Grave Owner Skull",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.renderGraveOwner": "Render Grave Owner Name",
+  "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.textShadow": "Text Shadow",
+  "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.textShadow.@Tooltip": "If a shadow should be\nrendered for the grave text",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.adaptRenderer": "Adapt Grave Renderer",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.adaptRenderer.@Tooltip": "Render grave ground layer as\nthe block the grave is on top of",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowingGrave": "Glowing Graves",

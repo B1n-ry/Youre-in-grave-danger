@@ -79,7 +79,7 @@ public class Yigd implements ModInitializer {
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public void reload(ResourceManager manager) {
-                System.out.println("[YIGD] Reloading grave shape");
+                System.out.println("[YIGD] Reloading grave model");
                 GraveBlock.customModel = null;
 
                 Collection<Identifier> ids = manager.findResources("models/block", path -> path.equals("grave.json"));

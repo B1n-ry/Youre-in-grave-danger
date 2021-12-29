@@ -48,10 +48,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         if (GraveBlock.customModel == null || !GraveBlock.customModel.isJsonObject()) {
             ModelPartData data = new ModelData().getRoot();
-            data.addChild("Base_Layer", ModelPartBuilder.create().uv(0, 0).cuboid(0, 0, 0, 16, 1, 16), ModelTransform.NONE);
-            data.addChild("grave_base", ModelPartBuilder.create().uv(0, 21).cuboid(2, 1, 10, 12, 2, 5), ModelTransform.NONE);
-            data.addChild("grave_core", ModelPartBuilder.create().uv(0, 28).cuboid(3, 3, 11, 10, 12, 3), ModelTransform.NONE);
-            data.addChild("grave_top", ModelPartBuilder.create().uv(0, 17).cuboid(4, 15, 11, 8, 1, 3), ModelTransform.NONE);
+            data.addChild("Base_Layer", ModelPartBuilder.create().uv(0, 0).cuboid(0, 0, 0, 16, 1, 16).mirrored(false), ModelTransform.NONE);
+            data.addChild("grave_base", ModelPartBuilder.create().uv(0, 21).cuboid(2, 1, 10, 12, 2, 5).mirrored(false), ModelTransform.NONE);
+            data.addChild("grave_core", ModelPartBuilder.create().uv(0, 28).cuboid(3, 3, 11, 10, 12, 3).mirrored(false), ModelTransform.NONE);
+            data.addChild("grave_top", ModelPartBuilder.create().uv(0, 17).cuboid(4, 15, 11, 8, 1, 3).mirrored(false), ModelTransform.NONE);
             List<String> modelNames = Arrays.asList("Base_Layer", "grave_base", "grave_core", "grave_top");
             List<String> textureLocations = Arrays.asList("yigd:block/grave", "yigd:block/grave", "yigd:block/grave", "yigd:block/grave");
             modelTextures = new HashMap<>();
@@ -115,7 +115,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             String textureLocation = textures.get(textureName).getAsString();
             modelTextures.put(name, textureLocation);
 
-            data.addChild(name, ModelPartBuilder.create().uv((int) minX, (int) minY).cuboid(x1, y1, z1, x2 - x1, y2 - y1, z2 - z1), ModelTransform.NONE);
+            // For some reason all shapes generates upside down, so they have to be re-rotated to be as they should
+            data.addChild(name, ModelPartBuilder.create().uv((int) minX, (int) minY).cuboid(x1, y1, z1, x2 - x1, y2 - y1, z2 - z1), ModelTransform.of((x1 + x2), (y1 + y2), 0, 0, 0, (float) Math.PI));
         }
         graveModel = data.createPart(textureSize.get(0).getAsInt(), textureSize.get(1).getAsInt());
     }
@@ -257,7 +258,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 matrices.scale(scale, scale, scale);
                 matrices.translate(-width / 2.0, -4.5, 0);
 
-                if (showText) this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, true, matrices.peek().getPositionMatrix(), vertexConsumers, false, 0, light);
+                if (showText) this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, YigdConfig.getConfig().graveSettings.graveRenderSettings.textShadow, matrices.peek().getPositionMatrix(), vertexConsumers, false, 0, light);
 
                 matrices.pop();
             }
@@ -293,7 +294,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);
             VertexConsumer vertexConsumer = texture.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
 
-            graveModel.getChild(entry.getKey()).render(matrices, vertexConsumer, light, overlay);
+            ModelPart child = graveModel.getChild(entry.getKey());
+            child.render(matrices, vertexConsumer, light, overlay);
         }
 
         if (modelTextures.containsKey("Base_Layer")) {
