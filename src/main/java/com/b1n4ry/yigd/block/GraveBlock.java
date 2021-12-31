@@ -126,14 +126,14 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         Map<String, VoxelShape> shapes = new HashMap<>();
 
         JsonArray from = object.get("from").getAsJsonArray();
-        int x1 = from.get(0).getAsInt();
-        int y1 = from.get(1).getAsInt();
-        int z1 = from.get(2).getAsInt();
+        float x1 = from.get(0).getAsFloat();
+        float y1 = from.get(1).getAsFloat();
+        float z1 = from.get(2).getAsFloat();
 
         JsonArray to = object.getAsJsonArray("to").getAsJsonArray();
-        int x2 = to.get(0).getAsInt();
-        int y2 = to.get(1).getAsInt();
-        int z2 = to.get(2).getAsInt();
+        float x2 = to.get(0).getAsFloat();
+        float y2 = to.get(1).getAsFloat();
+        float z2 = to.get(2).getAsFloat();
 
         shapes.put("NORTH", Block.createCuboidShape(x1, y1, z1, x2, y2, z2));
         shapes.put("EAST", Block.createCuboidShape(16 - z2, y1, x1, 16 - z1, y2, x2));

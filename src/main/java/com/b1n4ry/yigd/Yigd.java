@@ -1,6 +1,5 @@
 package com.b1n4ry.yigd;
 
-import java.io.InputStream;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.block.GraveBlock;
 import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
@@ -33,11 +32,11 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.registry.Registry;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
@@ -74,6 +73,7 @@ public class Yigd implements ModInitializer {
                         System.out.println("[YIGD] Error occurred while loading resource json " + id + "\n" + e);
                     }
                 }
+                // Using experimental features so things may or may not go awful
                 try {
                     if (!(FabricLoader.getInstance().getGameInstance() instanceof MinecraftClient)) {
                         for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
