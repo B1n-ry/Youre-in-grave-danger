@@ -24,6 +24,8 @@ repositories {
 		name = "Jitpack"
 		url = "https://jitpack.io"
 	}
+	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	flatDir {
 		dirs "./modsWithCompat"
 		content {
@@ -51,6 +53,9 @@ dependencies {
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
+	modImplementation "io.github.ladysnake:requiem:${project.requiem_version}"
+
+	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
 	modImplementation "mods.compat:inventorio-1.18-fabric-${project.inventorio_version}"
 }
