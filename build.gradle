@@ -57,7 +57,7 @@ dependencies {
 
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation "mods.compat:inventorio-1.18-fabric-${project.inventorio_version}"
+	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.18-fabric:${project.inventorio_version}"
 }
 
 processResources {
