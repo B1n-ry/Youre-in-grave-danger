@@ -26,12 +26,12 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.registry.Registry;
@@ -75,15 +75,17 @@ public class Yigd implements ModInitializer {
                 }
                 // Using experimental features so things may or may not go awful
                 try {
-                    if (!(FabricLoader.getInstance().getGameInstance() instanceof MinecraftClient)) {
-                        for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
-                            if (!id.getNamespace().equals("yigd")) continue;
-                            try (InputStream stream = manager.getResource(id).getInputStream()) {
-                                System.out.println("[YIGD] Reloading grave shape (server side)");
-                                GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
-                                break;
-                            } catch (Exception e) {
-                                System.out.println("[YIGD] Error occurred while loading custom grave shape (server side)\n" + e);
+                    if (FabricLoader.getInstance() != null) {
+                        if (FabricLoader.getInstance().getGameInstance() instanceof MinecraftServer) {
+                            for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
+                                if (!id.getNamespace().equals("yigd")) continue;
+                                try (InputStream stream = manager.getResource(id).getInputStream()) {
+                                    System.out.println("[YIGD] Reloading grave shape (server side)");
+                                    GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
+                                    break;
+                                } catch (Exception e) {
+                                    System.out.println("[YIGD] Error occurred while loading custom grave shape (server side)\n" + e);
+                                }
                             }
                         }
                     }
