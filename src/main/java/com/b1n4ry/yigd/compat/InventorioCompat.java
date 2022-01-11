@@ -10,9 +10,12 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.registry.Registry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
@@ -40,6 +43,14 @@ public class InventorioCompat implements YigdApi {
         if (handleAsDeath.length > 0 && handleAsDeath[0]) {
             DefaultedList<ItemStack> soulboundItems = GraveHelper.getEnchantedItems(inventories, soulboundEnchantments);
             GraveHelper.removeFromList(inventories, soulboundItems);
+
+            // Add defaulted soulbound items
+            for (int i = 0; i < inventories.size(); i++) {
+                ItemStack stack = inventories.get(i);
+
+                Collection<Identifier> tags = player.world.getTagManager().getOrCreateTagGroup(Registry.ITEM_KEY).getTagsFor(stack.getItem());
+                if (tags.contains(new Identifier("yigd", "soulbound_item"))) soulboundItems.set(i, stack);
+            }
 
             DefaultedList<ItemStack> deletedItems = GraveHelper.getEnchantedItems(inventories, deleteEnchantments);
             GraveHelper.removeFromList(inventories, deletedItems);

@@ -41,129 +41,127 @@ public abstract class LivingEntityMixin {
             this.dropInventory();
             return;
         }
-        PlayerInventory inventory = player.getInventory();
-        DefaultedList<ItemStack> allItems = DefaultedList.of();
+        Yigd.NEXT_TICK.add(() -> {
+            PlayerInventory inventory = player.getInventory();
+            DefaultedList<ItemStack> allItems = DefaultedList.of();
 
-        DefaultedList<ItemStack> items = DefaultedList.of();
-        items.addAll(inventory.main);
-        items.addAll(inventory.armor);
-        items.addAll(inventory.offHand);
+            DefaultedList<ItemStack> items = DefaultedList.of();
+            items.addAll(inventory.main);
+            items.addAll(inventory.armor);
+            items.addAll(inventory.offHand);
 
-        if (inventory.size() > 41) {
-            for (int i = 41; i < inventory.size(); i++) {
-                ItemStack stack = inventory.getStack(i);
-                items.add(stack);
-            }
-        }
-
-        List<Object> modInventories = new ArrayList<>();
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            Object modInv = yigdApi.getInventory(player, true);
-            modInventories.add(modInv);
-            allItems.addAll(yigdApi.toStackList(modInv));
-
-            yigdApi.dropAll(player);
-        }
-
-        List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
-        DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
-
-        // Add defaulted soulbound items
-        for (int i = 0; i < items.size(); i++) {
-            ItemStack stack = items.get(i);
-
-            Collection<Identifier> tags = player.world.getTagManager().getOrCreateTagGroup(Registry.ITEM_KEY).getTagsFor(stack.getItem());
-            if (tags.contains(new Identifier("yigd", "soulbound_item"))) soulboundInventory.set(i, stack);
-        }
-
-        GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
-
-        List<String> removeEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments; // List with enchantments to delete
-        DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
-        GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
-
-        allItems.addAll(items);
-        allItems.removeIf(ItemStack::isEmpty);
-
-        UUID playerId = player.getUuid();
-        if (FabricLoader.getInstance().isModLoaded("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
-            playerId = RequiemCompat.getDisplayId(player);
-        }
-
-        int xpPoints;
-        YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
-        if (graveSettings.defaultXpDrop) {
-            xpPoints = Math.min(7 * player.experienceLevel, 100);
-        } else {
-            int currentLevel = player.experienceLevel;
-            int totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
-            xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
-        }
-
-        Yigd.deadPlayerData.setDeathXp(playerId, xpPoints);
-        Yigd.deadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
-        Yigd.deadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
-        Yigd.deadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
-
-        inventory.clear(); // Make sure no items are accidentally dropped, and will render gone from your inventory
-
-        player.totalExperience = 0;
-        player.experienceProgress = 0;
-        player.experienceLevel = 0;
-
-        if (YigdConfig.getConfig().graveSettings.dropPlayerHead) {
-            ItemStack stack = new ItemStack(Items.PLAYER_HEAD, 1);
-            NbtCompound nbt = new NbtCompound();
-            nbt.putString("SkullOwner", player.getName().asString());
-            stack.setNbt(nbt);
-            items.add(stack);
-        }
-
-        boolean canGenerate = true;
-        if (YigdConfig.getConfig().graveSettings.requireGraveItem) {
-            canGenerate = false;
-            for (ItemStack stack : items) {
-                if (stack.getItem() == Yigd.GRAVE_BLOCK.asItem()) {
-                    canGenerate = true;
-                    stack.decrement(1);
+            if (inventory.size() > 41) {
+                for (int i = 41; i < inventory.size(); i++) {
+                    ItemStack stack = inventory.getStack(i);
+                    items.add(stack);
                 }
             }
-        }
 
-        int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
-        YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
-        if (!config.generateGraves || config.blacklistDimensions.contains(dimId) || config.ignoreDeathTypes.contains(source.name) || !canGenerate) {
-            for (int i = 0; i < Yigd.apiMods.size(); i++) {
-                YigdApi yigdApi = Yigd.apiMods.get(i);
-                items.addAll(yigdApi.toStackList(modInventories.get(i)));
+            List<Object> modInventories = new ArrayList<>();
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                Object modInv = yigdApi.getInventory(player, true);
+                modInventories.add(modInv);
+                allItems.addAll(yigdApi.toStackList(modInv));
+
+                yigdApi.dropAll(player);
             }
 
-            ItemScatterer.spawn(player.world, player.getBlockPos(), items);
-            ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
-            return;
-        }
+            List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
+            DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
-        for (int i = 0; i < soulboundInventory.size(); i++) {
-            inventory.setStack(i, soulboundInventory.get(i));
-        }
+            // Add defaulted soulbound items
+            for (int i = 0; i < items.size(); i++) {
+                ItemStack stack = items.get(i);
 
-        if (allItems.size() > 0 || xpPoints > 0 || YigdConfig.getConfig().graveSettings.generateEmptyGraves) {
-            // Get killer if killed by a player
-            UUID killerId;
-            Entity e = source.getSource();
-            if (e instanceof PlayerEntity) {
-                killerId = e.getUuid();
+                Collection<Identifier> tags = player.world.getTagManager().getOrCreateTagGroup(Registry.ITEM_KEY).getTagsFor(stack.getItem());
+                if (tags.contains(new Identifier("yigd", "soulbound_item"))) soulboundInventory.set(i, stack);
+            }
+
+            GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
+
+            List<String> removeEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments; // List with enchantments to delete
+            DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
+            GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
+
+            allItems.addAll(items);
+            allItems.removeIf(ItemStack::isEmpty);
+
+            UUID playerId = player.getUuid();
+            if (FabricLoader.getInstance().isModLoaded("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
+                playerId = RequiemCompat.getDisplayId(player);
+            }
+
+            int xpPoints;
+            YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
+            if (graveSettings.defaultXpDrop) {
+                xpPoints = Math.min(7 * player.experienceLevel, 100);
             } else {
-                killerId = null;
+                int currentLevel = player.experienceLevel;
+                int totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
+                xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
             }
 
-            // All variables passed into placeGrave method has to be final to be executed on the end of the tick
-            final int xp = xpPoints;
-            final DefaultedList<ItemStack> graveItems = items;
-            final UUID killer = killerId;
-            Yigd.NEXT_TICK.add(() -> GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, graveItems, modInventories, xp, killer));
-        }
+            Yigd.deadPlayerData.setDeathXp(playerId, xpPoints);
+            Yigd.deadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
+            Yigd.deadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
+            Yigd.deadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
 
-        this.dropInventory();
+            inventory.clear(); // Make sure no items are accidentally dropped, and will render gone from your inventory
+
+            player.totalExperience = 0;
+            player.experienceProgress = 0;
+            player.experienceLevel = 0;
+
+            if (YigdConfig.getConfig().graveSettings.dropPlayerHead) {
+                ItemStack stack = new ItemStack(Items.PLAYER_HEAD, 1);
+                NbtCompound nbt = new NbtCompound();
+                nbt.putString("SkullOwner", player.getName().asString());
+                stack.setNbt(nbt);
+                items.add(stack);
+            }
+
+            boolean canGenerate = true;
+            if (YigdConfig.getConfig().graveSettings.requireGraveItem) {
+                canGenerate = false;
+                for (ItemStack stack : items) {
+                    if (stack.getItem() == Yigd.GRAVE_BLOCK.asItem()) {
+                        canGenerate = true;
+                        stack.decrement(1);
+                    }
+                }
+            }
+
+            int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
+            YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+            if (!config.generateGraves || config.blacklistDimensions.contains(dimId) || config.ignoreDeathTypes.contains(source.name) || !canGenerate) {
+                for (int i = 0; i < Yigd.apiMods.size(); i++) {
+                    YigdApi yigdApi = Yigd.apiMods.get(i);
+                    items.addAll(yigdApi.toStackList(modInventories.get(i)));
+                }
+
+                ItemScatterer.spawn(player.world, player.getBlockPos(), items);
+                ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
+                return;
+            }
+
+            for (int i = 0; i < soulboundInventory.size(); i++) {
+                inventory.setStack(i, soulboundInventory.get(i));
+            }
+
+            if (allItems.size() > 0 || xpPoints > 0 || YigdConfig.getConfig().graveSettings.generateEmptyGraves) {
+                // Get killer if killed by a player
+                UUID killerId;
+                Entity e = source.getSource();
+                if (e instanceof PlayerEntity) {
+                    killerId = e.getUuid();
+                } else {
+                    killerId = null;
+                }
+
+                GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items, modInventories, xpPoints, killerId);
+            }
+
+            this.dropInventory();
+        });
     }
 }

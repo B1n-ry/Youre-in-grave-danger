@@ -13,7 +13,9 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 
@@ -53,10 +55,11 @@ public class TrinketsCompat implements YigdApi {
                     boolean removed = false;
 
                     if (onDeath) {
+                        Collection<Identifier> tags = player.world.getTagManager().getOrCreateTagGroup(Registry.ITEM_KEY).getTagsFor(stack.getItem());
                         if (GraveHelper.hasEnchantments(deleteEnchantments, stack)) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             removed = true;
-                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack)) {
+                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || tags.contains(new Identifier("yigd", "soulbound_item"))) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             soulInv.add(stack);
                             removed = true;
@@ -81,12 +84,19 @@ public class TrinketsCompat implements YigdApi {
         TrinketComponent playerComponent = optional.get();
 
         if (!(inventory instanceof Map fullInv)) return extraItems;
-        fullInv.forEach((group, map) -> {
-            if (!(map instanceof Map groupInv && group instanceof String)) return;
-            groupInv.forEach((slot, trinket) -> {
-                if (!(trinket instanceof DefaultedList stacks && slot instanceof String)) return;
+        fullInv.forEach((g, map) -> {
+            if (!(map instanceof Map groupInv && g instanceof String group)) return;
+            groupInv.forEach((s, trinket) -> {
+                if (!(trinket instanceof DefaultedList stacks && s instanceof String slot)) return;
+                if (playerComponent.getInventory().get(group) == null) {
+                    extraItems.addAll(stacks);
+                    return;
+                }
                 TrinketInventory equippedInv = playerComponent.getInventory().get(group).get(slot);
-                if (equippedInv == null) return;
+                if (equippedInv == null) {
+                    extraItems.addAll(stacks);
+                    return;
+                }
 
                 for (int i = 0; i < Math.min(equippedInv.size(), stacks.size()); i++) {
                     if (!(stacks.get(i) instanceof ItemStack stack)) continue;
