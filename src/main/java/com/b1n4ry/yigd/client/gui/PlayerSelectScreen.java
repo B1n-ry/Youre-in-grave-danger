@@ -4,6 +4,7 @@ import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
@@ -16,7 +17,6 @@ import java.util.*;
 public class PlayerSelectScreen extends Screen {
     private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
-
 
     private final List<UUID> playerIds;
     private final Map<UUID, List<DeadPlayerData>> data;
@@ -35,7 +35,6 @@ public class PlayerSelectScreen extends Screen {
         Map<UUID, Identifier> playerSkinTextures = new HashMap<>();
         Map<UUID, GameProfile> graveOwners = new HashMap<>();
 
-        Identifier defaultPlayerSkin = DefaultSkinHelper.getTexture();
         data.forEach((uuid, userData) -> {
             if (userData.size() > 0) {
                 GameProfile profile = userData.get(0).graveOwner;
@@ -43,10 +42,13 @@ public class PlayerSelectScreen extends Screen {
                 nonEmpty.put(uuid, userData);
                 graveOwners.put(uuid, profile);
 
-                if (client != null) {
-                    Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = client.getSkinProvider().getTextures(profile);
+                Identifier defaultPlayerSkin = DefaultSkinHelper.getTexture(uuid);
+
+                MinecraftClient minecraftClient = MinecraftClient.getInstance();
+                if (minecraftClient != null) {
+                    Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(profile);
                     if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
-                        playerSkinTextures.put(uuid, client.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
+                        playerSkinTextures.put(uuid, minecraftClient.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
                     } else {
                         playerSkinTextures.put(uuid, defaultPlayerSkin);
                     }
