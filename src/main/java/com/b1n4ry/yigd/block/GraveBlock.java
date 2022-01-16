@@ -6,6 +6,8 @@ import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.DropTypeConfig;
 import com.b1n4ry.yigd.config.RetrievalTypeConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
+import com.b1n4ry.yigd.core.DeathInfoManager;
 import com.b1n4ry.yigd.core.GraveHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -178,7 +180,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
     @Override
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity be, ItemStack stack) {
-        if (be instanceof GraveBlockEntity graveBlockEntity && graveBlockEntity.getGraveOwner() == null) {
+        if (!(be instanceof GraveBlockEntity graveBlockEntity) || graveBlockEntity.getGraveOwner() == null) {
             super.afterBreak(world, player, pos, state, be, stack);
             return;
         }
@@ -284,7 +286,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (world.isClient) return false;
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
-        if (graveEntity.getGraveOwner() == null) return false;
+        if (graveEntity.getGraveOwner() == null || graveEntity.age < 20) return false;
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
@@ -349,6 +351,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         System.out.println("[YIGD] " + player.getDisplayName().asString() + " is retrieving their grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
+
+        List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(player.getUuid());
+        if (deadPlayerData != null) deadPlayerData.removeIf(data -> data.gravePos.equals(pos));
+        DeathInfoManager.INSTANCE.markDirty();
         return true;
     }
 

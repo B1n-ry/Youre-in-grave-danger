@@ -102,14 +102,14 @@ public class YigdConfig implements ConfigData {
 
     public static class GraveRobbing {
         @ConfigEntry.Gui.Tooltip
-        public boolean enableRobbing = false;
+        public boolean enableRobbing = true;
         @ConfigEntry.Gui.Tooltip
         public boolean onlyMurderer = false;
         @ConfigEntry.Gui.Tooltip
-        public int afterTime = 0;
+        public int afterTime = 1;
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
-        public TimeTypeConfig timeType = TimeTypeConfig.MINUTES;
+        public TimeTypeConfig timeType = TimeTypeConfig.HOURS;
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
@@ -166,10 +166,18 @@ public class YigdConfig implements ConfigData {
     public static class UtilitySettings {
         @ConfigEntry.Gui.Tooltip
         public boolean soulboundEnchant = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean teleportScroll = false;
     }
 
     public static class CommandToggles {
         public boolean retrieveGrave = true;
+        public boolean robGrave = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean selfView = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean adminView = true;
+        public boolean moderateGraves = true;
     }
 
     public static YigdConfig getConfig() {

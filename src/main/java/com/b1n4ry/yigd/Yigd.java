@@ -8,16 +8,17 @@ import com.b1n4ry.yigd.compat.InventorioCompat;
 import com.b1n4ry.yigd.compat.TrinketsCompat;
 import com.b1n4ry.yigd.config.PriorityInventoryConfig;
 import com.b1n4ry.yigd.config.YigdConfig;
-import com.b1n4ry.yigd.core.DeadPlayerData;
+import com.b1n4ry.yigd.core.DeathInfoManager;
 import com.b1n4ry.yigd.core.SoulboundEnchantment;
 import com.b1n4ry.yigd.core.YigdCommand;
+import com.b1n4ry.yigd.item.ScrollItem;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -28,6 +29,7 @@ import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
@@ -45,13 +47,13 @@ public class Yigd implements ModInitializer {
     public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
-    public static DeadPlayerData deadPlayerData = new DeadPlayerData();
     public static JsonObject graveyard;
     public static Map<UUID, Pair<PriorityInventoryConfig, PriorityInventoryConfig>> clientPriority = new HashMap<>();
 
     private static Enchantment SOULBOUND;
+    public static Item SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
 
-    public static final ArrayList<YigdApi> apiMods = new ArrayList<>();
+    public static final List<YigdApi> apiMods = new ArrayList<>();
     public static final List<Runnable> NEXT_TICK = new ArrayList<>();
 
     @Override
@@ -60,6 +62,7 @@ public class Yigd implements ModInitializer {
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
+            @SuppressWarnings("deprecation")
             public void reload(ResourceManager manager) {
                 graveyard = null;
 
@@ -135,6 +138,9 @@ public class Yigd implements ModInitializer {
         if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
             SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
+        if (YigdConfig.getConfig().utilitySettings.teleportScroll) {
+            Registry.register(Registry.ITEM, new Identifier("yigd", "tp_scroll"), SCROLL_ITEM);
+        }
 
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {
             apiMods.add(new TrinketsCompat());
@@ -146,8 +152,10 @@ public class Yigd implements ModInitializer {
 
         YigdCommand.registerCommands();
 
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            deadPlayerData = new DeadPlayerData();
+        ServerWorldEvents.LOAD.register((server, world) -> {
+            if (world == server.getOverworld()) {
+                DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
+            }
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             List<Runnable> tickFunctions = new ArrayList<>(NEXT_TICK);

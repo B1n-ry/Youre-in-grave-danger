@@ -2,6 +2,9 @@ package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
+import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
+import com.b1n4ry.yigd.core.DeathInfoManager;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -12,7 +15,8 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
@@ -36,8 +40,8 @@ public class ServerPlayerEntityMixin {
             yigdApi.dropAll(player);
         }
 
-        List<Object> modSoulbounds = Yigd.deadPlayerData.getModdedSoulbound(userId);
-        DefaultedList<ItemStack> soulboundItems = Yigd.deadPlayerData.getSoulboundInventory(userId);
+        List<Object> modSoulbounds = DeadPlayerData.Soulbound.getModdedSoulbound(userId);
+        DefaultedList<ItemStack> soulboundItems = DeadPlayerData.Soulbound.getSoulboundInventory(userId);
 
         if (soulboundItems == null && modSoulbounds == null) return;
 
@@ -69,7 +73,7 @@ public class ServerPlayerEntityMixin {
 
         // Modded soulbound doesn't work without this because of cardinal components
         Yigd.NEXT_TICK.add(() -> {
-            if (modSoulbounds != null && modSoulbounds.size() > 0) {
+            if (modSoulbounds.size() > 0) {
                 for (int i = 0; i < Math.min(Yigd.apiMods.size(), modSoulbounds.size()); i++) {
                     YigdApi yigdApi = Yigd.apiMods.get(i);
                     Object modSoulbound = modSoulbounds.get(i);
@@ -79,12 +83,21 @@ public class ServerPlayerEntityMixin {
             }
         });
 
-        Yigd.deadPlayerData.dropModdedSoulbound(userId);
-        Yigd.deadPlayerData.dropSoulbound(userId);
+        DeadPlayerData.Soulbound.dropModdedSoulbound(userId);
+        DeadPlayerData.Soulbound.dropSoulbound(userId);
 
-        BlockPos deathPos = Yigd.deadPlayerData.getDeathPos(userId);
-        if (deathPos != null) {
-            player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ()), false);
+        try {
+            List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
+            if (deadPlayerData != null && deadPlayerData.size() > 0) {
+                DeadPlayerData latestDeath = deadPlayerData.get(deadPlayerData.size() - 1);
+                BlockPos deathPos = latestDeath.gravePos;
+                if (deathPos != null && YigdConfig.getConfig().graveSettings.tellDeathPos) {
+                    player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ() + " / " + latestDeath.dimensionName), false);
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println("[YIGD] Death data has not been generated\n" + e);
         }
     }
 }

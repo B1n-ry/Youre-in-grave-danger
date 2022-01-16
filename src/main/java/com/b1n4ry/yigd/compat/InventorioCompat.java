@@ -1,8 +1,8 @@
 package com.b1n4ry.yigd.compat;
 
-import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import me.lizardofoz.inventorio.api.InventorioAPI;
 import me.lizardofoz.inventorio.player.PlayerInventoryAddon;
@@ -26,7 +26,11 @@ public class InventorioCompat implements YigdApi {
     }
 
     @Override
-    public Object getInventory(PlayerEntity player, boolean... handleAsDeath) {
+    public Object getInventory(PlayerEntity player) {
+        return getInventory(player, false);
+    }
+    @Override
+    public Object getInventory(PlayerEntity player, boolean onDeath) {
         DefaultedList<ItemStack> inventories = DefaultedList.of();
 
         PlayerInventoryAddon inventoryAddon = InventorioAPI.getInventoryAddon(player);
@@ -40,7 +44,7 @@ public class InventorioCompat implements YigdApi {
 
             inventories.add(stack);
         }
-        if (handleAsDeath.length > 0 && handleAsDeath[0]) {
+        if (onDeath) {
             DefaultedList<ItemStack> soulboundItems = GraveHelper.getEnchantedItems(inventories, soulboundEnchantments);
             GraveHelper.removeFromList(inventories, soulboundItems);
 
@@ -55,7 +59,7 @@ public class InventorioCompat implements YigdApi {
             DefaultedList<ItemStack> deletedItems = GraveHelper.getEnchantedItems(inventories, deleteEnchantments);
             GraveHelper.removeFromList(inventories, deletedItems);
 
-            Yigd.deadPlayerData.addModdedSoulbound(player.getUuid(), soulboundItems.stream().toList());
+            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulboundItems.stream().toList());
         }
 
         return inventories.stream().toList();
@@ -85,10 +89,17 @@ public class InventorioCompat implements YigdApi {
     }
 
     @Override
-    public int getInventorySize(PlayerEntity player) {
-        PlayerInventoryAddon inventoryAddon = InventorioAPI.getInventoryAddon(player);
-        if (inventoryAddon == null) return 0;
-        return inventoryAddon.size();
+    public int getInventorySize(Object inventory) {
+        if (!(inventory instanceof List)) return 0;
+        List<ItemStack> modInv = (List<ItemStack>) inventory;
+
+        List<ItemStack> items = new ArrayList<>();
+        for (ItemStack stack : modInv) {
+            if (stack == null || stack.isEmpty()) continue;
+            items.add(stack);
+        }
+
+        return items.size();
     }
 
     @Override
@@ -118,14 +129,17 @@ public class InventorioCompat implements YigdApi {
         DefaultedList<ItemStack> stacks = DefaultedList.of();
         stacks.addAll(items);
 
-        return Inventories.writeNbt(new NbtCompound(), stacks);
+        NbtCompound nbt = Inventories.writeNbt(new NbtCompound(), stacks);
+        nbt.putInt("size", stacks.size());
+        return nbt;
     }
 
     @Override
     public Object readNbt(NbtCompound nbt) {
-        DefaultedList<ItemStack> items = DefaultedList.of();
+        int size = nbt.getInt("size");
+        DefaultedList<ItemStack> items = DefaultedList.ofSize(size, ItemStack.EMPTY);
         Inventories.readNbt(nbt, items);
 
-        return new ArrayList<>(items);
+        return items.stream().toList();
     }
 }

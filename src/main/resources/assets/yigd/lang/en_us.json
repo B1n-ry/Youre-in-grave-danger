@@ -93,11 +93,20 @@
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant.@Tooltip": "If the mod should use the\nbuilt in soulbound enchant\n[Require restart]",
+  "text.autoconfig.yigd.option.utilitySettings.teleportScroll": "Scroll of Return Item",
+  "text.autoconfig.yigd.option.utilitySettings.teleportScroll.@Tooltip": "If the mod should use the\n\"Scroll of Return\" item, which will\nallow the player to teleport\nto their grave/death location\n[Require restart]",
 
   "text.autoconfig.yigd.option.commandToggles": "Toggle Commands",
-  "text.autoconfig.yigd.option.commandToggles.retrieveGrave": "/retrieve_grave",
+  "text.autoconfig.yigd.option.commandToggles.retrieveGrave": "/yigd restore",
+  "text.autoconfig.yigd.option.commandToggles.robGrave": "/yigd rob",
+  "text.autoconfig.yigd.option.commandToggles.selfView": "/yigd grave",
+  "text.autoconfig.yigd.option.commandToggles.selfView.@Tooltip": "Show the contents of your own\ngrave(s). OP not required",
+  "text.autoconfig.yigd.option.commandToggles.adminView": "/yigd grave [user]",
+  "text.autoconfig.yigd.option.commandToggles.adminView.@Tooltip": "Show the contents of someone\nelse's grave(s). OP required",
+  "text.autoconfig.yigd.option.commandToggles.moderateGraves": "/yigd moderate",
 
   "block.yigd.grave": "Grave",
+  "item.yigd.tp_scroll": "Scroll of Return",
   "enchantment.yigd.soulbound": "Soulbound",
   "enchantment.yigd.soulbound.desc": "Keep your items beyond the grave"
 }

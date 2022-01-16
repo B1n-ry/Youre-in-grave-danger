@@ -1,9 +1,9 @@
 package com.b1n4ry.yigd.compat;
 
 
-import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
@@ -27,15 +27,17 @@ public class TrinketsCompat implements YigdApi {
     }
 
     @Override
-    public Object getInventory(PlayerEntity player, boolean... handleAsDeath) {
+    public Object getInventory(PlayerEntity player) {
+        return getInventory(player, false);
+    }
+    @Override
+    public Object getInventory(PlayerEntity player, boolean onDeath) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
         if (optional.isEmpty()) return new HashMap<String, Map<String, TrinketInventory>>();
 
         TrinketComponent component = optional.get();
         Map<String, Map<String, TrinketInventory>> inventory = component.getInventory();
         Map<String, Map<String, DefaultedList<ItemStack>>> playerInv = new HashMap<>();
-
-        boolean onDeath = handleAsDeath.length > 0 && handleAsDeath[0];
 
         List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
         List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
@@ -71,7 +73,7 @@ public class TrinketsCompat implements YigdApi {
                 invGroupRef.computeIfAbsent(slot, s -> stacks);
             });
         });
-        if (onDeath) Yigd.deadPlayerData.addModdedSoulbound(player.getUuid(), soulbound);
+        if (onDeath) DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulbound);
         return playerInv;
     }
 
@@ -115,14 +117,17 @@ public class TrinketsCompat implements YigdApi {
     }
 
     @Override
-    public int getInventorySize(PlayerEntity player) {
-        Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
-        if (optional.isEmpty()) return 0;
-        TrinketComponent component = optional.get();
+    public int getInventorySize(Object inventory) {
+        if (!(inventory instanceof Map)) return 0;
+        Map<String, Map<String, DefaultedList<ItemStack>>> modInv = (Map<String, Map<String, DefaultedList<ItemStack>>>) inventory;
 
-        List<Integer> list = new ArrayList<>();
-        component.forEach((ref, stack) -> list.add(0));
-        return list.size();
+        List<ItemStack> items = new ArrayList<>();
+        modInv.forEach(((g, group) -> group.forEach((s, slot) -> slot.forEach(stack -> {
+            if (stack == null || stack.isEmpty()) return;
+            items.add(stack);
+        }))));
+
+        return items.size();
     }
 
     @Override

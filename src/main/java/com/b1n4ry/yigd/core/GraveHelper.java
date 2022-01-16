@@ -16,7 +16,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
@@ -50,7 +52,7 @@ public class GraveHelper {
         return openSlots;
     }
 
-    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
+    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source) {
         if (world.isClient()) return;
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
@@ -109,7 +111,7 @@ public class GraveHelper {
                             BlockPos gravePos = new BlockPos(x, y, z);
 
                             if (gravePlaceableAt(overworld, gravePos, false)) {
-                                boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId, direction);
+                                boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, source, direction);
                                 if (!isPlaced) continue;
                                 foundViableGrave = true;
                                 break;
@@ -136,7 +138,7 @@ public class GraveHelper {
                                     BlockPos gravePos = new BlockPos(x, y, z);
 
                                     if (gravePlaceableAt(overworld, gravePos, false)) {
-                                        boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, killerId);
+                                        boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, source);
                                         if (!isPlaced) continue;
                                         foundViableGrave = true;
                                         break;
@@ -152,7 +154,7 @@ public class GraveHelper {
         if (!foundViableGrave && YigdConfig.getConfig().graveSettings.trySoft) { // Trying soft
             for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
                 if (gravePlaceableAt(world, gravePos, false)) {
-                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
                     if (!isPlaced) continue;
 
                     foundViableGrave = true;
@@ -163,7 +165,7 @@ public class GraveHelper {
         if (!foundViableGrave && YigdConfig.getConfig().graveSettings.tryStrict) { // Trying strict
             for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
                 if (gravePlaceableAt(world, gravePos, true)) {
-                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId);
+                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
                     if (!isPlaced) continue;
                     foundViableGrave = true;
                     break;
@@ -175,7 +177,7 @@ public class GraveHelper {
         if (!foundViableGrave) { // No grave was placed
             boolean isPlaced = false;
             if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                isPlaced = placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, killerId);
+                isPlaced = placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, source);
                 if (!isPlaced) {
                     System.out.println("[YIGD] Failed to set grave as a last resort");
                 }
@@ -229,12 +231,12 @@ public class GraveHelper {
         return !(xPos >= boundEast && xPos <= boundWest && yPos <= world.getBottomY() && yPos >= world.getTopY() && zPos <= boundNorth && zPos >= boundSouth);
     }
 
-    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId) {
+    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source) {
         Direction direction = player.getHorizontalFacing();
-        return placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, killerId, direction);
+        return placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, direction);
     }
 
-    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, UUID killerId, Direction direction) {
+    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source, Direction direction) {
         boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, direction).with(Properties.WATERLOGGED, waterlogged);
         boolean isPlaced = world.setBlockState(gravePos, graveBlock);
@@ -242,7 +244,7 @@ public class GraveHelper {
             return false;
         }
 
-        BlockPos blockPosUnder = new BlockPos(gravePos.getX(), gravePos.getY() - 1, gravePos.getZ());
+        BlockPos blockPosUnder = gravePos.down();
 
         YigdConfig.BlockUnderGrave blockUnderConfig = YigdConfig.getConfig().graveSettings.blockUnderGrave;
         String replaceUnderBlock;
@@ -297,6 +299,14 @@ public class GraveHelper {
                 moddedInvStacks.put(yigdApi.getModName(), modInventories.get(i));
             }
 
+            UUID killerId;
+            Entity e = source.getSource();
+            if (e instanceof PlayerEntity) {
+                killerId = e.getUuid();
+            } else {
+                killerId = null;
+            }
+
             placedGraveEntity.setInventory(invItems);
             placedGraveEntity.setGraveOwner(playerProfile);
             placedGraveEntity.setCustomName(playerProfile.getName());
@@ -304,9 +314,20 @@ public class GraveHelper {
             placedGraveEntity.setModdedInventories(moddedInvStacks);
             placedGraveEntity.setKiller(killerId);
 
-            System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
+            DeadPlayerData deadData = DeadPlayerData.create(invItems, modInventories, gravePos, player.getGameProfile(), xpPoints, world, source);
+
+            UUID userId = player.getUuid();
+            if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
+                List<DeadPlayerData> deadPlayerData = new ArrayList<>();
+                deadPlayerData.add(deadData);
+                DeathInfoManager.INSTANCE.data.put(userId, deadPlayerData);
+            } else {
+                DeathInfoManager.INSTANCE.data.get(userId).add(deadData);
+            }
+            DeathInfoManager.INSTANCE.markDirty();
+
+            System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ() + " | " + deadData.dimensionName);
         }
-        if (YigdConfig.getConfig().graveSettings.tellDeathPos) Yigd.deadPlayerData.setDeathPos(player.getUuid(), gravePos); // Backup of the coordinates where you died
         return true;
     }
 
@@ -365,7 +386,6 @@ public class GraveHelper {
 
             yigdApi.dropAll(player);
         }
-        UUID userId = player.getUuid();
 
 
         inventory.clear(); // Delete all items
@@ -399,11 +419,6 @@ public class GraveHelper {
         player.addExperience(xp);
 
         System.out.println("[YIGD] " + player.getDisplayName().asString() + " retrieved their items from grave");
-
-        Yigd.deadPlayerData.dropDeathXp(userId);
-        Yigd.deadPlayerData.dropDeathInventory(userId);
-        Yigd.deadPlayerData.dropModdedInventory(userId);
-        Yigd.deadPlayerData.dropDeathPos(userId);
     }
 
     private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {

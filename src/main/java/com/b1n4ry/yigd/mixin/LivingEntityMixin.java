@@ -4,9 +4,9 @@ import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
 import com.b1n4ry.yigd.compat.RequiemCompat;
 import com.b1n4ry.yigd.config.YigdConfig;
+import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.GraveHelper;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -26,14 +26,13 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Mixin(value = LivingEntity.class, priority = 9001)
 public abstract class LivingEntityMixin {
     @Shadow protected abstract void dropInventory();
+
+    @Shadow protected abstract void dropXp();
 
     @Redirect(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropInventory()V"))
     private void generateGrave(LivingEntity livingEntity, DamageSource source) {
@@ -101,10 +100,7 @@ public abstract class LivingEntityMixin {
                 xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
             }
 
-            Yigd.deadPlayerData.setDeathXp(playerId, xpPoints);
-            Yigd.deadPlayerData.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
-            Yigd.deadPlayerData.setDeathPlayerInventories(playerId, items); // Backup your items in case of mod failure
-            Yigd.deadPlayerData.setModdedInventories(playerId, modInventories); // Backup modded items
+            DeadPlayerData.Soulbound.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
 
             inventory.clear(); // Make sure no items are accidentally dropped, and will render gone from your inventory
 
@@ -149,19 +145,15 @@ public abstract class LivingEntityMixin {
             }
 
             if (allItems.size() > 0 || xpPoints > 0 || YigdConfig.getConfig().graveSettings.generateEmptyGraves) {
-                // Get killer if killed by a player
-                UUID killerId;
-                Entity e = source.getSource();
-                if (e instanceof PlayerEntity) {
-                    killerId = e.getUuid();
-                } else {
-                    killerId = null;
-                }
-
-                GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items, modInventories, xpPoints, killerId);
+                GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items, modInventories, xpPoints, source);
             }
 
             this.dropInventory();
         });
+    }
+
+    @Redirect(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropXp()V"))
+    private void overwriteXp(LivingEntity instance) {
+        if (!(instance instanceof PlayerEntity) || !YigdConfig.getConfig().graveSettings.generateGraves) this.dropXp();
     }
 }
