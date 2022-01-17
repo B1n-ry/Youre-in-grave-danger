@@ -1,5 +1,7 @@
 package com.b1n4ry.yigd.config;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;

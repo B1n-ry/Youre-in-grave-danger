@@ -2,14 +2,18 @@ package com.b1n4ry.yigd.mixin;
 
 import com.b1n4ry.yigd.Yigd;
 import com.b1n4ry.yigd.api.YigdApi;
+import com.b1n4ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n4ry.yigd.config.YigdConfig;
 import com.b1n4ry.yigd.core.DeadPlayerData;
 import com.b1n4ry.yigd.core.DeathInfoManager;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -17,6 +21,7 @@ import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
@@ -99,5 +104,12 @@ public class ServerPlayerEntityMixin {
         catch (Exception e) {
             System.out.println("[YIGD] Death data has not been generated\n" + e);
         }
+    }
+
+    @Redirect(method = "createEndSpawnPlatform", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"))
+    private boolean createEndSpawnPlatform(ServerWorld world, BlockPos blockPos, BlockState blockState) {
+        BlockEntity be = world.getBlockEntity(blockPos);
+        if (!(be instanceof GraveBlockEntity grave) || grave.getGraveOwner() == null) return world.setBlockState(blockPos, blockState);
+        return false;
     }
 }
