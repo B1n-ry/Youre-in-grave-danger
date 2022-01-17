@@ -138,6 +138,9 @@ public abstract class LivingEntityMixin {
                 ItemScatterer.spawn(player.world, player.getBlockPos(), items);
                 ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
                 return;
+            } else if (!config.putXpInGrave) {
+                ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
+                xpPoints = 0;
             }
 
             for (int i = 0; i < soulboundInventory.size(); i++) {
@@ -154,6 +157,6 @@ public abstract class LivingEntityMixin {
 
     @Redirect(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropXp()V"))
     private void overwriteXp(LivingEntity instance) {
-        if (!(instance instanceof PlayerEntity) || !YigdConfig.getConfig().graveSettings.generateGraves) this.dropXp();
+        if (!(instance instanceof PlayerEntity)) this.dropXp();
     }
 }

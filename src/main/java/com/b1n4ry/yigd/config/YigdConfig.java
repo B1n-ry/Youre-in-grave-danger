@@ -82,6 +82,9 @@ public class YigdConfig implements ConfigData {
         public LastResortConfig lastResort = LastResortConfig.DROP_ITEMS;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean putXpInGrave = true;
+
+        @ConfigEntry.Gui.Tooltip
         public boolean defaultXpDrop = false;
 
         @ConfigEntry.Gui.Tooltip

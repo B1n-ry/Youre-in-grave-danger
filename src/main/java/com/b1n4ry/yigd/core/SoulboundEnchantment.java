@@ -2,6 +2,7 @@ package com.b1n4ry.yigd.core;
 
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 
@@ -28,5 +29,13 @@ public class SoulboundEnchantment extends Enchantment {
 
     public int getMaxLevel() {
         return 1;
+    }
+
+    @Override
+    protected boolean canAccept(Enchantment other) {
+        if (other == this || other == Enchantments.VANISHING_CURSE) {
+            return false;
+        }
+        return super.canAccept(other);
     }
 }

@@ -57,6 +57,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveSpawnHeight.@Tooltip": "What Y level a grave should spawn at when you die in the void",
   "text.autoconfig.yigd.option.graveSettings.lastResort": "Last Resort",
   "text.autoconfig.yigd.option.graveSettings.lastResort.@Tooltip": "If no block can be overwritten with a\ngrave, what should happen with your items?\n\nSET_GRAVE: Place a grave where you died (replace blacklisted block)\nDROP_ITEMS: Drop all your items where you died",
+  "text.autoconfig.yigd.option.graveSettings.putXpInGrave": "Put XP in Grave",
+  "text.autoconfig.yigd.option.graveSettings.putXpInGrave.@Tooltip": "If false, xp will drop outside grave on death",
   "text.autoconfig.yigd.option.graveSettings.defaultXpDrop": "Default XP Drop",
   "text.autoconfig.yigd.option.graveSettings.defaultXpDrop.@Tooltip": "Set XP drop to minecraft default",
   "text.autoconfig.yigd.option.graveSettings.xpDropPercent": "XP Drop Percent",
