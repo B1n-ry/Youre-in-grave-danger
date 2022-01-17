@@ -15,6 +15,8 @@
   "text.autoconfig.yigd.option.graveSettings.requireGraveItem.@Tooltip": "If true, players are required\nto carry a grave block for\none to generate",
   "text.autoconfig.yigd.option.graveSettings.generateEmptyGraves": "Allow Empty Graves",
   "text.autoconfig.yigd.option.graveSettings.generateEmptyGraves.@Tooltip": "If false, graves will not\ngenerate if they do not contain\nany items or XP",
+  "text.autoconfig.yigd.option.graveSettings.ignoreSpawnProtection": "Ignore Spawn Protection",
+  "text.autoconfig.yigd.option.graveSettings.ignoreSpawnProtection.@Tooltip": "If false, graves can not\nbe claimed in area affected by\nspawn protection",
   "text.autoconfig.yigd.option.graveSettings.priority": "Inventory Priority",
   "text.autoconfig.yigd.option.graveSettings.priority.@Tooltip": "What inventory should be prioritized.\nGRAVE: Your inventory will be\ngenerated on top of grave inventory\nINVENTORY: Grave inventory will be\ngenerated on top of your inventory",
   "text.autoconfig.yigd.option.graveSettings.graveRobbing": "Grave Robbing",
