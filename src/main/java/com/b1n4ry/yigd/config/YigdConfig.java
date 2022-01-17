@@ -60,6 +60,9 @@ public class YigdConfig implements ConfigData {
         public List<String> soulboundEnchantments = Collections.singletonList("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
+        public boolean applyBindingCurse = true;
+
+        @ConfigEntry.Gui.Tooltip
         public boolean trySoft = true;
         @ConfigEntry.Gui.Tooltip
         public boolean tryStrict = true;

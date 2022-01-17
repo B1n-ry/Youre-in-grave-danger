@@ -440,7 +440,7 @@ public class GraveHelper {
                     extraItems.add(equipped);
                 }
                 inventory.setStack(mainInventory.size() + i, armorItem);
-            } else if (hasEnchantments(bindingCurse, armorItem)) {
+            } else if (hasEnchantments(bindingCurse, armorItem) && YigdConfig.getConfig().graveSettings.applyBindingCurse) {
                 if (!fromGrave) {
                     ItemStack equipped = inventory.getArmorStack(i);
                     if (!equipped.isEmpty()) {

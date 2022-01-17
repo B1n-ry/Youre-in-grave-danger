@@ -43,6 +43,8 @@
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments.@Tooltip": "Removes items with this enchantment from\nthe grave. Gives Curse of Vanishing\neffect. Useful if soulbound items are\nignored and ends up in both\nyour inventory and your grave\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments": "Soulbound Enchantments",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments.@Tooltip": "Items with this enchantment will not\ngenerate in graves, but be kept by the\nplayer when they respawn.\nFormat: [namespace]:[enchantment_name]",
+  "text.autoconfig.yigd.option.graveSettings.applyBindingCurse": "Curse of Binding",
+  "text.autoconfig.yigd.option.graveSettings.applyBindingCurse.@Tooltip": "If curse of binding should be\napplied when opening graves",
   "text.autoconfig.yigd.option.graveSettings.trySoft": "Try Soft Replace",
   "text.autoconfig.yigd.option.graveSettings.trySoft.@Tooltip": "Try to place grave using a block whitelist\nWhitelist is a block tag located at\ndata/yigd/tags/blocks/soft_whitelist.json\nDefaulted to air, water, and lava",
   "text.autoconfig.yigd.option.graveSettings.tryStrict": "Try Strict Replace",
