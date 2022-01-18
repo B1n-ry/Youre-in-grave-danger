@@ -78,7 +78,7 @@ public class ServerPlayerEntityMixin {
 
         // Modded soulbound doesn't work without this because of cardinal components
         Yigd.NEXT_TICK.add(() -> {
-            if (modSoulbounds.size() > 0) {
+            if (modSoulbounds != null && modSoulbounds.size() > 0) {
                 for (int i = 0; i < Math.min(Yigd.apiMods.size(), modSoulbounds.size()); i++) {
                     YigdApi yigdApi = Yigd.apiMods.get(i);
                     Object modSoulbound = modSoulbounds.get(i);
