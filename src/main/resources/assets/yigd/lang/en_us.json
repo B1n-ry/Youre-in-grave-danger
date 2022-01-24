@@ -92,9 +92,9 @@
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.adaptRenderer": "Adapt Grave Renderer",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.adaptRenderer.@Tooltip": "Render grave ground layer as\nthe block the grave is on top of",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowingGrave": "Glowing Graves",
-  "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowingGrave.@Tooltip": "If true player will see their\ngraves in full white and\nthrough walls when more than\n10 blocks away from the grave\nRequired server side to work",
+  "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowingGrave.@Tooltip": "If true player will see their\ngraves with the glowing effect\n(through walls)\nRequired true on server to work",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowMinDistance": "Glow Minimum Distance",
-  "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowMinDistance.@Tooltip": "The minimum distance from which\ngraves should use the glow effect.\nDefault to 10 blocks",
+  "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowMinDistance.@Tooltip": "The minimum distance from which\ngraves should use the glow effect.\nDefault to 0 blocks",
 
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",

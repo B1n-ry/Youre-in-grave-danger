@@ -14,6 +14,7 @@ import net.minecraft.block.SkullBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.model.*;
+import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -42,6 +43,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     private static Map<String, String> modelTextures;
     private static ModelPart graveModel;
 
+    public static boolean renderGraveGlowing = false;
+
     public GraveBlockEntityRenderer(Context ctx) {
         this.textRenderer = ctx.getTextRenderer();
         this.renderLayer = ctx.getLayerRenderDispatcher();
@@ -52,6 +55,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             data.addChild("grave_base", ModelPartBuilder.create().uv(0, 21).cuboid(2, 1, 10, 12, 2, 5).mirrored(false), ModelTransform.NONE);
             data.addChild("grave_core", ModelPartBuilder.create().uv(0, 28).cuboid(3, 3, 11, 10, 12, 3).mirrored(false), ModelTransform.NONE);
             data.addChild("grave_top", ModelPartBuilder.create().uv(0, 17).cuboid(4, 15, 11, 8, 1, 3).mirrored(false), ModelTransform.NONE);
+
             List<String> modelNames = Arrays.asList("Base_Layer", "grave_base", "grave_core", "grave_top");
             List<String> textureLocations = Arrays.asList("yigd:block/grave", "yigd:block/grave", "yigd:block/grave", "yigd:block/grave");
             modelTextures = new HashMap<>();
@@ -284,7 +288,11 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         if (world != null) blockUnder = world.getBlockState(under);
 
         if (config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance)) {
-            graveModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getOutline(new Identifier("yigd", "textures/block/grave.png"))), light, overlay);
+            graveModel.forEachCuboid(matrices, (matrix, path, index, cuboid) -> {
+                cuboid.renderCuboid(matrix, vertexConsumers.getBuffer(RenderLayer.getOutline(new Identifier("yigd", "textures/shader/glowing.png"))), light, OverlayTexture.DEFAULT_UV, 1, 1, 1, 1);
+            });
+
+            renderGraveGlowing = true;
         }
 
 

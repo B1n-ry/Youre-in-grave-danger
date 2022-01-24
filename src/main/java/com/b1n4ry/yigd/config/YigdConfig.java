@@ -1,13 +1,13 @@
 package com.b1n4ry.yigd.config;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Config(name = "yigd")
 public class YigdConfig implements ConfigData {
@@ -171,7 +171,7 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public boolean glowingGrave = false;
         @ConfigEntry.Gui.Tooltip
-        public int glowMinDistance = 10;
+        public int glowMinDistance = 0;
     }
 
     public static class UtilitySettings {
