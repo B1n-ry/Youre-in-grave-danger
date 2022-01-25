@@ -40,6 +40,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     private final TextRenderer textRenderer;
     private final EntityModelLoader renderLayer;
 
+    private final Identifier SHADER_TEXTURE = new Identifier("yigd", "textures/shader/glowing.png");
+
     private static Map<String, String> modelTextures;
     private static ModelPart graveModel;
 
@@ -288,9 +290,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         if (world != null) blockUnder = world.getBlockState(under);
 
         if (config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance)) {
-            graveModel.forEachCuboid(matrices, (matrix, path, index, cuboid) -> {
-                cuboid.renderCuboid(matrix, vertexConsumers.getBuffer(RenderLayer.getOutline(new Identifier("yigd", "textures/shader/glowing.png"))), light, OverlayTexture.DEFAULT_UV, 1, 1, 1, 1);
-            });
+            graveModel.forEachCuboid(matrices, (matrix, path, index, cuboid) -> cuboid.renderCuboid(matrix, vertexConsumers.getBuffer(RenderLayer.getOutline(SHADER_TEXTURE)), light, OverlayTexture.DEFAULT_UV, 1, 1, 1, 1));
 
             renderGraveGlowing = true;
         }
