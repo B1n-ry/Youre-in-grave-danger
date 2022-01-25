@@ -9,7 +9,9 @@
     "B1n4ry"
   ],
   "contact": {
-    "sources": "https://github.com/B1n-ry/Youre-in-grave-danger"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger",
+    "sources": "https://github.com/B1n-ry/Youre-in-grave-danger",
+    "issues": "https://github.com/B1n-ry/Youre-in-grave-danger/issues"
   },
 
   "license": "MIT",
