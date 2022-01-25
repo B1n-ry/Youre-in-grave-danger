@@ -147,6 +147,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         JsonObject featureRenders = GraveBlock.customModel.getAsJsonObject("features");
 
+        boolean canGlow = config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance);
         GameProfile graveOwner = blockEntity.getGraveOwner();
         if (graveOwner != null && config.graveSettings.graveRenderSettings.renderGraveSkull) {
             matrices.push();
@@ -211,7 +212,11 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
             if (showSkull) {
                 SkullBlockEntityModel skull = getSkull();
-                SkullBlockEntityRenderer.renderSkull(null, 0, 0f, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
+                SkullBlockEntityRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
+
+                if (canGlow) {
+                    SkullBlockEntityRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, skull, RenderLayer.getOutline(SHADER_TEXTURE));
+                }
             }
 
             matrices.pop();
@@ -289,7 +294,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         BlockState blockUnder = null;
         if (world != null) blockUnder = world.getBlockState(under);
 
-        if (config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance)) {
+        if (canGlow) {
             graveModel.forEachCuboid(matrices, (matrix, path, index, cuboid) -> cuboid.renderCuboid(matrix, vertexConsumers.getBuffer(RenderLayer.getOutline(SHADER_TEXTURE)), light, OverlayTexture.DEFAULT_UV, 1, 1, 1, 1));
 
             renderGraveGlowing = true;
