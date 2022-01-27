@@ -9,8 +9,8 @@ Get it?
 
 ## About
 
-You're in Grave Danger is a mod centered around death.
-So far this mod will only add graves to your game, which will spawn at your death location with all your items. You can then go back and retrieve your lost items. The mod will remember your inventory layout and put everything back to where it was before you died. The mod is highly configurable. In fact, if you think a config is missing that has anything to do with what happens when you die, it's not refered to as a missing feature, but a bug. (Not really but that's how serious I am about everything being configurable).
+You're in Grave Danger is highly customizable grave mod for the fabric mod loader.
+This mod will add graves to your game, which will spawn at your death location with all your items. You can then go back and retrieve your lost items. The mod will remember your inventory layout and put everything back to where it was before you died. The mod is highly configurable. In fact, if you think a config is missing that has anything to do with what happens when you die, it's not refered to as a missing feature, but a bug. (Not really but that's how serious I am about everything being configurable).
 
 
 
