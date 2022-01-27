@@ -6,7 +6,7 @@
   "name": "You're in Grave Danger",
   "description": "Adds graves and some other stuff to the game",
   "authors": [
-    "B1n4ry"
+    "b1n_ry"
   ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger",
@@ -20,14 +20,14 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.b1n4ry.yigd.Yigd"
+      "com.b1n_ry.yigd.Yigd"
     ],
     "client": [
       {
         "value": "com.b1n4ry.yigd.client.YigdClient"
       }
     ],
-    "modmenu": [ "com.b1n4ry.yigd.YigdModMenu" ]
+    "modmenu": [ "com.b1n_ry.yigd.YigdModMenu" ]
   },
   "mixins": [
     "yigd.mixins.json"
