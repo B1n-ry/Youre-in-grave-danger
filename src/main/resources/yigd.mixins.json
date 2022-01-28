@@ -1,11 +1,11 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.b1n4ry.yigd.mixin",
+  "package": "com.b1n_ry.yigd.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "PlayerEntityMixin",
-    "PlayerManagerMixin"
+    "ServerPlayerEntityMixin"
   ],
   "client": [
     "DebugHudMixin"
