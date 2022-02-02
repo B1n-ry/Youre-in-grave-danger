@@ -179,7 +179,7 @@ public class GraveHelper {
             if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
                 isPlaced = placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, source);
                 if (!isPlaced) {
-                    System.out.println("[YIGD] Failed to set grave as a last resort");
+                    Yigd.LOGGER.warn("Failed to set grave as a last resort");
                 }
             }
             if (!isPlaced) {
@@ -188,7 +188,7 @@ public class GraveHelper {
                 }
                 ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
                 ExperienceOrbEntity.spawn((ServerWorld) world, new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()), xpPoints);
-                System.out.println("[YIGD] Dropped items as a last resort");
+                Yigd.LOGGER.info("Dropped items as a last resort");
             }
         }
     }
@@ -326,7 +326,7 @@ public class GraveHelper {
             }
             DeathInfoManager.INSTANCE.markDirty();
 
-            System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ() + " | " + deadData.dimensionName);
+            Yigd.LOGGER.info("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ() + " | " + deadData.dimensionName);
         }
         return true;
     }
@@ -418,7 +418,7 @@ public class GraveHelper {
         ItemScatterer.spawn(player.world, player.getBlockPos(), extraItems);
         player.addExperience(xp);
 
-        System.out.println("[YIGD] " + player.getDisplayName().asString() + " retrieved their items from grave");
+        Yigd.LOGGER.info(player.getDisplayName().asString() + " retrieved their items from grave");
     }
 
     private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {

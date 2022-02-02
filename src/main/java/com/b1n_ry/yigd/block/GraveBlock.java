@@ -193,13 +193,13 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (bs) {
             world.addBlockEntity(be);
         } else {
-            System.out.println("[YIGD] Did not manage to safely replace grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ". Items were deleted ;(");
+            Yigd.LOGGER.warn("Did not manage to safely replace grave data at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ". If grave contained items they've been deleted as no data was found");
         }
     }
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        System.out.println("[YIGD] Grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " was replaced with " + newState.getBlock());
+        Yigd.LOGGER.info("Grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " was replaced with " + newState.getBlock());
         super.onStateReplaced(state, world, pos, newState, moved);
     }
 
@@ -286,7 +286,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (world.isClient) return false;
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
-        if (graveEntity.getGraveOwner() == null || graveEntity.age < 20) return false;
+        if (graveEntity.getGraveOwner() == null || graveEntity.age < 20) {
+            player.sendMessage(Text.of("You can not retrieve your items in less than a second"), false);
+            return false;
+        }
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
@@ -349,7 +352,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         }
         world.removeBlock(pos, false);
 
-        System.out.println("[YIGD] " + player.getDisplayName().asString() + " is retrieving their grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+        Yigd.LOGGER.info(player.getDisplayName().asString() + " is retrieving their grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
 
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(player.getUuid());

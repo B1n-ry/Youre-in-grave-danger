@@ -23,9 +23,7 @@
       "com.b1n_ry.yigd.Yigd"
     ],
     "client": [
-      {
-        "value": "com.b1n4ry.yigd.client.YigdClient"
-      }
+      "com.b1n_ry.yigd.client.YigdClient"
     ],
     "modmenu": [ "com.b1n_ry.yigd.YigdModMenu" ]
   },

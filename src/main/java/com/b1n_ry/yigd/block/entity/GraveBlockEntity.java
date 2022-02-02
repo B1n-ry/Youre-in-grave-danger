@@ -114,7 +114,7 @@ public class GraveBlockEntity extends BlockEntity {
         return this.createNbt();
     }
 
-    public static void tick(World world, BlockPos pos, BlockState state, BlockEntity blockEntity) {
+    public static void tick(World world, BlockPos pos, BlockState ignoredState, BlockEntity blockEntity) {
         if (!(blockEntity instanceof GraveBlockEntity grave)) return;
         if (grave.getGraveOwner() == null) return;
         grave.age++;

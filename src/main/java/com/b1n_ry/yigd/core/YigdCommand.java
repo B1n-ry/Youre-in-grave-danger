@@ -30,35 +30,33 @@ public class YigdCommand {
     public static void registerCommands() {
         YigdConfig.CommandToggles config = YigdConfig.getConfig().commandToggles;
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
-            dispatcher.register(literal("yigd")
-                    .then(literal("restore")
-                            .requires(source -> source.hasPermissionLevel(4) && config.retrieveGrave)
-                            .then(argument("player", EntityArgumentType.player())
-                                    .executes(ctx -> restoreGrave(EntityArgumentType.getPlayer(ctx, "player")))
-                            )
-                            .executes(ctx -> restoreGrave(ctx.getSource().getPlayer()))
-                    )
-                    .then(literal("rob")
-                            .requires(source -> source.hasPermissionLevel(4) && config.robGrave)
-                            .then(argument("victim", EntityArgumentType.player())
-                                    .executes(ctx -> robGrave(EntityArgumentType.getPlayer(ctx, "victim"), ctx.getSource().getPlayer()))
-                            )
-                    )
-                    .then(literal("grave")
-                            .requires(source -> config.selfView || source.hasPermissionLevel(4))
-                            .executes(ctx -> viewGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer()))
-                            .then(argument("player", EntityArgumentType.player())
-                                    .requires(source -> source.hasPermissionLevel(4) && config.adminView)
-                                    .executes(ctx -> viewGrave(EntityArgumentType.getPlayer(ctx, "player"), ctx.getSource().getPlayer()))
-                            )
-                    )
-                    .then(literal("moderate")
-                            .requires(source -> source.hasPermissionLevel(4) && config.moderateGraves)
-                            .executes(ctx -> moderateGraves(ctx.getSource().getPlayer()))
-                    )
-            );
-        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(literal("yigd")
+                .then(literal("restore")
+                        .requires(source -> source.hasPermissionLevel(4) && config.retrieveGrave)
+                        .then(argument("player", EntityArgumentType.player())
+                                .executes(ctx -> restoreGrave(EntityArgumentType.getPlayer(ctx, "player")))
+                        )
+                        .executes(ctx -> restoreGrave(ctx.getSource().getPlayer()))
+                )
+                .then(literal("rob")
+                        .requires(source -> source.hasPermissionLevel(4) && config.robGrave)
+                        .then(argument("victim", EntityArgumentType.player())
+                                .executes(ctx -> robGrave(EntityArgumentType.getPlayer(ctx, "victim"), ctx.getSource().getPlayer()))
+                        )
+                )
+                .then(literal("grave")
+                        .requires(source -> config.selfView || source.hasPermissionLevel(4))
+                        .executes(ctx -> viewGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer()))
+                        .then(argument("player", EntityArgumentType.player())
+                                .requires(source -> source.hasPermissionLevel(4) && config.adminView)
+                                .executes(ctx -> viewGrave(EntityArgumentType.getPlayer(ctx, "player"), ctx.getSource().getPlayer()))
+                        )
+                )
+                .then(literal("moderate")
+                        .requires(source -> source.hasPermissionLevel(4) && config.moderateGraves)
+                        .executes(ctx -> moderateGraves(ctx.getSource().getPlayer()))
+                )
+        ));
     }
 
     private static int moderateGraves(ServerPlayerEntity player) {
@@ -98,7 +96,7 @@ public class YigdCommand {
                 buf.writeNbt(data.toNbt());
             }
             ServerPlayNetworking.send(spe, new Identifier("yigd", "single_dead_guy"), buf);
-            System.out.println("[YIGD] Sending packet with grave info");
+            Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {
             commandUser.sendMessage(new LiteralText(player.getDisplayName().asString() + " does not have any registered graves").styled(style -> style.withColor(0xFF0000)), false);
             return 0;

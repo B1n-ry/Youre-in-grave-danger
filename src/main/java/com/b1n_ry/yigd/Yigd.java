@@ -6,7 +6,6 @@ import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.compat.InventorioCompat;
 import com.b1n_ry.yigd.compat.TrinketsCompat;
-import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.b1n_ry.yigd.core.SoulboundEnchantment;
@@ -27,7 +26,6 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -35,22 +33,24 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
 import net.minecraft.util.registry.Registry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class Yigd implements ModInitializer {
+    public static final Logger LOGGER = LoggerFactory.getLogger("YIGD");
 
     public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
     public static JsonObject graveyard;
-    public static Map<UUID, Pair<PriorityInventoryConfig, PriorityInventoryConfig>> clientPriority = new HashMap<>();
 
-    private static Enchantment SOULBOUND;
     public static Item SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
 
     public static final List<YigdApi> apiMods = new ArrayList<>();
@@ -69,32 +69,32 @@ public class Yigd implements ModInitializer {
                 for(Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
                     if (!id.getNamespace().equals("yigd")) continue;
                     try (InputStream stream = manager.getResource(id).getInputStream()) {
-                        System.out.println("[YIGD] Reloading graveyard");
+                        LOGGER.info("Reloading graveyard");
                         graveyard = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
                         break;
                     } catch(Exception e) {
-                        System.out.println("[YIGD] Error occurred while loading resource json " + id + "\n" + e);
+                        LOGGER.error("Error occurred while loading resource json " + id + "\n" + e);
                     }
                 }
-                // Using experimental features so things may or may not go awful
+                // Using experimental features so things may or may not cause issues
                 try {
                     if (FabricLoader.getInstance() != null) {
                         if (FabricLoader.getInstance().getGameInstance() instanceof MinecraftServer) {
                             for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
                                 if (!id.getNamespace().equals("yigd")) continue;
                                 try (InputStream stream = manager.getResource(id).getInputStream()) {
-                                    System.out.println("[YIGD] Reloading grave shape (server side)");
+                                    LOGGER.info("Reloading grave shape (server side)");
                                     GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
                                     break;
                                 } catch (Exception e) {
-                                    System.out.println("[YIGD] Error occurred while loading custom grave shape (server side)\n" + e);
+                                    LOGGER.error("Error occurred while loading custom grave shape (server side)\n" + e);
                                 }
                             }
                         }
                     }
                 }
                 catch (Exception e) {
-                    System.out.println("[YIGD] Error occurred while trying to generate server side voxel-shape\n" + e);
+                    LOGGER.error("Error occurred while trying to generate server side voxel-shape\n" + e);
                 }
             }
 
@@ -113,13 +113,13 @@ public class Yigd implements ModInitializer {
                 for (Identifier id : ids) {
                     if (!id.getNamespace().equals("yigd")) continue;
                     try (InputStream stream = manager.getResource(id).getInputStream()) {
-                        System.out.println("[YIGD] Reloading grave model");
+                        LOGGER.info("Reloading grave model (client)");
                         GraveBlock.customModel = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
                         GraveBlock.reloadVoxelShapes(GraveBlock.customModel);
                         GraveBlockEntityRenderer.reloadCustomModel();
                         break;
                     } catch (Exception e) {
-                        System.out.println("[YIGD] Error occurred while loading custom grave model " + id + "\n" + e);
+                        LOGGER.error("Error occurred while loading custom grave model " + id + "\n" + e);
                     }
                 }
             }
@@ -136,9 +136,11 @@ public class Yigd implements ModInitializer {
         Registry.register(Registry.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
 
         if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
-            SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
+            // Add the soulbound enchantment if it should be loaded (configured to enable)
+            Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
         if (YigdConfig.getConfig().utilitySettings.teleportScroll) {
+            // Add the tp scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
             Registry.register(Registry.ITEM, new Identifier("yigd", "tp_scroll"), SCROLL_ITEM);
         }
 

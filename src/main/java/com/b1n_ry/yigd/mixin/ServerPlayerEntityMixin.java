@@ -102,7 +102,7 @@ public class ServerPlayerEntityMixin {
             }
         }
         catch (Exception e) {
-            System.out.println("[YIGD] Death data has not been generated\n" + e);
+            Yigd.LOGGER.warn("Death data did not generate\n" + e);
         }
     }
 
