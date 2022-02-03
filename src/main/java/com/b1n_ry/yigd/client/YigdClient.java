@@ -4,11 +4,9 @@ import com.b1n_ry.yigd.client.gui.GraveSelectScreen;
 import com.b1n_ry.yigd.client.gui.PlayerSelectScreen;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.core.DeadPlayerData;
-import com.b1n_ry.yigd.mixin.WorldRendererAccessor;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
@@ -18,8 +16,6 @@ import java.util.*;
 import static com.b1n_ry.yigd.Yigd.GRAVE_BLOCK_ENTITY;
 
 public class YigdClient implements ClientModInitializer {
-    public static boolean isRenderingGlowingShader = false;
-
     @Override
     public void onInitializeClient() {
         BlockEntityRendererRegistry.register(GRAVE_BLOCK_ENTITY, GraveBlockEntityRenderer::new);
@@ -59,19 +55,6 @@ public class YigdClient implements ClientModInitializer {
                 PlayerSelectScreen screen = new PlayerSelectScreen(data, 1);
                 client.setScreen(screen);
             });
-        });
-
-        // Makes sure just before render is applied, that if any graves should glow they will be able to glow
-        WorldRenderEvents.LAST.register(context -> {
-            WorldRendererAccessor worldRenderer = (WorldRendererAccessor) context.worldRenderer();
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (GraveBlockEntityRenderer.renderGraveGlowing && !isRenderingGlowingShader) { // Makes sure that glowing shader is not applied twice
-                worldRenderer.getEntityOutlineShader().render(context.tickDelta());
-                client.getFramebuffer().beginWrite(false);
-
-                GraveBlockEntityRenderer.renderGraveGlowing = false;
-            }
-            isRenderingGlowingShader = false;
         });
     }
 }
