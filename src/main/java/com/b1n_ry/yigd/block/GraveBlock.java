@@ -24,11 +24,13 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -44,10 +46,7 @@ import net.minecraft.world.WorldAccess;
 import net.minecraft.world.tick.OrderedTick;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("deprecation")
 public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
@@ -287,7 +286,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
         if (graveEntity.getGraveOwner() == null || graveEntity.age < 20) {
-            player.sendMessage(Text.of("You can not retrieve your items in less than a second"), false);
+            player.sendMessage(new TranslatableText("text.yigd.message.too_fast"), false);
             return false;
         }
 
@@ -326,20 +325,19 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (!player.getGameProfile().getId().equals(graveOwner.getId())) {
             if (!(canRobGrave && timePassed)) {
                 if (canRobGrave) {
-                    List<String> timeStrings = new ArrayList<>();
                     double timeRemaining = ((double) requiredAge - age) / 20;
-                    if (timeRemaining >= 3600d) {
-                        timeStrings.add((int) (timeRemaining / 36000) + " hours");
-                        timeRemaining %= 3600d;
-                    }
-                    if (timeRemaining >= 60) {
-                        timeStrings.add((int) (timeRemaining / 60) + " minutes");
-                        timeRemaining %= 60;
-                    }
-                    timeStrings.add((int) timeRemaining + " seconds");
-                    player.sendMessage(Text.of("You can retrieve the items from this grave in: " + String.join(", ", timeStrings)), true);
+
+                    int hours = (int) (timeRemaining / 3600);
+                    timeRemaining %= 3600;
+
+                    int minutes = (int) (timeRemaining / 60);
+                    timeRemaining %= 60;
+
+                    int seconds = (int) timeRemaining;
+
+                    player.sendMessage(new TranslatableText("text.yigd.message.retrieve.rob_cooldown", hours, minutes, seconds), true);
                 } else {
-                    player.sendMessage(Text.of("You are not allowed to retrieve these items"), true);
+                    player.sendMessage(new TranslatableText("text.yigd.message.retrieve.missing_permission"), true);
                 }
                 return false;
             } else {
@@ -352,7 +350,17 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         }
         world.removeBlock(pos, false);
 
-        Yigd.LOGGER.info(player.getDisplayName().asString() + " is retrieving their grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+        Yigd.LOGGER.info(player.getDisplayName().asString() + " is retrieving " + (isRobbing ? "someone else's" : "their") + " grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+        MinecraftServer server = world.getServer();
+        if (isRobbing && server != null) {
+            UUID playerId = graveOwner.getId();
+            ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(playerId);
+            if (robbedPlayer != null) {
+                robbedPlayer.sendMessage(new TranslatableText("text.yigd.message.robbed"), false);
+            } else {
+                Yigd.notNotifiedRobberies.add(playerId);
+            }
+        }
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
 
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(player.getUuid());

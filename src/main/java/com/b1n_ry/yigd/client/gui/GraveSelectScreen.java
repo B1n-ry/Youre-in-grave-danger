@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
@@ -31,7 +32,7 @@ public class GraveSelectScreen extends Screen {
     private String hoveredElement = null;
 
     public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen) {
-        super(Text.of("Grave Select"));
+        super(new TranslatableText("text.yigd.gui.grave_select.title"));
         List<GuiGraveInfo> info = new ArrayList<>();
         for (DeadPlayerData deadData : data) {
             int size = 0;

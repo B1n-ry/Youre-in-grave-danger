@@ -12,16 +12,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class GraveBlockEntity extends BlockEntity {
     private GameProfile graveOwner;
@@ -116,13 +116,13 @@ public class GraveBlockEntity extends BlockEntity {
 
     public static void tick(World world, BlockPos pos, BlockState ignoredState, BlockEntity blockEntity) {
         if (!(blockEntity instanceof GraveBlockEntity grave)) return;
-        if (grave.getGraveOwner() == null) return;
+        if (world == null) return;
         grave.age++;
+        if (grave.getGraveOwner() == null) return;
 
         YigdConfig.GraveDeletion deletion = YigdConfig.getConfig().graveSettings.graveDeletion;
         if (!deletion.canDelete) return;
 
-        if (world == null) return;
         boolean timeHasPassed = grave.age > deletion.afterTime * deletion.timeType.tickFactor();
 
         if (!timeHasPassed) return;
@@ -145,6 +145,13 @@ public class GraveBlockEntity extends BlockEntity {
             }
         }
         world.removeBlock(pos, false);
+        if (world.getServer() == null || grave.graveOwner == null) return;
+        ServerPlayerEntity graveOwner = world.getServer().getPlayerManager().getPlayer(grave.graveOwner.getId());
+        if (graveOwner == null) {
+            Yigd.notNotifiedPlayers.add(grave.graveOwner.getId());
+            return;
+        }
+        graveOwner.sendMessage(new TranslatableText("text.yigd.message.timeout" + (deletion.dropInventory ? ".dropped" : "")), false);
     }
 
     public void setGraveOwner(GameProfile owner) {

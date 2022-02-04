@@ -30,7 +30,7 @@ public class GraveViewScreen extends Screen {
     private final Screen previousScreen;
 
     public GraveViewScreen(DeadPlayerData data, @Nullable Screen previousScreen) {
-        super(Text.of(data.graveOwner != null ? "Grave contents of " + data.graveOwner.getName() : "How tf did you find this grave. It has no owner"));
+        super(data.graveOwner != null ? new TranslatableText("text.yigd.gui.grave_view.title", data.graveOwner.getName()) : new TranslatableText("text.yigd.gui.grave_view.title.missing"));
         this.data = data;
         this.previousScreen = previousScreen;
 

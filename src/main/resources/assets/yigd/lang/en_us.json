@@ -114,5 +114,35 @@
   "block.yigd.grave": "Grave",
   "item.yigd.tp_scroll": "Scroll of Return",
   "enchantment.yigd.soulbound": "Soulbound",
-  "enchantment.yigd.soulbound.desc": "Keep your items beyond the grave"
+  "enchantment.yigd.soulbound.desc": "Keep your items beyond the grave",
+
+  "text.yigd.message.too_fast": "You can not retrieve your items in less than a second",
+  "text.yigd.message.timeout": "Your grave has been deleted due to you not retrieving it in time",
+  "text.yigd.message.timeout.dropped": "Your grave has been deleted and dropped your items due to you not retrieving it in time",
+  "text.yigd.message.timeout.offline": "While you were offline a grave of yours has been deleted due to you not retrieving it in time",
+  "text.yigd.message.robbed": "One of your graves has been robbed",
+  "text.yigd.message.robbed.offline": "While you were offline a grave of yours has been robbed",
+  "text.yigd.message.retrieve.missing_permission": "You are not allowed to retrieve these items",
+  "text.yigd.message.retrieve.rob_cooldown": "You can retrieve the items from this grave in: %d:%d:%d",
+
+  "text.yigd.message.grave_not_found": "No graves found",
+  "text.yigd.message.unclaimed_grave_missing": "%s does not have any unclaimed graves",
+  "text.yigd.message.rob_command.fail": "Could not find grave to fetch",
+  "text.yigd.message.rob_command.success": "Robbed grave remotely successfully",
+  "text.yigd.message.rob_command.victim": "A server OP has robbed your grave",
+  "text.yigd.message.restore_command.fail": "Could not find grave to fetch",
+  "text.yigd.message.restore_command.success": "Restored grave remotely successfully",
+  "text.yigd.message.view_command.fail": "%s does not have any registered graves",
+
+  "text.yigd.message.scroll_error": "Something went wrong.. The game believes you are holding a %s",
+  "text.yigd.message.you_have_no_graves": "You do not have any graves",
+  "text.yigd.message.missing_grave_location": "Your grave does not have a registered location",
+  "text.yigd.message.cross_dim_error": "You can't travel to your grave from another dimension",
+
+  "text.yigd.message.grave_location_info": "Your grave has been generated at\nX: %d / Y: %d / Z: %d / %s",
+
+  "text.yigd.gui.grave_select.title": "Grave Select",
+  "text.yigd.gui.grave_view.title": "Grave contents of %s",
+  "text.yigd.gui.grave_view.title.missing": "How tf did you find this grave. It has no owner",
+  "text.yigd.gui.player_select.title": "Player Select"
 }

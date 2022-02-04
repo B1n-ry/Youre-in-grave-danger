@@ -6,7 +6,7 @@ import com.b1n_ry.yigd.core.DeathInfoManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -30,20 +30,20 @@ public class ScrollItem extends Item {
             scroll = user.getOffHandStack();
         }
         if (scroll.getItem() != Yigd.SCROLL_ITEM) {
-            user.sendMessage(Text.of("Something went wrong.. The game believes you are holding a " + scroll.getItem().getName().asString()), true);
+            user.sendMessage(new TranslatableText("text.yigd.message.scroll_error" + scroll.getItem().getName().asString()), true);
             return super.use(world, user, hand);
         }
 
         UUID userId = user.getUuid();
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
-            user.sendMessage(Text.of("You do not have any graves"), true);
+            user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
             return super.use(world, user, hand);
         }
 
         List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(userId);
 
         if (graves.size() <= 0) {
-            user.sendMessage(Text.of("You do not have any graves"), true);
+            user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
             return super.use(world, user, hand);
         }
 
@@ -51,9 +51,9 @@ public class ScrollItem extends Item {
 
         if (grave.gravePos == null || grave.worldId != world.getRegistryKey().getValue()) {
             if (grave.gravePos == null) {
-                user.sendMessage(Text.of("Your grave does not have a registered location"), true);
+                user.sendMessage(new TranslatableText("text.yigd.message.missing_grave_location"), true);
             } else {
-                user.sendMessage(Text.of("You can't travel to your grave from another dimension"), true);
+                user.sendMessage(new TranslatableText("text.yigd.message.cross_dim_error"), true);
             }
             return super.use(world, user, hand);
         }

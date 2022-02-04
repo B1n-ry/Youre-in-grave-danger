@@ -12,8 +12,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import org.jetbrains.annotations.Nullable;
@@ -34,9 +33,9 @@ public class YigdCommand {
                 .then(literal("restore")
                         .requires(source -> source.hasPermissionLevel(4) && config.retrieveGrave)
                         .then(argument("player", EntityArgumentType.player())
-                                .executes(ctx -> restoreGrave(EntityArgumentType.getPlayer(ctx, "player")))
+                                .executes(ctx -> restoreGrave(EntityArgumentType.getPlayer(ctx, "player"), ctx.getSource().getPlayer()))
                         )
-                        .executes(ctx -> restoreGrave(ctx.getSource().getPlayer()))
+                        .executes(ctx -> restoreGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer()))
                 )
                 .then(literal("rob")
                         .requires(source -> source.hasPermissionLevel(4) && config.robGrave)
@@ -80,7 +79,7 @@ public class YigdCommand {
 
             ServerPlayNetworking.send(player, new Identifier("yigd", "all_dead_people"), buf);
         } else {
-            player.sendMessage(Text.of("No graves found"), false);
+            player.sendMessage(new TranslatableText("text.yigd.message.grave_not_found"), false);
             return 0;
         }
         return 1;
@@ -98,7 +97,7 @@ public class YigdCommand {
             ServerPlayNetworking.send(spe, new Identifier("yigd", "single_dead_guy"), buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {
-            commandUser.sendMessage(new LiteralText(player.getDisplayName().asString() + " does not have any registered graves").styled(style -> style.withColor(0xFF0000)), false);
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.view_command.fail", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
             return 0;
         }
         return 1;
@@ -121,13 +120,13 @@ public class YigdCommand {
         UUID userId = victim.getUuid();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
-            stealer.sendMessage(Text.of("Could not find grave to fetch"), true);
+            stealer.sendMessage(new TranslatableText("text.yigd.message.rob_command.fail"), true);
             return 0;
         }
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
 
         if (deadPlayerData.size() <= 0) {
-            stealer.sendMessage(new LiteralText(victim.getDisplayName().asString() + " does not have any unclaimed graves").styled(style -> style.withColor(0xFF0000)), true);
+            stealer.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", victim.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), true);
             return 0;
         }
         DeadPlayerData latestDeath = deadPlayerData.remove(deadPlayerData.size() - 1);
@@ -150,22 +149,22 @@ public class YigdCommand {
 
         GraveHelper.RetrieveItems(stealer, latestDeath.inventory, modInv, latestDeath.xp, true);
 
-        stealer.sendMessage(Text.of("Robbed grave remotely successfully"), true);
-        victim.sendMessage(Text.of("A server OP has robbed your grave"), false);
+        stealer.sendMessage(new TranslatableText("text.yigd.message.rob_command.success"), true);
+        victim.sendMessage(new TranslatableText("text.yigd.message.rob_command.victim"), false);
         return 1;
     }
 
-    private static int restoreGrave(PlayerEntity player) {
+    private static int restoreGrave(PlayerEntity player, PlayerEntity commandUser) {
         UUID userId = player.getUuid();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
-            player.sendMessage(Text.of("Could not find grave to fetch"), true);
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.restore_command.fail"), true);
             return -1;
         }
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
 
         if (deadPlayerData.size() <= 0) {
-            player.sendMessage(new LiteralText(player.getDisplayName().asString() + " does not have any unclaimed graves").styled(style -> style.withColor(0xFF0000)), false);
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
 
@@ -189,7 +188,7 @@ public class YigdCommand {
 
         GraveHelper.RetrieveItems(player, latestDeath.inventory, modInv, latestDeath.xp, false);
 
-        player.sendMessage(Text.of("Restored grave remotely successfully"), true);
+        commandUser.sendMessage(new TranslatableText("text.yigd.message.restore_command.success"), true);
         return 1;
     }
 }

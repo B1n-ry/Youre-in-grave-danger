@@ -14,7 +14,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
@@ -97,7 +97,7 @@ public class ServerPlayerEntityMixin {
                 DeadPlayerData latestDeath = deadPlayerData.get(deadPlayerData.size() - 1);
                 BlockPos deathPos = latestDeath.gravePos;
                 if (deathPos != null && YigdConfig.getConfig().graveSettings.tellDeathPos) {
-                    player.sendMessage(Text.of("Your grave has been generated at\nX: " + deathPos.getX() + " / Y: " + deathPos.getY() + " / Z: " + deathPos.getZ() + " / " + latestDeath.dimensionName), false);
+                    player.sendMessage(new TranslatableText("text.yigd.message.grave_location_info", deathPos.getX(), deathPos.getY(), deathPos.getZ(), latestDeath.dimensionName), false);
                 }
             }
         }

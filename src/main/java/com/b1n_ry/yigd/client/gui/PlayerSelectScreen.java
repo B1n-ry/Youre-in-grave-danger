@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
@@ -28,7 +29,7 @@ public class PlayerSelectScreen extends Screen {
     private String hoveredElement = null;
 
     public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page) {
-        super(Text.of("Player Select"));
+        super(new TranslatableText("text.yigd.gui.player_select.title"));
 
         List<UUID> playerIds = new ArrayList<>();
         Map<UUID, List<DeadPlayerData>> nonEmpty = new HashMap<>();

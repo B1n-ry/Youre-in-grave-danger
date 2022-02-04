@@ -19,6 +19,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -32,6 +33,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.slf4j.Logger;
@@ -42,9 +44,13 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public class Yigd implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("YIGD");
+
+    public static List<UUID> notNotifiedPlayers = new ArrayList<>();
+    public static List<UUID> notNotifiedRobberies = new ArrayList<>();
 
     public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
@@ -157,6 +163,17 @@ public class Yigd implements ModInitializer {
         ServerWorldEvents.LOAD.register((server, world) -> {
             if (world == server.getOverworld()) {
                 DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
+            }
+        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            UUID playerId = handler.player.getUuid();
+            if (notNotifiedPlayers.contains(playerId)) {
+                handler.player.sendMessage(new TranslatableText("message.yigd.grave.timeout.offline"), false);
+                notNotifiedPlayers.remove(playerId);
+            }
+            if (notNotifiedRobberies.contains(playerId)) {
+                handler.player.sendMessage(new TranslatableText("message.yigd.grave.robbed.offline"), false);
+                notNotifiedRobberies.remove(playerId);
             }
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
