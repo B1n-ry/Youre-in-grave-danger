@@ -9,7 +9,8 @@ import com.b1n_ry.yigd.compat.TrinketsCompat;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
-import com.b1n_ry.yigd.core.SoulboundEnchantment;
+import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
+import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
 import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.item.ScrollItem;
 import com.google.gson.JsonObject;
@@ -29,6 +30,7 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -56,6 +58,8 @@ public class Yigd implements ModInitializer {
 
     public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
+
+    public static final Enchantment DEATH_SIGHT = new DeathSightEnchantment();
 
     public static JsonObject graveyard;
 
@@ -146,6 +150,10 @@ public class Yigd implements ModInitializer {
         if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
             // Add the soulbound enchantment if it should be loaded (configured to enable)
             Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
+        }
+        if (YigdConfig.getConfig().utilitySettings.deathSightEnchant) {
+            // Add the death sight enchantment if it should be loaded (configured to enable)
+            Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "death_sight"), DEATH_SIGHT);
         }
         if (YigdConfig.getConfig().utilitySettings.teleportScroll) {
             // Add the tp scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)

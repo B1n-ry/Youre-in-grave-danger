@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.client.render;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -27,6 +28,8 @@ import net.minecraft.client.render.entity.model.EntityModelLoader;
 import net.minecraft.client.render.entity.model.SkullEntityModel;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
@@ -147,7 +150,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         JsonObject featureRenders = GraveBlock.customModel.getAsJsonObject("features");
 
-        boolean canGlow = config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance);
+        ItemStack headItem = client.player != null ? client.player.getInventory().armor.get(3) : ItemStack.EMPTY;
+        boolean wearingGraveXray = !headItem.isEmpty() && EnchantmentHelper.get(headItem).containsKey(Yigd.DEATH_SIGHT);
+
+        boolean canGlow = wearingGraveXray || (config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance));
         GameProfile graveOwner = blockEntity.getGraveOwner();
         if (graveOwner != null && config.graveSettings.graveRenderSettings.renderGraveSkull) {
             matrices.push();

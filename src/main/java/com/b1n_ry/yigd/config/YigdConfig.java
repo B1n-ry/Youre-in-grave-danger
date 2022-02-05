@@ -178,6 +178,8 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public boolean soulboundEnchant = true;
         @ConfigEntry.Gui.Tooltip
+        public boolean deathSightEnchant = false;
+        @ConfigEntry.Gui.Tooltip
         public boolean teleportScroll = false;
     }
 

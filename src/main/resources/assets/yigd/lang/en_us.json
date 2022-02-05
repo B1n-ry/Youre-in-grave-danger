@@ -115,6 +115,8 @@
   "item.yigd.tp_scroll": "Scroll of Return",
   "enchantment.yigd.soulbound": "Soulbound",
   "enchantment.yigd.soulbound.desc": "Keep your items beyond the grave",
+  "enchantment.yigd.death_sight": "Death Sight",
+  "enchantment.yigd.death_sight.desc": "Activates grave xRay",
 
   "text.yigd.message.too_fast": "You can not retrieve your items in less than a second",
   "text.yigd.message.timeout": "Your grave has been deleted due to you not retrieving it in time",

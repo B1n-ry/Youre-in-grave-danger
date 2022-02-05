@@ -428,7 +428,7 @@ public class GraveHelper {
         ItemScatterer.spawn(player.world, player.getBlockPos(), extraItems);
         player.addExperience(xp);
 
-        Yigd.LOGGER.info(player.getDisplayName().asString() + " retrieved their items from grave");
+        Yigd.LOGGER.info(player.getDisplayName().asString() + " retrieved the items from the grave");
     }
 
     private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {
