@@ -6,10 +6,12 @@ import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
+@Pseudo
 @Mixin(DebugHud.class)
 public class DebugHudMixin extends DrawableHelper {
     @Shadow @Final private MinecraftClient client;

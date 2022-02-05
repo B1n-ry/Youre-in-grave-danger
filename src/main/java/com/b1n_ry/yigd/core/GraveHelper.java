@@ -390,11 +390,21 @@ public class GraveHelper {
 
         inventory.clear(); // Delete all items
 
+        UUID playerId = player.getUuid();
+
         PriorityInventoryConfig priorityInventory;
         if (robbing) {
-            priorityInventory = YigdConfig.getConfig().graveSettings.graveRobbing.robPriority;
+            if (Yigd.clientRobPriorities.containsKey(playerId)) {
+                priorityInventory = Yigd.clientRobPriorities.get(playerId);
+            } else {
+                priorityInventory = YigdConfig.getConfig().graveSettings.graveRobbing.robPriority;
+            }
         } else {
-            priorityInventory = YigdConfig.getConfig().graveSettings.priority;
+            if (Yigd.clientPriorities.containsKey(playerId)) {
+                priorityInventory = Yigd.clientPriorities.get(playerId);
+            } else {
+                priorityInventory = YigdConfig.getConfig().graveSettings.priority;
+            }
         }
 
         DefaultedList<ItemStack> extraItems;

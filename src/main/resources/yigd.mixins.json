@@ -11,7 +11,8 @@
   ],
   "client": [
     "DebugHudMixin",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "AbstractConfigScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
