@@ -113,7 +113,7 @@ public class GraveBlock extends HorizontalFacingBlock implements BlockEntityProv
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        System.out.println("[YIGD] Grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " was replaced with " + newState.getBlock().getName().asString());
+        System.out.println("[YIGD] Grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " was replaced with " + newState.getBlock());
         super.onStateReplaced(state, world, pos, newState, moved);
     }
 
