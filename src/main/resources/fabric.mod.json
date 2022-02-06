@@ -9,8 +9,8 @@
     "b1n_ry"
   ],
   "contact": {
-    "sources": "https://github.com/B1n-ry/Youre-in-grave-danger",
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger",
+    "sources": "https://github.com/B1n-ry/Youre-in-grave-danger",
     "issues": "https://github.com/B1n-ry/Youre-in-grave-danger/issues"
   },
 
@@ -32,10 +32,11 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.7.4",
+    "fabricloader": ">=0.12.9",
     "fabric": "*",
     "minecraft": "1.16.x",
-    "cloth-config2": ">=4.11.26"
+    "java": ">=8",
+    "cloth-config2": ">=4.13.49"
   },
   "suggests": {
     "another-mod": "*"

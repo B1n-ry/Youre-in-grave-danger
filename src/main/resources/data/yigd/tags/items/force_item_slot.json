@@ -1,0 +1,121 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "camsbackpacks:white_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:orange_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:magenta_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:light_blue_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:yellow_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:lime_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:pink_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:gray_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:light_gray_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:cyan_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:purple_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:blue_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:brown_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:green_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:red_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:black_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:gay_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:lesbian_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:qpoc_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:bi_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:pan_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:trans_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:genderqueer_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:genderfluid_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:enby_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:ace_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:demi_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:aro_pride_backpack",
+      "required": false
+    },
+    {
+      "id": "camsbackpacks:agender_pride_backpack",
+      "required": false
+    }
+  ]
+}

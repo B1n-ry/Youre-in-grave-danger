@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.7-SNAPSHOT'
+	id 'fabric-loom' version '0.10-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -11,31 +11,29 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
 	maven { url "https://maven.shedaniel.me/" }
 	maven {
-		name = 'TerraformersMC'
-		url = 'https://maven.terraformersmc.com/'
+		name = "TerraformersMC"
+		url = "https://maven.terraformersmc.com/"
+	}
+	maven {
+		name = "Ladysnake Libs"
+		url = "https://ladysnake.jfrog.io/artifactory/mods"
+	}
+	maven {
+		url = "https://maven.theillusivec4.top/"
 	}
 	maven {
 		name = "Jitpack"
 		url = "https://jitpack.io"
 	}
-	maven {
-		name = "Ladysnake Mods"
-		url = 'https://ladysnake.jfrog.io/artifactory/mods'
-	}
-
-	maven {
-		url = "https://maven.theillusivec4.top/"
-	}
-	maven {
-		name = "OnyxStudios"
-		url = "https://maven.abusedmaster.xyz"
+	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
+	flatDir {
+		dirs "./modsWithCompat"
+		content {
+			includeGroup "mods.compat"
+		}
 	}
 }
 
@@ -58,14 +56,16 @@ dependencies {
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
+
+	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
+	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.16-fabric:${project.inventorio_version}"
+	modImplementation "mods.compat:travelers-backpack-${project.backpack_version}"
 	modImplementation "top.theillusivec4.curios:curios-fabric:${project.curios_version}"
 
 	// Without these, worlds would not load when testing the mod
 	modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cca_version}"
 	modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-item:${project.cca_version}"
-
-
 }
 
 processResources {
@@ -77,19 +77,8 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	// ensure that the encoding is set to UTF-8, no matter what the system default is
-	// this fixes some edge cases with special characters not displaying correctly
-	// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-	// If Javadoc is generated, this must be specified in that task too.
-	it.options.encoding = "UTF-8"
-
-	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
-	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
-	// We'll use that if it's available, but otherwise we'll use the older option.
-	def targetVersion = 8
-	if (JavaVersion.current().isJava9Compatible()) {
-		 it.options.release = targetVersion
-	}
+	// Minecraft 1.16 uses Java 8.
+	it.options.release = 8
 }
 
 java {
@@ -109,13 +98,7 @@ jar {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			from components.java
 		}
 	}
 

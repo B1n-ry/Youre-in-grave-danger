@@ -3,222 +3,217 @@ package com.b1n_ry.yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.compat.CuriosCompat;
-import com.b1n_ry.yigd.compat.CuriosCosmeticCompat;
+import com.b1n_ry.yigd.compat.InventorioCompat;
+import com.b1n_ry.yigd.compat.TravelersBackpackCompat;
 import com.b1n_ry.yigd.compat.TrinketsCompat;
-import com.b1n_ry.yigd.config.LastResortConfig;
+import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.core.SoulboundEnchantment;
-import com.mojang.authlib.GameProfile;
+import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
+import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
+import com.b1n_ry.yigd.core.YigdCommand;
+import com.b1n_ry.yigd.item.ScrollItem;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.state.property.Properties;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.*;
 
 public class Yigd implements ModInitializer {
+    public static final Logger LOGGER = LogManager.getLogger("YIGD");
 
-    public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3000.0f));
+    public static List<UUID> notNotifiedPlayers = new ArrayList<>();
+    public static List<UUID> notNotifiedRobberies = new ArrayList<>();
+
+    public static Map<UUID, PriorityInventoryConfig> clientPriorities = new HashMap<>();
+    public static Map<UUID, PriorityInventoryConfig> clientRobPriorities = new HashMap<>();
+
+    public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
-    private static final Enchantment SOULBOUND = Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
+    public static final Enchantment DEATH_SIGHT = new DeathSightEnchantment();
 
-    public static final ArrayList<YigdApi> apiMods = new ArrayList<>();
-    public static List<Runnable> NEXT_TICK = new ArrayList<>();
+    public static JsonObject graveyard;
+
+    public static Item SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
+
+    public static final List<YigdApi> apiMods = new ArrayList<>();
+    public static final List<Runnable> NEXT_TICK = new ArrayList<>();
 
     @Override
     public void onInitialize() {
         AutoConfig.register(YigdConfig.class, Toml4jConfigSerializer::new);
 
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public void reload(ResourceManager manager) {
+                graveyard = null;
+
+                for(Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        LOGGER.info("Reloading graveyard");
+                        JsonParser parser = new JsonParser();
+                        graveyard = (JsonObject) parser.parse(new InputStreamReader(stream));
+                        break;
+                    } catch(Exception e) {
+                        LOGGER.error("Error occurred while loading resource json " + id + "\n" + e);
+                    }
+                }
+                // Using experimental features so things may or may not cause issues
+                try {
+                    if (FabricLoader.getInstance() != null) {
+                        if (FabricLoader.getInstance().getGameInstance() instanceof MinecraftServer) {
+                            for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
+                                if (!id.getNamespace().equals("yigd")) continue;
+                                try (InputStream stream = manager.getResource(id).getInputStream()) {
+                                    LOGGER.info("Reloading grave shape (server side)");
+                                    JsonParser parser = new JsonParser();
+                                    GraveBlock.reloadVoxelShapes((JsonObject) parser.parse(new InputStreamReader(stream)));
+                                    break;
+                                } catch (Exception e) {
+                                    LOGGER.error("Error occurred while loading custom grave shape (server side)\n" + e);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    LOGGER.error("Error occurred while trying to generate server side voxel-shape\n" + e);
+                }
+            }
+
+            @Override
+            public Identifier getFabricId() {
+                return new Identifier("yigd", "graveyard");
+            }
+        });
+        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            public void reload(ResourceManager manager) {
+                GraveBlock.customModel = null;
+
+                Collection<Identifier> ids = manager.findResources("models/block", path -> path.equals("grave.json"));
+
+                for (Identifier id : ids) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        LOGGER.info("Reloading grave model (client)");
+                        JsonParser parser = new JsonParser();
+                        GraveBlock.customModel = (JsonObject) parser.parse(new InputStreamReader(stream));
+                        GraveBlock.reloadVoxelShapes(GraveBlock.customModel);
+                        GraveBlockEntityRenderer.reloadCustomModel();
+                        break;
+                    } catch (Exception e) {
+                        LOGGER.error("Error occurred while loading custom grave model " + id + "\n" + e);
+                    }
+                }
+            }
+
+            @Override
+            public Identifier getFabricId() {
+                return new Identifier("yigd", "models/block/grave");
+            }
+        });
+
+        GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", BlockEntityType.Builder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
+
         Registry.register(Registry.BLOCK, new Identifier("yigd", "grave"), GRAVE_BLOCK);
         Registry.register(Registry.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
 
-        GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", BlockEntityType.Builder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
+        if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
+            // Add the soulbound enchantment if it should be loaded (configured to enable)
+            Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
+        }
+        if (YigdConfig.getConfig().utilitySettings.deathSightEnchant) {
+            // Add the death sight enchantment if it should be loaded (configured to enable)
+            Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "death_sight"), DEATH_SIGHT);
+        }
+        if (YigdConfig.getConfig().utilitySettings.teleportScroll) {
+            // Add the tp scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
+            Registry.register(Registry.ITEM, new Identifier("yigd", "tp_scroll"), SCROLL_ITEM);
+        }
 
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {
             apiMods.add(new TrinketsCompat());
         }
+        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
+            apiMods.add(new InventorioCompat());
+        }
+        if (FabricLoader.getInstance().isModLoaded("travelersbackpack")) {
+            apiMods.add(new TravelersBackpackCompat());
+        }
         if (FabricLoader.getInstance().isModLoaded("curios")) {
             apiMods.add(new CuriosCompat());
-            apiMods.add(new CuriosCosmeticCompat());
         }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
+        YigdCommand.registerCommands();
+
+        ServerPlayNetworking.registerGlobalReceiver(new Identifier("yigd", "config_update"), (server, player, handler, buf, responseSender) -> {
+            if (player == null) return;
+            PriorityInventoryConfig normalPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
+            PriorityInventoryConfig robbingPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
+
+            UUID playerId = player.getUuid();
+            clientPriorities.put(playerId, normalPriority);
+            clientRobPriorities.put(playerId, robbingPriority);
+
+            LOGGER.info("Priority overwritten for player " + player.getDisplayName().asString() + ". Normal: " + normalPriority.name() + " / Robbing: " + robbingPriority.name());
+        });
+
+        ServerWorldEvents.LOAD.register((server, world) -> {
+            if (world == server.getOverworld()) {
+                DeathInfoManager.INSTANCE = world.getPersistentStateManager().getOrCreate(DeathInfoManager::new, "yigd");
+            }
+        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            UUID playerId = handler.player.getUuid();
+            if (notNotifiedPlayers.contains(playerId)) {
+                handler.player.sendMessage(new TranslatableText("message.yigd.grave.timeout.offline"), false);
+                notNotifiedPlayers.remove(playerId);
+            }
+            if (notNotifiedRobberies.contains(playerId)) {
+                handler.player.sendMessage(new TranslatableText("message.yigd.grave.robbed.offline"), false);
+                notNotifiedRobberies.remove(playerId);
+            }
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             List<Runnable> tickFunctions = new ArrayList<>(NEXT_TICK);
             NEXT_TICK.clear();
-            for (Runnable runnable : tickFunctions) {
-                runnable.run();
+            for (Runnable function : tickFunctions) {
+                function.run();
             }
         });
-    }
-
-    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, int xpPoints) {
-        if (world.isClient()) return;
-        if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < 0) return;
-
-        BlockPos blockPos = new BlockPos(pos.x, pos.y - 1, pos.z);
-
-        if (blockPos.getY() < 0) {
-            blockPos = new BlockPos(blockPos.getX(), 10, blockPos.getZ());
-        } else if (blockPos.getY() > 255) {
-            blockPos = new BlockPos(blockPos.getX(), 254, blockPos.getZ());
-        }
-
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            invItems.addAll(yigdApi.getInventory(player));
-
-            yigdApi.dropAll(player);
-        }
-
-
-        boolean foundViableGrave = false;
-
-        for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
-            if (gravePlaceableAt(world, gravePos)) {
-                placeGraveBlock(player, world, gravePos, invItems, xpPoints);
-                foundViableGrave = true;
-                break;
-            }
-        }
-
-        // If there is nowhere to place the grave for some reason the items should not disappear
-        if (!foundViableGrave) { // No grave was placed
-            if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
-                placeGraveBlock(player, world, blockPos, invItems, xpPoints);
-            } else {
-                ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
-            }
-        }
-    }
-
-    private static boolean gravePlaceableAt(World world, BlockPos blockPos) {
-        BlockEntity blockEntity = world.getBlockEntity(blockPos);
-
-        if (blockEntity != null) return false;
-
-        Block block = world.getBlockState(blockPos).getBlock();
-
-        List<String> blacklistBlockId = YigdConfig.getConfig().graveSettings.blacklistBlocks;
-        String id = Registry.BLOCK.getId(block).toString();
-
-        if (blacklistBlockId.contains(id)) return false;
-
-        int yPos = blockPos.getY();
-        return yPos >= 0 && yPos <= 255; // Return false if block exists outside the map (y-axis) and true if the block exists within the confined space of y = 0-255
-    }
-
-    private static void placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, int xpPoints) {
-        BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, player.getHorizontalFacing());
-        world.setBlockState(gravePos, graveBlock);
-
-        BlockPos blockPosUnder = new BlockPos(gravePos.getX(), gravePos.getY() - 1, gravePos.getZ());
-
-        YigdConfig.BlockUnderGrave blockUnderConfig = YigdConfig.getConfig().graveSettings.blockUnderGrave;
-        String replaceUnderBlock;
-
-        if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= 1) { // If block should generate under, and if there is a "block" under that can be replaced
-            Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
-            String blockId = Registry.BLOCK.getId(blockUnder).toString();
-
-            if (blockUnderConfig.whiteListBlocks.contains(blockId)) {
-                if (world.getRegistryKey() == World.OVERWORLD) {
-                    replaceUnderBlock = blockUnderConfig.inOverWorld;
-                } else if (world.getRegistryKey() == World.NETHER) {
-                    replaceUnderBlock = blockUnderConfig.inNether;
-                } else if (world.getRegistryKey() == World.END) {
-                    replaceUnderBlock = blockUnderConfig.inTheEnd;
-                } else {
-                    replaceUnderBlock = blockUnderConfig.inCustom;
-                }
-
-                Identifier blockIdentifier = Identifier.tryParse(replaceUnderBlock);
-                BlockState blockStateUnder;
-                if (blockIdentifier == null) {
-                    blockStateUnder = Blocks.DIRT.getDefaultState();
-                } else {
-                    blockStateUnder = Registry.BLOCK.get(blockIdentifier).getDefaultState();
-                }
-
-                world.setBlockState(blockPosUnder, blockStateUnder); // Place support block under grave
-            }
-        }
-
-        BlockEntity placed = world.getBlockEntity(gravePos);
-        if (placed instanceof GraveBlockEntity) {
-            GraveBlockEntity placedGraveEntity = (GraveBlockEntity)placed;
-
-            GameProfile playerProfile = player.getGameProfile();
-
-            placedGraveEntity.setInventory(invItems);
-            placedGraveEntity.setGraveOwner(playerProfile);
-            placedGraveEntity.setCustomName(playerProfile.getName());
-            placedGraveEntity.setStoredXp(xpPoints);
-
-            placedGraveEntity.sync();
-
-            System.out.println("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ());
-        }
-    }
-
-    public static void removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {
-        for (ItemStack item : remove) {
-            int match = list.indexOf(item);
-            if (match < 0) continue;
-
-            list.set(match, ItemStack.EMPTY);
-        }
-
-    }
-
-    public static DefaultedList<ItemStack> getEnchantedItems(DefaultedList<ItemStack> items, List<String> enchantStrings) {
-        DefaultedList<ItemStack> included = DefaultedList.ofSize(items.size(), ItemStack.EMPTY);
-
-        for (int i = 0; i < items.size(); i++) {
-            ItemStack item = items.get(i);
-            if (hasEnchantments(enchantStrings, item)) included.set(i, item);
-        }
-        return included;
-    }
-
-    public static boolean hasEnchantments(List<String> enchants, ItemStack item) {
-        if (!item.hasEnchantments()) return false;
-
-        for (NbtElement enchantment : item.getEnchantments()) {
-            String enchantId = ((NbtCompound) enchantment).getString("id");
-
-            if (enchants.stream().anyMatch(enchantId::equals)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
