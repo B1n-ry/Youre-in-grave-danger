@@ -1,14 +1,18 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.b1n4ry.yigd.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "package": "com.b1n_ry.yigd.mixin",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
     "LivingEntityMixin",
-    "ServerPlayerEntityMixin"
+    "PlayerEntityMixin",
+    "ServerPlayerEntityMixin",
+    "MinecraftDedicatedServerMixin"
   ],
   "client": [
-    "DebugHudMixin"
+    "DebugHudMixin",
+    "WorldRendererMixin",
+    "AbstractConfigScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

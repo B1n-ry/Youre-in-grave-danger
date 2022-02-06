@@ -6,10 +6,12 @@
   "name": "You're in Grave Danger",
   "description": "Adds graves and some other stuff to the game",
   "authors": [
-    "B1n4ry"
+    "b1n_ry"
   ],
   "contact": {
-    "sources": "https://github.com/B1n-ry/Youre-in-grave-danger"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger",
+    "sources": "https://github.com/B1n-ry/Youre-in-grave-danger",
+    "issues": "https://github.com/B1n-ry/Youre-in-grave-danger/issues"
   },
 
   "license": "MIT",
@@ -18,23 +20,23 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.b1n4ry.yigd.Yigd"
+      "com.b1n_ry.yigd.Yigd"
     ],
     "client": [
-      {
-        "value": "com.b1n4ry.yigd.client.YigdClient"
-      }
+      "com.b1n_ry.yigd.client.YigdClient"
     ],
-    "modmenu": [ "com.b1n4ry.yigd.YigdModMenu" ]
+    "modmenu": [ "com.b1n_ry.yigd.YigdModMenu" ]
   },
   "mixins": [
     "yigd.mixins.json"
   ],
 
   "depends": {
-    "fabricloader": ">=0.11.3",
+    "fabricloader": ">=0.12.9",
     "fabric": "*",
-    "minecraft": "1.17.x"
+    "minecraft": "1.17.x",
+    "java": ">=16",
+    "cloth-config2": ">=5.2.47"
   },
   "suggests": {
     "another-mod": "*"

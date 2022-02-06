@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.9-SNAPSHOT'
+	id 'fabric-loom' version '0.10-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -24,6 +24,8 @@ repositories {
 		name = "Jitpack"
 		url = "https://jitpack.io"
 	}
+	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	flatDir {
 		dirs "./modsWithCompat"
 		content {
@@ -48,12 +50,13 @@ dependencies {
 	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
-	include "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
+
+	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.17-fabric:${project.inventorio_version}"
+	modImplementation "mods.compat:inventorio-${project.inventorio_version}"
 	modImplementation "mods.compat:travelers-backpack-${project.backpack_version}"
 }
 
@@ -66,13 +69,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	// ensure that the encoding is set to UTF-8, no matter what the system default is
-	// this fixes some edge cases with special characters not displaying correctly
-	// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-	// If Javadoc is generated, this must be specified in that task too.
-	it.options.encoding = "UTF-8"
-
-	// Minecraft 1.17 (21w19a) upwards uses Java 16.
+	// Minecraft 1.17 uses Java 16.
 	it.options.release = 16
 }
 
@@ -93,13 +90,7 @@ jar {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			from components.java
 		}
 	}
 
