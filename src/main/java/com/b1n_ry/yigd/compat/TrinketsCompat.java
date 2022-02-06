@@ -76,9 +76,11 @@ public class TrinketsCompat implements YigdApi {
                 extraItems.add(toAdd);
                 continue;
             }
-            if (!present.isEmpty()) extraItems.add(present);
-
-            trinketInv.setStack(i, toAdd);
+            if (present.isEmpty()) {
+                trinketInv.setStack(i, toAdd);
+            } else {
+                extraItems.add(toAdd);
+            }
         }
         return extraItems;
     }

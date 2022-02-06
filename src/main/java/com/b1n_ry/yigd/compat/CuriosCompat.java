@@ -102,13 +102,27 @@ public class CuriosCompat implements YigdApi {
                 DefaultedList<ItemStack> normalItems = itemMap.get("normal");
                 for (int i = 0; i < normalItems.size(); i++) {
                     ItemStack stack = normalItems.get(i);
-                    stacksHandler.getStacks().setStack(i, stack);
+                    if (stack.isEmpty()) continue;
+
+                    ItemStack present = stacksHandler.getStacks().getStack(i);
+                    if (present.isEmpty()) {
+                        stacksHandler.getStacks().setStack(i, stack);
+                    } else {
+                        extraItems.add(stack);
+                    }
                 }
 
                 DefaultedList<ItemStack> cosmeticItems = itemMap.get("cosmetic");
                 for (int i = 0; i < cosmeticItems.size(); i++) {
                     ItemStack stack = cosmeticItems.get(i);
-                    stacksHandler.getCosmeticStacks().setStack(i, stack);
+                    if (stack.isEmpty()) continue;
+
+                    ItemStack present = stacksHandler.getCosmeticStacks().getStack(i);
+                    if (present.isEmpty()) {
+                        stacksHandler.getCosmeticStacks().setStack(i, stack);
+                    } else {
+                        extraItems.add(stack);
+                    }
                 }
             });
         }));

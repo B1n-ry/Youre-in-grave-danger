@@ -59,8 +59,13 @@ public class TravelersBackpackCompat implements YigdApi {
         if (!(inventory instanceof ItemStack)) return extraItems;
         ItemStack stack = (ItemStack) inventory;
 
-        if (ComponentUtils.isWearingBackpack(player)) extraItems.add(ComponentUtils.getWearingBackpack(player));
-        ComponentUtils.getComponent(player).setWearable(stack);
+        if (stack.isEmpty()) return extraItems;
+
+        if (ComponentUtils.isWearingBackpack(player)) {
+            extraItems.add(stack);
+        } else {
+            ComponentUtils.equipBackpack(player, stack);
+        }
 
         return extraItems;
     }

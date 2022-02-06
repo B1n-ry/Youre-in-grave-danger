@@ -75,6 +75,8 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
             }
             tag.put("ModdedInventoryItems", modNbt);
         }
+
+        tag.putBoolean("canGlow", YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave);
         return tag;
     }
 
@@ -111,8 +113,9 @@ public class GraveBlockEntity extends BlockEntity implements BlockEntityClientSe
 
     @Override
     public void fromClientTag(NbtCompound tag) {
-        if(tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
-        if(tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+        if (tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
+        if (tag.contains("CustomName")) this.customName = tag.getString("CustomName");
+        if (tag.contains("glowing")) this.glowing = tag.getBoolean("glowing");
     }
 
     @Override

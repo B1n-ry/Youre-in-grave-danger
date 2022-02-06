@@ -65,7 +65,7 @@ public class GraveHelper {
         if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < bottomY + 1) return;
 
         double yPos = pos.y - 1D;
-        if ((int) yPos != (int) (yPos + 0.5D)) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
+        if ((int) yPos != (int) (yPos + 0.5D) && player.isOnGround()) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
 
         BlockPos blockPos = new BlockPos(pos.x, (int) yPos, pos.z);
 
