@@ -9,6 +9,8 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -121,8 +123,15 @@ public class GraveViewScreen extends Screen {
 
         if (client != null && client.player != null) {
             int playerX = originX - screenWidth / 2 + 50;
+            PlayerEntity otherPlayer = client.player.world.getPlayerByUuid(data.graveOwner.getId());
+            LivingEntity renderedEntity;
+            if (otherPlayer != null) {
+                renderedEntity = otherPlayer;
+            } else {
+                renderedEntity = client.player;
+            }
             int playerY = originY - screenHeight / 2 + 51;
-            InventoryScreen.drawEntity(playerX, playerY + 30, 30, (float) playerX - mouseX, (float) (playerY - 20) - mouseY, client.player);
+            InventoryScreen.drawEntity(playerX, playerY + 30, 30, (float) playerX - mouseX, (float) (playerY - 20) - mouseY, renderedEntity);
         }
     }
 
