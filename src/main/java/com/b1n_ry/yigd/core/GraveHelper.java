@@ -381,8 +381,9 @@ public class GraveHelper {
         invInventory.addAll(inventory.armor);
         invInventory.addAll(inventory.offHand);
 
-        if (inventory.size() > 41) {
-            for (int i = 41; i < inventory.size(); i++) {
+        int currentSize = invInventory.size();
+        if (inventory.size() > currentSize) {
+            for (int i = currentSize; i < inventory.size(); i++) {
                 invInventory.add(inventory.getStack(i));
             }
         }
@@ -440,10 +441,13 @@ public class GraveHelper {
     }
 
     private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {
-        List<ItemStack> armorInventory = inv.subList(36, 40);
-        List<ItemStack> mainInventory = inv.subList(0, 36);
-
         PlayerInventory inventory = player.inventory;
+
+        int mainSize = inventory.main.size();
+        int armorSize = inventory.armor.size();
+
+        List<ItemStack> armorInventory = inv.subList(mainSize, mainSize + armorSize);
+        List<ItemStack> mainInventory = inv.subList(0, mainSize);
 
         List<String> bindingCurse = Collections.singletonList("minecraft:binding_curse");
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
@@ -464,21 +468,21 @@ public class GraveHelper {
                     if (!equipped.isEmpty()) {
                         extraItems.add(equipped);
                     }
-                    inventory.setStack(mainInventory.size() + i, armorItem);
+                    inventory.setStack(mainSize + i, armorItem);
                 } else {
                     extraItems.add(armorItem);
                 }
             } else {
                 ItemStack equipped = inventory.getArmorStack(i);
                 if (equipped.isEmpty()) {
-                    inventory.setStack(mainInventory.size() + i, armorItem);
+                    inventory.setStack(mainSize + i, armorItem);
                 } else {
                     extraItems.add(armorItem);
                 }
             }
         }
 
-        for (int i = 40; i < inv.size(); i++) {
+        for (int i = mainSize + armorSize; i < inv.size(); i++) {
             ItemStack stack = inventory.getStack(i);
             if (inventory.size() <= i) {
                 extraItems.add(inv.get(i));
