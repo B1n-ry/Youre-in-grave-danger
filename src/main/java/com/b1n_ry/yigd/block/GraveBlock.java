@@ -285,7 +285,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (world.isClient) return false;
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
-        if (graveEntity.getGraveOwner() != null || graveEntity.age < 20) {
+        if (graveEntity.getGraveOwner() != null && graveEntity.age < 20) {
             player.sendMessage(new TranslatableText("text.yigd.message.too_fast"), false);
             return false;
         }
