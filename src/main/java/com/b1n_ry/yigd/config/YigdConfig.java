@@ -169,9 +169,11 @@ public class YigdConfig implements ConfigData {
         public boolean adaptRenderer = false;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean glowingGrave = false;
+        public boolean glowingGrave = true;
         @ConfigEntry.Gui.Tooltip
         public int glowMinDistance = 0;
+        @ConfigEntry.Gui.Tooltip
+        public int glowMaxDistance = 10;
     }
 
     public static class UtilitySettings {

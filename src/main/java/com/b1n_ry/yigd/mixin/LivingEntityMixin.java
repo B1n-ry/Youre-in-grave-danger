@@ -50,8 +50,9 @@ public abstract class LivingEntityMixin {
             items.addAll(inventory.armor);
             items.addAll(inventory.offHand);
 
-            if (inventory.size() > 41) {
-                for (int i = 41; i < inventory.size(); i++) {
+            int currentSize = items.size();
+            if (inventory.size() > currentSize) {
+                for (int i = currentSize; i < inventory.size(); i++) {
                     ItemStack stack = inventory.getStack(i);
                     items.add(stack);
                 }
