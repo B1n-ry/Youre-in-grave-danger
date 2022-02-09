@@ -20,12 +20,14 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -213,24 +215,18 @@ public class GraveHelper {
         double boundSouth = world.getWorldBorder().getBoundSouth();
         double boundNorth = world.getWorldBorder().getBoundNorth();
 
-        String path;
+        Identifier tagId;
         if (strict) {
-            path = "replace_blacklist";
+            tagId = new Identifier("yigd", "replace_blacklist");
         } else {
-            path = "soft_whitelist";
+            tagId = new Identifier("yigd", "soft_whitelist");
         }
 
         boolean hasTag = false;
 
         Block block = world.getBlockState(blockPos).getBlock();
-        Collection<Identifier> tagIds = world.getTagManager().getBlocks().getTagsFor(block);
-        for (Identifier tagId : tagIds) {
-            if (!tagId.getNamespace().equals("yigd")) continue;
-            if (tagId.getPath().equals(path)) {
-                hasTag = true;
-                break;
-            }
-        }
+        Tag<Block> tag = world.getTagManager().getBlocks().getTag(tagId);
+        if (tag != null && tag.contains(block)) hasTag = true;
 
         if ((hasTag && strict) || (!hasTag && !strict)) return false;
 
@@ -263,14 +259,9 @@ public class GraveHelper {
             Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
 
             boolean canPlaceUnder = false;
-            Collection<Identifier> tagIds = world.getTagManager().getBlocks().getTagsFor(blockUnder);
-            for (Identifier tagId : tagIds) {
-                if (!tagId.getNamespace().equals("yigd")) continue;
-                if (tagId.getPath().equals("support_replace_whitelist")) {
-                    canPlaceUnder = true;
-                    break;
-                }
-            }
+            Identifier tagId = new Identifier("yigd", "support_replace_whitelist");
+            Tag<Block> tag = world.getTagManager().getBlocks().getTag(tagId);
+            if (tag != null && tag.contains(blockUnder)) canPlaceUnder = true;
 
             if (canPlaceUnder) {
                 if (world.getRegistryKey() == World.OVERWORLD) {
@@ -455,16 +446,17 @@ public class GraveHelper {
         for (int i = 0; i < armorInventory.size(); i++) {
             ItemStack armorItem = armorInventory.get(i);
 
-            Collection<Identifier> tags = player.world.getTagManager().getItems().getTagsFor(armorItem.getItem());
-            if (tags.contains(new Identifier("yigd", "force_item_slot"))) {
-                ItemStack equipped = inventory.getArmorStack(i);
+            Identifier tagId = new Identifier("yigd", "force_item_slot");
+            Tag<Item> tag = player.world.getTagManager().getItems().getTag(tagId);
+            if (tag != null && tag.contains(armorItem.getItem())) {
+                ItemStack equipped = inventory.getStack(inventory.main.size() + i);
                 if (!equipped.isEmpty()) {
                     extraItems.add(equipped);
                 }
                 inventory.setStack(mainInventory.size() + i, armorItem);
             } else if (hasEnchantments(bindingCurse, armorItem) && YigdConfig.getConfig().graveSettings.applyBindingCurse) {
                 if (!fromGrave) {
-                    ItemStack equipped = inventory.getArmorStack(i);
+                    ItemStack equipped = inventory.getStack(inventory.main.size() + i);
                     if (!equipped.isEmpty()) {
                         extraItems.add(equipped);
                     }
@@ -473,7 +465,7 @@ public class GraveHelper {
                     extraItems.add(armorItem);
                 }
             } else {
-                ItemStack equipped = inventory.getArmorStack(i);
+                ItemStack equipped = inventory.getStack(inventory.main.size() + i);
                 if (equipped.isEmpty()) {
                     inventory.setStack(mainSize + i, armorItem);
                 } else {

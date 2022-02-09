@@ -9,6 +9,7 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -207,6 +208,8 @@ public class CuriosCompat implements YigdApi {
     }
 
     private boolean isDefaultSoulbound(PlayerEntity player, Item item) {
-        return player.world.getTagManager().getItems().getTagsFor(item).contains(new Identifier("yigd", "soulbound_item"));
+        Identifier tagId = new Identifier("yigd", "soulbound_item");
+        Tag<Item> tag = player.world.getTagManager().getItems().getTag(tagId);
+        return tag != null && tag.contains(item);
     }
 }

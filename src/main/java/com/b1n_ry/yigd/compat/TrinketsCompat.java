@@ -9,13 +9,14 @@ import dev.emi.trinkets.api.TrinketsApi;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
@@ -47,8 +48,9 @@ public class TrinketsCompat implements YigdApi {
             for (int i = 0; i < itemStacks.size(); i++) {
                 ItemStack stack = itemStacks.get(i);
 
-                Collection<Identifier> tags = player.world.getTagManager().getItems().getTagsFor(stack.getItem());
-                if (tags.contains(new Identifier("yigd", "soulbound_item"))) soulboundItems.set(i, stack);
+                Identifier tagId = new Identifier("yigd", "soulbound_item");
+                Tag<Item> tag = player.world.getTagManager().getItems().getTag(tagId);
+                if (tag != null && tag.contains(stack.getItem())) soulboundItems.set(i, stack);
             }
             GraveHelper.removeFromList(itemStacks, soulboundItems);
 

@@ -6,8 +6,10 @@ import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
 import com.tiviacz.travelersbackpack.component.ComponentUtils;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 
@@ -35,7 +37,9 @@ public class TravelersBackpackCompat implements YigdApi {
         if (onDeath) {
             ItemStack soulbound;
             boolean shouldDelete = false;
-            if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack) || player.world.getTagManager().getItems().getTagsFor(backpack.getItem()).contains((new Identifier("yigd", "soulbound_item")))) {
+            Identifier tagId = new Identifier("yigd", "soulbound_item");
+            Tag<Item> tag = player.world.getTagManager().getItems().getTag(tagId);
+            if ((tag != null && tag.contains(backpack.getItem())) || GraveHelper.hasEnchantments(soulboundEnchantments, backpack)) {
                 soulbound = backpack;
                 shouldDelete = true;
             } else {
