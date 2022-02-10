@@ -5,15 +5,15 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "LivingEntityMixin",
+    "MinecraftDedicatedServerMixin",
     "PlayerEntityMixin",
-    "ServerPlayerEntityMixin",
-    "MinecraftDedicatedServerMixin"
+    "ServerPlayerEntityMixin"
   ],
   "client": [
-    "DebugHudMixin",
-    "WorldRendererMixin",
     "AbstractConfigScreenMixin",
-    "WorldRendererAccessor"
+    "DebugHudMixin",
+    "WorldRendererAccessor",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

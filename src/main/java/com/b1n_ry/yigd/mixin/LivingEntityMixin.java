@@ -42,9 +42,20 @@ public abstract class LivingEntityMixin {
             return;
         }
         PlayerEntity player = (PlayerEntity) livingEntity;
+
+        DefaultedList<ItemStack> allItems = DefaultedList.of();
+
+        List<Object> modInventories = new ArrayList<>();
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            Object modInv = yigdApi.getInventory(player, true);
+            modInventories.add(modInv);
+            allItems.addAll(yigdApi.toStackList(modInv));
+
+            yigdApi.dropAll(player);
+        }
+
         Yigd.NEXT_TICK.add(() -> {
             PlayerInventory inventory = player.inventory;
-            DefaultedList<ItemStack> allItems = DefaultedList.of();
 
             DefaultedList<ItemStack> items = DefaultedList.of();
             items.addAll(inventory.main);
@@ -57,15 +68,6 @@ public abstract class LivingEntityMixin {
                     ItemStack stack = inventory.getStack(i);
                     items.add(stack);
                 }
-            }
-
-            List<Object> modInventories = new ArrayList<>();
-            for (YigdApi yigdApi : Yigd.apiMods) {
-                Object modInv = yigdApi.getInventory(player, true);
-                modInventories.add(modInv);
-                allItems.addAll(yigdApi.toStackList(modInv));
-
-                yigdApi.dropAll(player);
             }
 
             List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
