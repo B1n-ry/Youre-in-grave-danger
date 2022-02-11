@@ -283,24 +283,27 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
     private boolean RetrieveItems(PlayerEntity player, World world, BlockPos pos, BlockEntity blockEntity) {
         if (world.isClient) return false;
+        if (player == null || player.isDead()) return false;
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
+
+        GameProfile graveOwner = graveEntity.getGraveOwner();
+
+        if (graveOwner == null) return false;
         if (graveEntity.getGraveOwner() != null && graveEntity.age < 20) {
             player.sendMessage(new TranslatableText("text.yigd.message.too_fast"), false);
             return false;
         }
 
-        GameProfile graveOwner = graveEntity.getGraveOwner();
-
-        DefaultedList<ItemStack> items = graveEntity.getStoredInventory();
         int xp = graveEntity.getStoredXp();
 
-        if (graveOwner == null) return false;
+        DefaultedList<ItemStack> items = graveEntity.getStoredInventory();
+
         if (items == null) return false;
 
         Map<String, Object> graveModItems = graveEntity.getModdedInventories();
 
-        if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND || player == null) {
+        if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
             for (YigdApi yigdApi : Yigd.apiMods) {
                 Object o = graveModItems.get(yigdApi.getModName());
                 items.addAll(yigdApi.toStackList(o));
