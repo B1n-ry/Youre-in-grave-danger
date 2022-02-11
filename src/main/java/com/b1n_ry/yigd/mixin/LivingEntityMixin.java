@@ -43,6 +43,8 @@ public abstract class LivingEntityMixin {
         }
         Yigd.NEXT_TICK.add(() -> {
             PlayerInventory inventory = player.getInventory();
+            inventory.updateItems();
+
             DefaultedList<ItemStack> allItems = DefaultedList.of();
 
             DefaultedList<ItemStack> items = DefaultedList.of();
