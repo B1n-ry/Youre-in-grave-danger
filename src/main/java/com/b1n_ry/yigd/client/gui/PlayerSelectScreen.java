@@ -8,7 +8,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -73,8 +72,8 @@ public class PlayerSelectScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (client != null && client.options.keyInventory.matchesKey(keyCode, scanCode) || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
-            this.onClose();
+        if (client != null && client.options.inventoryKey.matchesKey(keyCode, scanCode) || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+            this.close();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);

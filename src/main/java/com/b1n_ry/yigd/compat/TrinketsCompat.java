@@ -1,10 +1,10 @@
 package com.b1n_ry.yigd.compat;
 
-
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
+import com.b1n_ry.yigd.core.ModTags;
 import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.api.TrinketsApi;
@@ -13,9 +13,7 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 
@@ -57,11 +55,10 @@ public class TrinketsCompat implements YigdApi {
                     boolean removed = false;
 
                     if (onDeath) {
-                        Collection<Identifier> tags = player.world.getTagManager().getOrCreateTagGroup(Registry.ITEM_KEY).getTagsFor(stack.getItem());
                         if (GraveHelper.hasEnchantments(deleteEnchantments, stack)) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             removed = true;
-                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || tags.contains(new Identifier("yigd", "soulbound_item"))) {
+                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || stack.isIn(ModTags.SOULBOUND_ITEM)) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             soulInv.add(stack);
                             removed = true;

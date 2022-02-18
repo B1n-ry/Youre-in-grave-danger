@@ -12,7 +12,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
@@ -86,7 +85,7 @@ public class GraveHelper {
 
         boolean foundViableGrave = false;
         MinecraftServer server = world.getServer();
-        if (server != null) {
+        if (server != null && Yigd.graveyard != null) {
             JsonElement json = Yigd.graveyard.get("coordinates");
             boolean point2point = Yigd.graveyard.get("point2point").getAsBoolean();
             ServerWorld overworld = world.getServer().getOverworld();
@@ -203,22 +202,16 @@ public class GraveHelper {
         double boundSouth = world.getWorldBorder().getBoundSouth();
         double boundNorth = world.getWorldBorder().getBoundNorth();
 
-        String path;
-        if (strict) {
-            path = "replace_blacklist";
-        } else {
-            path = "soft_whitelist";
-        }
-
         boolean hasTag = false;
+        BlockState block = world.getBlockState(blockPos);
 
-        Block block = world.getBlockState(blockPos).getBlock();
-        Collection<Identifier> tagIds = world.getTagManager().getOrCreateTagGroup(Registry.BLOCK_KEY).getTagsFor(block);
-        for (Identifier tagId : tagIds) {
-            if (!tagId.getNamespace().equals("yigd")) continue;
-            if (tagId.getPath().equals(path)) {
+        if (strict) {
+            if (block.isIn(ModTags.REPLACE_BLACKLIST)) {
                 hasTag = true;
-                break;
+            }
+        } else {
+            if (block.isIn(ModTags.SOFT_WHITELIST)) {
+                hasTag = true;
             }
         }
 
@@ -250,17 +243,9 @@ public class GraveHelper {
         String replaceUnderBlock;
 
         if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= world.getBottomY() + 1) { // If block should generate under, and if there is a "block" under that can be replaced
-            Block blockUnder = world.getBlockState(blockPosUnder).getBlock();
+            BlockState blockUnder = world.getBlockState(blockPosUnder);
 
-            boolean canPlaceUnder = false;
-            Collection<Identifier> tagIds = world.getTagManager().getOrCreateTagGroup(Registry.BLOCK_KEY).getTagsFor(blockUnder);
-            for (Identifier tagId : tagIds) {
-                if (!tagId.getNamespace().equals("yigd")) continue;
-                if (tagId.getPath().equals("support_replace_whitelist")) {
-                    canPlaceUnder = true;
-                    break;
-                }
-            }
+            boolean canPlaceUnder = blockUnder.isIn(ModTags.SUPPORT_REPLACE_WHITELIST);
 
             if (canPlaceUnder) {
                 if (world.getRegistryKey() == World.OVERWORLD) {
@@ -447,8 +432,7 @@ public class GraveHelper {
         for (int i = 0; i < armorInventory.size(); i++) {
             ItemStack armorItem = armorInventory.get(i);
 
-            Collection<Identifier> tags = player.world.getTagManager().getOrCreateTagGroup(Registry.ITEM_KEY).getTagsFor(armorItem.getItem());
-            if (tags.contains(new Identifier("yigd", "force_item_slot"))) {
+            if (armorItem.isIn(ModTags.FORCE_ITEM_SLOT)) {
                 ItemStack equipped = inventory.getArmorStack(i);
                 if (!equipped.isEmpty()) {
                     extraItems.add(equipped);
