@@ -177,12 +177,24 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class UtilitySettings {
+        @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
         public boolean soulboundEnchant = true;
+        @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
         public boolean deathSightEnchant = false;
+        @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
-        public boolean teleportScroll = false;
+        @ConfigEntry.Gui.CollapsibleObject
+        public ScrollSettings scrollItem = new ScrollSettings();
+    }
+
+    public static class ScrollSettings {
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public ScrollTypeConfig scrollType = ScrollTypeConfig.DISABLED;
+        @ConfigEntry.Gui.Tooltip
+        public boolean retrieveOnRespawn = true;
     }
 
     public static class CommandToggles {

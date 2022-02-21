@@ -72,8 +72,8 @@ public class PlayerSelectScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (client != null && client.options.inventoryKey.matchesKey(keyCode, scanCode) || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
-            this.close();
+        if (client != null && client.options.keyInventory.matchesKey(keyCode, scanCode) || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+            this.onClose();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);

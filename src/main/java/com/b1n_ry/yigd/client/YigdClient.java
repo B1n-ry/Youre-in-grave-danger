@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.client;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.client.gui.GraveSelectScreen;
+import com.b1n_ry.yigd.client.gui.GraveViewScreen;
 import com.b1n_ry.yigd.client.gui.PlayerSelectScreen;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
@@ -29,6 +30,16 @@ public class YigdClient implements ClientModInitializer {
     public void onInitializeClient() {
         BlockEntityRendererRegistry.register(GRAVE_BLOCK_ENTITY, GraveBlockEntityRenderer::new);
 
+        ClientPlayNetworking.registerGlobalReceiver(new Identifier("yigd", "single_grave"), (client, handler, buf, responseSender) -> {
+            if (client.player == null) return;
+            NbtCompound nbtData = buf.readNbt();
+            DeadPlayerData data = DeadPlayerData.fromNbt(nbtData);
+
+            client.execute(() -> {
+                GraveViewScreen screen = new GraveViewScreen(data, null);
+                MinecraftClient.getInstance().setScreen(screen);
+            });
+        });
         ClientPlayNetworking.registerGlobalReceiver(new Identifier("yigd", "single_dead_guy"), (client, handler, buf, responseSender) -> {
             if (client.player == null) return;
 

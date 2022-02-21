@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.compat.InventorioCompat;
 import com.b1n_ry.yigd.compat.TrinketsCompat;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
+import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
@@ -147,17 +148,18 @@ public class Yigd implements ModInitializer {
         Registry.register(Registry.BLOCK, new Identifier("yigd", "grave"), GRAVE_BLOCK);
         Registry.register(Registry.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
 
-        if (YigdConfig.getConfig().utilitySettings.soulboundEnchant) {
+        YigdConfig.UtilitySettings utilityConfig = YigdConfig.getConfig().utilitySettings;
+        if (utilityConfig.soulboundEnchant) {
             // Add the soulbound enchantment if it should be loaded (configured to enable)
             Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
-        if (YigdConfig.getConfig().utilitySettings.deathSightEnchant) {
+        if (utilityConfig.deathSightEnchant) {
             // Add the death sight enchantment if it should be loaded (configured to enable)
             Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "death_sight"), DEATH_SIGHT);
         }
-        if (YigdConfig.getConfig().utilitySettings.teleportScroll) {
-            // Add the tp scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
-            Registry.register(Registry.ITEM, new Identifier("yigd", "tp_scroll"), SCROLL_ITEM);
+        if (utilityConfig.scrollItem.scrollType != ScrollTypeConfig.DISABLED) {
+            // Add the scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
+            Registry.register(Registry.ITEM, new Identifier("yigd", "death_scroll"), SCROLL_ITEM);
         }
 
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {

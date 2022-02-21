@@ -101,8 +101,12 @@
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant.@Tooltip": "If the mod should use the\nbuilt in soulbound enchant\n[Require restart]",
-  "text.autoconfig.yigd.option.utilitySettings.teleportScroll": "Scroll of Return Item",
-  "text.autoconfig.yigd.option.utilitySettings.teleportScroll.@Tooltip": "If the mod should use the\n\"Scroll of Return\" item, which will\nallow the player to teleport\nto their grave/death location\n[Require restart]",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem": "Scroll Item",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem.@Tooltip": "Configs for the scroll item,\nwhich has configurable behaviour",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem.scrollType": "Scroll Type",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem.scrollType.@Tooltip": "SCROLL_OF_RETURN: Right click to\nteleport back to your grave\nINFO_SCROLL: Right click\nto view grave info\nDISABLED: Item will not exist",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem.retrieveOnRespawn": "Retrieve on Respawn",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem.retrieveOnRespawn.@Tooltip": "If the player should retrieve\na scroll on respawn",
 
   "text.autoconfig.yigd.option.commandToggles": "Toggle Commands",
   "text.autoconfig.yigd.option.commandToggles.retrieveGrave": "/yigd restore",
@@ -115,6 +119,7 @@
 
   "block.yigd.grave": "Grave",
   "item.yigd.tp_scroll": "Scroll of Return",
+  "item.yigd.death_scroll": "Death Scroll",
   "enchantment.yigd.soulbound": "Soulbound",
   "enchantment.yigd.soulbound.desc": "Keep your items beyond the grave",
   "enchantment.yigd.death_sight": "Death Sight",
