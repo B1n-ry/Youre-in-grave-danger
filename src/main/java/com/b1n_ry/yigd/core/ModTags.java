@@ -13,4 +13,5 @@ public class ModTags {
 
     public static final Tag<Item> FORCE_ITEM_SLOT = TagFactory.ITEM.create(new Identifier("yigd", "force_item_slot"));
     public static final Tag<Item> SOULBOUND_ITEM = TagFactory.ITEM.create(new Identifier("yigd", "soulbound_item"));
+    public static final Tag<Item> RANDOM_DELETE_BLACKLIST = TagFactory.ITEM.create(new Identifier("yigd", "random_delete_blacklist"));
 }

@@ -28,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Mixin(value = LivingEntity.class, priority = 9001)
@@ -42,6 +43,7 @@ public abstract class LivingEntityMixin {
             this.dropInventory();
             return;
         }
+        YigdConfig config = YigdConfig.getConfig();
         Yigd.NEXT_TICK.add(() -> {
             PlayerInventory inventory = player.getInventory();
             inventory.updateItems();
@@ -61,6 +63,34 @@ public abstract class LivingEntityMixin {
                 }
             }
 
+            List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
+
+            YigdConfig.ItemLoss itemLoss = config.graveSettings.itemLoss;
+            if (itemLoss.enableLoss) {
+                boolean handleAsStacks = itemLoss.affectStacks;
+                int from, to;
+                if (itemLoss.usePercentRange) {
+                    DefaultedList<ItemStack> vanillaStacks = DefaultedList.of();
+                    vanillaStacks.addAll(items);
+                    vanillaStacks.removeIf(ItemStack::isEmpty);
+                    from = (int) (((float) itemLoss.lossRangeFrom / 100f) * vanillaStacks.size());
+                    to = (int) (((float) itemLoss.lossRangeTo / 100f) * vanillaStacks.size());
+                } else {
+                    from = itemLoss.lossRangeFrom;
+                    to = itemLoss.lossRangeTo;
+                }
+                int amount = from < to ? new Random().nextInt(from, to) : from;
+
+                List<String> matchingEnchantment = new ArrayList<>();
+                if (itemLoss.ignoreSoulboundItems) matchingEnchantment.addAll(soulboundEnchantments);
+
+                for (int i = 0; i < amount; i++) {
+                    if (Math.random() * 100 > (double) itemLoss.percentChanceOfLoss) continue;
+
+                    GraveHelper.deleteItemFromList(items, handleAsStacks, matchingEnchantment);
+                }
+            }
+
             List<Object> modInventories = new ArrayList<>();
             for (YigdApi yigdApi : Yigd.apiMods) {
                 Object modInv = yigdApi.getInventory(player, true);
@@ -70,7 +100,6 @@ public abstract class LivingEntityMixin {
                 yigdApi.dropAll(player);
             }
 
-            List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments; // Get a string array with all soulbound enchantment names
             DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
             // Add defaulted soulbound items
@@ -132,8 +161,8 @@ public abstract class LivingEntityMixin {
             }
 
             int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
-            YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
-            if (!config.generateGraves || config.blacklistDimensions.contains(dimId) || config.ignoreDeathTypes.contains(source.name) || !canGenerate) {
+            YigdConfig.GraveSettings graveConfig = config.graveSettings;
+            if (!graveConfig.generateGraves || graveConfig.blacklistDimensions.contains(dimId) || graveConfig.ignoreDeathTypes.contains(source.name) || !canGenerate) {
                 for (int i = 0; i < Yigd.apiMods.size(); i++) {
                     YigdApi yigdApi = Yigd.apiMods.get(i);
                     items.addAll(yigdApi.toStackList(modInventories.get(i)));
@@ -142,7 +171,7 @@ public abstract class LivingEntityMixin {
                 ItemScatterer.spawn(player.world, player.getBlockPos(), items);
                 ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
                 return;
-            } else if (!config.putXpInGrave) {
+            } else if (!graveConfig.putXpInGrave) {
                 ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
                 xpPoints = 0;
             }

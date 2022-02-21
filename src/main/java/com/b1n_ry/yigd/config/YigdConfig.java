@@ -59,6 +59,10 @@ public class YigdConfig implements ConfigData {
         public GraveDeletion graveDeletion = new GraveDeletion();
 
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public ItemLoss itemLoss = new ItemLoss();
+
+        @ConfigEntry.Gui.Tooltip
         public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
 
         @ConfigEntry.Gui.Tooltip
@@ -138,6 +142,24 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean dropInventory = false;
+    }
+
+    public static class ItemLoss {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableLoss = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean ignoreSoulboundItems = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean affectStacks = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean usePercentRange = false;
+        @ConfigEntry.Gui.Tooltip
+        public int lossRangeFrom = 0;
+        @ConfigEntry.Gui.Tooltip
+        public int lossRangeTo = 5;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
+        public int percentChanceOfLoss = 100;
     }
 
     public static class BlockUnderGrave {

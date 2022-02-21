@@ -59,8 +59,12 @@ public class ScrollItem extends Item {
             } else {
                 scroll = user.getOffHandStack();
             }
+            if (scroll.getItem() != Yigd.SCROLL_ITEM) {
+                user.sendMessage(new TranslatableText("text.yigd.message.scroll_error", scroll.getItem().getName().asString()), true);
+                return;
+            }
 
-            DeadPlayerData selectedGrave = deadPlayerData.get(deadPlayerData.size() - 1);
+            DeadPlayerData selectedGrave = null;
             NbtCompound refNbt = scroll.getSubNbt("ref");
             if (refNbt != null) {
                 BlockPos gravePos = NbtHelper.toBlockPos(refNbt);
@@ -70,12 +74,24 @@ public class ScrollItem extends Item {
                         break;
                     }
                 }
+            } else {
+                if (deadPlayerData.size() <= 0) {
+                    user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
+                    return;
+                }
+                selectedGrave = deadPlayerData.get(deadPlayerData.size() - 1);
+            }
+            if (selectedGrave == null) {
+                user.sendMessage(new TranslatableText("text.yigd.message.grave_now_gone"), true);
+                return;
             }
 
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeNbt(selectedGrave.toNbt());
             ServerPlayNetworking.send(spe, new Identifier("yigd", "single_grave"), buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
+        } else {
+            user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
         }
     }
 
@@ -87,7 +103,7 @@ public class ScrollItem extends Item {
             scroll = user.getOffHandStack();
         }
         if (scroll.getItem() != Yigd.SCROLL_ITEM) {
-            user.sendMessage(new TranslatableText("text.yigd.message.scroll_error" + scroll.getItem().getName().asString()), true);
+            user.sendMessage(new TranslatableText("text.yigd.message.scroll_error", scroll.getItem().getName().asString()), true);
             return;
         }
 
@@ -99,8 +115,25 @@ public class ScrollItem extends Item {
 
         List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(userId);
 
-        if (graves.size() <= 0) {
-            user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
+        DeadPlayerData selectedGrave = null;
+        NbtCompound refNbt = scroll.getSubNbt("ref");
+        if (refNbt != null) {
+            BlockPos gravePos = NbtHelper.toBlockPos(refNbt);
+            for (DeadPlayerData data : graves) {
+                if (data.gravePos.equals(gravePos)) {
+                    selectedGrave = data;
+                    break;
+                }
+            }
+        } else {
+            if (graves.size() <= 0) {
+                user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
+                return;
+            }
+            selectedGrave = graves.get(graves.size() - 1);
+        }
+        if (selectedGrave == null) {
+            user.sendMessage(new TranslatableText("text.yigd.message.grave_now_gone"), true);
             return;
         }
 

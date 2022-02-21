@@ -15,6 +15,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -49,6 +50,20 @@ public class GraveHelper {
         }
 
         return openSlots;
+    }
+
+    public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, List<String> ignoreEnchantments) {
+        ItemStack stack;
+        int random;
+        do {
+            random = new Random().nextInt(itemList.size() - 1);
+            stack = itemList.get(random);
+        } while (stack.isEmpty() || stack.isIn(ModTags.RANDOM_DELETE_BLACKLIST) || hasEnchantments(ignoreEnchantments, stack));
+        if (asStack) {
+            itemList.set(random, ItemStack.EMPTY);
+        } else {
+            stack.decrement(1);
+        }
     }
 
     public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source) {

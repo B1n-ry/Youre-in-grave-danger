@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "yigd:item/tp_scroll"
+    "layer0": "yigd:item/death_scroll"
   }
 }

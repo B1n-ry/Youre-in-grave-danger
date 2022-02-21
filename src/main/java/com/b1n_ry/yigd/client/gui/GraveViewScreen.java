@@ -82,7 +82,7 @@ public class GraveViewScreen extends Screen {
                     int slot = y * 9 + x + 9;
                     ItemStack stack = data.inventory.get(slot);
                     int slotX = originX - screenWidth / 2 + 8 + x * 18;
-                    int slotY = originY - screenHeight / 2 + 128 - y * 18;
+                    int slotY = originY - screenHeight / 2 + 92 + y * 18;
 
                     renderSlot(matrices, stack, slotX, slotY, mouseX, mouseY);
                 }
