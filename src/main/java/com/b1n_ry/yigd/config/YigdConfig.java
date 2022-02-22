@@ -4,6 +4,7 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +12,8 @@ import java.util.List;
 
 @Config(name = "yigd")
 public class YigdConfig implements ConfigData {
+    public static final boolean OPTIFABRIC_COMPAT = FabricLoader.getInstance().isModLoaded("optifabric");
+
     @ConfigEntry.Gui.CollapsibleObject
     public GraveSettings graveSettings = new GraveSettings();
 

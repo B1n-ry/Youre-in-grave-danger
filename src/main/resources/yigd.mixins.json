@@ -16,5 +16,6 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "plugin": "com.b1n_ry.yigd.mixin.Plugin"
 }
