@@ -117,6 +117,8 @@
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant.@Tooltip": "If the mod should use the\nbuilt in soulbound enchant\n[Require restart]",
+  "text.autoconfig.yigd.option.utilitySettings.deathSightEnchant": "Death Sight Enchant",
+  "text.autoconfig.yigd.option.utilitySettings.deathSightEnchant.@Tooltip": "If the mod should use the\nbuilt in death sight enchant,\nwhich will cause all graves to glow\nwhen applied to helmet.\n[Require restart]",
   "text.autoconfig.yigd.option.utilitySettings.scrollItem": "Scroll Item",
   "text.autoconfig.yigd.option.utilitySettings.scrollItem.@Tooltip": "Configs for the scroll item,\nwhich has configurable behaviour",
   "text.autoconfig.yigd.option.utilitySettings.scrollItem.scrollType": "Scroll Type",

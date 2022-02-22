@@ -1,6 +1,6 @@
 package com.b1n_ry.yigd.mixin;
 
-import com.b1n_ry.yigd.config.YigdConfig;
+import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 public class Plugin implements IMixinConfigPlugin {
+    public static final boolean OPTIFABRIC_COMPAT = FabricLoader.getInstance().isModLoaded("optifabric");
+
     @Override
     public void onLoad(String mixinPackage) {
 
@@ -21,7 +23,7 @@ public class Plugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.equals("com.b1n_ry.yigd.mixin.DebugHudMixin")) return !YigdConfig.OPTIFABRIC_COMPAT;
+        if (mixinClassName.equals("com.b1n_ry.yigd.mixin.DebugHudMixin")) return !OPTIFABRIC_COMPAT;
         return true;
     }
 
