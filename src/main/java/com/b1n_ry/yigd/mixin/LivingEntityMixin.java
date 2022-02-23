@@ -73,8 +73,16 @@ public abstract class LivingEntityMixin {
                     DefaultedList<ItemStack> vanillaStacks = DefaultedList.of();
                     vanillaStacks.addAll(items);
                     vanillaStacks.removeIf(ItemStack::isEmpty);
-                    from = (int) (((float) itemLoss.lossRangeFrom / 100f) * vanillaStacks.size());
-                    to = (int) (((float) itemLoss.lossRangeTo / 100f) * vanillaStacks.size());
+
+                    int totalItems = vanillaStacks.size();
+                    if (!itemLoss.affectStacks) {
+                        totalItems = 0;
+                        for (ItemStack stack : vanillaStacks) {
+                            totalItems += stack.getCount();
+                        }
+                    }
+                    from = (int) (((float) itemLoss.lossRangeFrom / 100f) * totalItems);
+                    to = (int) (((float) itemLoss.lossRangeTo / 100f) * totalItems);
                 } else {
                     from = itemLoss.lossRangeFrom;
                     to = itemLoss.lossRangeTo;
