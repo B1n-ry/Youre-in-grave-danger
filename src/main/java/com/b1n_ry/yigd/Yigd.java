@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.compat.InventorioCompat;
+import com.b1n_ry.yigd.compat.TravelersBackpackCompat;
 import com.b1n_ry.yigd.compat.TrinketsCompat;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
@@ -167,6 +168,9 @@ public class Yigd implements ModInitializer {
         }
         if (FabricLoader.getInstance().isModLoaded("inventorio")) {
             apiMods.add(new InventorioCompat());
+        }
+        if (FabricLoader.getInstance().isModLoaded("travelersbackpack")) {
+            apiMods.add(new TravelersBackpackCompat());
         }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
