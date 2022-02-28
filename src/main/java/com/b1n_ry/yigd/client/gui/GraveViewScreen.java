@@ -142,13 +142,13 @@ public class GraveViewScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (client != null && client.options.keyInventory.matchesKey(keyCode, scanCode)) {
-            this.onClose();
+        if (client != null && client.options.inventoryKey.matchesKey(keyCode, scanCode)) {
+            this.close();
             return true;
         }
         if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
             if (previousScreen == null) {
-                this.onClose();
+                this.close();
                 return true;
             }
             if (client != null) {

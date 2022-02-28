@@ -4,16 +4,12 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
-import com.b1n_ry.yigd.compat.InventorioCompat;
-import com.b1n_ry.yigd.compat.TravelersBackpackCompat;
-import com.b1n_ry.yigd.compat.TrinketsCompat;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
-import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
-import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.item.ScrollItem;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -61,11 +57,11 @@ public class Yigd implements ModInitializer {
     public static final GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of(Material.STONE).strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
-    public static final Enchantment DEATH_SIGHT = new DeathSightEnchantment();
+    public static Enchantment DEATH_SIGHT;
 
     public static JsonObject graveyard;
 
-    public static Item SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
+    public static Item SCROLL_ITEM;
 
     public static final List<YigdApi> apiMods = new ArrayList<>();
     public static final List<Runnable> NEXT_TICK = new ArrayList<>();
@@ -156,22 +152,15 @@ public class Yigd implements ModInitializer {
         }
         if (utilityConfig.deathSightEnchant) {
             // Add the death sight enchantment if it should be loaded (configured to enable)
+            DEATH_SIGHT = new DeathSightEnchantment();
             Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "death_sight"), DEATH_SIGHT);
         }
-        if (utilityConfig.scrollItem.scrollType != ScrollTypeConfig.DISABLED) {
+//        if (utilityConfig.scrollItem.scrollType != ScrollTypeConfig.DISABLED) {
             // Add the scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
+        SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
             Registry.register(Registry.ITEM, new Identifier("yigd", "death_scroll"), SCROLL_ITEM);
-        }
+//        }
 
-        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
-            apiMods.add(new TrinketsCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
-            apiMods.add(new InventorioCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("travelersbackpack")) {
-            apiMods.add(new TravelersBackpackCompat());
-        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
         YigdCommand.registerCommands();

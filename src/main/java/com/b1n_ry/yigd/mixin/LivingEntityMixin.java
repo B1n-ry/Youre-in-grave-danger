@@ -2,12 +2,10 @@ package com.b1n_ry.yigd.mixin;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
-import com.b1n_ry.yigd.compat.RequiemCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.core.ModTags;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -127,9 +125,6 @@ public abstract class LivingEntityMixin {
             allItems.removeIf(ItemStack::isEmpty);
 
             UUID playerId = player.getUuid();
-            if (FabricLoader.getInstance().isModLoaded("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
-                playerId = RequiemCompat.getDisplayId(player);
-            }
 
             int xpPoints;
             YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;

@@ -3,7 +3,6 @@ package com.b1n_ry.yigd.core;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
-import com.b1n_ry.yigd.compat.RequiemCompat;
 import com.b1n_ry.yigd.config.LastResortConfig;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -11,7 +10,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
@@ -289,9 +287,6 @@ public class GraveHelper {
         if (placed instanceof GraveBlockEntity placedGraveEntity) {
 
             GameProfile playerProfile = player.getGameProfile();
-            if (FabricLoader.getInstance().isModLoaded("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
-                playerProfile = RequiemCompat.getDisplayProfile(player);
-            }
 
             Map<String, Object> moddedInvStacks = new HashMap<>();
             for (int i = 0; i < Yigd.apiMods.size(); i++) {
