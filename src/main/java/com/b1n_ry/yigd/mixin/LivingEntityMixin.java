@@ -137,7 +137,14 @@ public abstract class LivingEntityMixin {
                 xpPoints = Math.min(7 * player.experienceLevel, 100);
             } else {
                 int currentLevel = player.experienceLevel;
-                int totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
+                int totalExperience;
+                if (currentLevel >= 32) {
+                    totalExperience = (int) (4.5 * Math.pow(currentLevel, 2) - 162.5 * currentLevel + 2220);
+                } else if (currentLevel >= 17) {
+                    totalExperience = (int) (2.5 * Math.pow(currentLevel, 2) - 40.5 * currentLevel + 360);
+                } else {
+                    totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
+                }
                 xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
             }
 

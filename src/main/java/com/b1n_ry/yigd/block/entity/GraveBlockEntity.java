@@ -116,7 +116,7 @@ public class GraveBlockEntity extends BlockEntity {
 
     public static void tick(World world, BlockPos pos, BlockState ignoredState, BlockEntity blockEntity) {
         if (!(blockEntity instanceof GraveBlockEntity grave)) return;
-        if (world == null) return;
+        if (world == null || world.isClient) return;
         grave.age++;
         if (grave.getGraveOwner() == null) return;
 
@@ -140,8 +140,8 @@ public class GraveBlockEntity extends BlockEntity {
             if (!dropItems.isEmpty()) {
                 ItemScatterer.spawn(world, pos, dropItems);
             }
-            if (xp > 0) {
-                ExperienceOrbEntity.spawn((ServerWorld) world, new Vec3d(pos.getX(), pos.getY(), pos.getZ()), xp);
+            if (xp > 0 && world instanceof ServerWorld sWorld) {
+                ExperienceOrbEntity.spawn(sWorld, Vec3d.of(pos), xp);
             }
         }
         world.removeBlock(pos, false);
