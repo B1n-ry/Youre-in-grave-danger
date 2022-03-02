@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.compat.InventorioCompat;
+import com.b1n_ry.yigd.compat.TrinketsCompat;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -163,6 +164,9 @@ public class Yigd implements ModInitializer {
             Registry.register(Registry.ITEM, new Identifier("yigd", "death_scroll"), SCROLL_ITEM);
         }
 
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            apiMods.add(new TrinketsCompat());
+        }
         if (FabricLoader.getInstance().isModLoaded("inventorio")) {
             apiMods.add(new InventorioCompat());
         }
