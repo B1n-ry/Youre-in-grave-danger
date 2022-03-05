@@ -304,24 +304,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         if (items == null) return false;
 
-        Map<String, Object> graveModItems = graveEntity.getModdedInventories();
-
-        if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
-            for (YigdApi yigdApi : Yigd.apiMods) {
-                Object o = graveModItems.get(yigdApi.getModName());
-                items.addAll(yigdApi.toStackList(o));
-            }
-
-            ItemScatterer.spawn(world, pos, items);
-            if (world instanceof ServerWorld sWorld) ExperienceOrbEntity.spawn(sWorld, Vec3d.of(pos), graveEntity.getStoredXp());
-            world.removeBlock(pos, false);
-            if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
-                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
-            }
-            return true;
-        }
-
-
         YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
         boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
         int age = graveEntity.age;
@@ -350,6 +332,23 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             } else {
                 isRobbing = true;
             }
+        }
+
+        Map<String, Object> graveModItems = graveEntity.getModdedInventories();
+
+        if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                Object o = graveModItems.get(yigdApi.getModName());
+                items.addAll(yigdApi.toStackList(o));
+            }
+
+            ItemScatterer.spawn(world, pos, items);
+            if (world instanceof ServerWorld sWorld) ExperienceOrbEntity.spawn(sWorld, Vec3d.of(pos), graveEntity.getStoredXp());
+            world.removeBlock(pos, false);
+            if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+            }
+            return true;
         }
 
         if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
