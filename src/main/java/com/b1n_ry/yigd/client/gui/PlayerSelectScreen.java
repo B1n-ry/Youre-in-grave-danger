@@ -148,7 +148,7 @@ public class PlayerSelectScreen extends Screen {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
 
             int left = screenLeft + 19;
-            int top = screenTop + 24 + 42 * i - startValue;
+            int top = screenTop + 24 + 42 * (i % 4);
             int width = screenWidth - 19 * 2;
             int height = 42;
             if (mouseX > left && mouseX < left + width && mouseY > top && mouseY < top + height) {
