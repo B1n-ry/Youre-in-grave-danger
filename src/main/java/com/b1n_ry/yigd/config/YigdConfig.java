@@ -6,7 +6,6 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Config(name = "yigd")
@@ -63,10 +62,10 @@ public class YigdConfig implements ConfigData {
         public ItemLoss itemLoss = new ItemLoss();
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
+        public List<String> deleteEnchantments = List.of("minecraft:vanishing:curse", "vanishing_curse"); // Apparently without the namespace/id vanilla will still make it work
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> soulboundEnchantments = Collections.singletonList("yigd:soulbound");
+        public List<String> soulboundEnchantments = List.of("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
         public boolean applyBindingCurse = true;
