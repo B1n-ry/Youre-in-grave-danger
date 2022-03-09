@@ -17,6 +17,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
@@ -42,6 +44,7 @@ public abstract class LivingEntityMixin {
             return;
         }
         YigdConfig config = YigdConfig.getConfig();
+        Vec3d pos = player.getPos();
         Yigd.NEXT_TICK.add(() -> {
             PlayerInventory inventory = player.getInventory();
             inventory.updateItems();
@@ -178,11 +181,11 @@ public abstract class LivingEntityMixin {
                     items.addAll(yigdApi.toStackList(modInventories.get(i)));
                 }
 
-                ItemScatterer.spawn(player.world, player.getBlockPos(), items);
-                ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
+                ItemScatterer.spawn(player.world, new BlockPos(pos), items);
+                ExperienceOrbEntity.spawn((ServerWorld) player.world, pos, xpPoints);
                 return;
             } else if (!graveConfig.putXpInGrave) {
-                ExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), xpPoints);
+                ExperienceOrbEntity.spawn((ServerWorld) player.world, pos, xpPoints);
                 xpPoints = 0;
             }
 
@@ -191,7 +194,7 @@ public abstract class LivingEntityMixin {
             }
 
             if (allItems.size() > 0 || xpPoints > 0 || YigdConfig.getConfig().graveSettings.generateEmptyGraves) {
-                GraveHelper.placeDeathGrave(player.world, player.getPos(), inventory.player, items, modInventories, xpPoints, source);
+                GraveHelper.placeDeathGrave(player.world, pos, inventory.player, items, modInventories, xpPoints, source);
             }
 
             this.dropInventory();
