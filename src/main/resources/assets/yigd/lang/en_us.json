@@ -138,6 +138,8 @@
   "text.autoconfig.yigd.option.commandToggles.adminView": "/yigd grave [user]",
   "text.autoconfig.yigd.option.commandToggles.adminView.@Tooltip": "Show the contents of someone\nelse's grave(s). OP required",
   "text.autoconfig.yigd.option.commandToggles.moderateGraves": "/yigd moderate",
+  "text.autoconfig.yigd.option.commandToggles.clearGraveBackups": "/yigd clear [user(s)]",
+  "text.autoconfig.yigd.option.commandToggles.clearGraveBackups.@Tooltip": "Clear grave backup data for one or more players",
 
   "block.yigd.grave": "Grave",
   "item.yigd.tp_scroll": "Scroll of Return",
