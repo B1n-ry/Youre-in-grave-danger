@@ -17,10 +17,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -33,9 +30,9 @@ public class YigdCommand {
                 .then(literal("restore")
                         .requires(source -> source.hasPermissionLevel(4) && config.retrieveGrave)
                         .then(argument("player", EntityArgumentType.player())
-                                .executes(ctx -> restoreGrave(EntityArgumentType.getPlayer(ctx, "player"), ctx.getSource().getPlayer()))
+                                .executes(ctx -> restoreGrave(EntityArgumentType.getPlayer(ctx, "player"), ctx.getSource().getPlayer(), null))
                         )
-                        .executes(ctx -> restoreGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer()))
+                        .executes(ctx -> restoreGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer(), null))
                 )
                 .then(literal("rob")
                         .requires(source -> source.hasPermissionLevel(4) && config.robGrave)
@@ -54,6 +51,12 @@ public class YigdCommand {
                 .then(literal("moderate")
                         .requires(source -> source.hasPermissionLevel(4) && config.moderateGraves)
                         .executes(ctx -> moderateGraves(ctx.getSource().getPlayer()))
+                )
+                .then(literal("clear")
+                        .requires(source -> source.hasPermissionLevel(4) && config.clearGraveBackups)
+                        .then(argument("victim", EntityArgumentType.players())
+                                .executes(ctx -> clearBackup(EntityArgumentType.getPlayers(ctx, "victim"), ctx.getSource().getPlayer()))
+                        )
                 )
         ));
     }
@@ -77,7 +80,7 @@ public class YigdCommand {
                 }
             });
 
-            ServerPlayNetworking.send(player, new Identifier("yigd", "all_dead_people"), buf);
+            ServerPlayNetworking.send(player, PacketReceivers.ALL_PLAYER_GRAVES, buf);
         } else {
             player.sendMessage(new TranslatableText("text.yigd.message.grave_not_found"), false);
             return 0;
@@ -94,7 +97,7 @@ public class YigdCommand {
             for (DeadPlayerData data : deadPlayerData) {
                 buf.writeNbt(data.toNbt());
             }
-            ServerPlayNetworking.send(spe, new Identifier("yigd", "single_dead_guy"), buf);
+            ServerPlayNetworking.send(spe, PacketReceivers.PLAYER_GRAVES_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.view_command.fail", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
@@ -117,13 +120,13 @@ public class YigdCommand {
     }
 
     private static int robGrave(PlayerEntity victim, PlayerEntity stealer) {
-        UUID userId = victim.getUuid();
+        UUID victimId = victim.getUuid();
 
-        if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
+        if (!DeathInfoManager.INSTANCE.data.containsKey(victimId)) {
             stealer.sendMessage(new TranslatableText("text.yigd.message.rob_command.fail"), true);
             return 0;
         }
-        List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
+        List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(victimId);
 
         if (deadPlayerData.size() <= 0) {
             stealer.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", victim.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), true);
@@ -154,7 +157,7 @@ public class YigdCommand {
         return 1;
     }
 
-    private static int restoreGrave(PlayerEntity player, PlayerEntity commandUser) {
+    public static int restoreGrave(PlayerEntity player, PlayerEntity commandUser, @Nullable UUID graveId) {
         UUID userId = player.getUuid();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
@@ -167,28 +170,54 @@ public class YigdCommand {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
+        DeadPlayerData foundDeath = null;
+        if (graveId == null) {
+            foundDeath = deadPlayerData.get(deadPlayerData.size() - 1);
+        } else {
+            for (DeadPlayerData data : deadPlayerData) {
+                if (!data.id.equals(graveId)) continue;
+                foundDeath = data;
+                break;
+            }
+        }
 
-        DeadPlayerData latestDeath = deadPlayerData.remove(deadPlayerData.size() - 1);
-        DeathInfoManager.INSTANCE.markDirty();
+        if (foundDeath == null) return -1;
 
         Map<String, Object> modInv = new HashMap<>();
         for (int i = 0; i < Yigd.apiMods.size(); i++) {
             YigdApi yigdApi = Yigd.apiMods.get(i);
-            modInv.put(yigdApi.getModName(), latestDeath.modInventories.get(i));
+            modInv.put(yigdApi.getModName(), foundDeath.modInventories.get(i));
         }
 
-        ServerWorld world = worldFromId(player.getServer(), latestDeath.worldId);
+        ServerWorld world = worldFromId(player.getServer(), foundDeath.worldId);
 
-        if (world != null && latestDeath.gravePos != null && !world.getBlockState(latestDeath.gravePos).getBlock().equals(Yigd.GRAVE_BLOCK)) {
-            world.removeBlock(latestDeath.gravePos, false);
+        if (world != null && foundDeath.gravePos != null && world.getBlockState(foundDeath.gravePos).getBlock().equals(Yigd.GRAVE_BLOCK)) {
+            world.removeBlock(foundDeath.gravePos, false);
+            foundDeath.availability = 0;
+            DeathInfoManager.INSTANCE.markDirty();
+
             if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
-                ItemScatterer.spawn(world, latestDeath.gravePos.getX(), latestDeath.gravePos.getY(), latestDeath.gravePos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+                ItemScatterer.spawn(world, foundDeath.gravePos.getX(), foundDeath.gravePos.getY(), foundDeath.gravePos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
         }
 
-        GraveHelper.RetrieveItems(player, latestDeath.inventory, modInv, latestDeath.xp, false);
+        GraveHelper.RetrieveItems(player, foundDeath.inventory, modInv, foundDeath.xp, false);
 
         commandUser.sendMessage(new TranslatableText("text.yigd.message.restore_command.success"), true);
+        return 1;
+    }
+
+    private static int clearBackup(Collection<ServerPlayerEntity> victims, PlayerEntity commandUser) {
+        int i = 0;
+        for (PlayerEntity victim : victims) {
+            UUID victimId = victim.getUuid();
+
+            if (!DeathInfoManager.INSTANCE.data.containsKey(victimId)) continue;
+            i++;
+            DeathInfoManager.INSTANCE.data.get(victimId).clear();
+        }
+        DeathInfoManager.INSTANCE.markDirty();
+        commandUser.sendMessage(new TranslatableText("text.yigd.message.backup.delete_player", i), false);
         return 1;
     }
 }

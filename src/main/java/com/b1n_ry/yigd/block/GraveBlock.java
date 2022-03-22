@@ -336,17 +336,29 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         Map<String, Object> graveModItems = graveEntity.getModdedInventories();
 
+        DeadPlayerData data = DeathInfoManager.findUserGrave(graveOwner.getId(), graveEntity.getGraveId());
+        if (data != null) {
+            data.availability = 0;
+            DeathInfoManager.INSTANCE.markDirty();
+        } else {
+            Yigd.LOGGER.warn("Tried to change status of grave for %s (%s) at %s, but grave was not found".formatted(graveOwner.getName(), graveOwner.getId(), pos));
+        }
+
         if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
             for (YigdApi yigdApi : Yigd.apiMods) {
                 Object o = graveModItems.get(yigdApi.getModName());
                 items.addAll(yigdApi.toStackList(o));
             }
 
-            ItemScatterer.spawn(world, pos, items);
             if (world instanceof ServerWorld sWorld) ExperienceOrbEntity.spawn(sWorld, Vec3d.of(pos), graveEntity.getStoredXp());
-            world.removeBlock(pos, false);
+            ItemScatterer.spawn(world, pos, items);
             if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
                 ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+            }
+            if (YigdConfig.getConfig().graveSettings.replaceWhenClaimed) {
+                world.setBlockState(pos, graveEntity.getPreviousState());
+            } else {
+                world.removeBlock(pos, false);
             }
             return true;
         }
@@ -354,7 +366,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
             ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
         }
-        world.removeBlock(pos, false);
+        if (YigdConfig.getConfig().graveSettings.replaceWhenClaimed) {
+            world.setBlockState(pos, graveEntity.getPreviousState());
+        } else {
+            world.removeBlock(pos, false);
+        }
 
         Yigd.LOGGER.info(player.getDisplayName().asString() + " is retrieving " + (isRobbing ? "someone else's" : "their") + " grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
         MinecraftServer server = world.getServer();
@@ -369,9 +385,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         }
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);
 
-        List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(player.getUuid());
-        if (deadPlayerData != null) deadPlayerData.removeIf(data -> data.gravePos.equals(pos));
-        DeathInfoManager.INSTANCE.markDirty();
         return true;
     }
 

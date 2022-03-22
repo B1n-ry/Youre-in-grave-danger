@@ -67,6 +67,8 @@
   "text.autoconfig.yigd.option.graveSettings.trySoft.@Tooltip": "Try to place grave using a block whitelist\nWhitelist is a block tag located at\ndata/yigd/tags/blocks/soft_whitelist.json\nDefaulted to air, water, and lava",
   "text.autoconfig.yigd.option.graveSettings.tryStrict": "Try Strict Replace",
   "text.autoconfig.yigd.option.graveSettings.tryStrict.@Tooltip": "Try to place grave using a block blacklist\nBlacklist is a block tag located at\ndata/yigd/tags/blocks/replace_blacklist.json\nDefaulted to bedrock only\nThis will be a more precise death\nposition than soft replace",
+  "text.autoconfig.yigd.option.graveSettings.replaceWhenClaimed": "Replace Block on Retrieve",
+  "text.autoconfig.yigd.option.graveSettings.replaceWhenClaimed.@Tooltip": "Should the block replaced by the grave\nreplace the grave as it's removed?",
   "text.autoconfig.yigd.option.graveSettings.blacklistDimensions": "Grave Dimension Blacklist",
   "text.autoconfig.yigd.option.graveSettings.blacklistDimensions.@Tooltip": "Dimensions with their ID in this list\nwill not generate graves\n\nYou can see the dimension ID\nin the bottom of the top left\nF3 display (9th row from the top)",
   "text.autoconfig.yigd.option.graveSettings.graveInVoid": "Spawn Grave in Void",
@@ -113,6 +115,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowMinDistance.@Tooltip": "The minimum distance from which\ngraves should use the glow effect.\nDefault to 0 blocks",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowMaxDistance": "Glowing Render Distance",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.glowMaxDistance.@Tooltip": "Graves will not be able to appear\nglowing if further than this many blocks away.\nDefaulted to 10, and WILL NOT go beyond chunk render distance",
+  "text.autoconfig.yigd.option.graveSettings.maxGraveBackups": "Max Grave Backups",
+  "text.autoconfig.yigd.option.graveSettings.maxGraveBackups.@Tooltip": "Highest amount of deaths backed up for each player.\nOnly connected to grave items, and not the graves themselves",
 
   "text.autoconfig.yigd.option.utilitySettings": "Utility Settings",
   "text.autoconfig.yigd.option.utilitySettings.soulboundEnchant": "Soulbound Enchant",
@@ -169,8 +173,15 @@
 
   "text.yigd.message.grave_location_info": "Your grave has been generated at\nX: %d / Y: %d / Z: %d / %s",
 
+  "text.yigd.message.backup.restore.fail": "This player can't restore their items right now",
+  "text.yigd.message.backup.delete_one": "Successfully deleted a grave backup",
+  "text.yigd.message.backup.delete_player": "Cleared backups for %d players",
+
   "text.yigd.gui.grave_select.title": "Grave Select",
   "text.yigd.gui.grave_view.title": "Grave contents of %s",
   "text.yigd.gui.grave_view.title.missing": "How tf did you find this grave. It has no owner",
-  "text.yigd.gui.player_select.title": "Player Select"
+  "text.yigd.gui.player_select.title": "Player Select",
+
+  "text.yigd.word.restore": "Restore",
+  "text.yigd.word.delete": "Delete"
 }

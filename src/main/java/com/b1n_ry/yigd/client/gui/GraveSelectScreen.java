@@ -30,6 +30,13 @@ public class GraveSelectScreen extends Screen {
     private boolean mouseIsClicked = false;
     private String hoveredElement = null;
 
+    private boolean showClaimed = false;
+    private boolean showDeleted = false;
+    private boolean showPlaced = true;
+    private boolean showStatus = false;
+
+    private final List<GuiGraveInfo> filteredGraves = new ArrayList<>();
+
     public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen) {
         super(new TranslatableText("text.yigd.gui.grave_select.title"));
         List<GuiGraveInfo> info = new ArrayList<>();
@@ -63,6 +70,25 @@ public class GraveSelectScreen extends Screen {
             this.graveOwner = data.get(0).graveOwner;
         } else {
             this.graveOwner = null;
+        }
+
+        reloadFilters();
+    }
+
+    private void reloadFilters() {
+        this.filteredGraves.clear();
+        for (GuiGraveInfo data : this.graveInfo) {
+            switch (data.data.availability) {
+                case -1 -> {
+                    if (this.showDeleted) this.filteredGraves.add(data);
+                }
+                case 0 -> {
+                    if (this.showClaimed) this.filteredGraves.add(data);
+                }
+                case 1 -> {
+                    if (this.showPlaced) this.filteredGraves.add(data);
+                }
+            }
         }
     }
 
@@ -105,15 +131,28 @@ public class GraveSelectScreen extends Screen {
             if (hoveredElement.equals("left") && page > 1) {
                 GraveSelectScreen screen = new GraveSelectScreen(data, page - 1, this.previousScreen);
                 client.setScreen(screen);
-            } else if (hoveredElement.equals("right") && graveInfo.size() > page * 4) {
+            } else if (hoveredElement.equals("right") && filteredGraves.size() > page * 4) {
                 GraveSelectScreen screen = new GraveSelectScreen(data, page + 1, this.previousScreen);
                 client.setScreen(screen);
+            } else if (hoveredElement.equals("show_available")) {
+                this.showPlaced = !this.showPlaced;
+            } else if (hoveredElement.equals("show_claimed")) {
+                this.showClaimed = !this.showClaimed;
+            } else if (hoveredElement.equals("show_destroyed")) {
+                this.showDeleted = !this.showDeleted;
+            } else if (hoveredElement.equals("show_status")) {
+                this.showStatus = !this.showStatus;
+
             } else if (isInt(hoveredElement)) {
                 int parsedString = Integer.parseInt(hoveredElement) - 1;
                 if (data.size() > parsedString && parsedString >= 0) {
                     GraveViewScreen screen = new GraveViewScreen(data.get(parsedString), this);
                     client.setScreen(screen);
                 }
+            }
+
+            if (hoveredElement.startsWith("show_")) {
+                reloadFilters();
             }
         }
         return super.mouseReleased(mouseX, mouseY, button);
@@ -122,7 +161,7 @@ public class GraveSelectScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         final int screenWidth = 220;
-        final int screenHeight = 200;
+        final int screenHeight = 219;
         final int originX = this.width / 2;
         final int originY = this.height / 2;
 
@@ -151,16 +190,23 @@ public class GraveSelectScreen extends Screen {
             drawTexture(matrices, screenLeft + screenWidth - 14, originY - 8, 8, 84, 8, 15);
         }
 
-        int infoSize = this.graveInfo.size();
+        int infoSize = this.filteredGraves.size();
         int startValue = infoSize - (page - 1) * 4;
         int whileMoreThan = Math.max(startValue - 4, 0);
         int iterations = 0;
         for (int i = startValue; i > whileMoreThan; i--) {
-            RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE); // If not present, gui bugs out
+            GuiGraveInfo info = this.filteredGraves.get(i - 1);
+
+            if (this.showStatus && info.data.availability != 1) {
+                if (info.data.availability == -1) RenderSystem.setShaderColor(1f, 0, 0, 0.5f);
+                if (info.data.availability == 0) RenderSystem.setShaderColor(1f, 1f, 0, 0.5f);
+            }
+            RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
             int left = screenLeft + 19;
-            int top = screenTop + 24 + 42 * iterations;
+            int top = screenTop + 43 + 42 * iterations;
             int width = screenWidth - 19 * 2;
             int height = 42;
+
             if (mouseX > left && mouseX < left + width && mouseY > top && mouseY < top + height) {
                 hoveredElement = "" + i;
             }
@@ -170,7 +216,6 @@ public class GraveSelectScreen extends Screen {
                 drawTexture(matrices, left, top, 0, 0, width, height);
             }
 
-            GuiGraveInfo info = this.graveInfo.get(i - 1);
             textRenderer.draw(matrices, info.data.gravePos.getX() + " " + info.data.gravePos.getY() + " " + info.data.gravePos.getZ() + " " + info.data.dimensionName, left + 5f, top + 5f, 0xCC00CC);
             textRenderer.draw(matrices, info.itemSize + " items", left + 5f, top + 17f, 0x0000CC);
             textRenderer.draw(matrices, info.xpLevels + " levels", left + 5f, top + 29f, 0x299608);
@@ -178,6 +223,8 @@ public class GraveSelectScreen extends Screen {
         }
 
         super.render(matrices, mouseX, mouseY, delta);
+
+        renderCheckButtons(matrices, mouseX, mouseY, screenTop, screenLeft, originX);
 
         int firstElement = (page - 1) * 4 + 1;
         String gravesDisplayed = firstElement + "-" + (firstElement + Math.min(3, infoSize - firstElement)) + "/" + infoSize;
@@ -195,6 +242,64 @@ public class GraveSelectScreen extends Screen {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    private void renderCheckButtons(MatrixStack matrices, int mouseX, int mouseY, int screenTop, int screenLeft, int originX) {
+        int boxTop = screenTop + 22;
+        int boxRow = boxTop + 9;
+
+        // Rendering checkbox for showing available graves
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        int leftEdge = screenLeft + 18;
+        if (mouseX > leftEdge && mouseX < leftEdge + 6 && mouseY > boxTop && mouseY < boxTop + 6) {
+            hoveredElement = "show_available";
+        }
+        if (hoveredElement != null && hoveredElement.equals("show_available") && mouseIsClicked) {
+            drawTexture(matrices, leftEdge, boxTop, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, leftEdge, boxTop, 32, 84, 6, 6);
+        }
+        if (this.showPlaced) drawTexture(matrices, leftEdge, boxTop, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("Show available"), leftEdge + 8f, boxTop - 1f, 0x777777);
+
+        // Show Claimed
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        if (mouseX > originX && mouseX < originX + 6 && mouseY > boxTop && mouseY < boxTop + 6) {
+            hoveredElement = "show_claimed";
+        }
+        if (hoveredElement != null && hoveredElement.equals("show_claimed") && mouseIsClicked) {
+            drawTexture(matrices, originX, boxTop, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, originX, boxTop, 32, 84, 6, 6);
+        }
+        if (this.showClaimed) drawTexture(matrices, originX, boxTop, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("Show claimed"), originX + 8f, boxTop - 1f, 0x777777);
+
+        // Show Destroyed
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        if (mouseX > leftEdge && mouseX < leftEdge + 6 && mouseY > boxRow && mouseY < boxRow + 6) {
+            hoveredElement = "show_destroyed";
+        }
+        if (hoveredElement != null && hoveredElement.equals("show_destroyed") && mouseIsClicked) {
+            drawTexture(matrices, leftEdge, boxRow, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, leftEdge, boxRow, 32, 84, 6, 6);
+        }
+        if (this.showDeleted) drawTexture(matrices, leftEdge, boxRow, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("Show destroyed"), leftEdge + 8f, boxRow - 1f, 0x777777);
+
+        // Show Status
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        if (mouseX > originX && mouseX < originX + 6 && mouseY > boxRow && mouseY < boxRow + 6) {
+            hoveredElement = "show_status";
+        }
+        if (hoveredElement != null && hoveredElement.equals("show_status") && mouseIsClicked) {
+            drawTexture(matrices, originX, boxRow, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, originX, boxRow, 32, 84, 6, 6);
+        }
+        if (this.showStatus) drawTexture(matrices, originX, boxRow, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("Show status"), originX + 8f, boxRow - 1f, 0x777777);
     }
 
     private record GuiGraveInfo(DeadPlayerData data, int itemSize, int xpLevels) { }

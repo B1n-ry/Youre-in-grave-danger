@@ -56,7 +56,7 @@ dependencies {
 
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.18-fabric:${project.inventorio_version}"
+//	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.18-fabric:${project.inventorio_version}"
 //	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
 }
 

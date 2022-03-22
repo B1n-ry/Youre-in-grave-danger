@@ -243,6 +243,8 @@ public class GraveHelper {
     }
 
     private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source, Direction direction) {
+        BlockState previousState = world.getBlockState(gravePos);
+
         boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState().with(Properties.HORIZONTAL_FACING, direction).with(Properties.WATERLOGGED, waterlogged);
         boolean isPlaced = world.setBlockState(gravePos, graveBlock);
@@ -309,7 +311,9 @@ public class GraveHelper {
             placedGraveEntity.setModdedInventories(moddedInvStacks);
             placedGraveEntity.setKiller(killerId);
 
-            DeadPlayerData deadData = DeadPlayerData.create(invItems, modInventories, gravePos, player.getGameProfile(), xpPoints, world, source);
+            placedGraveEntity.setPreviousState(previousState);
+
+            DeadPlayerData deadData = DeadPlayerData.create(invItems, modInventories, gravePos, player.getGameProfile(), xpPoints, world, source, placedGraveEntity.getGraveId());
 
             UUID userId = player.getUuid();
             if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
@@ -317,11 +321,15 @@ public class GraveHelper {
                 deadPlayerData.add(deadData);
                 DeathInfoManager.INSTANCE.data.put(userId, deadPlayerData);
             } else {
-                DeathInfoManager.INSTANCE.data.get(userId).add(deadData);
+                List<DeadPlayerData> playerGraves = DeathInfoManager.INSTANCE.data.get(userId);
+                playerGraves.add(deadData);
+                if (playerGraves.size() > YigdConfig.getConfig().graveSettings.maxGraveBackups) {
+                    playerGraves.remove(0);
+                }
             }
             DeathInfoManager.INSTANCE.markDirty();
 
-            Yigd.LOGGER.info("[Yigd] Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ() + " | " + deadData.dimensionName);
+            Yigd.LOGGER.info("Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ() + " | " + deadData.dimensionName);
         }
         return true;
     }

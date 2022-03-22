@@ -71,9 +71,12 @@ public class YigdConfig implements ConfigData {
         public boolean applyBindingCurse = true;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean trySoft = true;
+        public boolean trySoft = false;
         @ConfigEntry.Gui.Tooltip
         public boolean tryStrict = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean replaceWhenClaimed = true;
 
         @ConfigEntry.Gui.Tooltip
         public List<Integer> blacklistDimensions = new ArrayList<>();
@@ -112,6 +115,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public GraveRenderSettings graveRenderSettings = new GraveRenderSettings();
+
+        @ConfigEntry.Gui.Tooltip
+        public int maxGraveBackups = 50;
     }
 
     public static class GraveRobbing {
@@ -226,6 +232,8 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public boolean adminView = true;
         public boolean moderateGraves = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean clearGraveBackups = true;
     }
 
     public static YigdConfig getConfig() {

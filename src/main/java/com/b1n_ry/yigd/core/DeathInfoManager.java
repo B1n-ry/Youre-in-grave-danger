@@ -12,6 +12,14 @@ public class DeathInfoManager extends PersistentState {
 
     public Map<UUID, List<DeadPlayerData>> data = new HashMap<>();
 
+    public static DeadPlayerData findUserGrave(UUID userId, UUID graveId) {
+        if (INSTANCE.data == null || !INSTANCE.data.containsKey(userId)) return null;
+        for (DeadPlayerData data : INSTANCE.data.get(userId)) {
+            if (data.id.equals(graveId)) return data;
+        }
+        return null;
+    }
+
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
         NbtCompound graveData = new NbtCompound();

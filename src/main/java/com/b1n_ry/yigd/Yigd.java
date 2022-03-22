@@ -4,12 +4,12 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
-import com.b1n_ry.yigd.compat.InventorioCompat;
 import com.b1n_ry.yigd.compat.TrinketsCompat;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.core.PacketReceivers;
 import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
@@ -23,7 +23,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -167,24 +166,10 @@ public class Yigd implements ModInitializer {
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {
             apiMods.add(new TrinketsCompat());
         }
-        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
-            apiMods.add(new InventorioCompat());
-        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
         YigdCommand.registerCommands();
-
-        ServerPlayNetworking.registerGlobalReceiver(new Identifier("yigd", "config_update"), (server, player, handler, buf, responseSender) -> {
-            if (player == null) return;
-            PriorityInventoryConfig normalPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
-            PriorityInventoryConfig robbingPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
-
-            UUID playerId = player.getUuid();
-            clientPriorities.put(playerId, normalPriority);
-            clientRobPriorities.put(playerId, robbingPriority);
-
-            LOGGER.info("Priority overwritten for player " + player.getDisplayName().asString() + ". Normal: " + normalPriority.name() + " / Robbing: " + robbingPriority.name());
-        });
+        PacketReceivers.registerServerReceivers();
 
         ServerWorldEvents.LOAD.register((server, world) -> {
             if (world == server.getOverworld()) {

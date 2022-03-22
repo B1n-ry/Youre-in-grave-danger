@@ -3,8 +3,11 @@ package com.b1n_ry.yigd.block.entity;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.core.DeadPlayerData;
+import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.inventory.Inventories;
@@ -31,6 +34,9 @@ public class GraveBlockEntity extends BlockEntity {
     private Map<String, Object> moddedInventories;
     private UUID killer;
     public int age;
+    private UUID graveId;
+
+    private BlockState previousState;
 
     private boolean glowing;
 
@@ -48,6 +54,9 @@ public class GraveBlockEntity extends BlockEntity {
         this.age = 0;
 
         this.glowing = YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave;
+        this.previousState = Blocks.AIR.getDefaultState();
+
+        this.graveId = UUID.randomUUID();
     }
 
     @Override
@@ -58,6 +67,8 @@ public class GraveBlockEntity extends BlockEntity {
         tag.put("Items", Inventories.writeNbt(new NbtCompound(), this.storedInventory, true));
         tag.putInt("ItemCount", this.storedInventory.size());
         tag.putLong("age", this.age);
+        tag.put("replaceState", NbtHelper.fromBlockState(this.previousState));
+        tag.putUuid("graveId", this.graveId);
 
         if (graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
         if (customName != null) tag.putString("CustomName", customName);
@@ -75,6 +86,16 @@ public class GraveBlockEntity extends BlockEntity {
     }
 
     @Override
+    public void markRemoved() {
+        if (world != null && !world.isClient) {
+            DeadPlayerData data = DeathInfoManager.findUserGrave(graveOwner.getId(), this.graveId);
+            if (data != null && data.availability == 1) data.availability = -1;
+            DeathInfoManager.INSTANCE.markDirty();
+        }
+        super.markRemoved();
+    }
+
+    @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
 
@@ -84,6 +105,8 @@ public class GraveBlockEntity extends BlockEntity {
 
         this.storedXp = tag.getInt("StoredXp");
         this.age = tag.getInt("age");
+        this.previousState = NbtHelper.toBlockState(tag.getCompound("replaceState"));
+        this.graveId = tag.getUuid("graveId");
 
         if (tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
         if (tag.contains("CustomName")) this.customName = tag.getString("CustomName");
@@ -172,6 +195,9 @@ public class GraveBlockEntity extends BlockEntity {
     public void setKiller(UUID killerId) {
         this.killer = killerId;
     }
+    public void setPreviousState(BlockState state) {
+        this.previousState = state;
+    }
 
 
     public GameProfile getGraveOwner() {
@@ -194,5 +220,11 @@ public class GraveBlockEntity extends BlockEntity {
     }
     public boolean canGlow() {
         return glowing;
+    }
+    public BlockState getPreviousState() {
+        return this.previousState;
+    }
+    public UUID getGraveId() {
+        return this.graveId;
     }
 }

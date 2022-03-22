@@ -3,15 +3,19 @@ package com.b1n_ry.yigd.client.gui;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.core.DeadPlayerData;
+import com.b1n_ry.yigd.core.PacketReceivers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
@@ -23,10 +27,13 @@ import java.util.List;
 @Environment(EnvType.CLIENT)
 public class GraveViewScreen extends Screen {
     private final Identifier GRAVE_VIEW_TEXTURE = new Identifier("yigd", "textures/gui/grave_view.png");
+    private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
     private final DeadPlayerData data;
 
     private ItemStack hoveredStack = null;
+    private boolean mouseIsClicked = false;
+    private String hoveredButton = null;
     private final int modItemSize;
     private final int xpLevels;
     private final Screen previousScreen;
@@ -58,6 +65,46 @@ public class GraveViewScreen extends Screen {
     }
 
     @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0 && hoveredButton != null) {
+            mouseIsClicked = true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        mouseIsClicked = false;
+        if (button == 0 && hoveredButton != null && client != null) {
+            switch (hoveredButton) {
+                case "restore" -> {
+                    if (client.player != null && client.player.hasPermissionLevel(4)) {
+                        PacketByteBuf buf = PacketByteBufs.create()
+                                .writeUuid(this.data.graveOwner.getId())
+                                .writeUuid(this.data.id);
+
+                        ClientPlayNetworking.send(PacketReceivers.RESTORE_INVENTORY, buf);
+
+                        this.close();
+                    }
+                }
+                case "delete" -> {
+                    if (client.player != null && client.player.hasPermissionLevel(4)) {
+                        PacketByteBuf buf = PacketByteBufs.create()
+                                .writeUuid(this.data.graveOwner.getId())
+                                .writeUuid(this.data.id);
+
+                        ClientPlayNetworking.send(PacketReceivers.DELETE_GRAVE, buf);
+
+                        this.close();
+                    }
+                }
+            }
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         final int screenWidth = 176;
         final int screenHeight = 174;
@@ -68,7 +115,28 @@ public class GraveViewScreen extends Screen {
         drawTexture(matrices, originX - screenWidth / 2, originY - screenHeight / 2, 0, 0, screenWidth, screenHeight);
 
         this.hoveredStack = null;
+        this.hoveredButton = null;
+        if (client != null && client.player != null && client.player.hasPermissionLevel(4)) {
+            RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 && mouseY < originY - screenHeight / 2 + 15) {
+                hoveredButton = "restore";
+            } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 16 && mouseY < originY - screenHeight / 2 + 31) {
+                hoveredButton = "delete";
+            }
+            if (hoveredButton != null && hoveredButton.equals("restore") && mouseIsClicked) {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2, 182, 15, 51, 30);
+            } else {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2, 182, 0, 51, 15);
+            }
+            if (hoveredButton != null && hoveredButton.equals("delete") && mouseIsClicked) {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16, 182, 15, 51, 30);
+            } else {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16, 182, 0, 51, 15);
+            }
 
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4, 0x000000);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20, 0x000000);
+        }
         if (client != null) {
             for (int i = 0; i < 9; i++) {
                 ItemStack stack = data.inventory.get(i);

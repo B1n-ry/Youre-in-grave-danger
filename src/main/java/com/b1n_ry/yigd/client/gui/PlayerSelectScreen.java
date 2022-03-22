@@ -111,7 +111,7 @@ public class PlayerSelectScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         final int screenWidth = 220;
-        final int screenHeight = 200;
+        final int screenHeight = 219;
         final int originX = this.width / 2;
         final int originY = this.height / 2;
 
@@ -148,7 +148,7 @@ public class PlayerSelectScreen extends Screen {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
 
             int left = screenLeft + 19;
-            int top = screenTop + 24 + 42 * (i % 4);
+            int top = screenTop + 43 + 42 * (i % 4);
             int width = screenWidth - 19 * 2;
             int height = 42;
             if (mouseX > left && mouseX < left + width && mouseY > top && mouseY < top + height) {
