@@ -193,13 +193,13 @@ public class YigdCommand {
 
         if (world != null && foundDeath.gravePos != null && world.getBlockState(foundDeath.gravePos).getBlock().equals(Yigd.GRAVE_BLOCK)) {
             world.removeBlock(foundDeath.gravePos, false);
-            foundDeath.availability = 0;
-            DeathInfoManager.INSTANCE.markDirty();
 
             if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
                 ItemScatterer.spawn(world, foundDeath.gravePos.getX(), foundDeath.gravePos.getY(), foundDeath.gravePos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
         }
+        foundDeath.availability = 0;
+        DeathInfoManager.INSTANCE.markDirty();
 
         GraveHelper.RetrieveItems(player, foundDeath.inventory, modInv, foundDeath.xp, false);
 

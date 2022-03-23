@@ -184,6 +184,16 @@
   "text.yigd.gui.grave_view.title.missing": "How tf did you find this grave. It has no owner",
   "text.yigd.gui.player_select.title": "Player Select",
 
+  "text.yigd.gui.grave_select.show_available": "Show available",
+  "text.yigd.gui.grave_select.show_claimed": "Show claimed",
+  "text.yigd.gui.grave_select.show_destroyed": "Show destroyed",
+  "text.yigd.gui.grave_select.show_status": "Show status",
+
+  "text.yigd.gui.player_select.include_available": "Show available",
+  "text.yigd.gui.player_select.include_claimed": "Show claimed",
+  "text.yigd.gui.player_select.include_destroyed": "Show destroyed",
+  "text.yigd.gui.player_select.show_zero": "Show with 0",
+
   "text.yigd.word.restore": "Restore",
   "text.yigd.word.delete": "Delete"
 }
