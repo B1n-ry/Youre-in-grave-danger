@@ -113,6 +113,9 @@ public class YigdConfig implements ConfigData {
         public boolean tellDeathPos = true;
 
         @ConfigEntry.Gui.Tooltip
+        public GraveCompatConfig graveCompatConfig = new GraveCompatConfig();
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public GraveRenderSettings graveRenderSettings = new GraveRenderSettings();
 
@@ -182,6 +185,14 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public String inCustom = "minecraft:dirt";
+    }
+
+    public static class GraveCompatConfig {
+        @ConfigEntry.Gui.Tooltip
+        public boolean levelzXpInGraves = true;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
+        public int levelzXpDropPercent = 100;
     }
 
     public static class GraveRenderSettings {
