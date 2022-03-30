@@ -25,6 +25,9 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -47,6 +50,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.tick.OrderedTick;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -161,9 +165,33 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
-        if (retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) {
+        BlockEntity be = world.getBlockEntity(pos);
+        if (!(be instanceof GraveBlockEntity grave)) return super.onUse(state, world, pos, player, hand, hit);
+
+        if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) && grave.getGraveOwner() != null) {
             RetrieveItems(player, world, pos);
             return ActionResult.SUCCESS;
+        }
+
+        ItemStack heldItem = player.getStackInHand(hand);
+        if (heldItem.getItem() == Items.PLAYER_HEAD) {
+            NbtCompound nbt = heldItem.getNbt();
+            if (nbt != null) {
+                GameProfile gameProfile = null;
+                if (nbt.contains("SkullOwner", 10)) {
+                    gameProfile = NbtHelper.toGameProfile(nbt.getCompound("SkullOwner"));
+                } else if (nbt.contains("SkullOwner", 8) && !StringUtils.isBlank(nbt.getString("SkullOwner"))) {
+                    gameProfile = new GameProfile(null, nbt.getString("SkullOwner"));
+                }
+
+                // Set skull and decrease count of items
+                if (gameProfile != null) {
+                    grave.setGraveSkull(gameProfile);
+                    heldItem.decrement(1);
+
+                    return ActionResult.SUCCESS;
+                }
+            }
         }
 
         return super.onUse(state, world, pos, player, hand, hit);

@@ -306,6 +306,7 @@ public class GraveHelper {
 
             placedGraveEntity.setInventory(invItems);
             placedGraveEntity.setGraveOwner(playerProfile);
+            placedGraveEntity.setGraveSkull(playerProfile);
             placedGraveEntity.setCustomName(playerProfile.getName());
             placedGraveEntity.setStoredXp(xpPoints);
             placedGraveEntity.setModdedInventories(moddedInvStacks);

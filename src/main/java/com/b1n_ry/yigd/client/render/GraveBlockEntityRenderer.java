@@ -155,8 +155,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         boolean withingGlowDistance = client.player != null && pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMaxDistance) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance);
 
         boolean canGlow = wearingGraveXray || (config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && withingGlowDistance);
-        GameProfile graveOwner = blockEntity.getGraveOwner();
-        if (graveOwner != null && config.graveSettings.graveRenderSettings.renderGraveSkull) {
+        GameProfile graveSkull = blockEntity.getGraveSkull();
+        if (graveSkull != null && config.graveSettings.graveRenderSettings.renderGraveSkull) {
             matrices.push();
 
             matrices.translate(0.5f, 0.25f, 0.5f);
@@ -219,7 +219,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
             if (showSkull) {
                 SkullBlockEntityModel skull = getSkull();
-                SkullBlockEntityRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, blockEntity.getGraveOwner()));
+                SkullBlockEntityRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, skull, SkullBlockEntityRenderer.getRenderLayer(SkullBlock.Type.PLAYER, graveSkull));
 
                 if (canGlow) {
                     SkullBlockEntityRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, skull, RenderLayer.getOutline(SHADER_TEXTURE));
@@ -232,7 +232,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         String customName = blockEntity.getCustomName();
         if (customName != null) {
             boolean renderText = config.graveSettings.graveRenderSettings.renderGraveOwner;
-            if (renderText || blockEntity.getGraveOwner() == null) {
+            if (renderText) {
                 matrices.push();
 
                 int width = this.textRenderer.getWidth(customName);

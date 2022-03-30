@@ -113,6 +113,7 @@ public class YigdConfig implements ConfigData {
         public boolean tellDeathPos = true;
 
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
         public GraveCompatConfig graveCompatConfig = new GraveCompatConfig();
 
         @ConfigEntry.Gui.Tooltip

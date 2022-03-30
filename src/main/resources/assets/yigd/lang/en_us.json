@@ -99,6 +99,8 @@
   "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.inCustom.@Tooltip": "Block generated under grave\nin custom dimensions",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player\ntelling them where they died",
+  "text.autoconfig.yigd.option.graveSettings.graveCompatConfig": "Compatibility Settings",
+  "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.@Tooltip": "Configure interaction with other mods",
   "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.levelzXpInGraves": "LevelZ XP in graves",
   "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.levelzXpInGraves.@Tooltip": "LevelZ XP compatibility. Set\nto false if you want no integration\nbetween the mods",
   "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.levelzXpDropPercent": "LevelZ XP drop percent",
