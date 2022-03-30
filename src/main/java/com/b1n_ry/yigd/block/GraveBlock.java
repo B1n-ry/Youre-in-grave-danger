@@ -27,6 +27,7 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -178,14 +179,18 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             NbtCompound nbt = heldItem.getNbt();
             if (nbt != null) {
                 GameProfile gameProfile = null;
-                if (nbt.contains("SkullOwner", 10)) {
+                if (nbt.contains("SkullOwner", NbtElement.COMPOUND_TYPE)) {
                     gameProfile = NbtHelper.toGameProfile(nbt.getCompound("SkullOwner"));
-                } else if (nbt.contains("SkullOwner", 8) && !StringUtils.isBlank(nbt.getString("SkullOwner"))) {
+                } else if (nbt.contains("SkullOwner", NbtElement.STRING_TYPE) && !StringUtils.isBlank(nbt.getString("SkullOwner"))) {
                     gameProfile = new GameProfile(null, nbt.getString("SkullOwner"));
                 }
 
                 // Set skull and decrease count of items
                 if (gameProfile != null) {
+                    if (grave.getGraveSkull() != null) {
+                        grave.dropCosmeticSkull();
+                    }
+
                     grave.setGraveSkull(gameProfile);
                     heldItem.decrement(1);
 

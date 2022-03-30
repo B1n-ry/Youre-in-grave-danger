@@ -25,7 +25,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class GraveBlockEntity extends BlockEntity {
     private GameProfile graveOwner;
@@ -98,12 +100,23 @@ public class GraveBlockEntity extends BlockEntity {
                 if (data != null && data.availability == 1) data.availability = -1;
                 DeathInfoManager.INSTANCE.markDirty();
             } else if (this.graveSkull != null) {
-                ItemStack stack = Items.PLAYER_HEAD.getDefaultStack();
-                stack.setSubNbt("SkullOwner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
-                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), stack);
+                dropCosmeticSkull();
             }
         }
         super.markRemoved();
+    }
+
+    public void dropCosmeticSkull() {
+        ItemStack stack = Items.PLAYER_HEAD.getDefaultStack();
+        NbtCompound nbt = stack.getNbt();
+        if (this.graveSkull.getId() != null) {
+            stack.setSubNbt("SkullOwner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
+        } else if (nbt != null) {
+            nbt.putString("SkullOwner", this.graveSkull.getName());
+            stack.writeNbt(nbt);
+        }
+        ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), stack);
+
     }
 
     @Override
