@@ -237,6 +237,9 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class CommandToggles {
+        @ConfigEntry.Gui.RequiresRestart
+        public String coreCommandName = "yigd";
+
         public boolean retrieveGrave = true;
         public boolean robGrave = true;
         @ConfigEntry.Gui.Tooltip

@@ -137,6 +137,7 @@
   "text.autoconfig.yigd.option.utilitySettings.scrollItem.retrieveOnRespawn.@Tooltip": "If the player should retrieve\na scroll on respawn",
 
   "text.autoconfig.yigd.option.commandToggles": "Toggle Commands",
+  "text.autoconfig.yigd.option.commandToggles.coreCommandName": "Command base name",
   "text.autoconfig.yigd.option.commandToggles.retrieveGrave": "/yigd restore",
   "text.autoconfig.yigd.option.commandToggles.robGrave": "/yigd rob",
   "text.autoconfig.yigd.option.commandToggles.selfView": "/yigd grave",
@@ -181,6 +182,7 @@
 
   "text.yigd.message.grave_location_info": "Your grave has been generated at\nX: %d / Y: %d / Z: %d / %s",
 
+  "text.yigd.message.missing_permission": "You're not allowed to execute the function linked to this command",
   "text.yigd.message.backup.restore.fail": "This player can't restore their items right now",
   "text.yigd.message.backup.delete_one": "Successfully deleted a grave backup",
   "text.yigd.message.backup.delete_player": "Cleared backups for %d players",

@@ -26,7 +26,8 @@ public class YigdCommand {
     public static void registerCommands() {
         YigdConfig.CommandToggles config = YigdConfig.getConfig().commandToggles;
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(literal("yigd")
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(literal(config.coreCommandName)
+                .executes(ctx -> viewGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer()))
                 .then(literal("restore")
                         .requires(source -> source.hasPermissionLevel(4) && config.retrieveGrave)
                         .then(argument("player", EntityArgumentType.player())
@@ -62,6 +63,10 @@ public class YigdCommand {
     }
 
     private static int moderateGraves(ServerPlayerEntity player) {
+        if (!player.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.moderateGraves) {
+            player.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
         boolean existsGraves = false;
         for (List<DeadPlayerData> data : DeathInfoManager.INSTANCE.data.values()) {
             if (data.size() > 0) {
@@ -90,6 +95,10 @@ public class YigdCommand {
 
     private static int viewGrave(PlayerEntity player, PlayerEntity commandUser) {
         UUID userId = player.getUuid();
+        if (!(commandUser.hasPermissionLevel(4) && YigdConfig.getConfig().commandToggles.adminView) || !(YigdConfig.getConfig().commandToggles.selfView && userId.equals(commandUser.getUuid()))) {
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
         if (commandUser instanceof ServerPlayerEntity spe && DeathInfoManager.INSTANCE.data.containsKey(userId) && DeathInfoManager.INSTANCE.data.get(userId).size() > 0) {
             List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
             PacketByteBuf buf = PacketByteBufs.create();
@@ -120,6 +129,10 @@ public class YigdCommand {
     }
 
     private static int robGrave(PlayerEntity victim, PlayerEntity stealer) {
+        if (!stealer.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.robGrave) {
+            stealer.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
         UUID victimId = victim.getUuid();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(victimId)) {
@@ -158,6 +171,10 @@ public class YigdCommand {
     }
 
     public static int restoreGrave(PlayerEntity player, PlayerEntity commandUser, @Nullable UUID graveId) {
+        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.retrieveGrave) {
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
         UUID userId = player.getUuid();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
@@ -208,6 +225,10 @@ public class YigdCommand {
     }
 
     private static int clearBackup(Collection<ServerPlayerEntity> victims, PlayerEntity commandUser) {
+        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.clearGraveBackups) {
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
         int i = 0;
         for (PlayerEntity victim : victims) {
             UUID victimId = victim.getUuid();
