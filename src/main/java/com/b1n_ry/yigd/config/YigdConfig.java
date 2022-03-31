@@ -249,6 +249,12 @@ public class YigdConfig implements ConfigData {
         public boolean moderateGraves = true;
         @ConfigEntry.Gui.Tooltip
         public boolean clearGraveBackups = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean whitelist = true;
+        public boolean whitelistAdd = true;
+        public boolean whitelistRemove = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean whitelistToggle = true;
     }
 
     public static YigdConfig getConfig() {

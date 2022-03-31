@@ -59,7 +59,57 @@ public class YigdCommand {
                                 .executes(ctx -> clearBackup(EntityArgumentType.getPlayers(ctx, "victim"), ctx.getSource().getPlayer()))
                         )
                 )
+                .then(literal("whitelist")
+                        .requires(source -> source.hasPermissionLevel(4) && config.whitelist)
+                        .then(literal("add")
+                                .requires(source -> config.whitelistAdd)
+                                .then(argument("player", EntityArgumentType.player())
+                                        .executes(ctx -> addWhitelist(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player")))
+                                )
+                        )
+                        .then(literal("remove")
+                                .requires(source -> config.whitelistRemove)
+                                .then(argument("player", EntityArgumentType.player())
+                                        .executes(ctx -> removeWhitelist(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player")))
+                                )
+                        )
+                        .then(literal("toggle")
+                                .requires(source -> config.whitelistToggle)
+                                .executes(ctx -> toggleWhitelist(ctx.getSource().getPlayer()))
+                        )
+                )
         ));
+    }
+
+    private static int addWhitelist(PlayerEntity commandUser, PlayerEntity addedPlayer) {
+        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.whitelistAdd) {
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
+
+        DeathInfoManager.INSTANCE.addToWhiteList(addedPlayer.getUuid());
+        commandUser.sendMessage(new TranslatableText("text.yigd.message.whitelist.added_player", addedPlayer.getDisplayName().asString()), false);
+        return 1;
+    }
+    private static int removeWhitelist(PlayerEntity commandUser, PlayerEntity removedPlayer) {
+        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.whitelistRemove) {
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
+
+        DeathInfoManager.INSTANCE.removeFromWhiteList(removedPlayer.getUuid());
+        commandUser.sendMessage(new TranslatableText("text.yigd.message.whitelist.removed_player", removedPlayer.getDisplayName().asString()), false);
+        return 1;
+    }
+    private static int toggleWhitelist(PlayerEntity commandUser) {
+        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.whitelistToggle) {
+            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+            return -1;
+        }
+
+        boolean toggledTo = DeathInfoManager.INSTANCE.toggleListMode();
+        commandUser.sendMessage(new TranslatableText(toggledTo ? "text.yigd.message.whitelist.to_whitelist" : "text.yigd.message.whitelist.to_blacklist"), false);
+        return 1;
     }
 
     private static int moderateGraves(ServerPlayerEntity player) {

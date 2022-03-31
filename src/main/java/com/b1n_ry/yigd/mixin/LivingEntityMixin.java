@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
+import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.core.ModTags;
 import net.minecraft.entity.ExperienceOrbEntity;
@@ -171,6 +172,11 @@ public abstract class LivingEntityMixin {
                         stack.decrement(1);
                     }
                 }
+            }
+
+            List<UUID> whitelist = DeathInfoManager.INSTANCE.getGraveList();
+            if ((!whitelist.contains(player.getUuid()) && DeathInfoManager.INSTANCE.isWhiteList()) || (whitelist.contains(player.getUuid()) && !DeathInfoManager.INSTANCE.isWhiteList())) {
+                canGenerate = false;
             }
 
             int dimId = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getRawId(player.world.getDimension());
