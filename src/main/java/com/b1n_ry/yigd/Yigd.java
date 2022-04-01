@@ -10,6 +10,7 @@ import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.core.GraveAreaOverride;
 import com.b1n_ry.yigd.core.PacketReceivers;
 import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
@@ -79,7 +80,7 @@ public class Yigd implements ModInitializer {
             public void reload(ResourceManager manager) {
                 graveyard = null;
 
-                for(Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
+                for (Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
                     if (!id.getNamespace().equals("yigd")) continue;
                     try (InputStream stream = manager.getResource(id).getInputStream()) {
                         LOGGER.info("Reloading graveyard");
@@ -108,6 +109,18 @@ public class Yigd implements ModInitializer {
                 }
                 catch (Exception e) {
                     LOGGER.error("Error occurred while trying to generate server side voxel-shape\n" + e);
+                }
+
+                for (Identifier id : manager.findResources("custom", path -> path.equals("grave_areas.json"))) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        LOGGER.info("Reloading custom grave areas");
+                        GraveAreaOverride.reloadGraveAreas((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
+                        break;
+                    }
+                    catch (Exception e) {
+                        LOGGER.error("Error occurred while loading custom grave areas\n" + e);
+                    }
                 }
             }
 
