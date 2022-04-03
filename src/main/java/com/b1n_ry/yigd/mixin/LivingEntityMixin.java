@@ -161,7 +161,12 @@ public abstract class LivingEntityMixin {
                 items.add(stack);
             }
 
-            boolean canGenerate = true;
+            YigdConfig.GraveSettings graveConfig = config.graveSettings;
+
+            DimensionType playerDimension = player.world.getDimension();
+            Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
+
+            boolean canGenerate = GraveAreaOverride.canGenerateOnPos(new BlockPos(pos), dimManager.getId(playerDimension), graveConfig.generateGraves);
             if (YigdConfig.getConfig().graveSettings.requireGraveItem) {
                 canGenerate = false;
                 for (ItemStack stack : items) {
@@ -172,19 +177,12 @@ public abstract class LivingEntityMixin {
                 }
             }
 
-            DimensionType playerDimension = player.world.getDimension();
-            Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
-
             List<UUID> whitelist = DeathInfoManager.INSTANCE.getGraveList();
             if ((!whitelist.contains(player.getUuid()) && DeathInfoManager.INSTANCE.isWhiteList()) || (whitelist.contains(player.getUuid()) && !DeathInfoManager.INSTANCE.isWhiteList())) {
                 canGenerate = false;
             }
-            if (canGenerate) {
-                canGenerate = GraveAreaOverride.canGenerateOnPos(new BlockPos(pos), dimManager.getId(playerDimension));
-            }
 
             int dimId = dimManager.getRawId(playerDimension);
-            YigdConfig.GraveSettings graveConfig = config.graveSettings;
             if (!graveConfig.generateGraves || graveConfig.blacklistDimensions.contains(dimId) || graveConfig.ignoreDeathTypes.contains(source.name) || !canGenerate) {
                 for (int i = 0; i < Yigd.apiMods.size(); i++) {
                     YigdApi yigdApi = Yigd.apiMods.get(i);

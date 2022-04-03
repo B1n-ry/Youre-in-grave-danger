@@ -1,6 +1,5 @@
 package com.b1n_ry.yigd.core;
 
-import com.b1n_ry.yigd.config.YigdConfig;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -34,7 +33,7 @@ public class GraveAreaOverride {
         }
     }
 
-    public static boolean canGenerateOnPos(BlockPos pos, Identifier worldId) {
+    public static boolean canGenerateOnPos(BlockPos pos, Identifier worldId, boolean defaultGraves) {
         int x = pos.getX();
         int y = pos.getY();
         int z = pos.getZ();
@@ -45,7 +44,7 @@ public class GraveAreaOverride {
             if (area.yDependant && (y < area.fromCorner.getY() || y > area.toCorner.getY())) continue;
             return area.placeGraves;
         }
-        return YigdConfig.getConfig().graveSettings.generateGraves;
+        return defaultGraves;
     }
 
     public record GraveArea(boolean placeGraves, boolean yDependant, BlockPos fromCorner, BlockPos toCorner, Identifier worldId) {}
