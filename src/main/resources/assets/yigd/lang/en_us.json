@@ -132,9 +132,22 @@
   "text.autoconfig.yigd.option.utilitySettings.scrollItem": "Scroll Item",
   "text.autoconfig.yigd.option.utilitySettings.scrollItem.@Tooltip": "Configs for the scroll item,\nwhich has configurable behaviour",
   "text.autoconfig.yigd.option.utilitySettings.scrollItem.scrollType": "Scroll Type",
-  "text.autoconfig.yigd.option.utilitySettings.scrollItem.scrollType.@Tooltip": "SCROLL_OF_RETURN: Right click to\nteleport back to your grave\nINFO_SCROLL: Right click\nto view grave info\nDISABLED: Item will not exist",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem.scrollType.@Tooltip": "SCROLL_OF_RETURN: Right click to teleport back to your grave\nINFO_SCROLL: Right click\nto view grave info\nDISABLED: Item will not exist",
   "text.autoconfig.yigd.option.utilitySettings.scrollItem.retrieveOnRespawn": "Retrieve on Respawn",
-  "text.autoconfig.yigd.option.utilitySettings.scrollItem.retrieveOnRespawn.@Tooltip": "If the player should retrieve\na scroll on respawn",
+  "text.autoconfig.yigd.option.utilitySettings.scrollItem.retrieveOnRespawn.@Tooltip": "If the player should retrieve a scroll on respawn",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings": "Grave Key",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.@Tooltip": "Keys allowing other people to unlock graves",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.enableKeys": "Enabled",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.alwaysRequire": "Always Require",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.alwaysRequire.@Tooltip": "Require a key no matter if the grave is yours or not",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.retrieveOnRespawn": "Retrieve on Respawn",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.retrieveOnRespawn.@Tooltip": "Get a key for your newest grave when you respawn",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.getFromGui": "Obtainable from GUI",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.getFromGui.@Tooltip": "Allows you to retrieve a key from a button in the grave GUI",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.rebindable": "Rebindable",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.rebindable.@Tooltip": "Rebindable means you can shift + right click to bind the key to your latest grave",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.graveKeySpecification": "Target Scope",
+  "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.graveKeySpecification.@Tooltip": "Which scope the keys will target\nGRAVE: Different keys for all graves\nPLAYER: Different keys for all players\nALL: All keys can unlock all graves (preferably used as an admin only item)",
 
   "text.autoconfig.yigd.option.commandToggles": "Toggle Commands",
   "text.autoconfig.yigd.option.commandToggles.coreCommandName": "Command base name",
@@ -157,6 +170,7 @@
   "block.yigd.grave": "Grave",
   "item.yigd.tp_scroll": "Scroll of Return",
   "item.yigd.death_scroll": "Death Scroll",
+  "item.yigd.grave_key": "Grave Key",
   "enchantment.yigd.soulbound": "Soulbound",
   "enchantment.yigd.soulbound.desc": "Keep your items beyond the grave",
   "enchantment.yigd.death_sight": "Death Sight",
@@ -169,6 +183,7 @@
   "text.yigd.message.robbed": "One of your graves has been robbed",
   "text.yigd.message.robbed.offline": "While you were offline a grave of yours has been robbed",
   "text.yigd.message.retrieve.missing_permission": "You are not allowed to retrieve these items",
+  "text.yigd.message.retrieve.missing_key": "You need a key to retrieve your items",
   "text.yigd.message.retrieve.rob_cooldown": "You can retrieve the items from this grave in: %d:%d:%d",
 
   "text.yigd.message.grave_not_found": "No graves found",
@@ -214,5 +229,6 @@
   "text.yigd.gui.player_select.show_zero": "Show with 0",
 
   "text.yigd.word.restore": "Restore",
-  "text.yigd.word.delete": "Delete"
+  "text.yigd.word.delete": "Delete",
+  "text.yigd.word.give_key": "Get Key"
 }

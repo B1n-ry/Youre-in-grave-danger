@@ -92,8 +92,7 @@ public class GraveBlockEntity extends BlockEntity {
         }
     }
 
-    @Override
-    public void markRemoved() {
+    public void onBroken() {
         if (world != null && !world.isClient) {
             if (this.graveOwner != null) {
                 DeadPlayerData data = DeathInfoManager.findUserGrave(this.graveOwner.getId(), this.graveId);

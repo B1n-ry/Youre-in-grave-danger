@@ -88,6 +88,10 @@ public class ScrollItem extends Item {
 
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeNbt(selectedGrave.toNbt());
+
+            YigdConfig.GraveKeySettings keySettings = YigdConfig.getConfig().utilitySettings.graveKeySettings;
+            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+
             ServerPlayNetworking.send(spe, PacketReceivers.SINGLE_GRAVE_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {

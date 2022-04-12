@@ -38,6 +38,8 @@ public class GraveViewScreen extends Screen {
     private final int xpLevels;
     private final Screen previousScreen;
 
+    public static boolean getKeysFromGui = false;
+
     public GraveViewScreen(DeadPlayerData data, @Nullable Screen previousScreen) {
         super(data.graveOwner != null ? new TranslatableText("text.yigd.gui.grave_view.title", data.graveOwner.getName()) : new TranslatableText("text.yigd.gui.grave_view.title.missing"));
         this.data = data;
@@ -99,6 +101,15 @@ public class GraveViewScreen extends Screen {
                         this.close();
                     }
                 }
+                case "give_key" -> {
+                    PacketByteBuf buf = PacketByteBufs.create()
+                            .writeUuid(this.data.graveOwner.getId())
+                            .writeUuid(this.data.id);
+
+                    ClientPlayNetworking.send(PacketReceivers.GIVE_KEY_ITEM, buf);
+
+                    this.close();
+                }
             }
         }
         return super.mouseReleased(mouseX, mouseY, button);
@@ -113,6 +124,8 @@ public class GraveViewScreen extends Screen {
 
         RenderSystem.setShaderTexture(0, GRAVE_VIEW_TEXTURE);
         drawTexture(matrices, originX - screenWidth / 2, originY - screenHeight / 2, 0, 0, screenWidth, screenHeight);
+
+        int yOffset = 0;
 
         this.hoveredStack = null;
         this.hoveredButton = null;
@@ -136,7 +149,24 @@ public class GraveViewScreen extends Screen {
 
             textRenderer.draw(matrices, new TranslatableText("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4, 0x000000);
             textRenderer.draw(matrices, new TranslatableText("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20, 0x000000);
+
+            yOffset = 32;
         }
+
+        if (getKeysFromGui) {
+            RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
+                hoveredButton = "give_key";
+            }
+            if (hoveredButton != null && hoveredButton.equals("give_key") && mouseIsClicked) {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
+            } else {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
+            }
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.give_key"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+
+        }
+
         if (client != null) {
             for (int i = 0; i < 9; i++) {
                 ItemStack stack = data.inventory.get(i);

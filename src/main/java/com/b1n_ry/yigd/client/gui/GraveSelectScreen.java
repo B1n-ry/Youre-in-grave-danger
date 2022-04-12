@@ -145,8 +145,8 @@ public class GraveSelectScreen extends Screen {
 
             } else if (isInt(hoveredElement)) {
                 int parsedString = Integer.parseInt(hoveredElement) - 1;
-                if (data.size() > parsedString && parsedString >= 0) {
-                    GraveViewScreen screen = new GraveViewScreen(data.get(parsedString), this);
+                if (filteredGraves.size() > parsedString && parsedString >= 0) {
+                    GraveViewScreen screen = new GraveViewScreen(filteredGraves.get(parsedString).data, this);
                     client.setScreen(screen);
                 }
             }

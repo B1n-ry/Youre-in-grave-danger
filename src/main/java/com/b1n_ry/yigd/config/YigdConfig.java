@@ -222,18 +222,37 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
         public boolean deathSightEnchant = false;
-        @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public ScrollSettings scrollItem = new ScrollSettings();
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveKeySettings graveKeySettings = new GraveKeySettings();
     }
 
     public static class ScrollSettings {
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public ScrollTypeConfig scrollType = ScrollTypeConfig.DISABLED;
         @ConfigEntry.Gui.Tooltip
         public boolean retrieveOnRespawn = true;
+    }
+
+    public static class GraveKeySettings {
+        @ConfigEntry.Gui.RequiresRestart
+        public boolean enableKeys = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean alwaysRequire = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean retrieveOnRespawn = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean getFromGui = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean rebindable = false;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public GraveKeySpecificationConfig graveKeySpecification = GraveKeySpecificationConfig.PLAYER;
     }
 
     public static class CommandToggles {

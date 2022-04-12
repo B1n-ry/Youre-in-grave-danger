@@ -137,7 +137,7 @@ public class DeadPlayerData {
         String worldId = nbt.getString("world");
         Identifier worldIdentifier = new Identifier(worldId);
         String dimName = nbt.getString("dimension");
-        byte availability = nbt.contains("availability") ? nbt.getByte("availability") : 0;
+        byte availability = nbt.contains("availability") ? nbt.getByte("availability") : 1;
         UUID id = nbt.contains("id") ? nbt.getUuid("id") : UUID.randomUUID();
 
         NbtElement damageSourceNbt = nbt.get("causeOfDeath");

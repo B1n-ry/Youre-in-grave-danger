@@ -9,6 +9,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.b1n_ry.yigd.core.GraveHelper;
+import com.b1n_ry.yigd.item.KeyItem;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -337,16 +338,22 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         if (items == null) return false;
 
-        YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
+        YigdConfig config = YigdConfig.getConfig();
+        YigdConfig.GraveRobbing graveRobbing = config.graveSettings.graveRobbing;
         boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
         int age = graveEntity.age;
         int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
 
         boolean isRobbing = false;
         boolean timePassed = age > requiredAge;
-        if (!player.getGameProfile().getId().equals(graveOwner.getId())) {
+        boolean isGraveOwner = player.getGameProfile().getId().equals(graveOwner.getId());
+        if (!isGraveOwner) {
             if (!(canRobGrave && timePassed)) {
-                if (canRobGrave) {
+                if (config.utilitySettings.graveKeySettings.enableKeys) {
+                    ItemStack heldStack = player.getMainHandStack();
+                    isRobbing = KeyItem.isKeyForGrave(heldStack, graveEntity);
+                }
+                if (canRobGrave && !isRobbing) {
                     double timeRemaining = ((double) requiredAge - age) / 20;
 
                     int hours = (int) (timeRemaining / 3600);
@@ -361,9 +368,15 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 } else {
                     player.sendMessage(new TranslatableText("text.yigd.message.retrieve.missing_permission"), true);
                 }
-                return false;
+                if (!isRobbing) return false;
             } else {
                 isRobbing = true;
+            }
+        } else if(config.utilitySettings.graveKeySettings.alwaysRequire) {
+            ItemStack stack = player.getMainHandStack();
+            if (!KeyItem.isKeyForGrave(stack, graveEntity)) {
+                player.sendMessage(new TranslatableText("text.yigd.message.retrieve.missing_key"), true);
+                return false;
             }
         }
 
@@ -377,7 +390,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             Yigd.LOGGER.warn("Tried to change status of grave for %s (%s) at %s, but grave was not found".formatted(graveOwner.getName(), graveOwner.getId(), pos));
         }
 
-        if (YigdConfig.getConfig().graveSettings.dropType == DropTypeConfig.ON_GROUND) {
+        if (config.graveSettings.dropType == DropTypeConfig.ON_GROUND) {
             for (YigdApi yigdApi : Yigd.apiMods) {
                 Object o = graveModItems.get(yigdApi.getModName());
                 items.addAll(yigdApi.toStackList(o));
@@ -385,10 +398,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
             if (world instanceof ServerWorld sWorld) ExperienceOrbEntity.spawn(sWorld, Vec3d.of(pos), graveEntity.getStoredXp());
             ItemScatterer.spawn(world, pos, items);
-            if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
+            if (config.graveSettings.dropGraveBlock) {
                 ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
-            if (YigdConfig.getConfig().graveSettings.replaceWhenClaimed) {
+            if (config.graveSettings.replaceWhenClaimed) {
                 world.setBlockState(pos, graveEntity.getPreviousState());
             } else {
                 world.removeBlock(pos, false);
@@ -396,10 +409,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return true;
         }
 
-        if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
+        if (config.graveSettings.dropGraveBlock) {
             ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
         }
-        if (YigdConfig.getConfig().graveSettings.replaceWhenClaimed) {
+        if (config.graveSettings.replaceWhenClaimed) {
             world.setBlockState(pos, graveEntity.getPreviousState());
         } else {
             world.removeBlock(pos, false);

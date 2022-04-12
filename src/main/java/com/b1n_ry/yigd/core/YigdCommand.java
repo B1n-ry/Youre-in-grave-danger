@@ -124,6 +124,7 @@ public class YigdCommand {
                 break;
             }
         }
+        YigdConfig.GraveKeySettings keySettings = YigdConfig.getConfig().utilitySettings.graveKeySettings;
         if (existsGraves) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(DeathInfoManager.INSTANCE.data.size());
@@ -134,6 +135,8 @@ public class YigdCommand {
                     buf.writeNbt(data.toNbt());
                 }
             });
+
+            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
 
             ServerPlayNetworking.send(player, PacketReceivers.ALL_PLAYER_GRAVES, buf);
         } else {
@@ -149,6 +152,7 @@ public class YigdCommand {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
+        YigdConfig.GraveKeySettings keySettings = YigdConfig.getConfig().utilitySettings.graveKeySettings;
         if (commandUser instanceof ServerPlayerEntity spe && DeathInfoManager.INSTANCE.data.containsKey(userId) && DeathInfoManager.INSTANCE.data.get(userId).size() > 0) {
             List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
             PacketByteBuf buf = PacketByteBufs.create();
@@ -156,6 +160,8 @@ public class YigdCommand {
             for (DeadPlayerData data : deadPlayerData) {
                 buf.writeNbt(data.toNbt());
             }
+            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+
             ServerPlayNetworking.send(spe, PacketReceivers.PLAYER_GRAVES_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {

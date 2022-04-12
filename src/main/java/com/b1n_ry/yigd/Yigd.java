@@ -15,6 +15,7 @@ import com.b1n_ry.yigd.core.PacketReceivers;
 import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
+import com.b1n_ry.yigd.item.KeyItem;
 import com.b1n_ry.yigd.item.ScrollItem;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -66,6 +67,7 @@ public class Yigd implements ModInitializer {
     public static JsonObject graveyard;
 
     public static Item SCROLL_ITEM;
+    public static Item KEY_ITEM;
 
     public static final List<YigdApi> apiMods = new ArrayList<>();
     public static final List<Runnable> NEXT_TICK = new ArrayList<>();
@@ -175,6 +177,11 @@ public class Yigd implements ModInitializer {
             // Add the scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
             SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
             Registry.register(Registry.ITEM, new Identifier("yigd", "death_scroll"), SCROLL_ITEM);
+        }
+        if (utilityConfig.graveKeySettings.enableKeys) {
+            // Add the grave key item if it should be loaded
+            KEY_ITEM = new KeyItem(new Item.Settings().group(ItemGroup.MISC));
+            Registry.register(Registry.ITEM, new Identifier("yigd", "grave_key"), KEY_ITEM);
         }
 
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {
