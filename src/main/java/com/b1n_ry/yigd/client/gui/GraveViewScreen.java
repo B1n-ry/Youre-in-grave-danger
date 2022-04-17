@@ -22,7 +22,9 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
 public class GraveViewScreen extends Screen {
@@ -39,6 +41,8 @@ public class GraveViewScreen extends Screen {
     private final Screen previousScreen;
 
     public static boolean getKeysFromGui = false;
+    public static boolean unlockableGraves = false;
+    public static List<UUID> unlockedGraves = new ArrayList<>();
 
     public GraveViewScreen(DeadPlayerData data, @Nullable Screen previousScreen) {
         super(data.graveOwner != null ? new TranslatableText("text.yigd.gui.grave_view.title", data.graveOwner.getName()) : new TranslatableText("text.yigd.gui.grave_view.title.missing"));
@@ -110,6 +114,22 @@ public class GraveViewScreen extends Screen {
 
                     this.close();
                 }
+                case "toggleLocked" -> {
+                    boolean graveIsLocked;
+                    if (unlockedGraves.contains(this.data.id)) {
+                        unlockedGraves.remove(this.data.id);
+                        graveIsLocked = true;
+                    } else {
+                        unlockedGraves.add(this.data.id);
+                        graveIsLocked = false;
+                    }
+
+                    PacketByteBuf buf = PacketByteBufs.create()
+                            .writeUuid(this.data.id);
+                    buf.writeBoolean(graveIsLocked);
+
+                    ClientPlayNetworking.send(PacketReceivers.SET_GRAVE_LOCK, buf);
+                }
             }
         }
         return super.mouseReleased(mouseX, mouseY, button);
@@ -129,28 +149,48 @@ public class GraveViewScreen extends Screen {
 
         this.hoveredStack = null;
         this.hoveredButton = null;
+
+        if (unlockableGraves) {
+            RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
+                hoveredButton = "toggleLocked";
+            }
+            if (hoveredButton != null && hoveredButton.equals("toggleLocked") && mouseIsClicked) {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
+            } else {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
+            }
+
+            if (unlockedGraves.contains(this.data.id)) {
+                textRenderer.draw(matrices, new TranslatableText("text.yigd.word.lock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            } else {
+                textRenderer.draw(matrices, new TranslatableText("text.yigd.word.unlock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            }
+        }
+
         if (client != null && client.player != null && client.player.hasPermissionLevel(4)) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
-            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 && mouseY < originY - screenHeight / 2 + 15) {
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "restore";
-            } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 16 && mouseY < originY - screenHeight / 2 + 31) {
+            } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 16 + yOffset && mouseY < originY - screenHeight / 2 + 31 + yOffset) {
                 hoveredButton = "delete";
             }
             if (hoveredButton != null && hoveredButton.equals("restore") && mouseIsClicked) {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2, 182, 15, 51, 30);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
             } else {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2, 182, 0, 51, 15);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
             }
             if (hoveredButton != null && hoveredButton.equals("delete") && mouseIsClicked) {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16, 182, 15, 51, 30);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16 + yOffset, 182, 15, 51, 30);
             } else {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16, 182, 0, 51, 15);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16 + yOffset, 182, 0, 51, 15);
             }
 
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4, 0x000000);
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20, 0x000000);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20 + yOffset, 0x000000);
 
-            yOffset = 32;
+            yOffset += 32;
         }
 
         if (getKeysFromGui) {
@@ -164,7 +204,6 @@ public class GraveViewScreen extends Screen {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
             }
             textRenderer.draw(matrices, new TranslatableText("text.yigd.word.give_key"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
-
         }
 
         if (client != null) {

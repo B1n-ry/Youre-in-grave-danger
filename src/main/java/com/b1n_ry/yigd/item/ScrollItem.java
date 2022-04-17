@@ -89,8 +89,16 @@ public class ScrollItem extends Item {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeNbt(selectedGrave.toNbt());
 
-            YigdConfig.GraveKeySettings keySettings = YigdConfig.getConfig().utilitySettings.graveKeySettings;
+            YigdConfig config = YigdConfig.getConfig();
+            YigdConfig.GraveKeySettings keySettings = config.utilitySettings.graveKeySettings;
             buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+            buf.writeBoolean(config.graveSettings.unlockableGraves);
+
+            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
+            buf.writeInt(unlockedGravesAmount);
+            for (int i = 0; i < unlockedGravesAmount; i++) {
+                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
+            }
 
             ServerPlayNetworking.send(spe, PacketReceivers.SINGLE_GRAVE_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");

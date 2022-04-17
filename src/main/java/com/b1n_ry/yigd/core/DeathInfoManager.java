@@ -15,6 +15,8 @@ public class DeathInfoManager extends PersistentState {
     public List<UUID> graveList = new ArrayList<>();
     private boolean isWhiteList = false;
 
+    public List<UUID> unlockedGraves = new ArrayList<>();
+
     public static DeadPlayerData findUserGrave(UUID userId, UUID graveId) {
         if (INSTANCE.data == null || !INSTANCE.data.containsKey(userId)) return null;
         for (DeadPlayerData data : INSTANCE.data.get(userId)) {
@@ -41,6 +43,10 @@ public class DeathInfoManager extends PersistentState {
 
             userList.add(userValue);
         });
+        NbtList unlockedGraveList = new NbtList();
+        for (UUID graveId : INSTANCE.unlockedGraves) {
+            unlockedGraveList.add(NbtHelper.fromUuid(graveId));
+        }
         NbtList listList = new NbtList();
         for (UUID uuid : INSTANCE.graveList) {
             listList.add(NbtHelper.fromUuid(uuid));
@@ -48,6 +54,7 @@ public class DeathInfoManager extends PersistentState {
         graveData.put("user_list", listList);
         graveData.putBoolean("is_whitelist", isWhiteList);
         graveData.put("yigd_grave_data", userList);
+        graveData.put("unlocked_graves", unlockedGraveList);
         graveData.put("soulbound_items", DeadPlayerData.Soulbound.getNbt());
         return graveData;
     }
@@ -55,10 +62,12 @@ public class DeathInfoManager extends PersistentState {
     public static PersistentState fromNbt(NbtCompound nbt) {
         DeathInfoManager.INSTANCE = new DeathInfoManager();
 
-        Map<UUID, List<DeadPlayerData>> deadData = new HashMap<>();
-        List<UUID> whiteBlackList = new ArrayList<>();
+        INSTANCE.data.clear();
+        INSTANCE.graveList.clear();
+        INSTANCE.unlockedGraves.clear();
         NbtList userList = nbt.getList("yigd_grave_data", NbtElement.COMPOUND_TYPE);
-        NbtList listList = nbt.getList("user_list", NbtElement.COMPOUND_TYPE);
+        NbtList listList = nbt.getList("user_list", NbtElement.INT_ARRAY_TYPE);
+        NbtList unlockedList = nbt.getList("unlocked_graves", NbtElement.INT_ARRAY_TYPE);
         for (NbtElement e : userList) {
             if (!(e instanceof NbtCompound c)) continue;
             UUID uuid = c.getUuid("UUID");
@@ -72,16 +81,17 @@ public class DeathInfoManager extends PersistentState {
                 deathList.add(deadPlayerData);
             }
 
-            deadData.put(uuid, deathList);
+            INSTANCE.data.put(uuid, deathList);
+        }
+        for (NbtElement e : unlockedList) {
+            INSTANCE.unlockedGraves.add(NbtHelper.toUuid(e));
         }
         for (NbtElement e : listList) {
-            whiteBlackList.add(NbtHelper.toUuid(e));
+            INSTANCE.graveList.add(NbtHelper.toUuid(e));
         }
         NbtCompound soulboundNbt = nbt.getCompound("soulbound_items");
         DeadPlayerData.Soulbound.fromNbt(soulboundNbt);
 
-        INSTANCE.data = deadData;
-        INSTANCE.graveList = whiteBlackList;
         INSTANCE.isWhiteList = nbt.getBoolean("is_whitelist");
 
         return INSTANCE;

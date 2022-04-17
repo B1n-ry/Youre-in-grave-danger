@@ -21,6 +21,7 @@ public class PacketReceivers {
     public static final Identifier RESTORE_INVENTORY = new Identifier("yigd", "restore_inventory");
     public static final Identifier DELETE_GRAVE = new Identifier("yigd", "delete_grave");
     public static final Identifier GIVE_KEY_ITEM = new Identifier("yigd", "give_key_item");
+    public static final Identifier SET_GRAVE_LOCK = new Identifier("yigd", "set_grave_lock");
 
     public static final Identifier SINGLE_GRAVE_GUI = new Identifier("yigd", "single_grave");
     public static final Identifier PLAYER_GRAVES_GUI = new Identifier("yigd", "single_dead_guy");
@@ -72,6 +73,16 @@ public class PacketReceivers {
 
             KeyItem.giveStackToPlayer(player, userId, graveId);
         });
+        ServerPlayNetworking.registerGlobalReceiver(SET_GRAVE_LOCK, (server, player, handler, buf, responseSender) -> {
+            UUID graveId = buf.readUuid();
+            boolean graveLocked = buf.readBoolean();
+
+            if (graveLocked) {
+                DeathInfoManager.INSTANCE.unlockedGraves.remove(graveId);
+            } else if (!DeathInfoManager.INSTANCE.unlockedGraves.contains(graveId)) {
+                DeathInfoManager.INSTANCE.unlockedGraves.add(graveId);
+            }
+        });
     }
 
     public static void registerClientReceivers() {
@@ -79,7 +90,15 @@ public class PacketReceivers {
             if (client == null) return;
             NbtCompound nbtData = buf.readNbt();
             GraveViewScreen.getKeysFromGui = buf.readBoolean();
+            GraveViewScreen.unlockableGraves = buf.readBoolean();
             DeadPlayerData data = DeadPlayerData.fromNbt(nbtData);
+
+            GraveViewScreen.unlockedGraves.clear();
+            int unlockedGraveSize = buf.readInt();
+            for (int i = 0; i < unlockedGraveSize; i++) {
+                UUID uuid = buf.readUuid();
+                GraveViewScreen.unlockedGraves.add(uuid);
+            }
 
             client.execute(() -> {
                 GraveViewScreen screen = new GraveViewScreen(data, null);
@@ -96,6 +115,14 @@ public class PacketReceivers {
                 deadUserData.add(DeadPlayerData.fromNbt(nbtData));
             }
             GraveViewScreen.getKeysFromGui = buf.readBoolean();
+            GraveViewScreen.unlockableGraves = buf.readBoolean();
+
+            GraveViewScreen.unlockedGraves.clear();
+            int unlockedGraveSize = buf.readInt();
+            for (int i = 0; i < unlockedGraveSize; i++) {
+                UUID uuid = buf.readUuid();
+                GraveViewScreen.unlockedGraves.add(uuid);
+            }
 
             client.execute(() -> {
                 GraveSelectScreen screen = new GraveSelectScreen(deadUserData, 1, null);
@@ -118,6 +145,14 @@ public class PacketReceivers {
                 data.put(uuid, userData);
             }
             GraveViewScreen.getKeysFromGui = buf.readBoolean();
+            GraveViewScreen.unlockableGraves = buf.readBoolean();
+
+            GraveViewScreen.unlockedGraves.clear();
+            int unlockedGraveSize = buf.readInt();
+            for (int i = 0; i < unlockedGraveSize; i++) {
+                UUID uuid = buf.readUuid();
+                GraveViewScreen.unlockedGraves.add(uuid);
+            }
 
             client.execute(() -> {
                 PlayerSelectScreen screen = new PlayerSelectScreen(data, 1);

@@ -41,6 +41,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.timeType.@Tooltip": "The time unit used by After Time",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.dropInventory": "Drop Grave Inventory",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.dropInventory.@Tooltip": "If true, grave will drop its items on de-spawn",
+  "text.autoconfig.yigd.option.graveSettings.unlockableGraves": "Unlockable Graves",
+  "text.autoconfig.yigd.option.graveSettings.unlockableGraves.@Tooltip": "Allow graves to be unlocked through grave GUI",
   "text.autoconfig.yigd.option.graveSettings.itemLoss": "Item Loss",
   "text.autoconfig.yigd.option.graveSettings.itemLoss.@Tooltip": "Configure if items can be\ndestroyed on death",
   "text.autoconfig.yigd.option.graveSettings.itemLoss.enableLoss": "Enable Loss",
@@ -230,5 +232,7 @@
 
   "text.yigd.word.restore": "Restore",
   "text.yigd.word.delete": "Delete",
-  "text.yigd.word.give_key": "Get Key"
+  "text.yigd.word.give_key": "Get Key",
+  "text.yigd.word.lock": "Lock",
+  "text.yigd.word.unlock": "Unlock"
 }

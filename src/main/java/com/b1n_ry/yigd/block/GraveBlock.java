@@ -341,6 +341,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.GraveRobbing graveRobbing = config.graveSettings.graveRobbing;
         boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
+        canRobGrave = canRobGrave || (config.graveSettings.unlockableGraves && DeathInfoManager.INSTANCE.unlockedGraves.contains(graveEntity.getGraveId()));
         int age = graveEntity.age;
         int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
 

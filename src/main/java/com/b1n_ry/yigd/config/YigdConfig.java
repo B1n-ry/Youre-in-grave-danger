@@ -58,6 +58,9 @@ public class YigdConfig implements ConfigData {
         public GraveDeletion graveDeletion = new GraveDeletion();
 
         @ConfigEntry.Gui.Tooltip
+        public boolean unlockableGraves = true;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public ItemLoss itemLoss = new ItemLoss();
 
