@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.api.YigdApi;
+import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
@@ -14,6 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.util.collection.DefaultedList;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -26,10 +28,10 @@ public class TrinketsCompat implements YigdApi {
 
     @Override
     public Object getInventory(PlayerEntity player) {
-        return getInventory(player, false);
+        return getInventory(player, false, null);
     }
     @Override
-    public Object getInventory(PlayerEntity player, boolean onDeath) {
+    public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
         if (optional.isEmpty()) return new HashMap<String, Map<String, TrinketInventory>>();
 
@@ -58,7 +60,7 @@ public class TrinketsCompat implements YigdApi {
                         if (GraveHelper.hasEnchantments(deleteEnchantments, stack)) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             removed = true;
-                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || stack.isIn(ModTags.SOULBOUND_ITEM)) {
+                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             soulInv.add(stack);
                             removed = true;

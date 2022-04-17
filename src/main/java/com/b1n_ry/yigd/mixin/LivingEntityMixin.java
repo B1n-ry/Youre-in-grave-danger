@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.mixin;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
+import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.*;
 import net.minecraft.entity.ExperienceOrbEntity;
@@ -100,15 +101,6 @@ public abstract class LivingEntityMixin {
                 }
             }
 
-            List<Object> modInventories = new ArrayList<>();
-            for (YigdApi yigdApi : Yigd.apiMods) {
-                Object modInv = yigdApi.getInventory(player, true);
-                modInventories.add(modInv);
-                allItems.addAll(yigdApi.toStackList(modInv));
-
-                yigdApi.dropAll(player);
-            }
-
             DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
             // Add defaulted soulbound items
@@ -118,11 +110,45 @@ public abstract class LivingEntityMixin {
                 if (stack.isIn(ModTags.SOULBOUND_ITEM)) soulboundInventory.set(i, stack);
             }
 
+            YigdConfig.GraveSettings graveConfig = config.graveSettings;
+
             GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
 
-            List<String> removeEnchantments = config.graveSettings.deleteEnchantments; // List with enchantments to delete
+            List<String> removeEnchantments = graveConfig.deleteEnchantments; // List with enchantments to delete
             DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
             GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
+
+            DimensionType playerDimension = player.world.getDimension();
+            Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
+
+            BlockPos blockPos = new BlockPos(pos);
+            boolean canGenerate = GraveAreaOverride.canGenerateOnPos(blockPos, dimManager.getId(playerDimension), graveConfig.generateGraves);
+
+            DeathEffectConfig spawnProtectionRule = graveConfig.deathInSpawnProtection;
+            boolean alterSpawnRules = false;
+            if (spawnProtectionRule != DeathEffectConfig.CREATE_GRAVE) {
+                ServerWorld serverWorld = (ServerWorld) player.world;
+                boolean isSpawnProtected = serverWorld.getServer().isSpawnProtected(serverWorld, blockPos, player);
+                if (isSpawnProtected && spawnProtectionRule == DeathEffectConfig.KEEP_ITEMS) {
+                    alterSpawnRules = true;
+                    for (int i = 0; i < items.size(); i++) {
+                        if (!soulboundInventory.get(i).isEmpty()) continue;
+                        soulboundInventory.set(i, items.remove(i));
+                    }
+                } else if (isSpawnProtected && spawnProtectionRule == DeathEffectConfig.DROP_ITEMS) {
+                    alterSpawnRules = true;
+                    canGenerate = false;
+                }
+            }
+
+            List<Object> modInventories = new ArrayList<>();
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                Object modInv = yigdApi.getInventory(player, true, alterSpawnRules ? spawnProtectionRule : DeathEffectConfig.CREATE_GRAVE);
+                modInventories.add(modInv);
+                allItems.addAll(yigdApi.toStackList(modInv));
+
+                yigdApi.dropAll(player);
+            }
 
             allItems.addAll(items);
             allItems.removeIf(ItemStack::isEmpty);
@@ -130,8 +156,7 @@ public abstract class LivingEntityMixin {
             UUID playerId = player.getUuid();
 
             int xpPoints;
-            YigdConfig.GraveSettings graveSettings = config.graveSettings;
-            if (graveSettings.defaultXpDrop) {
+            if (graveConfig.defaultXpDrop) {
                 xpPoints = Math.min(7 * player.experienceLevel, 100);
             } else {
                 int currentLevel = player.experienceLevel;
@@ -143,7 +168,7 @@ public abstract class LivingEntityMixin {
                 } else {
                     totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
                 }
-                xpPoints = (int) ((graveSettings.xpDropPercent / 100f) * totalExperience);
+                xpPoints = (int) ((graveConfig.xpDropPercent / 100f) * totalExperience);
             }
 
             DeadPlayerData.Soulbound.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
@@ -154,7 +179,7 @@ public abstract class LivingEntityMixin {
             player.experienceProgress = 0;
             player.experienceLevel = 0;
 
-            if (config.graveSettings.dropPlayerHead) {
+            if (graveConfig.dropPlayerHead) {
                 ItemStack stack = new ItemStack(Items.PLAYER_HEAD, 1);
                 NbtCompound nbt = new NbtCompound();
                 nbt.putString("SkullOwner", player.getName().asString());
@@ -162,13 +187,7 @@ public abstract class LivingEntityMixin {
                 items.add(stack);
             }
 
-            YigdConfig.GraveSettings graveConfig = config.graveSettings;
-
-            DimensionType playerDimension = player.world.getDimension();
-            Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
-
-            boolean canGenerate = GraveAreaOverride.canGenerateOnPos(new BlockPos(pos), dimManager.getId(playerDimension), graveConfig.generateGraves);
-            if (config.graveSettings.requireGraveItem) {
+            if (graveConfig.requireGraveItem) {
                 canGenerate = false;
                 for (ItemStack stack : items) {
                     if (stack.getItem() == Yigd.GRAVE_BLOCK.asItem()) {
@@ -198,11 +217,12 @@ public abstract class LivingEntityMixin {
                 xpPoints = 0;
             }
 
+            // Render items in your hotbar, offhand and armour
             for (int i = 0; i < soulboundInventory.size(); i++) {
                 inventory.setStack(i, soulboundInventory.get(i));
             }
 
-            if (allItems.size() > 0 || xpPoints > 0 || config.graveSettings.generateEmptyGraves) {
+            if (allItems.size() > 0 || xpPoints > 0 || graveConfig.generateEmptyGraves) {
                 GraveHelper.placeDeathGrave(player.world, pos, inventory.player, items, modInventories, xpPoints, source);
             }
 

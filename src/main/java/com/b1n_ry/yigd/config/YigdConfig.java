@@ -46,6 +46,9 @@ public class YigdConfig implements ConfigData {
         public boolean ignoreSpawnProtection = true;
 
         @ConfigEntry.Gui.Tooltip
+        public DeathEffectConfig deathInSpawnProtection = DeathEffectConfig.CREATE_GRAVE;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
 

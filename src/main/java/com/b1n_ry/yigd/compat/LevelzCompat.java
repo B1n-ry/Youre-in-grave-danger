@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.api.YigdApi;
+import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.levelz.access.PlayerStatsManagerAccess;
 import net.levelz.access.PlayerSyncAccess;
@@ -9,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.collection.DefaultedList;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +23,11 @@ public class LevelzCompat implements YigdApi {
 
     @Override
     public Object getInventory(PlayerEntity player) {
-        return this.getInventory(player, false);
+        return this.getInventory(player, false, null);
     }
 
     @Override
-    public Object getInventory(PlayerEntity player, boolean onDeath) {
+    public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         YigdConfig.GraveCompatConfig graveCompatConfig = YigdConfig.getConfig().graveSettings.graveCompatConfig;
 
         PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager(player);
