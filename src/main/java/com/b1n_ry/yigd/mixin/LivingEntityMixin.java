@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.mixin;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -125,25 +126,45 @@ public abstract class LivingEntityMixin {
             boolean canGenerate = GraveAreaOverride.canGenerateOnPos(blockPos, dimManager.getId(playerDimension), graveConfig.generateGraves);
 
             DeathEffectConfig spawnProtectionRule = graveConfig.deathInSpawnProtection;
-            boolean alterSpawnRules = false;
+            DeathEffectConfig alteredSpawnRules = DeathEffectConfig.CREATE_GRAVE;
+            ServerWorld serverWorld = (ServerWorld) player.world;
             if (spawnProtectionRule != DeathEffectConfig.CREATE_GRAVE) {
-                ServerWorld serverWorld = (ServerWorld) player.world;
                 boolean isSpawnProtected = serverWorld.getServer().isSpawnProtected(serverWorld, blockPos, player);
                 if (isSpawnProtected && spawnProtectionRule == DeathEffectConfig.KEEP_ITEMS) {
-                    alterSpawnRules = true;
+                    alteredSpawnRules = spawnProtectionRule;
                     for (int i = 0; i < items.size(); i++) {
                         if (!soulboundInventory.get(i).isEmpty()) continue;
                         soulboundInventory.set(i, items.remove(i));
                     }
                 } else if (isSpawnProtected && spawnProtectionRule == DeathEffectConfig.DROP_ITEMS) {
-                    alterSpawnRules = true;
+                    alteredSpawnRules = spawnProtectionRule;
+                    canGenerate = false;
+                }
+            }
+            DeathEffectConfig claimProtectionRule = graveConfig.graveCompatConfig.claimRuleOverride;
+            if (claimProtectionRule != DeathEffectConfig.CREATE_GRAVE) {
+                boolean isInClaim = false;
+                for (ClaimModsApi claimMod : Yigd.claimMods) {
+                    if (isInClaim) break;
+                    isInClaim = claimMod.isInClaim(blockPos, serverWorld);
+                }
+
+                if (isInClaim && claimProtectionRule == DeathEffectConfig.KEEP_ITEMS) {
+                    alteredSpawnRules = claimProtectionRule;
+                    for (int i = 0; i < items.size(); i++) {
+                        if (!soulboundInventory.get(i).isEmpty()) continue;
+                        soulboundInventory.set(i, items.get(i));
+                        items.set(i, ItemStack.EMPTY);
+                    }
+                } else if (isInClaim && claimProtectionRule == DeathEffectConfig.DROP_ITEMS) {
+                    alteredSpawnRules = claimProtectionRule;
                     canGenerate = false;
                 }
             }
 
             List<Object> modInventories = new ArrayList<>();
             for (YigdApi yigdApi : Yigd.apiMods) {
-                Object modInv = yigdApi.getInventory(player, true, alterSpawnRules ? spawnProtectionRule : DeathEffectConfig.CREATE_GRAVE);
+                Object modInv = yigdApi.getInventory(player, true, alteredSpawnRules);
                 modInventories.add(modInv);
                 allItems.addAll(yigdApi.toStackList(modInv));
 

@@ -1,11 +1,11 @@
 package com.b1n_ry.yigd;
 
+import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
-import com.b1n_ry.yigd.compat.LevelzCompat;
-import com.b1n_ry.yigd.compat.TrinketsCompat;
+import com.b1n_ry.yigd.compat.*;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -70,6 +70,7 @@ public class Yigd implements ModInitializer {
     public static Item KEY_ITEM;
 
     public static final List<YigdApi> apiMods = new ArrayList<>();
+    public static final List<ClaimModsApi> claimMods = new ArrayList<>();
     public static final List<Runnable> NEXT_TICK = new ArrayList<>();
 
     @Override
@@ -191,6 +192,16 @@ public class Yigd implements ModInitializer {
             apiMods.add(new LevelzCompat());
         }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
+
+        if (FabricLoader.getInstance().isModLoaded("flan")) {
+            claimMods.add(new FlanCompat());
+        }
+        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
+            claimMods.add(new FtbChunksCompat());
+        }
+        if (FabricLoader.getInstance().isModLoaded("goml")) {
+            claimMods.add(new GomlCompat());
+        }
 
         YigdCommand.registerCommands();
         PacketReceivers.registerServerReceivers();

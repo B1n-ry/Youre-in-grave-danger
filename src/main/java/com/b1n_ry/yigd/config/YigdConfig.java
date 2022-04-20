@@ -46,6 +46,7 @@ public class YigdConfig implements ConfigData {
         public boolean ignoreSpawnProtection = true;
 
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DeathEffectConfig deathInSpawnProtection = DeathEffectConfig.CREATE_GRAVE;
 
         @ConfigEntry.Gui.Tooltip
@@ -200,6 +201,10 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
         public int levelzXpDropPercent = 100;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DeathEffectConfig claimRuleOverride = DeathEffectConfig.CREATE_GRAVE;
     }
 
     public static class GraveRenderSettings {

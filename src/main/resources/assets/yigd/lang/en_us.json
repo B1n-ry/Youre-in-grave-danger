@@ -109,6 +109,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.levelzXpInGraves.@Tooltip": "LevelZ XP compatibility. Set\nto false if you want no integration\nbetween the mods",
   "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.levelzXpDropPercent": "LevelZ XP drop percent",
   "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.levelzXpDropPercent.@Tooltip": "How many percent of your XP\nprogress should be saved by your grave",
+  "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.claimRuleOverride": "Rule override in claims",
+  "text.autoconfig.yigd.option.graveSettings.graveCompatConfig.claimRuleOverride.@Tooltip": "Configure claim mod compatibility when dying on claimed land\nKEEP_ITEMS: You keep all your items\nDROP_ITEMS\nYou drop your items like normal minecraft\nCREATE_GRAVE: A grave is created",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings": "Grave Render",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.@Tooltip": "Changes the way graves render,\nand makes the render customizable",
   "text.autoconfig.yigd.option.graveSettings.graveRenderSettings.useRenderFeatures": "Use Render Features",

@@ -24,6 +24,13 @@ repositories {
 		name = "Jitpack"
 		url = "https://jitpack.io"
 	}
+	maven {
+		url "https://maven.saps.dev/minecraft"
+		content {
+			includeGroup "dev.latvian.mods"
+			includeGroup "dev.ftb.mods"
+		}
+	}
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	flatDir {
@@ -37,6 +44,7 @@ repositories {
 		name = "CottonMC"
 		url = "https://server.bbkr.space/artifactory/libs-release"
 	}
+	maven { url "https://maven.nucleoid.xyz/" }
 }
 
 dependencies {
@@ -59,13 +67,28 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 
+	// Required for some mod compatibility to work
+	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
+	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}") { transitive = false }
+	modImplementation("eu.pb4:placeholder-api:${project.placeholder_version}")
+	modImplementation("eu.pb4:polymer:${project.polymer_version}")
+	modImplementation("eu.pb4:sgui:${project.sgui_version}")
+	modImplementation("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") { transitive = false } // Required for goml compat to work
+	modImplementation("io.github.ladysnake:PlayerAbilityLib:${project.pal_version}")
+	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
+	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
+
+	// Land claim compat mods
+	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
+	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
+	modImplementation("mods.compat:goml-${project.goml_version}")
+//	modImplementation("eu.pb4:goml:1.18-SNAPSHOT")
+
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation "mods.compat:levelz-${project.levelz_version}"
+	modImplementation ("mods.compat:levelz-${project.levelz_version}") { transitive = false }
 //	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.18-fabric:${project.inventorio_version}"
 //	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
-
-	modApi "io.github.cottonmc:LibGui:5.3.2+1.18.2" // Required to work with levelz
 }
 
 processResources {
