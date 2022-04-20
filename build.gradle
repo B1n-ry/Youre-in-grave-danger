@@ -67,6 +67,9 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 
+	// Hammerlike compat
+	modImplementation("com.github.Draylar:magna:${project.magna_version}")
+
 	// Required for some mod compatibility to work
 	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
 	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}") { transitive = false }
