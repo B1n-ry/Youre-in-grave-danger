@@ -250,13 +250,36 @@ public class GraveViewScreen extends Screen {
 
         float textX = originX - screenWidth / 2f + 80f;
         textRenderer.draw(matrices, deathMsg, originX - screenWidth / 2f + 7f, originY - screenHeight / 2f + 5f, 0xAA0000);
-        textRenderer.draw(matrices, "Dim: " + data.dimensionName, textX, originY - screenHeight / 2f + 16, 0x0055c4);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_view.dim_name", data.dimensionName), textX, originY - screenHeight / 2f + 16, 0x0055c4);
         textRenderer.draw(matrices, data.gravePos.getX() + " " + data.gravePos.getY() + " " + data.gravePos.getZ(), textX, originY - screenHeight / 2f + 28f, 0xBB00BB);
         if (data.modInventories.size() > 0 || data.inventory.size() > 41) {
-            textRenderer.draw(matrices, modItemSize + " items in mod", textX, originY - screenHeight / 2f + 40f, 0x555555);
-            textRenderer.draw(matrices, "inventories", textX, originY - screenHeight / 2f + 49f, 0x555555);
+            // Kind of a huge block of code made to print strings with break row
+            String modItemsText = new TranslatableText("text.yigd.gui.grave_view.mod_inv_items", modItemSize).getString();
+            String[] words = modItemsText.split(" ");
+            StringBuilder cachedString = new StringBuilder();
+            int stringLength = 0;
+            int wordsOnRow = 0;
+            int row = 0;
+            int maxLength = screenWidth - 75;
+            for (String word : words) {
+                stringLength += textRenderer.getWidth(word);
+                if (stringLength >= maxLength && wordsOnRow > 0) {
+                    textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 40f + 9f * row++, 0x555555);
+                    cachedString = new StringBuilder();
+                    wordsOnRow = 0;
+                    stringLength = 0;
+                }
+
+                if (wordsOnRow <= 0) {
+                    cachedString.append(word);
+                } else {
+                    cachedString.append(" ").append(word);
+                }
+                wordsOnRow++;
+            }
+            textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 40f + 9f * row, 0x555555);
         }
-        textRenderer.draw(matrices, "Levels: " + this.xpLevels, textX + 18f, originY - screenHeight / 2f + 77f, 0x299608);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_view.level_count", this.xpLevels), textX + 18f, originY - screenHeight / 2f + 77f, 0x299608);
 
         if (client != null && client.player != null) {
             int playerX = originX - screenWidth / 2 + 50;

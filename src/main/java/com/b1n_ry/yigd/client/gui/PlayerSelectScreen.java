@@ -205,7 +205,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, left + 5, top + 5, 32, 32, 32, 32);
 
             textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, 0x009900);
-            textRenderer.draw(matrices, filteredPlayers.get(playerId).size() + " graves", left + 42, top + 22, 0x555555);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size()), left + 42, top + 22, 0x555555);
         }
 
         super.render(matrices, mouseX, mouseY, delta);
@@ -213,7 +213,7 @@ public class PlayerSelectScreen extends Screen {
         renderCheckButtons(matrices, mouseX, mouseY, screenTop, screenLeft, originX);
 
         String gravesDisplayed = (startValue + 1) + "-" + whileLessThan + "/" + infoSize;
-        textRenderer.draw(matrices, "Players with graves", screenLeft + 19f, screenTop + 10f, 0x555555);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.players_with_graves"), screenLeft + 19f, screenTop + 10f, 0x555555);
 
         int offset = textRenderer.getWidth(gravesDisplayed);
         textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, 0x007700);

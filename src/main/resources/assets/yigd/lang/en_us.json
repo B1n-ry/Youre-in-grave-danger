@@ -229,6 +229,17 @@
   "text.yigd.gui.grave_select.show_destroyed": "Show destroyed",
   "text.yigd.gui.grave_select.show_status": "Show status",
 
+  "text.yigd.gui.player_select.grave_count": "%d graves",
+  "text.yigd.gui.player_select.players_with_graves": "Players with graves",
+
+  "text.yigd.gui.grave_select.x_items": "%d items",
+  "text.yigd.gui.grave_select.x_levels": "%d levels",
+  "text.yigd.gui.grave_select.graves_of_user": "Graves of %s",
+
+  "text.yigd.gui.grave_view.dim_name": "Dim: %s",
+  "text.yigd.gui.grave_view.mod_inv_items": "%d items in mod inventories",
+  "text.yigd.gui.grave_view.level_count": "Levels: %d",
+
   "text.yigd.gui.player_select.include_available": "Show available",
   "text.yigd.gui.player_select.include_claimed": "Show claimed",
   "text.yigd.gui.player_select.include_destroyed": "Show destroyed",

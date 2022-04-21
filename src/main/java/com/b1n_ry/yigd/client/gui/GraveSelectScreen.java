@@ -217,8 +217,8 @@ public class GraveSelectScreen extends Screen {
             }
 
             textRenderer.draw(matrices, info.data.gravePos.getX() + " " + info.data.gravePos.getY() + " " + info.data.gravePos.getZ() + " " + info.data.dimensionName, left + 5f, top + 5f, 0xCC00CC);
-            textRenderer.draw(matrices, info.itemSize + " items", left + 5f, top + 17f, 0x0000CC);
-            textRenderer.draw(matrices, info.xpLevels + " levels", left + 5f, top + 29f, 0x299608);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.x_items", info.itemSize), left + 5f, top + 17f, 0x0000CC);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.x_levels", info.xpLevels), left + 5f, top + 29f, 0x299608);
             iterations++;
         }
 
@@ -228,7 +228,7 @@ public class GraveSelectScreen extends Screen {
 
         int firstElement = (page - 1) * 4 + 1;
         String gravesDisplayed = firstElement + "-" + (firstElement + Math.min(3, infoSize - firstElement)) + "/" + infoSize;
-        textRenderer.draw(matrices, "Graves of " + graveOwner.getName(), screenLeft + 19f, screenTop + 10f, 0x555555);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.graves_of_user", graveOwner.getName()), screenLeft + 19f, screenTop + 10f, 0x555555);
 
         int offset = textRenderer.getWidth(gravesDisplayed);
         textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, 0x007700);
