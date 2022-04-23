@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.api.YigdApi;
+import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
@@ -12,6 +13,7 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.collection.DefaultedList;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +26,7 @@ public class InventorioCompat implements YigdApi {
     }
 
     @Override
-    public Object getInventory(PlayerEntity player) {
-        return getInventory(player, false);
-    }
-    @Override
-    public Object getInventory(PlayerEntity player, boolean onDeath) {
+    public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         DefaultedList<ItemStack> inventories = DefaultedList.of();
 
         PlayerInventoryAddon inventoryAddon = InventorioAPI.getInventoryAddon(player);
@@ -50,7 +48,7 @@ public class InventorioCompat implements YigdApi {
             for (int i = 0; i < inventories.size(); i++) {
                 ItemStack stack = inventories.get(i);
 
-                if (stack.isIn(ModTags.SOULBOUND_ITEM)) soulboundItems.set(i, stack);
+                if (stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS) soulboundItems.set(i, stack);
             }
 
             DefaultedList<ItemStack> deletedItems = GraveHelper.getEnchantedItems(inventories, deleteEnchantments);

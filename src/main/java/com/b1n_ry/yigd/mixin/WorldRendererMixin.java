@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.mixin;
 
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
@@ -33,7 +34,8 @@ public abstract class WorldRendererMixin {
     private void renderGlowingShader(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, CallbackInfo ci) {
         if (this.entityOutlineShader != null && !glowingShaderRendered && GraveBlockEntityRenderer.renderGraveGlowing) {
             this.entityOutlineShader.render(tickDelta);
-            this.client.getFramebuffer().beginWrite(false);
+            Framebuffer fb = this.client.getFramebuffer();
+            if (fb != null) fb.beginWrite(false);
         }
         glowingShaderRendered = false;
     }

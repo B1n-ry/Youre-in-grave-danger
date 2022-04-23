@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.api.YigdApi;
+import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
@@ -10,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.collection.DefaultedList;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +23,7 @@ public class TravelersBackpackCompat implements YigdApi {
     }
 
     @Override
-    public Object getInventory(PlayerEntity player) {
-        return this.getInventory(player, false);
-    }
-
-    @Override
-    public Object getInventory(PlayerEntity player, boolean onDeath) {
+    public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
         List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
 
@@ -35,7 +32,7 @@ public class TravelersBackpackCompat implements YigdApi {
         if (onDeath) {
             ItemStack soulbound;
             boolean shouldDelete = false;
-            if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack) || backpack.isIn(ModTags.SOULBOUND_ITEM)) {
+            if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack) || backpack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS) {
                 soulbound = backpack;
                 shouldDelete = true;
             } else {

@@ -1,19 +1,21 @@
 package com.b1n_ry.yigd;
 
+import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
-import com.b1n_ry.yigd.compat.InventorioCompat;
-import com.b1n_ry.yigd.compat.TravelersBackpackCompat;
-import com.b1n_ry.yigd.compat.TrinketsCompat;
+import com.b1n_ry.yigd.compat.*;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.core.GraveAreaOverride;
+import com.b1n_ry.yigd.core.PacketReceivers;
+import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
-import com.b1n_ry.yigd.core.YigdCommand;
+import com.b1n_ry.yigd.item.KeyItem;
 import com.b1n_ry.yigd.item.ScrollItem;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -24,7 +26,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -66,8 +67,10 @@ public class Yigd implements ModInitializer {
     public static JsonObject graveyard;
 
     public static Item SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
+    public static Item KEY_ITEM = new KeyItem(new Item.Settings().group(ItemGroup.MISC));
 
     public static final List<YigdApi> apiMods = new ArrayList<>();
+    public static final List<ClaimModsApi> claimMods = new ArrayList<>();
     public static final List<Runnable> NEXT_TICK = new ArrayList<>();
 
     @Override
@@ -80,7 +83,7 @@ public class Yigd implements ModInitializer {
             public void reload(ResourceManager manager) {
                 graveyard = null;
 
-                for(Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
+                for (Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
                     if (!id.getNamespace().equals("yigd")) continue;
                     try (InputStream stream = manager.getResource(id).getInputStream()) {
                         LOGGER.info("Reloading graveyard");
@@ -109,6 +112,18 @@ public class Yigd implements ModInitializer {
                 }
                 catch (Exception e) {
                     LOGGER.error("Error occurred while trying to generate server side voxel-shape\n" + e);
+                }
+
+                for (Identifier id : manager.findResources("custom", path -> path.equals("grave_areas.json"))) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        LOGGER.info("Reloading custom grave areas");
+                        GraveAreaOverride.reloadGraveAreas((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
+                        break;
+                    }
+                    catch (Exception e) {
+                        LOGGER.error("Error occurred while loading custom grave areas\n" + e);
+                    }
                 }
             }
 
@@ -162,6 +177,10 @@ public class Yigd implements ModInitializer {
             // Add the scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
             Registry.register(Registry.ITEM, new Identifier("yigd", "death_scroll"), SCROLL_ITEM);
         }
+        if (utilityConfig.graveKeySettings.enableKeys) {
+            // Add the grave key item if it should be loaded
+            Registry.register(Registry.ITEM, new Identifier("yigd", "grave_key"), KEY_ITEM);
+        }
 
         if (FabricLoader.getInstance().isModLoaded("trinkets")) {
             apiMods.add(new TrinketsCompat());
@@ -172,21 +191,22 @@ public class Yigd implements ModInitializer {
         if (FabricLoader.getInstance().isModLoaded("travelersbackpack")) {
             apiMods.add(new TravelersBackpackCompat());
         }
+        if (FabricLoader.getInstance().isModLoaded("levelz")) {
+            apiMods.add(new LevelzCompat());
+        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
+
+        if (FabricLoader.getInstance().isModLoaded("flan")) {
+            claimMods.add(new FlanCompat());
+        }
+        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
+            claimMods.add(new FtbChunksCompat());
+        }
 
         YigdCommand.registerCommands();
 
-        ServerPlayNetworking.registerGlobalReceiver(new Identifier("yigd", "config_update"), (server, player, handler, buf, responseSender) -> {
-            if (player == null) return;
-            PriorityInventoryConfig normalPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
-            PriorityInventoryConfig robbingPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
 
-            UUID playerId = player.getUuid();
-            clientPriorities.put(playerId, normalPriority);
-            clientRobPriorities.put(playerId, robbingPriority);
-
-            LOGGER.info("Priority overwritten for player " + player.getDisplayName().asString() + ". Normal: " + normalPriority.name() + " / Robbing: " + robbingPriority.name());
-        });
+        PacketReceivers.registerServerReceivers();
 
         ServerWorldEvents.LOAD.register((server, world) -> {
             if (world == server.getOverworld()) {
@@ -196,11 +216,11 @@ public class Yigd implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             UUID playerId = handler.player.getUuid();
             if (notNotifiedPlayers.contains(playerId)) {
-                handler.player.sendMessage(new TranslatableText("message.yigd.grave.timeout.offline"), false);
+                handler.player.sendMessage(new TranslatableText("text.yigd.message.timeout.offline"), false);
                 notNotifiedPlayers.remove(playerId);
             }
             if (notNotifiedRobberies.contains(playerId)) {
-                handler.player.sendMessage(new TranslatableText("message.yigd.grave.robbed.offline"), false);
+                handler.player.sendMessage(new TranslatableText("text.yigd.message.robbed.offline"), false);
                 notNotifiedRobberies.remove(playerId);
             }
         });

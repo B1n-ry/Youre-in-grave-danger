@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.enchantment;
 
+import com.b1n_ry.yigd.core.ModTags;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.enchantment.Enchantments;
@@ -12,7 +13,7 @@ public class SoulboundEnchantment extends Enchantment {
     }
 
     public boolean isAcceptableItem(ItemStack stack) {
-        return true; // Enchantment is always applicable
+        return !stack.isIn(ModTags.SOULBOUND_BLACKLIST) && !stack.isIn(ModTags.SOULBOUND_ITEM); // Enchantment is always applicable unless it can't be or always is soulbound
     }
 
     public int getMinPower(int level) {

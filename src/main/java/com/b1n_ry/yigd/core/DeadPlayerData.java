@@ -35,12 +35,15 @@ public class DeadPlayerData {
     public String dimensionName;
     public DamageSource deathSource;
 
-    public static DeadPlayerData create(DefaultedList<ItemStack> inventory, List<Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DamageSource deathSource) {
+    public UUID id;
+    public byte availability; // 0 = retrieved, 1 = available, -1 = broken/missing
+
+    public static DeadPlayerData create(DefaultedList<ItemStack> inventory, List<Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DamageSource deathSource, UUID id) {
         Identifier dimId = world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getId(world.getDimension());
         String dimName = dimId != null ? dimId.getPath() : "void";
-        return new DeadPlayerData(inventory, modInventories, gravePos, graveOwner, xp, world.getRegistryKey().getValue(), dimName, deathSource);
+        return new DeadPlayerData(inventory, modInventories, gravePos, graveOwner, xp, world.getRegistryKey().getValue(), dimName, deathSource, (byte) 1, id);
     }
-    public DeadPlayerData(DefaultedList<ItemStack> inventory, List<Object> modInventories, BlockPos gravePos, GameProfile graveOwner, int xp, Identifier worldId, String dimensionName, DamageSource deathSource) {
+    public DeadPlayerData(DefaultedList<ItemStack> inventory, List<Object> modInventories, BlockPos gravePos, GameProfile graveOwner, int xp, Identifier worldId, String dimensionName, DamageSource deathSource, byte availability, UUID id) {
         this.inventory = inventory;
         this.modInventories = modInventories;
         this.gravePos = gravePos;
@@ -49,6 +52,8 @@ public class DeadPlayerData {
         this.worldId = worldId;
         this.deathSource = deathSource;
         this.dimensionName = dimensionName;
+        this.availability = availability;
+        this.id = id;
     }
 
     // Convert the DeadPlayerData object to NBT
@@ -84,6 +89,8 @@ public class DeadPlayerData {
         nbt.putString("world", worldId);
         nbt.putString("dimension", this.dimensionName);
         nbt.put("causeOfDeath", dsNbt);
+        nbt.putByte("availability", this.availability);
+        nbt.putUuid("id", this.id);
 
         return nbt;
     }
@@ -130,6 +137,8 @@ public class DeadPlayerData {
         String worldId = nbt.getString("world");
         Identifier worldIdentifier = new Identifier(worldId);
         String dimName = nbt.getString("dimension");
+        byte availability = nbt.contains("availability") ? nbt.getByte("availability") : 1;
+        UUID id = nbt.contains("id") ? nbt.getUuid("id") : UUID.randomUUID();
 
         NbtElement damageSourceNbt = nbt.get("causeOfDeath");
         DamageSource deathSource;
@@ -181,7 +190,7 @@ public class DeadPlayerData {
             deathSource = null;
         }
 
-        return new DeadPlayerData(items, modInventories, pos, graveOwner, xp, worldIdentifier, dimName, deathSource);
+        return new DeadPlayerData(items, modInventories, pos, graveOwner, xp, worldIdentifier, dimName, deathSource, availability, id);
     }
 
     public static class Soulbound {

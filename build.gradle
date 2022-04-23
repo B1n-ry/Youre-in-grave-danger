@@ -24,6 +24,13 @@ repositories {
 		name = "Jitpack"
 		url = "https://jitpack.io"
 	}
+	maven {
+		url "https://maven.saps.dev/minecraft"
+		content {
+			includeGroup "dev.latvian.mods"
+			includeGroup "dev.ftb.mods"
+		}
+	}
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	flatDir {
@@ -32,6 +39,12 @@ repositories {
 			includeGroup "mods.compat"
 		}
 	}
+
+	maven {
+		name = "CottonMC"
+		url = "https://server.bbkr.space/artifactory/libs-release"
+	}
+	maven { url "https://maven.nucleoid.xyz/" }
 }
 
 dependencies {
@@ -55,10 +68,23 @@ dependencies {
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation "io.github.ladysnake:requiem:${project.requiem_version}"
 
+	// Hammerlike compat
+	modImplementation("com.github.Draylar:magna:${project.magna_version}")
+
+	// Required for some mod compatibility to work
+	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
+	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
+
+	// Land claim compat mods
+	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
+	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
+//	modImplementation("eu.pb4:goml:${project.goml_version}")
+
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
 	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.18-fabric:${project.inventorio_version}"
 	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
+	modImplementation ("mods.compat:levelz-${project.levelz_version}") { transitive = false }
 }
 
 processResources {

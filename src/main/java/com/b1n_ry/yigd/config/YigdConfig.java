@@ -6,7 +6,6 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Config(name = "yigd")
@@ -48,6 +47,10 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DeathEffectConfig deathInSpawnProtection = DeathEffectConfig.CREATE_GRAVE;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
 
         @ConfigEntry.Gui.Tooltip
@@ -59,22 +62,28 @@ public class YigdConfig implements ConfigData {
         public GraveDeletion graveDeletion = new GraveDeletion();
 
         @ConfigEntry.Gui.Tooltip
+        public boolean unlockableGraves = true;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public ItemLoss itemLoss = new ItemLoss();
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> deleteEnchantments = Collections.singletonList("minecraft:vanishing_curse");
+        public List<String> deleteEnchantments = List.of("minecraft:vanishing:curse", "vanishing_curse"); // Apparently without the namespace/id vanilla will still make it work
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> soulboundEnchantments = Collections.singletonList("yigd:soulbound");
+        public List<String> soulboundEnchantments = List.of("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
         public boolean applyBindingCurse = true;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean trySoft = true;
+        public boolean trySoft = false;
         @ConfigEntry.Gui.Tooltip
         public boolean tryStrict = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean replaceWhenClaimed = true;
 
         @ConfigEntry.Gui.Tooltip
         public List<Integer> blacklistDimensions = new ArrayList<>();
@@ -112,7 +121,14 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
+        public GraveCompatConfig graveCompatConfig = new GraveCompatConfig();
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
         public GraveRenderSettings graveRenderSettings = new GraveRenderSettings();
+
+        @ConfigEntry.Gui.Tooltip
+        public int maxGraveBackups = 50;
     }
 
     public static class GraveRobbing {
@@ -179,6 +195,18 @@ public class YigdConfig implements ConfigData {
         public String inCustom = "minecraft:dirt";
     }
 
+    public static class GraveCompatConfig {
+        @ConfigEntry.Gui.Tooltip
+        public boolean levelzXpInGraves = true;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
+        public int levelzXpDropPercent = 100;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DeathEffectConfig claimRuleOverride = DeathEffectConfig.CREATE_GRAVE;
+    }
+
     public static class GraveRenderSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean useRenderFeatures = true;
@@ -205,21 +233,43 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
         public boolean deathSightEnchant = false;
-        @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public ScrollSettings scrollItem = new ScrollSettings();
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveKeySettings graveKeySettings = new GraveKeySettings();
     }
 
     public static class ScrollSettings {
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public ScrollTypeConfig scrollType = ScrollTypeConfig.DISABLED;
         @ConfigEntry.Gui.Tooltip
         public boolean retrieveOnRespawn = true;
     }
 
+    public static class GraveKeySettings {
+        @ConfigEntry.Gui.RequiresRestart
+        public boolean enableKeys = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean alwaysRequire = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean retrieveOnRespawn = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean getFromGui = false;
+        @ConfigEntry.Gui.Tooltip
+        public boolean rebindable = false;
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public GraveKeySpecificationConfig graveKeySpecification = GraveKeySpecificationConfig.PLAYER;
+    }
+
     public static class CommandToggles {
+        @ConfigEntry.Gui.RequiresRestart
+        public String coreCommandName = "yigd";
+
         public boolean retrieveGrave = true;
         public boolean robGrave = true;
         @ConfigEntry.Gui.Tooltip
@@ -227,6 +277,14 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public boolean adminView = true;
         public boolean moderateGraves = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean clearGraveBackups = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean whitelist = true;
+        public boolean whitelistAdd = true;
+        public boolean whitelistRemove = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean whitelistToggle = true;
     }
 
     public static YigdConfig getConfig() {

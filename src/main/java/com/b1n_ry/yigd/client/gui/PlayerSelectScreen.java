@@ -18,19 +18,25 @@ public class PlayerSelectScreen extends Screen {
     private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
-    private final List<UUID> playerIds;
     private final Map<UUID, List<DeadPlayerData>> data;
     private final Map<UUID, Identifier> playerSkinTextures;
     private final Map<UUID, GameProfile> graveOwners;
     private final int page;
 
+    private final Map<UUID, List<DeadPlayerData>> filteredPlayers = new HashMap<>();
+    private final List<UUID> filteredPlayerIds = new ArrayList<>();
+
     private boolean mouseIsClicked = false;
     private String hoveredElement = null;
+
+    private boolean includeAvailable = true;
+    private boolean includeClaimed = false;
+    private boolean includeDestroyed = false;
+    private boolean showWithoutGrave = false;
 
     public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page) {
         super(new TranslatableText("text.yigd.gui.player_select.title"));
 
-        List<UUID> playerIds = new ArrayList<>();
         Map<UUID, List<DeadPlayerData>> nonEmpty = new HashMap<>();
         Map<UUID, Identifier> playerSkinTextures = new HashMap<>();
         Map<UUID, GameProfile> graveOwners = new HashMap<>();
@@ -38,7 +44,6 @@ public class PlayerSelectScreen extends Screen {
         data.forEach((uuid, userData) -> {
             if (userData.size() > 0) {
                 GameProfile profile = userData.get(0).graveOwner;
-                playerIds.add(uuid);
                 nonEmpty.put(uuid, userData);
                 graveOwners.put(uuid, profile);
 
@@ -58,11 +63,34 @@ public class PlayerSelectScreen extends Screen {
             }
         });
 
-        this.playerIds = playerIds;
         this.data = nonEmpty;
         this.playerSkinTextures = playerSkinTextures;
         this.page = page;
         this.graveOwners = graveOwners;
+
+        reloadFilters();
+    }
+
+    private void reloadFilters() {
+        this.filteredPlayerIds.clear();
+        this.filteredPlayers.clear();
+        this.data.forEach((uuid, deadPlayerData) -> {
+            List<DeadPlayerData> filteredGraves = new ArrayList<>();
+            for (DeadPlayerData grave : deadPlayerData) {
+                if (grave.availability == 1 && this.includeAvailable) {
+                    filteredGraves.add(grave);
+                } else if (grave.availability == 0 && this.includeClaimed) {
+                    filteredGraves.add(grave);
+                } else if (grave.availability == -1 && this.includeDestroyed) {
+                    filteredGraves.add(grave);
+                }
+            }
+
+            if (filteredGraves.size() > 0 || this.showWithoutGrave) {
+                filteredPlayers.put(uuid, filteredGraves);
+                filteredPlayerIds.add(uuid);
+            }
+        });
     }
 
     @Override
@@ -94,9 +122,22 @@ public class PlayerSelectScreen extends Screen {
             if (hoveredElement.equals("left") && page > 1) {
                 PlayerSelectScreen screen = new PlayerSelectScreen(data, page - 1);
                 client.setScreen(screen);
-            } else if (hoveredElement.equals("right") && data.size() > page * 4) {
+            } else if (hoveredElement.equals("right") && filteredPlayers.size() > page * 4) {
                 PlayerSelectScreen screen = new PlayerSelectScreen(data, page + 1);
                 client.setScreen(screen);
+            } else if (hoveredElement.equals("include_available")) {
+                this.includeAvailable = !this.includeAvailable;
+                reloadFilters();
+            } else if (hoveredElement.equals("include_claimed")) {
+                this.includeClaimed = !this.includeClaimed;
+                reloadFilters();
+            } else if (hoveredElement.equals("include_destroyed")) {
+                this.includeDestroyed = !this.includeDestroyed;
+                reloadFilters();
+            } else if (hoveredElement.equals("show_zero")) {
+                this.showWithoutGrave = !this.showWithoutGrave;
+                reloadFilters();
+
             } else if (isUuid(hoveredElement)) {
                 UUID parsedString = UUID.fromString(hoveredElement);
                 if (data.containsKey(parsedString)) {
@@ -111,7 +152,7 @@ public class PlayerSelectScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         final int screenWidth = 220;
-        final int screenHeight = 200;
+        final int screenHeight = 219;
         final int originX = this.width / 2;
         final int originY = this.height / 2;
 
@@ -140,15 +181,15 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, screenLeft + screenWidth - 14, originY - 8, 8, 84, 8, 15);
         }
 
-        int infoSize = this.playerIds.size();
+        int infoSize = this.filteredPlayerIds.size();
         int startValue = (page - 1) * 4;
         int whileLessThan = startValue + Math.min(4, infoSize - startValue);
         for (int i = startValue; i < whileLessThan; i++) {
-            UUID playerId = playerIds.get(i);
+            UUID playerId = filteredPlayerIds.get(i);
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
 
             int left = screenLeft + 19;
-            int top = screenTop + 24 + 42 * (i % 4);
+            int top = screenTop + 43 + 42 * (i % 4);
             int width = screenWidth - 19 * 2;
             int height = 42;
             if (mouseX > left && mouseX < left + width && mouseY > top && mouseY < top + height) {
@@ -164,13 +205,15 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, left + 5, top + 5, 32, 32, 32, 32);
 
             textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, 0x009900);
-            textRenderer.draw(matrices, data.get(playerId).size() + " graves", left + 42, top + 22, 0x555555);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size()), left + 42, top + 22, 0x555555);
         }
 
         super.render(matrices, mouseX, mouseY, delta);
 
+        renderCheckButtons(matrices, mouseX, mouseY, screenTop, screenLeft, originX);
+
         String gravesDisplayed = (startValue + 1) + "-" + whileLessThan + "/" + infoSize;
-        textRenderer.draw(matrices, "Players with graves", screenLeft + 19f, screenTop + 10f, 0x555555);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.players_with_graves"), screenLeft + 19f, screenTop + 10f, 0x555555);
 
         int offset = textRenderer.getWidth(gravesDisplayed);
         textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, 0x007700);
@@ -185,5 +228,63 @@ public class PlayerSelectScreen extends Screen {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void renderCheckButtons(MatrixStack matrices, int mouseX, int mouseY, int screenTop, int screenLeft, int originX) {
+        int boxTop = screenTop + 22;
+        int boxRow = boxTop + 9;
+
+        // Rendering checkbox for including available graves
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        int leftEdge = screenLeft + 18;
+        if (mouseX > leftEdge && mouseX < leftEdge + 6 && mouseY > boxTop && mouseY < boxTop + 6) {
+            hoveredElement = "include_available";
+        }
+        if (hoveredElement != null && hoveredElement.equals("include_available") && mouseIsClicked) {
+            drawTexture(matrices, leftEdge, boxTop, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, leftEdge, boxTop, 32, 84, 6, 6);
+        }
+        if (this.includeAvailable) drawTexture(matrices, leftEdge, boxTop, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.include_available"), leftEdge + 8f, boxTop - 1f, 0x777777);
+
+        // Include Claimed
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        if (mouseX > originX && mouseX < originX + 6 && mouseY > boxTop && mouseY < boxTop + 6) {
+            hoveredElement = "include_claimed";
+        }
+        if (hoveredElement != null && hoveredElement.equals("include_claimed") && mouseIsClicked) {
+            drawTexture(matrices, originX, boxTop, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, originX, boxTop, 32, 84, 6, 6);
+        }
+        if (this.includeClaimed) drawTexture(matrices, originX, boxTop, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.include_claimed"), originX + 8f, boxTop - 1f, 0x777777);
+
+        // Include Destroyed
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        if (mouseX > leftEdge && mouseX < leftEdge + 6 && mouseY > boxRow && mouseY < boxRow + 6) {
+            hoveredElement = "include_destroyed";
+        }
+        if (hoveredElement != null && hoveredElement.equals("include_destroyed") && mouseIsClicked) {
+            drawTexture(matrices, leftEdge, boxRow, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, leftEdge, boxRow, 32, 84, 6, 6);
+        }
+        if (this.includeDestroyed) drawTexture(matrices, leftEdge, boxRow, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.include_destroyed"), leftEdge + 8f, boxRow - 1f, 0x777777);
+
+        // Show empty
+        RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+        if (mouseX > originX && mouseX < originX + 6 && mouseY > boxRow && mouseY < boxRow + 6) {
+            hoveredElement = "show_zero";
+        }
+        if (hoveredElement != null && hoveredElement.equals("show_zero") && mouseIsClicked) {
+            drawTexture(matrices, originX, boxRow, 32, 90, 6, 6);
+        } else {
+            drawTexture(matrices, originX, boxRow, 32, 84, 6, 6);
+        }
+        if (this.showWithoutGrave) drawTexture(matrices, originX, boxRow, 38, 84, 6, 6);
+        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.show_zero"), originX + 8f, boxRow - 1f, 0x777777);
     }
 }

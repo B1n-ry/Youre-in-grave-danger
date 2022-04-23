@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.core.PacketReceivers;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,7 +17,6 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -88,7 +88,19 @@ public class ScrollItem extends Item {
 
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeNbt(selectedGrave.toNbt());
-            ServerPlayNetworking.send(spe, new Identifier("yigd", "single_grave"), buf);
+
+            YigdConfig config = YigdConfig.getConfig();
+            YigdConfig.GraveKeySettings keySettings = config.utilitySettings.graveKeySettings;
+            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+            buf.writeBoolean(config.graveSettings.unlockableGraves);
+
+            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
+            buf.writeInt(unlockedGravesAmount);
+            for (int i = 0; i < unlockedGravesAmount; i++) {
+                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
+            }
+
+            ServerPlayNetworking.send(spe, PacketReceivers.SINGLE_GRAVE_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {
             user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
