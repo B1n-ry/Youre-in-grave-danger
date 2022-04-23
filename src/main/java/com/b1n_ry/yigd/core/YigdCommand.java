@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.core;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -38,7 +39,7 @@ public class YigdCommand {
                 .then(literal("rob")
                         .requires(source -> source.hasPermissionLevel(4) && config.robGrave)
                         .then(argument("victim", EntityArgumentType.player())
-                                .executes(ctx -> robGrave(EntityArgumentType.getPlayer(ctx, "victim"), ctx.getSource().getPlayer()))
+                                .executes(ctx -> robGrave(EntityArgumentType.getPlayer(ctx, "victim").getGameProfile(), ctx.getSource().getPlayer(), null))
                         )
                 )
                 .then(literal("grave")
@@ -200,12 +201,12 @@ public class YigdCommand {
         return world;
     }
 
-    private static int robGrave(PlayerEntity victim, PlayerEntity stealer) {
+    public static int robGrave(GameProfile victim, PlayerEntity stealer, @Nullable UUID graveId) {
         if (!stealer.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.robGrave) {
             stealer.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
-        UUID victimId = victim.getUuid();
+        UUID victimId = victim.getId();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(victimId)) {
             stealer.sendMessage(new TranslatableText("text.yigd.message.rob_command.fail"), true);
@@ -214,31 +215,46 @@ public class YigdCommand {
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(victimId);
 
         if (deadPlayerData.size() <= 0) {
-            stealer.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", victim.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), true);
+            stealer.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", victim.getName()).styled(style -> style.withColor(0xFF0000)), true);
             return 0;
         }
-        DeadPlayerData latestDeath = deadPlayerData.remove(deadPlayerData.size() - 1);
+        DeadPlayerData foundDeath = deadPlayerData.get(deadPlayerData.size() - 1);
+        if (graveId != null) {
+            for (DeadPlayerData data : deadPlayerData) {
+                if (data.id != graveId) continue;
+                foundDeath = data;
+                break;
+            }
+        }
         DeathInfoManager.INSTANCE.markDirty();
 
         Map<String, Object> modInv = new HashMap<>();
         for (int i = 0; i < Yigd.apiMods.size(); i++) {
             YigdApi yigdApi = Yigd.apiMods.get(i);
-            modInv.put(yigdApi.getModName(), latestDeath.modInventories.get(i));
+            modInv.put(yigdApi.getModName(), foundDeath.modInventories.get(i));
         }
 
-        ServerWorld world = worldFromId(stealer.getServer(), latestDeath.worldId);
+        ServerWorld world = worldFromId(stealer.getServer(), foundDeath.worldId);
 
-        if (world != null && latestDeath.gravePos != null && !world.getBlockState(latestDeath.gravePos).getBlock().equals(Yigd.GRAVE_BLOCK)) {
-            world.removeBlock(latestDeath.gravePos, false);
+        if (world != null && foundDeath.gravePos != null && !world.getBlockState(foundDeath.gravePos).getBlock().equals(Yigd.GRAVE_BLOCK)) {
+            world.removeBlock(foundDeath.gravePos, false);
             if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {
-                ItemScatterer.spawn(world, latestDeath.gravePos.getX(), latestDeath.gravePos.getY(), latestDeath.gravePos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+                ItemScatterer.spawn(world, foundDeath.gravePos.getX(), foundDeath.gravePos.getY(), foundDeath.gravePos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
         }
 
-        GraveHelper.RetrieveItems(stealer, latestDeath.inventory, modInv, latestDeath.xp, true);
+        GraveHelper.RetrieveItems(stealer, foundDeath.inventory, modInv, foundDeath.xp, true);
 
         stealer.sendMessage(new TranslatableText("text.yigd.message.rob_command.success"), true);
-        victim.sendMessage(new TranslatableText("text.yigd.message.rob_command.victim"), false);
+
+        if (stealer instanceof ServerPlayerEntity spe) {
+            PlayerEntity victimPlayer = spe.server.getPlayerManager().getPlayer(victimId);
+            if (victimPlayer != null) {
+                victimPlayer.sendMessage(new TranslatableText("text.yigd.message.rob_command.victim"), false);
+            } else {
+                Yigd.notNotifiedRobberies.add(victimId);
+            }
+        }
         return 1;
     }
 

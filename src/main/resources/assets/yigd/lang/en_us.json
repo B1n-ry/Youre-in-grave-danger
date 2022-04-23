@@ -246,6 +246,7 @@
   "text.yigd.gui.player_select.show_zero": "Show with 0",
 
   "text.yigd.word.restore": "Restore",
+  "text.yigd.word.rob": "Rob",
   "text.yigd.word.delete": "Delete",
   "text.yigd.word.give_key": "Get Key",
   "text.yigd.word.lock": "Lock",

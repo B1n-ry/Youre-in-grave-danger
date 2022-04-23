@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.client.gui.GraveViewScreen;
 import com.b1n_ry.yigd.client.gui.PlayerSelectScreen;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.item.KeyItem;
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -20,6 +21,7 @@ public class PacketReceivers {
     public static final Identifier CONFIG_UPDATE = new Identifier("yigd", "config_update");
     public static final Identifier RESTORE_INVENTORY = new Identifier("yigd", "restore_inventory");
     public static final Identifier DELETE_GRAVE = new Identifier("yigd", "delete_grave");
+    public static final Identifier ROB_GRAVE = new Identifier("yigd", "rob_grave");
     public static final Identifier GIVE_KEY_ITEM = new Identifier("yigd", "give_key_item");
     public static final Identifier SET_GRAVE_LOCK = new Identifier("yigd", "set_grave_lock");
 
@@ -57,6 +59,7 @@ public class PacketReceivers {
             UUID graveId = buf.readUuid();
 
             List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(graveOwnerId);
+            if (deadPlayerData == null) return;
             for (DeadPlayerData data : deadPlayerData) {
                 if (!data.id.equals(graveId)) continue;
                 deadPlayerData.remove(data);
@@ -65,6 +68,15 @@ public class PacketReceivers {
                 break;
             }
             DeathInfoManager.INSTANCE.markDirty();
+        });
+        ServerPlayNetworking.registerGlobalReceiver(ROB_GRAVE, (server, player, handler, buf, responseSender) -> {
+            if (player == null) return;
+            String ownerName = buf.readString();
+            UUID ownerId = buf.readUuid();
+            UUID graveId = buf.readUuid();
+
+            GameProfile gameProfile = new GameProfile(ownerId, ownerName);
+            YigdCommand.robGrave(gameProfile, player, graveId);
         });
         ServerPlayNetworking.registerGlobalReceiver(GIVE_KEY_ITEM, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;

@@ -105,6 +105,18 @@ public class GraveViewScreen extends Screen {
                         this.close();
                     }
                 }
+                case "rob" -> {
+                    if (client.player != null && client.player.hasPermissionLevel(4)) {
+                        PacketByteBuf buf = PacketByteBufs.create()
+                                .writeString(this.data.graveOwner.getName())
+                                .writeUuid(this.data.graveOwner.getId())
+                                .writeUuid(this.data.id);
+
+                        ClientPlayNetworking.send(PacketReceivers.ROB_GRAVE, buf);
+
+                        this.close();
+                    }
+                }
                 case "give_key" -> {
                     PacketByteBuf buf = PacketByteBufs.create()
                             .writeUuid(this.data.graveOwner.getId())
@@ -175,6 +187,8 @@ public class GraveViewScreen extends Screen {
                 hoveredButton = "restore";
             } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 16 + yOffset && mouseY < originY - screenHeight / 2 + 31 + yOffset) {
                 hoveredButton = "delete";
+            } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 32 + yOffset && mouseY < originY - screenHeight / 2 + 47 + yOffset) {
+                hoveredButton = "rob";
             }
             if (hoveredButton != null && hoveredButton.equals("restore") && mouseIsClicked) {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
@@ -186,11 +200,17 @@ public class GraveViewScreen extends Screen {
             } else {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16 + yOffset, 182, 0, 51, 15);
             }
+            if (hoveredButton != null && hoveredButton.equals("rob") && mouseIsClicked) {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 32 + yOffset, 182, 15, 51, 30);
+            } else {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 32 + yOffset, 182, 0, 51, 15);
+            }
 
             textRenderer.draw(matrices, new TranslatableText("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20 + yOffset, 0x000000);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.rob"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20 + yOffset, 0x000000);
+            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 36 + yOffset, 0x000000);
 
-            yOffset += 32;
+            yOffset += 48;
         }
 
         if (getKeysFromGui) {
