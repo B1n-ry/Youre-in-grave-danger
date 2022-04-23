@@ -4,7 +4,11 @@ import com.b1n_ry.yigd.config.DeathEffectConfig;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -27,4 +31,7 @@ public interface YigdApi {
 
     NbtCompound writeNbt(Object o);
     Object readNbt(NbtCompound nbt);
+
+    default void dropOnGround(Object inventory, ServerWorld world, Vec3d pos) {
+    }
 }

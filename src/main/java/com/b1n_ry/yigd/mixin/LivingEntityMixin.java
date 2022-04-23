@@ -227,7 +227,9 @@ public abstract class LivingEntityMixin {
             if (!graveConfig.generateGraves || graveConfig.blacklistDimensions.contains(dimId) || graveConfig.ignoreDeathTypes.contains(source.name) || !canGenerate) {
                 for (int i = 0; i < Yigd.apiMods.size(); i++) {
                     YigdApi yigdApi = Yigd.apiMods.get(i);
-                    items.addAll(yigdApi.toStackList(modInventories.get(i)));
+                    Object o = modInventories.get(i);
+                    items.addAll(yigdApi.toStackList(o));
+                    yigdApi.dropOnGround(o, serverWorld, pos);
                 }
 
                 ItemScatterer.spawn(player.world, new BlockPos(pos), items);

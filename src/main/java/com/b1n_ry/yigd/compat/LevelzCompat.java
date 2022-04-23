@@ -3,13 +3,19 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
+import net.levelz.LevelzMain;
 import net.levelz.access.PlayerStatsManagerAccess;
 import net.levelz.access.PlayerSyncAccess;
+import net.levelz.entity.LevelExperienceOrbEntity;
 import net.levelz.stats.PlayerStatsManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -78,5 +84,11 @@ public class LevelzCompat implements YigdApi {
     @Override
     public Object readNbt(NbtCompound nbt) {
         return nbt.getFloat("xp");
+    }
+
+    @Override
+    public void dropOnGround(Object inventory, ServerWorld world, Vec3d pos) {
+        if (!(inventory instanceof Integer xp)) return;
+        LevelExperienceOrbEntity.spawn(world, pos, xp);
     }
 }
