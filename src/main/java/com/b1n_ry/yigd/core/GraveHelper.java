@@ -36,6 +36,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.gen.feature.EndPortalFeature;
 
 import java.util.*;
 
@@ -245,6 +247,17 @@ public class GraveHelper {
     }
 
     private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source, Direction direction) {
+        // If close enough to end portal, and is standing on bedrock, place grave a block up. This is so the portal won't replace graves
+        DimensionType playerDimension = player.world.getDimension();
+        Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
+
+        Identifier playerWorldId = dimManager.getId(playerDimension);
+        if (playerWorldId != null && playerWorldId.equals(DimensionType.THE_END_ID)) {
+            if (EndPortalFeature.ORIGIN.isWithinDistance(gravePos, 10) && world.getBlockState(gravePos.down()).isOf(Blocks.BEDROCK)) {
+                gravePos = gravePos.up();
+            }
+        }
+
         BlockState previousState = world.getBlockState(gravePos);
 
         boolean waterlogged = world.getFluidState(gravePos) == Fluids.WATER.getDefaultState();
