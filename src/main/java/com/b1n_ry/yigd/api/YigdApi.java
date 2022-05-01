@@ -16,7 +16,9 @@ public interface YigdApi {
     // With the Object as a custom type you can define location of said item with e.g. a map variable
     String getModName();
 
-    Object getInventory(PlayerEntity player); // Get a custom return value containing inventory items. If handleAsDeath is true, soulbound and delete methods will be run
+    default Object getInventory(PlayerEntity player) {
+        return getInventory(player, false, null); // Get a custom return value containing inventory items. If handleAsDeath is true, soulbound and delete methods will be run
+    }
     Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling);
 
     DefaultedList<ItemStack> setInventory(Object inventory, PlayerEntity player); // A method that places all items in a custom object to the player inventory

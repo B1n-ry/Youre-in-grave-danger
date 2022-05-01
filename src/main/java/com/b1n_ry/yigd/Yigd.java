@@ -191,6 +191,9 @@ public class Yigd implements ModInitializer {
         if (FabricLoader.getInstance().isModLoaded("levelz")) {
             apiMods.add(new LevelzCompat());
         }
+        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
+            apiMods.add(new InventorioCompat());
+        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
         if (FabricLoader.getInstance().isModLoaded("flan")) {

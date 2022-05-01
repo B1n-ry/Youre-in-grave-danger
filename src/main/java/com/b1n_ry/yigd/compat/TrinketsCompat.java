@@ -27,10 +27,6 @@ public class TrinketsCompat implements YigdApi {
     }
 
     @Override
-    public Object getInventory(PlayerEntity player) {
-        return getInventory(player, false, null);
-    }
-    @Override
     public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         Optional<TrinketComponent> optional = TrinketsApi.getTrinketComponent(player);
         if (optional.isEmpty()) return new HashMap<String, Map<String, TrinketInventory>>();

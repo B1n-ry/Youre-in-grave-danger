@@ -32,7 +32,6 @@ repositories {
 		}
 	}
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	flatDir {
 		dirs "./modsWithCompat"
 		content {
@@ -40,6 +39,7 @@ repositories {
 		}
 	}
 
+	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	maven {
 		name = "CottonMC"
 		url = "https://server.bbkr.space/artifactory/libs-release"
@@ -89,8 +89,8 @@ dependencies {
 
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation ("mods.compat:levelz-${project.levelz_version}") { transitive = false }
-//	modImplementation "com.github.Lizard-Of-Oz.Inventorio:inventorio-1.18-fabric:${project.inventorio_version}"
+	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
+	modImplementation("mods.compat:inventorio-${project.inventorio_version}") { transitive = false }
 //	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
 }
 

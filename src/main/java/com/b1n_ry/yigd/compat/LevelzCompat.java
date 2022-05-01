@@ -26,11 +26,6 @@ public class LevelzCompat implements YigdApi {
     }
 
     @Override
-    public Object getInventory(PlayerEntity player) {
-        return this.getInventory(player, false, null);
-    }
-
-    @Override
     public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         YigdConfig.GraveCompatConfig graveCompatConfig = YigdConfig.getConfig().graveSettings.graveCompatConfig;
 
