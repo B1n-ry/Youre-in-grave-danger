@@ -1,0 +1,26 @@
+name: "release"
+on: release
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - { uses: actions/checkout@v2, with: { fetch-depth: 0 } }
+      - {
+        name: "Set up JDK 17",
+        uses: actions/setup-java@v2,
+        with: { distribution: "adopt", java-version: "17" },
+      }
+      - {
+        name: "Build with Gradle",
+        id: build,
+        run: "chmod +x gradlew && ./gradlew build publish",
+      }
+      - name: "Upload to CurseForge"
+        uses: itsmeow/curseforge-upload@v3
+        with:
+          file_path: "build/libs/examplemod-${{ steps.build.outputs.version }}.jar"
+          game_endpoint: "minecraft"
+          relations: "fabric-api:requiredDependency"
+          game_versions: "Minecraft 1.18:1.18.1,Java 17,Fabric"
+          project_id: "0"
+          token: "${{ secrets.CF_API_TOKEN }}"

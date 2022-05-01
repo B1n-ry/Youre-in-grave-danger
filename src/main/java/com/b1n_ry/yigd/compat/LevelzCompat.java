@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import net.levelz.access.PlayerStatsManagerAccess;
 import net.levelz.access.PlayerSyncAccess;
 import net.levelz.entity.LevelExperienceOrbEntity;
+import net.levelz.init.ConfigInit;
 import net.levelz.stats.PlayerStatsManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -85,7 +86,7 @@ public class LevelzCompat implements YigdApi {
 
     @Override
     public void dropOnGround(Object inventory, ServerWorld world, Vec3d pos) {
-        if (!(inventory instanceof Integer xp)) return;
+        if (!(inventory instanceof Integer xp) || !(ConfigInit.CONFIG.dropPlayerXP && (ConfigInit.CONFIG.resetCurrentXP || ConfigInit.CONFIG.hardMode))) return;
         LevelExperienceOrbEntity.spawn(world, pos, xp);
     }
 }
