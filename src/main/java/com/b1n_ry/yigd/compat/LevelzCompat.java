@@ -38,6 +38,11 @@ public class LevelzCompat implements YigdApi {
         int exp = (int) (playerStatsManager.levelProgress * playerStatsManager.getNextLevelExperience());
 
         if (onDeath) {
+            if (!graveCompatConfig.levelzXpInGraves && ConfigInit.CONFIG.dropPlayerXP && (ConfigInit.CONFIG.resetCurrentXP || ConfigInit.CONFIG.hardMode)) {
+                // If mod configured to not include levelz exp in graves, it should instead drop it
+                LevelExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), exp);
+            }
+
             // Handle experience
             if (!graveCompatConfig.levelzXpInGraves) exp = 0; // If feature not enabled, set to 0 and let other functions handle everything
             exp *= (float) graveCompatConfig.levelzXpDropPercent / 100f;
@@ -61,7 +66,6 @@ public class LevelzCompat implements YigdApi {
 
     @Override
     public void dropAll(PlayerEntity player) {
-        if (!YigdConfig.getConfig().graveSettings.graveCompatConfig.levelzXpInGraves) return; // If feature is disabled, let the levelz mod itself handle the xp
         PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager(player);
         playerStatsManager.levelProgress = 0;
     }
@@ -86,7 +90,8 @@ public class LevelzCompat implements YigdApi {
 
     @Override
     public void dropOnGround(Object inventory, ServerWorld world, Vec3d pos) {
-        if (!(inventory instanceof Integer xp) || !(ConfigInit.CONFIG.dropPlayerXP && (ConfigInit.CONFIG.resetCurrentXP || ConfigInit.CONFIG.hardMode))) return;
+        if (!(inventory instanceof Integer xp) || !YigdConfig.getConfig().graveSettings.graveCompatConfig.levelzXpInGraves) return;
+        // If levelz xp should be in graves but no grave could spawn
         LevelExperienceOrbEntity.spawn(world, pos, xp);
     }
 }
