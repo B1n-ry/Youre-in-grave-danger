@@ -280,7 +280,7 @@ public class YigdCommand {
 
         ServerWorld world = worldFromId(player.getServer(), foundDeath.worldId);
 
-        if (world != null && foundDeath.gravePos != null && world.getBlockState(foundDeath.gravePos).getBlock().equals(Yigd.GRAVE_BLOCK)) {
+        if (world != null && foundDeath.gravePos != null && world.getBlockState(foundDeath.gravePos).isOf(Yigd.GRAVE_BLOCK)) {
             world.removeBlock(foundDeath.gravePos, false);
 
             if (YigdConfig.getConfig().graveSettings.dropGraveBlock) {

@@ -196,7 +196,7 @@
   "text.yigd.message.unclaimed_grave_missing": "%s does not have any unclaimed graves",
   "text.yigd.message.rob_command.fail": "Could not find grave to fetch",
   "text.yigd.message.rob_command.success": "Robbed grave remotely successfully",
-  "text.yigd.message.rob_command.victim": "A server OP has robbed your grave",
+  "text.yigd.message.rob_command.victim": "A server operator has robbed your grave",
   "text.yigd.message.restore_command.fail": "Could not find grave to fetch",
   "text.yigd.message.restore_command.success": "Restored grave remotely successfully",
   "text.yigd.message.view_command.fail": "%s does not have any registered graves",
