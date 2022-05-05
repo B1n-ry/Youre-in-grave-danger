@@ -53,12 +53,20 @@ public class GraveHelper {
 
     public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, List<String> ignoreEnchantments) {
         YigdConfig.ItemLoss itemLoss = YigdConfig.getConfig().graveSettings.itemLoss;
-        ItemStack stack;
-        int random;
-        do {
-            random = new Random().nextInt(itemList.size() - 1);
-            stack = itemList.get(random);
-        } while (stack.isEmpty() || stack.isIn(ModTags.RANDOM_DELETE_BLACKLIST) || hasEnchantments(ignoreEnchantments, stack) || (itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM)));
+        List<Integer> itemSlots = new ArrayList<>();
+        for (int i = 0; i < itemList.size(); i++) {
+            ItemStack stack = itemList.get(i);
+            if (!stack.isEmpty()) continue;
+            if (stack.isIn(ModTags.RANDOM_DELETE_BLACKLIST) || hasEnchantments(ignoreEnchantments, stack)) continue;
+            if ((itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM))) continue;
+
+            itemSlots.add(i);
+        }
+
+        int random = new Random().nextInt(itemSlots.size());
+        int slot = itemSlots.get(random);
+        ItemStack stack = itemList.get(slot);
+
         if (asStack) {
             itemList.set(random, ItemStack.EMPTY);
         } else {

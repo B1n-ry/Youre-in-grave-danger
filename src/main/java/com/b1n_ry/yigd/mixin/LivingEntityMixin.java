@@ -90,7 +90,7 @@ public abstract class LivingEntityMixin {
                     from = itemLoss.lossRangeFrom;
                     to = itemLoss.lossRangeTo;
                 }
-                int amount = from < to ? new Random().nextInt(from, to) : from;
+                int amount = from < to ? new Random().nextInt(from, ++to) : from;
 
                 List<String> matchingEnchantment = new ArrayList<>();
                 if (itemLoss.ignoreSoulboundItems) matchingEnchantment.addAll(soulboundEnchantments);
