@@ -3,7 +3,7 @@ package com.b1n_ry.yigd.client.gui;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.core.DeadPlayerData;
-import com.b1n_ry.yigd.core.PacketReceivers;
+import com.b1n_ry.yigd.core.ServerPacketReceivers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -89,7 +89,7 @@ public class GraveViewScreen extends Screen {
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
 
-                        ClientPlayNetworking.send(PacketReceivers.RESTORE_INVENTORY, buf);
+                        ClientPlayNetworking.send(ServerPacketReceivers.RESTORE_INVENTORY, buf);
 
                         this.onClose();
                     }
@@ -100,7 +100,7 @@ public class GraveViewScreen extends Screen {
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
 
-                        ClientPlayNetworking.send(PacketReceivers.DELETE_GRAVE, buf);
+                        ClientPlayNetworking.send(ServerPacketReceivers.DELETE_GRAVE, buf);
 
                         this.onClose();
                     }
@@ -110,7 +110,7 @@ public class GraveViewScreen extends Screen {
                             .writeUuid(this.data.graveOwner.getId())
                             .writeUuid(this.data.id);
 
-                    ClientPlayNetworking.send(PacketReceivers.GIVE_KEY_ITEM, buf);
+                    ClientPlayNetworking.send(ServerPacketReceivers.GIVE_KEY_ITEM, buf);
 
                     this.onClose();
                 }
@@ -128,7 +128,7 @@ public class GraveViewScreen extends Screen {
                             .writeUuid(this.data.id);
                     buf.writeBoolean(graveIsLocked);
 
-                    ClientPlayNetworking.send(PacketReceivers.SET_GRAVE_LOCK, buf);
+                    ClientPlayNetworking.send(ServerPacketReceivers.SET_GRAVE_LOCK, buf);
                 }
             }
         }

@@ -4,7 +4,8 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.core.PacketReceivers;
+import com.b1n_ry.yigd.core.ClientPacketReceivers;
+import com.b1n_ry.yigd.core.ServerPacketReceivers;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -22,7 +23,7 @@ public class YigdClient implements ClientModInitializer {
     public void onInitializeClient() {
         BlockEntityRendererRegistry.register(GRAVE_BLOCK_ENTITY, GraveBlockEntityRenderer::new);
 
-        PacketReceivers.registerClientReceivers();
+        ClientPacketReceivers.register();
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             YigdConfig config = YigdConfig.getConfig();
@@ -33,7 +34,7 @@ public class YigdClient implements ClientModInitializer {
                     .writeEnumConstant(normal)
                     .writeEnumConstant(robbing);
             try {
-                ClientPlayNetworking.send(PacketReceivers.CONFIG_UPDATE, buf);
+                ClientPlayNetworking.send(ServerPacketReceivers.CONFIG_UPDATE, buf);
 
                 normalPriority = normal;
                 robbingPriority = robbing;
