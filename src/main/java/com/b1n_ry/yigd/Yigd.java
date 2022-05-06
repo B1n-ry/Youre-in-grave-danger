@@ -11,7 +11,7 @@ import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.b1n_ry.yigd.core.GraveAreaOverride;
-import com.b1n_ry.yigd.core.PacketReceivers;
+import com.b1n_ry.yigd.core.ServerPacketReceivers;
 import com.b1n_ry.yigd.core.YigdCommand;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
@@ -207,7 +207,7 @@ public class Yigd implements ModInitializer {
         }
 
         YigdCommand.registerCommands();
-        PacketReceivers.registerServerReceivers();
+        ServerPacketReceivers.register();
 
         ServerWorldEvents.LOAD.register((server, world) -> {
             if (world == server.getOverworld()) {
