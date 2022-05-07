@@ -1,3 +1,10 @@
+# You're in Grave Danger 1.3.3
+
+### Fixes
+ - Fixed an issue where servers would crash on startup
+
+---
+
 # You're in Grave Danger 1.3.2
 
 ### Changes
