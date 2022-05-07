@@ -147,7 +147,7 @@ public class YigdCommand {
                 buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
             }
 
-            ServerPlayNetworking.send(player, ClientPacketReceivers.ALL_PLAYER_GRAVES, buf);
+            ServerPlayNetworking.send(player, PacketIdentifiers.ALL_PLAYER_GRAVES, buf);
         } else {
             player.sendMessage(new TranslatableText("text.yigd.message.grave_not_found"), false);
             return 0;
@@ -179,7 +179,7 @@ public class YigdCommand {
                 buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
             }
 
-            ServerPlayNetworking.send(spe, ClientPacketReceivers.PLAYER_GRAVES_GUI, buf);
+            ServerPlayNetworking.send(spe, PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.view_command.fail", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);

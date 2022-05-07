@@ -6,17 +6,12 @@ import com.b1n_ry.yigd.client.gui.PlayerSelectScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Identifier;
 
 import java.util.*;
 
 public class ClientPacketReceivers {
-    public static final Identifier SINGLE_GRAVE_GUI = new Identifier("yigd", "single_grave");
-    public static final Identifier PLAYER_GRAVES_GUI = new Identifier("yigd", "single_dead_guy");
-    public static final Identifier ALL_PLAYER_GRAVES = new Identifier("yigd", "all_dead_people");
-
     public static void register() {
-        ClientPlayNetworking.registerGlobalReceiver(SINGLE_GRAVE_GUI, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.SINGLE_GRAVE_GUI, (client, handler, buf, responseSender) -> {
             if (client == null) return;
             NbtCompound nbtData = buf.readNbt();
             GraveViewScreen.getKeysFromGui = buf.readBoolean();
@@ -35,7 +30,7 @@ public class ClientPacketReceivers {
                 MinecraftClient.getInstance().setScreen(screen);
             });
         });
-        ClientPlayNetworking.registerGlobalReceiver(PLAYER_GRAVES_GUI, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.PLAYER_GRAVES_GUI, (client, handler, buf, responseSender) -> {
             if (client == null) return;
 
             int listSize = buf.readInt();
@@ -59,7 +54,7 @@ public class ClientPacketReceivers {
                 MinecraftClient.getInstance().setScreen(screen);
             });
         });
-        ClientPlayNetworking.registerGlobalReceiver(ALL_PLAYER_GRAVES, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.ALL_PLAYER_GRAVES, (client, handler, buf, responseSender) -> {
             if (client == null) return;
 
             int mapSize = buf.readInt();

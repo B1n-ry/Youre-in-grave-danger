@@ -3,7 +3,7 @@ package com.b1n_ry.yigd.client.gui;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.core.DeadPlayerData;
-import com.b1n_ry.yigd.core.ServerPacketReceivers;
+import com.b1n_ry.yigd.core.PacketIdentifiers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -89,7 +89,7 @@ public class GraveViewScreen extends Screen {
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
 
-                        ClientPlayNetworking.send(ServerPacketReceivers.RESTORE_INVENTORY, buf);
+                        ClientPlayNetworking.send(PacketIdentifiers.RESTORE_INVENTORY, buf);
 
                         this.close();
                     }
@@ -100,7 +100,7 @@ public class GraveViewScreen extends Screen {
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
 
-                        ClientPlayNetworking.send(ServerPacketReceivers.DELETE_GRAVE, buf);
+                        ClientPlayNetworking.send(PacketIdentifiers.DELETE_GRAVE, buf);
 
                         this.close();
                     }
@@ -112,7 +112,7 @@ public class GraveViewScreen extends Screen {
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
 
-                        ClientPlayNetworking.send(ServerPacketReceivers.ROB_GRAVE, buf);
+                        ClientPlayNetworking.send(PacketIdentifiers.ROB_GRAVE, buf);
 
                         this.close();
                     }
@@ -122,7 +122,7 @@ public class GraveViewScreen extends Screen {
                             .writeUuid(this.data.graveOwner.getId())
                             .writeUuid(this.data.id);
 
-                    ClientPlayNetworking.send(ServerPacketReceivers.GIVE_KEY_ITEM, buf);
+                    ClientPlayNetworking.send(PacketIdentifiers.GIVE_KEY_ITEM, buf);
 
                     this.close();
                 }
@@ -140,7 +140,7 @@ public class GraveViewScreen extends Screen {
                             .writeUuid(this.data.id);
                     buf.writeBoolean(graveIsLocked);
 
-                    ClientPlayNetworking.send(ServerPacketReceivers.SET_GRAVE_LOCK, buf);
+                    ClientPlayNetworking.send(PacketIdentifiers.SET_GRAVE_LOCK, buf);
                 }
             }
         }

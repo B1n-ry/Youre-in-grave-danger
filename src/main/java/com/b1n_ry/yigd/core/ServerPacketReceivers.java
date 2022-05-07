@@ -7,21 +7,13 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
 
 import java.util.List;
 import java.util.UUID;
 
 public class ServerPacketReceivers {
-    public static final Identifier CONFIG_UPDATE = new Identifier("yigd", "config_update");
-    public static final Identifier RESTORE_INVENTORY = new Identifier("yigd", "restore_inventory");
-    public static final Identifier DELETE_GRAVE = new Identifier("yigd", "delete_grave");
-    public static final Identifier ROB_GRAVE = new Identifier("yigd", "rob_grave");
-    public static final Identifier GIVE_KEY_ITEM = new Identifier("yigd", "give_key_item");
-    public static final Identifier SET_GRAVE_LOCK = new Identifier("yigd", "set_grave_lock");
-
     public static void register() {
-        ServerPlayNetworking.registerGlobalReceiver(CONFIG_UPDATE, (server, player, handler, buf, responseSender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.CONFIG_UPDATE, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;
             PriorityInventoryConfig normalPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
             PriorityInventoryConfig robbingPriority = buf.readEnumConstant(PriorityInventoryConfig.class);
@@ -32,7 +24,7 @@ public class ServerPacketReceivers {
 
             Yigd.LOGGER.info("Priority overwritten for player " + player.getDisplayName().asString() + ". Normal: " + normalPriority.name() + " / Robbing: " + robbingPriority.name());
         });
-        ServerPlayNetworking.registerGlobalReceiver(RESTORE_INVENTORY, (server, player, handler, buf, responseSender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.RESTORE_INVENTORY, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;
             UUID graveOwnerId = buf.readUuid();
             UUID graveId = buf.readUuid();
@@ -44,7 +36,7 @@ public class ServerPacketReceivers {
                 player.sendMessage(new TranslatableText("text.yigd.message.backup.restore.fail").styled(style -> style.withColor(0xFF0000)), false);
             }
         });
-        ServerPlayNetworking.registerGlobalReceiver(DELETE_GRAVE, (server, player, handler, buf, responseSender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.DELETE_GRAVE, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;
             UUID graveOwnerId = buf.readUuid();
             UUID graveId = buf.readUuid();
@@ -60,7 +52,7 @@ public class ServerPacketReceivers {
             }
             DeathInfoManager.INSTANCE.markDirty();
         });
-        ServerPlayNetworking.registerGlobalReceiver(ROB_GRAVE, (server, player, handler, buf, responseSender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.ROB_GRAVE, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;
             String ownerName = buf.readString();
             UUID ownerId = buf.readUuid();
@@ -69,14 +61,14 @@ public class ServerPacketReceivers {
             GameProfile gameProfile = new GameProfile(ownerId, ownerName);
             YigdCommand.robGrave(gameProfile, player, graveId);
         });
-        ServerPlayNetworking.registerGlobalReceiver(GIVE_KEY_ITEM, (server, player, handler, buf, responseSender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GIVE_KEY_ITEM, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;
             UUID userId = buf.readUuid();
             UUID graveId = buf.readUuid();
 
             KeyItem.giveStackToPlayer(player, userId, graveId);
         });
-        ServerPlayNetworking.registerGlobalReceiver(SET_GRAVE_LOCK, (server, player, handler, buf, responseSender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.SET_GRAVE_LOCK, (server, player, handler, buf, responseSender) -> {
             UUID graveId = buf.readUuid();
             boolean graveLocked = buf.readBoolean();
 
