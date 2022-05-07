@@ -3,10 +3,7 @@ package com.b1n_ry.yigd.item;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.core.ClientPacketReceivers;
-import com.b1n_ry.yigd.core.DeadPlayerData;
-import com.b1n_ry.yigd.core.DeathInfoManager;
-import com.b1n_ry.yigd.core.ServerPacketReceivers;
+import com.b1n_ry.yigd.core.*;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
@@ -101,7 +98,7 @@ public class ScrollItem extends Item {
                 buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
             }
 
-            ServerPlayNetworking.send(spe, ClientPacketReceivers.SINGLE_GRAVE_GUI, buf);
+            ServerPlayNetworking.send(spe, PacketIdentifiers.SINGLE_GRAVE_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {
             user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);

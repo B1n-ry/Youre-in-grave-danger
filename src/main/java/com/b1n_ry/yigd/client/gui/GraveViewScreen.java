@@ -3,7 +3,7 @@ package com.b1n_ry.yigd.client.gui;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.core.DeadPlayerData;
-import com.b1n_ry.yigd.core.ServerPacketReceivers;
+import com.b1n_ry.yigd.core.PacketIdentifiers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -89,7 +89,19 @@ public class GraveViewScreen extends Screen {
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
 
-                        ClientPlayNetworking.send(ServerPacketReceivers.RESTORE_INVENTORY, buf);
+                        ClientPlayNetworking.send(PacketIdentifiers.RESTORE_INVENTORY, buf);
+
+                        this.onClose();
+                    }
+                }
+                case "rob" -> {
+                    if (client.player != null && client.player.hasPermissionLevel(4)) {
+                        PacketByteBuf buf = PacketByteBufs.create()
+                                .writeString(this.data.graveOwner.getName())
+                                .writeUuid(this.data.graveOwner.getId())
+                                .writeUuid(this.data.id);
+
+                        ClientPlayNetworking.send(PacketIdentifiers.ROB_GRAVE, buf);
 
                         this.onClose();
                     }
@@ -100,7 +112,7 @@ public class GraveViewScreen extends Screen {
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
 
-                        ClientPlayNetworking.send(ServerPacketReceivers.DELETE_GRAVE, buf);
+                        ClientPlayNetworking.send(PacketIdentifiers.DELETE_GRAVE, buf);
 
                         this.onClose();
                     }
@@ -110,7 +122,7 @@ public class GraveViewScreen extends Screen {
                             .writeUuid(this.data.graveOwner.getId())
                             .writeUuid(this.data.id);
 
-                    ClientPlayNetworking.send(ServerPacketReceivers.GIVE_KEY_ITEM, buf);
+                    ClientPlayNetworking.send(PacketIdentifiers.GIVE_KEY_ITEM, buf);
 
                     this.onClose();
                 }
@@ -128,7 +140,7 @@ public class GraveViewScreen extends Screen {
                             .writeUuid(this.data.id);
                     buf.writeBoolean(graveIsLocked);
 
-                    ClientPlayNetworking.send(ServerPacketReceivers.SET_GRAVE_LOCK, buf);
+                    ClientPlayNetworking.send(PacketIdentifiers.SET_GRAVE_LOCK, buf);
                 }
             }
         }
@@ -175,6 +187,8 @@ public class GraveViewScreen extends Screen {
                 hoveredButton = "restore";
             } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 16 + yOffset && mouseY < originY - screenHeight / 2 + 31 + yOffset) {
                 hoveredButton = "delete";
+            } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 32 + yOffset && mouseY < originY - screenHeight / 2 + 47 + yOffset) {
+                hoveredButton = "rob";
             }
             if (hoveredButton != null && hoveredButton.equals("restore") && mouseIsClicked) {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
@@ -185,6 +199,11 @@ public class GraveViewScreen extends Screen {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16 + yOffset, 182, 15, 51, 30);
             } else {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16 + yOffset, 182, 0, 51, 15);
+            }
+            if (hoveredButton != null && hoveredButton.equals("rob") && mouseIsClicked) {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 32 + yOffset, 182, 15, 51, 30);
+            } else {
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 32 + yOffset, 182, 0, 51, 15);
             }
 
             textRenderer.draw(matrices, new TranslatableText("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
