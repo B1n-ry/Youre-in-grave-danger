@@ -1,3 +1,10 @@
+# You're in Grave Danger 1.3.4
+
+### Fixes
+ - Fixed another issue where the mod would crash servers
+
+---
+
 # You're in Grave Danger 1.3.3
 
 ### Fixes
