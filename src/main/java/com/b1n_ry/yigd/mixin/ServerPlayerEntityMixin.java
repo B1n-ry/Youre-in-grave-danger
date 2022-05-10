@@ -36,7 +36,7 @@ import java.util.UUID;
 public class ServerPlayerEntityMixin {
     @Inject(method = "copyFrom", at = @At(value = "TAIL"))
     private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
-        if (alive) return;
+        if (alive || oldPlayer.isSpectator()) return;
 
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 
