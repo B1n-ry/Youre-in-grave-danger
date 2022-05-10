@@ -75,6 +75,11 @@ public class YigdConfig implements ConfigData {
         public List<String> soulboundEnchantments = List.of("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
+        public List<Integer> voidSlots = new ArrayList<>();
+        @ConfigEntry.Gui.Tooltip
+        public List<Integer> soulboundSlots = new ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
         public boolean applyBindingCurse = true;
 
         @ConfigEntry.Gui.Tooltip
@@ -290,9 +295,13 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class EnchantmentConfig {
+        @ConfigEntry.Gui.Tooltip
         public boolean enabled;
+        @ConfigEntry.Gui.Tooltip
         public boolean isTreasure;
+        @ConfigEntry.Gui.Tooltip
         public boolean villagerTrade;
+        @ConfigEntry.Gui.Tooltip
         public boolean tableAndLoot;
 
         public EnchantmentConfig (boolean enabled, boolean isTreasure, boolean villagerTrade, boolean tableAndLoot) {

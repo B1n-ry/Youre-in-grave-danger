@@ -104,19 +104,22 @@ public abstract class LivingEntityMixin {
 
             DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
+            YigdConfig.GraveSettings graveConfig = config.graveSettings;
+
             // Add defaulted soulbound items
             for (int i = 0; i < items.size(); i++) {
                 ItemStack stack = items.get(i);
 
-                if (stack.isIn(ModTags.SOULBOUND_ITEM)) soulboundInventory.set(i, stack);
+                if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i)) soulboundInventory.set(i, stack);
             }
-
-            YigdConfig.GraveSettings graveConfig = config.graveSettings;
 
             GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave
 
             List<String> removeEnchantments = graveConfig.deleteEnchantments; // List with enchantments to delete
             DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
+            for (int i : graveConfig.voidSlots) {
+                removeFromGrave.set(i, items.get(i));
+            }
             GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
 
             DimensionType playerDimension = player.world.getDimension();
