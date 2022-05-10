@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.enchantment;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.ModTags;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -25,7 +26,13 @@ public class SoulboundEnchantment extends Enchantment {
     }
 
     public boolean isTreasure() {
-        return true;
+        return YigdConfig.getConfig().utilitySettings.soulboundEnchant.isTreasure;
+    }
+    public boolean isAvailableForEnchantedBookOffer() {
+        return YigdConfig.getConfig().utilitySettings.soulboundEnchant.villagerTrade;
+    }
+    public boolean isAvailableForRandomSelection() {
+        return YigdConfig.getConfig().utilitySettings.soulboundEnchant.tableAndLoot;
     }
 
     public int getMaxLevel() {

@@ -77,16 +77,18 @@ public class ServerPlayerEntityMixin {
                     inventory.setStack(i, stack);
                 }
 
-                int i;
-                do {
-                    if (curseBindingArmor.size() <= 0) break;
-                    i = inventory.getEmptySlot();
-                    inventory.setStack(i, curseBindingArmor.get(0));
-                    curseBindingArmor.remove(0);
-                } while (i != -1);
+                DefaultedList<ItemStack> overFlow = DefaultedList.of();
+                for (ItemStack stack : curseBindingArmor) {
+                    int i = inventory.getEmptySlot();
+                    if (i < 0) {
+                        overFlow.add(stack);
+                    } else {
+                        inventory.setStack(i, stack);
+                    }
+                }
 
                 // In case player has an almost full inventory of soulbound items for some reason
-                if (curseBindingArmor.size() > 0) {
+                if (overFlow.size() > 0) {
                     ItemScatterer.spawn(player.world, player.getBlockPos(), curseBindingArmor);
                 }
             }

@@ -165,11 +165,11 @@ public class Yigd implements ModInitializer {
         Registry.register(Registry.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
 
         YigdConfig.UtilitySettings utilityConfig = YigdConfig.getConfig().utilitySettings;
-        if (utilityConfig.soulboundEnchant) {
+        if (utilityConfig.soulboundEnchant.enabled) {
             // Add the soulbound enchantment if it should be loaded (configured to enable)
             Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
-        if (utilityConfig.deathSightEnchant) {
+        if (utilityConfig.deathSightEnchant.enabled) {
             // Add the death sight enchantment if it should be loaded (configured to enable)
             DEATH_SIGHT = new DeathSightEnchantment();
             Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "death_sight"), DEATH_SIGHT);

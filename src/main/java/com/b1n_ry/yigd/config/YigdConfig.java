@@ -229,10 +229,12 @@ public class YigdConfig implements ConfigData {
     public static class UtilitySettings {
         @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
-        public boolean soulboundEnchant = true;
+        @ConfigEntry.Gui.CollapsibleObject
+        public EnchantmentConfig soulboundEnchant = new EnchantmentConfig(true, false, true, false);
         @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.Gui.Tooltip
-        public boolean deathSightEnchant = false;
+        @ConfigEntry.Gui.CollapsibleObject
+        public EnchantmentConfig deathSightEnchant = new EnchantmentConfig(false, true, true, true);
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public ScrollSettings scrollItem = new ScrollSettings();
@@ -285,6 +287,20 @@ public class YigdConfig implements ConfigData {
         public boolean whitelistRemove = true;
         @ConfigEntry.Gui.Tooltip
         public boolean whitelistToggle = true;
+    }
+
+    public static class EnchantmentConfig {
+        public boolean enabled;
+        public boolean isTreasure;
+        public boolean villagerTrade;
+        public boolean tableAndLoot;
+
+        public EnchantmentConfig (boolean enabled, boolean isTreasure, boolean villagerTrade, boolean tableAndLoot) {
+            this.enabled = enabled;
+            this.isTreasure = isTreasure;
+            this.villagerTrade = villagerTrade;
+            this.tableAndLoot = tableAndLoot;
+        }
     }
 
     public static YigdConfig getConfig() {
