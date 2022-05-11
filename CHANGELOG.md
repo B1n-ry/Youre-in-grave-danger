@@ -1,3 +1,17 @@
+# You're in Grave Danger 1.3.5
+
+### Fixes
+ - You will no longer lose all your items if you die in spectator mode
+ - Fixed a potential issue if player had their inventory full of soulbound items, and had both curse of binding and soulbound on their armor, the armor would either disappear, or the game would hang, or it would work. Anyway now it works better
+
+### Changes
+ - Added 2 new configs. voidSlots and soulboundSlots
+   - voidSlots: You can configure slot IDs for some slots that will never get saved in your grave.
+   - soulboundSlots: You can configure slot IDs for some slots that will always receive the soulbound trait.
+   - Slot IDs are available to read in the wiki. If any mod extending the inventory is included, the IDs will not be the same (for example BigInv mod)
+
+---
+
 # You're in Grave Danger 1.3.4
 
 ### Fixes
