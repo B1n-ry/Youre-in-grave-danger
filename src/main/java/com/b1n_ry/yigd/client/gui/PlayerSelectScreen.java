@@ -8,7 +8,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
@@ -35,7 +36,7 @@ public class PlayerSelectScreen extends Screen {
     private boolean showWithoutGrave = false;
 
     public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page) {
-        super(new TranslatableText("text.yigd.gui.player_select.title"));
+        super(MutableText.of(new TranslatableTextContent("text.yigd.gui.player_select.title")));
 
         Map<UUID, List<DeadPlayerData>> nonEmpty = new HashMap<>();
         Map<UUID, Identifier> playerSkinTextures = new HashMap<>();
@@ -205,7 +206,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, left + 5, top + 5, 32, 32, 32, 32);
 
             textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, 0x009900);
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size()), left + 42, top + 22, 0x555555);
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size())), left + 42, top + 22, 0x555555);
         }
 
         super.render(matrices, mouseX, mouseY, delta);
@@ -213,7 +214,7 @@ public class PlayerSelectScreen extends Screen {
         renderCheckButtons(matrices, mouseX, mouseY, screenTop, screenLeft, originX);
 
         String gravesDisplayed = (startValue + 1) + "-" + whileLessThan + "/" + infoSize;
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.players_with_graves"), screenLeft + 19f, screenTop + 10f, 0x555555);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.player_select.players_with_graves")), screenLeft + 19f, screenTop + 10f, 0x555555);
 
         int offset = textRenderer.getWidth(gravesDisplayed);
         textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, 0x007700);
@@ -246,7 +247,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, leftEdge, boxTop, 32, 84, 6, 6);
         }
         if (this.includeAvailable) drawTexture(matrices, leftEdge, boxTop, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.include_available"), leftEdge + 8f, boxTop - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.player_select.include_available")), leftEdge + 8f, boxTop - 1f, 0x777777);
 
         // Include Claimed
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -259,7 +260,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, originX, boxTop, 32, 84, 6, 6);
         }
         if (this.includeClaimed) drawTexture(matrices, originX, boxTop, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.include_claimed"), originX + 8f, boxTop - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.player_select.include_claimed")), originX + 8f, boxTop - 1f, 0x777777);
 
         // Include Destroyed
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -272,7 +273,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, leftEdge, boxRow, 32, 84, 6, 6);
         }
         if (this.includeDestroyed) drawTexture(matrices, leftEdge, boxRow, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.include_destroyed"), leftEdge + 8f, boxRow - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.player_select.include_destroyed")), leftEdge + 8f, boxRow - 1f, 0x777777);
 
         // Show empty
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -285,6 +286,6 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, originX, boxRow, 32, 84, 6, 6);
         }
         if (this.showWithoutGrave) drawTexture(matrices, originX, boxRow, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.show_zero"), originX + 8f, boxRow - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.player_select.show_zero")), originX + 8f, boxRow - 1f, 0x777777);
     }
 }

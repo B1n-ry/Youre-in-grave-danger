@@ -35,6 +35,7 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.feature.EndPortalFeature;
 
 import java.util.*;
@@ -258,7 +259,7 @@ public class GraveHelper {
         Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
 
         Identifier playerWorldId = dimManager.getId(playerDimension);
-        if (playerWorldId != null && playerWorldId.equals(DimensionType.THE_END_ID)) {
+        if (playerWorldId != null && playerWorldId.equals(DimensionTypes.THE_END_ID)) {
             if (EndPortalFeature.ORIGIN.isWithinDistance(gravePos, 10) && world.getBlockState(gravePos.down()).isOf(Blocks.BEDROCK)) {
                 gravePos = gravePos.up();
             }
@@ -454,7 +455,7 @@ public class GraveHelper {
         ItemScatterer.spawn(player.world, player.getBlockPos(), extraItems);
         player.addExperience(xp);
 
-        Yigd.LOGGER.info(player.getDisplayName().asString() + " retrieved the items from the grave");
+        Yigd.LOGGER.info(player.getDisplayName().getString() + " retrieved the items from the grave");
     }
 
     private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {

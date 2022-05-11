@@ -15,10 +15,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.network.MessageType;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -112,8 +114,8 @@ public class GraveBlockEntity extends BlockEntity {
             nbt.putString("SkullOwner", this.graveSkull.getName());
             stack.writeNbt(nbt);
         }
+        if (world == null) return;
         ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), stack);
-
     }
 
     @Override
@@ -196,7 +198,7 @@ public class GraveBlockEntity extends BlockEntity {
             Yigd.notNotifiedPlayers.add(grave.graveOwner.getId());
             return;
         }
-        graveOwner.sendMessage(new TranslatableText("text.yigd.message.timeout" + (deletion.dropInventory ? ".dropped" : "")), false);
+        graveOwner.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.timeout" + (deletion.dropInventory ? ".dropped" : ""))), MessageType.SYSTEM);
     }
 
     public void setGraveOwner(GameProfile owner) {

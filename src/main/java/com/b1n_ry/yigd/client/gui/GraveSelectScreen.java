@@ -8,7 +8,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
@@ -38,7 +39,7 @@ public class GraveSelectScreen extends Screen {
     private final List<GuiGraveInfo> filteredGraves = new ArrayList<>();
 
     public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen) {
-        super(new TranslatableText("text.yigd.gui.grave_select.title"));
+        super(MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.title")));
         List<GuiGraveInfo> info = new ArrayList<>();
         for (DeadPlayerData deadData : data) {
             int size = 0;
@@ -217,8 +218,8 @@ public class GraveSelectScreen extends Screen {
             }
 
             textRenderer.draw(matrices, info.data.gravePos.getX() + " " + info.data.gravePos.getY() + " " + info.data.gravePos.getZ() + " " + info.data.dimensionName, left + 5f, top + 5f, 0xCC00CC);
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.x_items", info.itemSize), left + 5f, top + 17f, 0x0000CC);
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.x_levels", info.xpLevels), left + 5f, top + 29f, 0x299608);
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.x_items", info.itemSize)), left + 5f, top + 17f, 0x0000CC);
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.x_levels", info.xpLevels)), left + 5f, top + 29f, 0x299608);
             iterations++;
         }
 
@@ -228,7 +229,7 @@ public class GraveSelectScreen extends Screen {
 
         int firstElement = (page - 1) * 4 + 1;
         String gravesDisplayed = firstElement + "-" + (firstElement + Math.min(3, infoSize - firstElement)) + "/" + infoSize;
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.graves_of_user", graveOwner.getName()), screenLeft + 19f, screenTop + 10f, 0x555555);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.graves_of_user", graveOwner.getName())), screenLeft + 19f, screenTop + 10f, 0x555555);
 
         int offset = textRenderer.getWidth(gravesDisplayed);
         textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, 0x007700);
@@ -260,7 +261,7 @@ public class GraveSelectScreen extends Screen {
             drawTexture(matrices, leftEdge, boxTop, 32, 84, 6, 6);
         }
         if (this.showPlaced) drawTexture(matrices, leftEdge, boxTop, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.show_available"), leftEdge + 8f, boxTop - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.show_available")), leftEdge + 8f, boxTop - 1f, 0x777777);
 
         // Show Claimed
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -273,7 +274,7 @@ public class GraveSelectScreen extends Screen {
             drawTexture(matrices, originX, boxTop, 32, 84, 6, 6);
         }
         if (this.showClaimed) drawTexture(matrices, originX, boxTop, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.show_claimed"), originX + 8f, boxTop - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.show_claimed")), originX + 8f, boxTop - 1f, 0x777777);
 
         // Show Destroyed
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -286,7 +287,7 @@ public class GraveSelectScreen extends Screen {
             drawTexture(matrices, leftEdge, boxRow, 32, 84, 6, 6);
         }
         if (this.showDeleted) drawTexture(matrices, leftEdge, boxRow, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.show_destroyed"), leftEdge + 8f, boxRow - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.show_destroyed")), leftEdge + 8f, boxRow - 1f, 0x777777);
 
         // Show Status
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -299,7 +300,7 @@ public class GraveSelectScreen extends Screen {
             drawTexture(matrices, originX, boxRow, 32, 84, 6, 6);
         }
         if (this.showStatus) drawTexture(matrices, originX, boxRow, 38, 84, 6, 6);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.show_status"), originX + 8f, boxRow - 1f, 0x777777);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.show_status")), originX + 8f, boxRow - 1f, 0x777777);
     }
 
     private record GuiGraveInfo(DeadPlayerData data, int itemSize, int xpLevels) { }

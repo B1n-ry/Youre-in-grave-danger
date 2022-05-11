@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
+	id 'fabric-loom' version '0.12-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -68,29 +68,29 @@ dependencies {
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 
 	// Hammerlike compat
-	modImplementation("com.github.Draylar:magna:${project.magna_version}")
+//	modImplementation("com.github.Draylar:magna:${project.magna_version}")
 
 	// Required for some mod compatibility to work
-	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
-	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}") { transitive = false }
-	modImplementation("eu.pb4:placeholder-api:${project.placeholder_version}")
-	modImplementation("eu.pb4:polymer:${project.polymer_version}")
-	modImplementation("eu.pb4:sgui:${project.sgui_version}")
-	modImplementation("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") { transitive = false } // Required for goml compat to work
-	modImplementation("io.github.ladysnake:PlayerAbilityLib:${project.pal_version}")
-	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
-	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
+//	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
+//	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}") { transitive = false }
+//	modImplementation("eu.pb4:placeholder-api:${project.placeholder_version}")
+//	modImplementation("eu.pb4:polymer:${project.polymer_version}")
+//	modImplementation("eu.pb4:sgui:${project.sgui_version}")
+//	modImplementation("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") { transitive = false } // Required for goml compat to work
+//	modImplementation("io.github.ladysnake:PlayerAbilityLib:${project.pal_version}")
+//	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
+//	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
 
 	// Land claim compat mods
-	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
-	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
-	modImplementation("mods.compat:goml-${project.goml_version}")
+//	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
+//	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
+//	modImplementation("mods.compat:goml-${project.goml_version}")
 //	modImplementation("eu.pb4:goml:1.18-SNAPSHOT")
 
 	// Inventory Compat mods
-	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
-	modImplementation("mods.compat:inventorio-${project.inventorio_version}") { transitive = false }
+//	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
+//	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
+//	modImplementation("mods.compat:inventorio-${project.inventorio_version}") { transitive = false }
 //	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
 }
 

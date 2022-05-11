@@ -16,8 +16,9 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -45,7 +46,7 @@ public class GraveViewScreen extends Screen {
     public static List<UUID> unlockedGraves = new ArrayList<>();
 
     public GraveViewScreen(DeadPlayerData data, @Nullable Screen previousScreen) {
-        super(data.graveOwner != null ? new TranslatableText("text.yigd.gui.grave_view.title", data.graveOwner.getName()) : new TranslatableText("text.yigd.gui.grave_view.title.missing"));
+        super(data.graveOwner != null ? MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_view.title", data.graveOwner.getName())) : MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_view.title.missing")));
         this.data = data;
         this.previousScreen = previousScreen;
 
@@ -175,9 +176,9 @@ public class GraveViewScreen extends Screen {
             }
 
             if (unlockedGraves.contains(this.data.id)) {
-                textRenderer.draw(matrices, new TranslatableText("text.yigd.word.lock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+                textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.lock")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
             } else {
-                textRenderer.draw(matrices, new TranslatableText("text.yigd.word.unlock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+                textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.unlock")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
             }
         }
 
@@ -206,9 +207,9 @@ public class GraveViewScreen extends Screen {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 32 + yOffset, 182, 0, 51, 15);
             }
 
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.rob"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20 + yOffset, 0x000000);
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 36 + yOffset, 0x000000);
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.restore")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.rob")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20 + yOffset, 0x000000);
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.delete")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 36 + yOffset, 0x000000);
 
             yOffset += 48;
         }
@@ -223,7 +224,7 @@ public class GraveViewScreen extends Screen {
             } else {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
             }
-            textRenderer.draw(matrices, new TranslatableText("text.yigd.word.give_key"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.give_key")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
         }
 
         if (client != null) {
@@ -264,17 +265,17 @@ public class GraveViewScreen extends Screen {
         }
 
         String string = "death.attack." + data.deathSource.name;
-        Text deathMsg = new TranslatableText(string, data.graveOwner.getName());
+        Text deathMsg = MutableText.of(new TranslatableTextContent(string, data.graveOwner.getName()));
 
         super.render(matrices, mouseX, mouseY, delta);
 
         float textX = originX - screenWidth / 2f + 80f;
         textRenderer.draw(matrices, deathMsg, originX - screenWidth / 2f + 7f, originY - screenHeight / 2f + 5f, 0xAA0000);
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_view.dim_name", data.dimensionName), textX, originY - screenHeight / 2f + 16, 0x0055c4);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_view.dim_name", data.dimensionName)), textX, originY - screenHeight / 2f + 16, 0x0055c4);
         textRenderer.draw(matrices, data.gravePos.getX() + " " + data.gravePos.getY() + " " + data.gravePos.getZ(), textX, originY - screenHeight / 2f + 28f, 0xBB00BB);
         if (data.modInventories.size() > 0 || data.inventory.size() > 41) {
             // Kind of a huge block of code made to print strings with break row
-            String modItemsText = new TranslatableText("text.yigd.gui.grave_view.mod_inv_items", modItemSize).getString();
+            String modItemsText = MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_view.mod_inv_items", modItemSize)).getString();
             String[] words = modItemsText.split(" ");
             StringBuilder cachedString = new StringBuilder();
             int stringLength = 0;
@@ -299,7 +300,7 @@ public class GraveViewScreen extends Screen {
             }
             textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 40f + 9f * row, 0x555555);
         }
-        textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_view.level_count", this.xpLevels), textX + 18f, originY - screenHeight / 2f + 77f, 0x299608);
+        textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_view.level_count", this.xpLevels)), textX + 18f, originY - screenHeight / 2f + 77f, 0x299608);
 
         if (client != null && client.player != null) {
             int playerX = originX - screenWidth / 2 + 50;

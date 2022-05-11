@@ -5,7 +5,7 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
-import com.b1n_ry.yigd.compat.*;
+//import com.b1n_ry.yigd.compat.*;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -37,10 +37,13 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.network.MessageType;
+import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.slf4j.Logger;
@@ -79,31 +82,36 @@ public class Yigd implements ModInitializer {
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
+            public Identifier getFabricId() {
+                return new Identifier("yigd", "custom/graveyard");
+            }
+
+            @Override
             @SuppressWarnings("deprecation")
             public void reload(ResourceManager manager) {
                 graveyard = null;
-
-                for (Identifier id : manager.findResources("custom", path -> path.equals("graveyard.json"))) {
-                    if (!id.getNamespace().equals("yigd")) continue;
-                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                List<Resource> graveyardResources = manager.getAllResources(new Identifier("yigd", "custom/graveyard.json"));
+                for (Resource resource : graveyardResources) {
+                    try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading graveyard");
                         graveyard = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
-                        break;
-                    } catch(Exception e) {
-                        LOGGER.error("Error occurred while loading resource json " + id + "\n" + e);
+                    }
+                    catch (Exception e) {
+                        LOGGER.error("Error occurred while loading resource json yigd:graveyard" + "\n" + e);
                     }
                 }
+
                 // Using experimental features so things may or may not cause issues
                 try {
                     if (FabricLoader.getInstance() != null) {
                         if (FabricLoader.getInstance().getGameInstance() instanceof MinecraftServer) {
-                            for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
-                                if (!id.getNamespace().equals("yigd")) continue;
-                                try (InputStream stream = manager.getResource(id).getInputStream()) {
+                            List<Resource> graveResources = manager.getAllResources(new Identifier("yigd", "custom/grave.json"));
+                            for (Resource resource : graveResources) {
+                                try (InputStream stream = resource.getInputStream()) {
                                     LOGGER.info("Reloading grave shape (server side)");
                                     GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
-                                    break;
-                                } catch (Exception e) {
+                                }
+                                catch (Exception e) {
                                     LOGGER.error("Error occurred while loading custom grave shape (server side)\n" + e);
                                 }
                             }
@@ -114,9 +122,9 @@ public class Yigd implements ModInitializer {
                     LOGGER.error("Error occurred while trying to generate server side voxel-shape\n" + e);
                 }
 
-                for (Identifier id : manager.findResources("custom", path -> path.equals("grave_areas.json"))) {
-                    if (!id.getNamespace().equals("yigd")) continue;
-                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                List<Resource> graveAreaResources = manager.getAllResources(new Identifier("yigd", "custom/grave_areas.json"));
+                for (Resource resource : graveAreaResources) {
+                    try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading custom grave areas");
                         GraveAreaOverride.reloadGraveAreas((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
                         break;
@@ -126,29 +134,21 @@ public class Yigd implements ModInitializer {
                     }
                 }
             }
-
-            @Override
-            public Identifier getFabricId() {
-                return new Identifier("yigd", "graveyard");
-            }
         });
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public void reload(ResourceManager manager) {
                 GraveBlock.customModel = null;
 
-                Collection<Identifier> ids = manager.findResources("models/block", path -> path.equals("grave.json"));
-
-                for (Identifier id : ids) {
-                    if (!id.getNamespace().equals("yigd")) continue;
-                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                List<Resource> blockResources = manager.getAllResources(new Identifier("yigd", "models/block/grave.json"));
+                for (Resource resource : blockResources) {
+                    try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading grave model (client)");
                         GraveBlock.customModel = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
                         GraveBlock.reloadVoxelShapes(GraveBlock.customModel);
                         GraveBlockEntityRenderer.reloadCustomModel();
-                        break;
                     } catch (Exception e) {
-                        LOGGER.error("Error occurred while loading custom grave model " + id + "\n" + e);
+                        LOGGER.error("Error occurred while loading custom grave model (client)" + "\n" + e);
                     }
                 }
             }
@@ -185,26 +185,26 @@ public class Yigd implements ModInitializer {
             Registry.register(Registry.ITEM, new Identifier("yigd", "grave_key"), KEY_ITEM);
         }
 
-        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
-            apiMods.add(new TrinketsCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("levelz")) {
-            apiMods.add(new LevelzCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
-            apiMods.add(new InventorioCompat());
-        }
+//        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+//            apiMods.add(new TrinketsCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("levelz")) {
+//            apiMods.add(new LevelzCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
+//            apiMods.add(new InventorioCompat());
+//        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
-        if (FabricLoader.getInstance().isModLoaded("flan")) {
-            claimMods.add(new FlanCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
-            claimMods.add(new FtbChunksCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("goml")) {
-            claimMods.add(new GomlCompat());
-        }
+//        if (FabricLoader.getInstance().isModLoaded("flan")) {
+//            claimMods.add(new FlanCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
+//            claimMods.add(new FtbChunksCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("goml")) {
+//            claimMods.add(new GomlCompat());
+//        }
 
         YigdCommand.registerCommands();
         ServerPacketReceivers.register();
@@ -217,11 +217,11 @@ public class Yigd implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             UUID playerId = handler.player.getUuid();
             if (notNotifiedPlayers.contains(playerId)) {
-                handler.player.sendMessage(new TranslatableText("text.yigd.message.timeout.offline"), false);
+                handler.player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.timeout.offline")), MessageType.SYSTEM);
                 notNotifiedPlayers.remove(playerId);
             }
             if (notNotifiedRobberies.contains(playerId)) {
-                handler.player.sendMessage(new TranslatableText("text.yigd.message.robbed.offline"), false);
+                handler.player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.robbed.offline")), MessageType.SYSTEM);
                 notNotifiedRobberies.remove(playerId);
             }
         });

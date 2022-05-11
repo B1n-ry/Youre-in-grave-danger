@@ -206,7 +206,7 @@ public abstract class LivingEntityMixin {
             if (graveConfig.dropPlayerHead) {
                 ItemStack stack = new ItemStack(Items.PLAYER_HEAD, 1);
                 NbtCompound nbt = new NbtCompound();
-                nbt.putString("SkullOwner", player.getName().asString());
+                nbt.putString("SkullOwner", player.getName().getString());
                 stack.setNbt(nbt);
                 items.add(stack);
             }
