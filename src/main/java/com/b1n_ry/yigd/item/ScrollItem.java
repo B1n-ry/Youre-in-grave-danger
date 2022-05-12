@@ -11,7 +11,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -19,7 +19,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -66,11 +65,11 @@ public class ScrollItem extends Item {
             }
 
             DeadPlayerData selectedGrave = null;
-            NbtCompound refNbt = scroll.getSubNbt("ref");
+            NbtElement refNbt = scroll.getSubNbt("ref");
             if (refNbt != null) {
-                BlockPos gravePos = NbtHelper.toBlockPos(refNbt);
+                UUID graveId = NbtHelper.toUuid(refNbt);
                 for (DeadPlayerData data : deadPlayerData) {
-                    if (data.gravePos.equals(gravePos)) {
+                    if (data.id.equals(graveId)) {
                         selectedGrave = data;
                         break;
                     }
@@ -127,22 +126,24 @@ public class ScrollItem extends Item {
         }
 
         List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(userId);
+        graves.removeIf(grave -> grave.availability != 1);
+
+        if (graves.size() <= 0) {
+            user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.you_have_no_graves")), true);
+            return;
+        }
 
         DeadPlayerData selectedGrave = null;
-        NbtCompound refNbt = scroll.getSubNbt("ref");
+        NbtElement refNbt = scroll.getSubNbt("ref");
         if (refNbt != null) {
-            BlockPos gravePos = NbtHelper.toBlockPos(refNbt);
+            UUID graveId = NbtHelper.toUuid(refNbt);
             for (DeadPlayerData data : graves) {
-                if (data.gravePos.equals(gravePos)) {
+                if (data.id.equals(graveId)) {
                     selectedGrave = data;
                     break;
                 }
             }
         } else {
-            if (graves.size() <= 0) {
-                user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.you_have_no_graves")), true);
-                return;
-            }
             selectedGrave = graves.get(graves.size() - 1);
         }
         if (selectedGrave == null) {
