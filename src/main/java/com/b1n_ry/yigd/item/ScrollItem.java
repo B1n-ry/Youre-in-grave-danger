@@ -11,14 +11,13 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -65,11 +64,11 @@ public class ScrollItem extends Item {
             }
 
             DeadPlayerData selectedGrave = null;
-            NbtCompound refNbt = scroll.getSubNbt("ref");
+            NbtElement refNbt = scroll.getSubNbt("ref");
             if (refNbt != null) {
-                BlockPos gravePos = NbtHelper.toBlockPos(refNbt);
+                UUID graveId = NbtHelper.toUuid(refNbt);
                 for (DeadPlayerData data : deadPlayerData) {
-                    if (data.gravePos.equals(gravePos)) {
+                    if (data.id.equals(graveId)) {
                         selectedGrave = data;
                         break;
                     }
@@ -127,39 +126,38 @@ public class ScrollItem extends Item {
 
         List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(userId);
 
+        if (graves.size() <= 0) {
+            user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
+            return;
+        }
+
         DeadPlayerData selectedGrave = null;
-        NbtCompound refNbt = scroll.getSubNbt("ref");
+        NbtElement refNbt = scroll.getSubNbt("ref");
         if (refNbt != null) {
-            BlockPos gravePos = NbtHelper.toBlockPos(refNbt);
+            UUID graveId = NbtHelper.toUuid(refNbt);
             for (DeadPlayerData data : graves) {
-                if (data.gravePos.equals(gravePos)) {
+                if (data.id.equals(graveId)) {
                     selectedGrave = data;
                     break;
                 }
             }
         } else {
-            if (graves.size() <= 0) {
-                user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
-                return;
-            }
             selectedGrave = graves.get(graves.size() - 1);
         }
-        if (selectedGrave == null) {
+        if (selectedGrave == null || selectedGrave.availability != 1) {
             user.sendMessage(new TranslatableText("text.yigd.message.grave_now_gone"), true);
             return;
         }
 
-        DeadPlayerData grave = graves.get(graves.size() - 1);
-
-        if (grave.gravePos == null || grave.worldId != world.getRegistryKey().getValue()) {
-            if (grave.gravePos == null) {
+        if (selectedGrave.gravePos == null || selectedGrave.worldId != world.getRegistryKey().getValue()) {
+            if (selectedGrave.gravePos == null) {
                 user.sendMessage(new TranslatableText("text.yigd.message.missing_grave_location"), true);
             } else {
                 user.sendMessage(new TranslatableText("text.yigd.message.cross_dim_error"), true);
             }
             return;
         }
-        user.teleport(grave.gravePos.getX() + 0.5, grave.gravePos.getY() + 0.5, grave.gravePos.getZ() + 0.5);
+        user.teleport(selectedGrave.gravePos.getX() + 0.5, selectedGrave.gravePos.getY() + 0.5, selectedGrave.gravePos.getZ() + 0.5);
         scroll.decrement(1);
     }
 }
