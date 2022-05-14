@@ -157,7 +157,7 @@ public class YigdCommand {
 
     private static int viewGrave(PlayerEntity player, PlayerEntity commandUser) {
         UUID userId = player.getUuid();
-        if (!(commandUser.hasPermissionLevel(4) && YigdConfig.getConfig().commandToggles.adminView) || !(YigdConfig.getConfig().commandToggles.selfView && userId.equals(commandUser.getUuid()))) {
+        if (!((commandUser.hasPermissionLevel(4) && YigdConfig.getConfig().commandToggles.adminView) || (YigdConfig.getConfig().commandToggles.selfView && userId.equals(commandUser.getUuid())))) {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
