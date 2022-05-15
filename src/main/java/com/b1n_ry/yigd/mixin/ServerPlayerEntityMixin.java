@@ -14,8 +14,8 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.TranslatableText;
@@ -36,7 +36,7 @@ import java.util.UUID;
 public class ServerPlayerEntityMixin {
     @Inject(method = "copyFrom", at = @At(value = "TAIL"))
     private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
-        if (alive) return;
+        if (alive || oldPlayer.isSpectator()) return;
 
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 
@@ -115,7 +115,7 @@ public class ServerPlayerEntityMixin {
                 DeadPlayerData latestDeath = deadPlayerData.get(deadPlayerData.size() - 1);
                 BlockPos deathPos = latestDeath.gravePos;
 
-                giveScroll(player, deathPos);
+                giveScroll(player, latestDeath.id);
 
                 // Give grave key linked to the grave if it should give keys on respawn. Function will by itself fail if the item is disabled
                 if (yigdConfig.utilitySettings.graveKeySettings.retrieveOnRespawn) {
@@ -132,12 +132,12 @@ public class ServerPlayerEntityMixin {
         }
     }
 
-    private void giveScroll(PlayerEntity player, BlockPos refPos) {
+    private void giveScroll(PlayerEntity player, UUID graveId) {
         YigdConfig.UtilitySettings utilityConfig = YigdConfig.getConfig().utilitySettings;
         if (utilityConfig.scrollItem.scrollType == ScrollTypeConfig.DISABLED || !utilityConfig.scrollItem.retrieveOnRespawn) return;
         ItemStack stack = Yigd.SCROLL_ITEM.getDefaultStack();
 
-        NbtCompound posNbt = NbtHelper.fromBlockPos(refPos);
+        NbtIntArray posNbt = NbtHelper.fromUuid(graveId);
         stack.setSubNbt("ref", posNbt);
 
         player.giveItemStack(stack);

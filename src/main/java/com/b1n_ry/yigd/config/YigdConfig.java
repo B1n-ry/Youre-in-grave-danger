@@ -69,7 +69,7 @@ public class YigdConfig implements ConfigData {
         public ItemLoss itemLoss = new ItemLoss();
 
         @ConfigEntry.Gui.Tooltip
-        public List<String> deleteEnchantments = List.of("minecraft:vanishing:curse", "vanishing_curse"); // Apparently without the namespace/id vanilla will still make it work
+        public List<String> deleteEnchantments = List.of("minecraft:vanishing_curse", "vanishing_curse"); // Apparently without the namespace/id vanilla will still make it work
 
         @ConfigEntry.Gui.Tooltip
         public List<String> soulboundEnchantments = List.of("yigd:soulbound");
