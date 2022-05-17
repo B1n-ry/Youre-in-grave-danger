@@ -29,12 +29,15 @@ public class PlayerSelectScreen extends Screen {
     private boolean mouseIsClicked = false;
     private String hoveredElement = null;
 
-    private boolean includeAvailable = true;
-    private boolean includeClaimed = false;
-    private boolean includeDestroyed = false;
-    private boolean showWithoutGrave = false;
+    private boolean includeAvailable;
+    private boolean includeClaimed;
+    private boolean includeDestroyed;
+    private boolean showWithoutGrave;
 
     public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page) {
+        this(data, page, true, false, false, false);
+    }
+    public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page, boolean includeAvailable, boolean includeClaimed, boolean includeDestroyed, boolean showWithoutGrave) {
         super(new TranslatableText("text.yigd.gui.player_select.title"));
 
         Map<UUID, List<DeadPlayerData>> nonEmpty = new HashMap<>();
@@ -67,6 +70,11 @@ public class PlayerSelectScreen extends Screen {
         this.playerSkinTextures = playerSkinTextures;
         this.page = page;
         this.graveOwners = graveOwners;
+
+        this.includeAvailable = includeAvailable;
+        this.includeClaimed = includeClaimed;
+        this.includeDestroyed = includeDestroyed;
+        this.showWithoutGrave = showWithoutGrave;
 
         reloadFilters();
     }
@@ -120,10 +128,10 @@ public class PlayerSelectScreen extends Screen {
         mouseIsClicked = false;
         if (button == 0 && hoveredElement != null && client != null) {
             if (hoveredElement.equals("left") && page > 1) {
-                PlayerSelectScreen screen = new PlayerSelectScreen(data, page - 1);
+                PlayerSelectScreen screen = new PlayerSelectScreen(data, page - 1, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("right") && filteredPlayers.size() > page * 4) {
-                PlayerSelectScreen screen = new PlayerSelectScreen(data, page + 1);
+                PlayerSelectScreen screen = new PlayerSelectScreen(data, page + 1, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("include_available")) {
                 this.includeAvailable = !this.includeAvailable;
@@ -204,7 +212,7 @@ public class PlayerSelectScreen extends Screen {
             RenderSystem.setShaderTexture(0, playerSkinTextures.get(playerId));
             drawTexture(matrices, left + 5, top + 5, 32, 32, 32, 32);
 
-            textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, 0x009900);
+            textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, 0x004000);
             textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size()), left + 42, top + 22, 0x555555);
         }
 

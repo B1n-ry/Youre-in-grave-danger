@@ -38,6 +38,12 @@ repositories {
 			includeGroup "mods.compat"
 		}
 	}
+	maven {
+		url "https://cursemaven.com"
+		content {
+			includeGroup "curse.maven"
+		}
+	}
 
 	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	maven {
@@ -66,6 +72,8 @@ dependencies {
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
+	modImplementation("curse.maven:thegraveyard-514468:3792651")
+//	modImplementation("mods.compat:The_Graveyard_${project.graveyard_version}_(FABRIC)_for_${project.minecraft_version}")
 
 	// Hammerlike compat
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")

@@ -1,3 +1,15 @@
+# You're in Grave Danger 1.3.6
+
+### Changes
+ - Added compatibility with The Graveyard!
+   - You can configure so that dying close to a graveyard will have your grave spawn in that graveyard. Your grave will change place with a grave there, and if there are no free graves at that structure, your grave will generate where you died as normally
+   - Change the tag `data/yigd/tags/worldgen/configured_structure_feature/graveyard_structures.json` to configure which structures graves can be replaced in. Default to all graveyards
+   - Search radius for closest acceptable graveyard can be configured
+ - Slightly toned the player color down in the `/yigd moderate` command from vibrant green to darker green
+ - Filters will no longer reset when changing pages in the GUIs
+
+---
+
 # You're in Grave Danger 1.3.5
 
 ### Fixes

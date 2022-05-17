@@ -30,14 +30,17 @@ public class GraveSelectScreen extends Screen {
     private boolean mouseIsClicked = false;
     private String hoveredElement = null;
 
-    private boolean showClaimed = false;
-    private boolean showDeleted = false;
-    private boolean showPlaced = true;
-    private boolean showStatus = false;
+    private boolean showClaimed;
+    private boolean showDeleted;
+    private boolean showPlaced;
+    private boolean showStatus;
 
     private final List<GuiGraveInfo> filteredGraves = new ArrayList<>();
 
     public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen) {
+        this(data, page, previousScreen, true, false, false, false);
+    }
+    public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen, boolean showPlaced, boolean showClaimed, boolean showDeleted, boolean showStatus) {
         super(new TranslatableText("text.yigd.gui.grave_select.title"));
         List<GuiGraveInfo> info = new ArrayList<>();
         for (DeadPlayerData deadData : data) {
@@ -65,6 +68,11 @@ public class GraveSelectScreen extends Screen {
         this.graveInfo = info;
         this.page = page;
         this.previousScreen = previousScreen;
+
+        this.showStatus = showStatus;
+        this.showDeleted = showDeleted;
+        this.showClaimed = showClaimed;
+        this.showPlaced = showPlaced;
 
         if (data.size() > 0) {
             this.graveOwner = data.get(0).graveOwner;
@@ -129,10 +137,10 @@ public class GraveSelectScreen extends Screen {
         mouseIsClicked = false;
         if (button == 0 && hoveredElement != null && client != null) {
             if (hoveredElement.equals("left") && page > 1) {
-                GraveSelectScreen screen = new GraveSelectScreen(data, page - 1, this.previousScreen);
+                GraveSelectScreen screen = new GraveSelectScreen(data, page - 1, this.previousScreen, this.showPlaced, this.showClaimed, this.showDeleted, this.showStatus);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("right") && filteredGraves.size() > page * 4) {
-                GraveSelectScreen screen = new GraveSelectScreen(data, page + 1, this.previousScreen);
+                GraveSelectScreen screen = new GraveSelectScreen(data, page + 1, this.previousScreen, this.showPlaced, this.showClaimed, this.showDeleted, this.showStatus);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("show_available")) {
                 this.showPlaced = !this.showPlaced;
