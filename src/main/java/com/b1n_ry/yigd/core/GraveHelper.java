@@ -28,6 +28,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -177,9 +178,12 @@ public class GraveHelper {
         }
 
         if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
-            BlockPos gravePos = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
+            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
+            BlockPos gravePos = gravePosDir.getLeft();
+            Direction dir = gravePosDir.getRight();
+            if (dir == null) dir = player.getHorizontalFacing();
             if (!blockPos.equals(gravePos)) {
-                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
+                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
             }
         }
 

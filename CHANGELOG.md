@@ -6,7 +6,10 @@
    - Change the tag `data/yigd/tags/worldgen/configured_structure_feature/graveyard_structures.json` to configure which structures graves can be replaced in. Default to all graveyards
    - Search radius for closest acceptable graveyard can be configured
  - Slightly toned the player color down in the `/yigd moderate` command from vibrant green to darker green
+
+### Fixes
  - Filters will no longer reset when changing pages in the GUIs
+ - Fixed graves that very rarely was placed in the wrong dimension
 
 ---
 

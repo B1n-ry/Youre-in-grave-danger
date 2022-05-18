@@ -7,6 +7,7 @@ import com.finallion.graveyard.world.structures.AbstractGraveyardStructure;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.structure.PoolStructurePiece;
 import net.minecraft.structure.StructurePiece;
 import net.minecraft.structure.StructureStart;
@@ -14,8 +15,10 @@ import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.feature.ConfiguredStructureFeature;
@@ -25,14 +28,15 @@ import java.util.List;
 import java.util.Map;
 
 public class TheGraveyardCompat {
-    public static BlockPos getGraveyardGrave(ServerWorld world, BlockPos pos, int radius) {
+    public static Pair<BlockPos, Direction> getGraveyardGrave(ServerWorld world, BlockPos pos, int radius) {
         YigdConfig.GraveCompatConfig compatConfig = YigdConfig.getConfig().graveSettings.graveCompatConfig;
+        Pair<BlockPos, Direction> posDir = new Pair<>(pos, null);
         if (!compatConfig.prioritiseTheGraveyardGraves) {
-            return pos;
+            return posDir;
         }
 
         BlockPos structurePos = world.locateStructure(ModTags.GRAVEYARD_STRUCTURES, pos, radius, false);
-        if (structurePos == null) return pos;
+        if (structurePos == null) return posDir;
 
         Map<ConfiguredStructureFeature<?, ?>, LongSet> map = world.getStructureAccessor().method_41037(structurePos);
 
@@ -266,10 +270,13 @@ public class TheGraveyardCompat {
         for (BlockPos coord : graveCoords) {
             BlockState coordState = world.getBlockState(coord);
             if (coordState.isOf(TGBlocks.GRAVESTONE) || coordState.isOf(TGBlocks.DEEPSLATE_GRAVESTONE)) {
-                return coord;
+                posDir.setLeft(coord);
+                Direction dir = coordState.get(Properties.HORIZONTAL_FACING);
+                if (dir != null) posDir.setRight(dir);
+                return posDir;
             }
         }
-        return pos;
+        return posDir;
     }
 
     private static BlockPos fromStructurePos(int x, int y, int z, BlockBox box, BlockRotation rotation, BlockMirror mirror) {
