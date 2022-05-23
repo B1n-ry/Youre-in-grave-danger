@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -15,7 +16,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.*;
 
 public class PlayerSelectScreen extends Screen {
-    private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_menu.png");
+    private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_player_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
     private final Map<UUID, List<DeadPlayerData>> data;
@@ -29,15 +30,18 @@ public class PlayerSelectScreen extends Screen {
     private boolean mouseIsClicked = false;
     private String hoveredElement = null;
 
+    private final StringBuilder searchField;
+    private boolean isTyping = false;
+
     private boolean includeAvailable;
     private boolean includeClaimed;
     private boolean includeDestroyed;
     private boolean showWithoutGrave;
 
     public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page) {
-        this(data, page, true, false, false, false);
+        this(data, page, null, true, false, false, false);
     }
-    public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page, boolean includeAvailable, boolean includeClaimed, boolean includeDestroyed, boolean showWithoutGrave) {
+    public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page, StringBuilder search, boolean includeAvailable, boolean includeClaimed, boolean includeDestroyed, boolean showWithoutGrave) {
         super(new TranslatableText("text.yigd.gui.player_select.title"));
 
         Map<UUID, List<DeadPlayerData>> nonEmpty = new HashMap<>();
@@ -71,6 +75,8 @@ public class PlayerSelectScreen extends Screen {
         this.page = page;
         this.graveOwners = graveOwners;
 
+        this.searchField = Objects.requireNonNullElseGet(search, StringBuilder::new);
+
         this.includeAvailable = includeAvailable;
         this.includeClaimed = includeClaimed;
         this.includeDestroyed = includeDestroyed;
@@ -85,6 +91,7 @@ public class PlayerSelectScreen extends Screen {
         this.data.forEach((uuid, deadPlayerData) -> {
             List<DeadPlayerData> filteredGraves = new ArrayList<>();
             for (DeadPlayerData grave : deadPlayerData) {
+                if (!grave.graveOwner.getName().toLowerCase(Locale.ROOT).startsWith(searchField.toString().toLowerCase(Locale.ROOT))) continue;
                 if (grave.availability == 1 && this.includeAvailable) {
                     filteredGraves.add(grave);
                 } else if (grave.availability == 0 && this.includeClaimed) {
@@ -108,11 +115,35 @@ public class PlayerSelectScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (client != null && client.options.inventoryKey.matchesKey(keyCode, scanCode) || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+        if (client != null && !isTyping && (client.options.inventoryKey.matchesKey(keyCode, scanCode) || keyCode == GLFW.GLFW_KEY_BACKSPACE)) {
             this.close();
             return true;
+        } else if (this.isTyping) {
+            String newLetter = GLFW.glfwGetKeyName(keyCode, scanCode);
+            if (newLetter != null && searchField.length() < 16) {
+                if ((modifiers & GLFW.GLFW_MOD_SHIFT) != 0 || (modifiers & GLFW.GLFW_MOD_CAPS_LOCK) != 0) {
+                    newLetter = newLetter.toUpperCase(Locale.ROOT);
+                    if (newLetter.equals("-")) newLetter = "_";
+                }
+
+                searchField.append(newLetter);
+            } else if (keyCode == GLFW.GLFW_KEY_BACKSPACE && searchField.length() > 0) {
+                searchField.deleteCharAt(searchField.length() - 1);
+            } else if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER || keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                this.isTyping = false;
+            }
+            reloadFilters();
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    protected void insertText(String text, boolean override) {
+        if (this.isTyping) {
+            searchField.append(text);
+
+            reloadFilters();
+        }
     }
 
     @Override
@@ -126,12 +157,15 @@ public class PlayerSelectScreen extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         mouseIsClicked = false;
+
+        this.isTyping = hoveredElement != null && hoveredElement.equals("search_bar");
+
         if (button == 0 && hoveredElement != null && client != null) {
             if (hoveredElement.equals("left") && page > 1) {
-                PlayerSelectScreen screen = new PlayerSelectScreen(data, page - 1, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
+                PlayerSelectScreen screen = new PlayerSelectScreen(data, page - 1, this.searchField, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("right") && filteredPlayers.size() > page * 4) {
-                PlayerSelectScreen screen = new PlayerSelectScreen(data, page + 1, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
+                PlayerSelectScreen screen = new PlayerSelectScreen(data, page + 1, this.searchField, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("include_available")) {
                 this.includeAvailable = !this.includeAvailable;
@@ -160,7 +194,7 @@ public class PlayerSelectScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         final int screenWidth = 220;
-        final int screenHeight = 219;
+        final int screenHeight = 231;
         final int originX = this.width / 2;
         final int originY = this.height / 2;
 
@@ -197,7 +231,7 @@ public class PlayerSelectScreen extends Screen {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
 
             int left = screenLeft + 19;
-            int top = screenTop + 43 + 42 * (i % 4);
+            int top = screenTop + 55 + 42 * (i % 4);
             int width = screenWidth - 19 * 2;
             int height = 42;
             if (mouseX > left && mouseX < left + width && mouseY > top && mouseY < top + height) {
@@ -219,6 +253,7 @@ public class PlayerSelectScreen extends Screen {
         super.render(matrices, mouseX, mouseY, delta);
 
         renderCheckButtons(matrices, mouseX, mouseY, screenTop, screenLeft, originX);
+        renderSearchBar(matrices, screenTop, screenLeft, mouseX, mouseY);
 
         String gravesDisplayed = (startValue + 1) + "-" + whileLessThan + "/" + infoSize;
         textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.players_with_graves"), screenLeft + 19f, screenTop + 10f, 0x555555);
@@ -294,5 +329,13 @@ public class PlayerSelectScreen extends Screen {
         }
         if (this.showWithoutGrave) drawTexture(matrices, originX, boxRow, 38, 84, 6, 6);
         textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.player_select.show_zero"), originX + 8f, boxRow - 1f, 0x777777);
+    }
+
+    private void renderSearchBar(MatrixStack matrices, int screenTop, int screenLeft, int mouseX, int mouseY) {
+        textRenderer.draw(matrices, Text.of(searchField.toString() + (isTyping ? "_" : "")), screenLeft + 20, screenTop + 41, 0xFFFFFF);
+
+        if (mouseX > screenLeft + 18 && mouseX < screenLeft + 202 && mouseY > screenTop + 39 && mouseY < screenTop + 51) {
+            hoveredElement = "search_bar";
+        }
     }
 }

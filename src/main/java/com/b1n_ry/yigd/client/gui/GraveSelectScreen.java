@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GraveSelectScreen extends Screen {
-    private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_menu.png");
+    private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_grave_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
     private final List<DeadPlayerData> data;
