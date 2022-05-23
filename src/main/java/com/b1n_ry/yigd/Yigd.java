@@ -210,6 +210,9 @@ public class Yigd implements ModInitializer {
         if (FabricLoader.getInstance().isModLoaded("graveyard")) {
             miscCompatMods.add("graveyard");
         }
+        if (FabricLoader.getInstance().isModLoaded("fabric-permissions-api")) {
+            miscCompatMods.add("permissions");
+        }
 
         YigdCommand.registerCommands();
         ServerPacketReceivers.register();
