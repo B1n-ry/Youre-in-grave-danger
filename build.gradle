@@ -72,8 +72,8 @@ dependencies {
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
+	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 	modImplementation("curse.maven:thegraveyard-514468:3792651")
-//	modImplementation("mods.compat:The_Graveyard_${project.graveyard_version}_(FABRIC)_for_${project.minecraft_version}")
 
 	// Hammerlike compat
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")
@@ -86,14 +86,12 @@ dependencies {
 	modImplementation("eu.pb4:sgui:${project.sgui_version}")
 	modImplementation("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") { transitive = false } // Required for goml compat to work
 	modImplementation("io.github.ladysnake:PlayerAbilityLib:${project.pal_version}")
-	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
 
 	// Land claim compat mods
 	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
 	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
 	modImplementation("mods.compat:goml-${project.goml_version}")
-//	modImplementation("eu.pb4:goml:1.18-SNAPSHOT")
 
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"

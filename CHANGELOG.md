@@ -6,6 +6,8 @@
    - Change the tag `data/yigd/tags/worldgen/configured_structure_feature/graveyard_structures.json` to configure which structures graves can be replaced in. Default to all graveyards
    - Search radius for closest acceptable graveyard can be configured
  - Slightly toned the player color down in the `/yigd moderate` command from vibrant green to darker green
+ - Added compatibility with fabric permissions api. I'm no longer "half stupid"! :)
+ - Added a very basic search function for the player select in the GUI you get when executing `/yigd moderate`
 
 ### Fixes
  - Filters will no longer reset when changing pages in the GUIs
