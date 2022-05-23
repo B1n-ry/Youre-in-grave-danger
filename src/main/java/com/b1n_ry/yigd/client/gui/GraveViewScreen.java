@@ -197,7 +197,7 @@ public class GraveViewScreen extends Screen {
         }
         if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.delete")) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
-            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 16 + yOffset && mouseY < originY - screenHeight / 2 + 31 + yOffset) {
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "delete";
             }
             if (hoveredButton != null && hoveredButton.equals("delete") && mouseIsClicked) {
@@ -210,7 +210,7 @@ public class GraveViewScreen extends Screen {
         }
         if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.rob")) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
-            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 32 + yOffset && mouseY < originY - screenHeight / 2 + 47 + yOffset) {
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "rob";
             }
             if (hoveredButton != null && hoveredButton.equals("rob") && mouseIsClicked) {

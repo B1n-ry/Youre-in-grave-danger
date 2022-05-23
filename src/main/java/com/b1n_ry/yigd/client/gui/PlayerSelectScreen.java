@@ -90,8 +90,12 @@ public class PlayerSelectScreen extends Screen {
         this.filteredPlayers.clear();
         this.data.forEach((uuid, deadPlayerData) -> {
             List<DeadPlayerData> filteredGraves = new ArrayList<>();
+            boolean matchSearch = true;
             for (DeadPlayerData grave : deadPlayerData) {
-                if (!grave.graveOwner.getName().toLowerCase(Locale.ROOT).startsWith(searchField.toString().toLowerCase(Locale.ROOT))) continue;
+                if (!grave.graveOwner.getName().toLowerCase(Locale.ROOT).startsWith(searchField.toString().toLowerCase(Locale.ROOT))) {
+                    matchSearch = false;
+                    continue;
+                }
                 if (grave.availability == 1 && this.includeAvailable) {
                     filteredGraves.add(grave);
                 } else if (grave.availability == 0 && this.includeClaimed) {
@@ -101,7 +105,7 @@ public class PlayerSelectScreen extends Screen {
                 }
             }
 
-            if (filteredGraves.size() > 0 || this.showWithoutGrave) {
+            if ((filteredGraves.size() > 0 || this.showWithoutGrave) && matchSearch) {
                 filteredPlayers.put(uuid, filteredGraves);
                 filteredPlayerIds.add(uuid);
             }
@@ -135,15 +139,6 @@ public class PlayerSelectScreen extends Screen {
             reloadFilters();
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
-    }
-
-    @Override
-    protected void insertText(String text, boolean override) {
-        if (this.isTyping) {
-            searchField.append(text);
-
-            reloadFilters();
-        }
     }
 
     @Override
