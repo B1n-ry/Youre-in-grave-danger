@@ -74,6 +74,7 @@ public class Yigd implements ModInitializer {
 
     public static final List<YigdApi> apiMods = new ArrayList<>();
     public static final List<ClaimModsApi> claimMods = new ArrayList<>();
+    public static final List<String> miscCompatMods = new ArrayList<>();
     public static final List<Runnable> NEXT_TICK = new ArrayList<>();
 
     @Override
@@ -205,6 +206,10 @@ public class Yigd implements ModInitializer {
 //        if (FabricLoader.getInstance().isModLoaded("goml")) {
 //            claimMods.add(new GomlCompat());
 //        }
+
+        if (FabricLoader.getInstance().isModLoaded("fabric-permissions-api")) {
+            miscCompatMods.add("permissions");
+        }
 
         YigdCommand.registerCommands();
         ServerPacketReceivers.register();

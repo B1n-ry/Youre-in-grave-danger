@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.PacketIdentifiers;
+import com.b1n_ry.yigd.core.YigdCommand;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -85,7 +86,7 @@ public class GraveViewScreen extends Screen {
         if (button == 0 && hoveredButton != null && client != null) {
             switch (hoveredButton) {
                 case "restore" -> {
-                    if (client.player != null && client.player.hasPermissionLevel(4)) {
+                    if (client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.restore")) {
                         PacketByteBuf buf = PacketByteBufs.create()
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
@@ -96,7 +97,7 @@ public class GraveViewScreen extends Screen {
                     }
                 }
                 case "delete" -> {
-                    if (client.player != null && client.player.hasPermissionLevel(4)) {
+                    if (client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.delete")) {
                         PacketByteBuf buf = PacketByteBufs.create()
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
@@ -107,7 +108,7 @@ public class GraveViewScreen extends Screen {
                     }
                 }
                 case "rob" -> {
-                    if (client.player != null && client.player.hasPermissionLevel(4)) {
+                    if (client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.rob")) {
                         PacketByteBuf buf = PacketByteBufs.create()
                                 .writeString(this.data.graveOwner.getName())
                                 .writeUuid(this.data.graveOwner.getId())
@@ -182,36 +183,45 @@ public class GraveViewScreen extends Screen {
             }
         }
 
-        if (client != null && client.player != null && client.player.hasPermissionLevel(4)) {
+        if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.restore")) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
             if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "restore";
-            } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 16 + yOffset && mouseY < originY - screenHeight / 2 + 31 + yOffset) {
-                hoveredButton = "delete";
-            } else if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + 32 + yOffset && mouseY < originY - screenHeight / 2 + 47 + yOffset) {
-                hoveredButton = "rob";
             }
             if (hoveredButton != null && hoveredButton.equals("restore") && mouseIsClicked) {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
             } else {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
             }
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.restore")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            yOffset += 16;
+        }
+        if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.delete")) {
+            RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
+                hoveredButton = "delete";
+            }
             if (hoveredButton != null && hoveredButton.equals("delete") && mouseIsClicked) {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16 + yOffset, 182, 15, 51, 30);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
             } else {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 16 + yOffset, 182, 0, 51, 15);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
+            }
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.delete")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            yOffset += 16;
+        }
+        if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.rob")) {
+            RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
+            if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
+                hoveredButton = "rob";
             }
             if (hoveredButton != null && hoveredButton.equals("rob") && mouseIsClicked) {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 32 + yOffset, 182, 15, 51, 30);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 15, 51, 30);
             } else {
-                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + 32 + yOffset, 182, 0, 51, 15);
+                drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
             }
 
-            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.restore")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
-            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.rob")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 20 + yOffset, 0x000000);
-            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.delete")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 36 + yOffset, 0x000000);
-
-            yOffset += 48;
+            textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.word.rob")), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
+            yOffset += 16;
         }
 
         if (getKeysFromGui) {

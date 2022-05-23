@@ -21,6 +21,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -46,6 +47,7 @@ public abstract class LivingEntityMixin {
         }
         YigdConfig config = YigdConfig.getConfig();
         Vec3d pos = player.getPos();
+        World playerWorld = player.world;
         Yigd.NEXT_TICK.add(() -> {
             PlayerInventory inventory = player.getInventory();
             inventory.updateItems();
@@ -122,15 +124,15 @@ public abstract class LivingEntityMixin {
             }
             GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
 
-            DimensionType playerDimension = player.world.getDimension();
-            Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
+            DimensionType playerDimension = playerWorld.getDimension();
+            Registry<DimensionType> dimManager = playerWorld.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
 
             BlockPos blockPos = new BlockPos(pos);
             boolean canGenerate = GraveAreaOverride.canGenerateOnPos(blockPos, dimManager.getId(playerDimension), graveConfig.generateGraves);
 
             DeathEffectConfig spawnProtectionRule = graveConfig.deathInSpawnProtection;
             DeathEffectConfig alteredSpawnRules = DeathEffectConfig.CREATE_GRAVE;
-            ServerWorld serverWorld = (ServerWorld) player.world;
+            ServerWorld serverWorld = (ServerWorld) playerWorld;
             if (spawnProtectionRule != DeathEffectConfig.CREATE_GRAVE) {
                 boolean isSpawnProtected = serverWorld.getServer().isSpawnProtected(serverWorld, blockPos, player);
                 if (isSpawnProtected && spawnProtectionRule == DeathEffectConfig.KEEP_ITEMS) {
@@ -235,11 +237,11 @@ public abstract class LivingEntityMixin {
                     yigdApi.dropOnGround(o, serverWorld, pos);
                 }
 
-                ItemScatterer.spawn(player.world, new BlockPos(pos), items);
-                ExperienceOrbEntity.spawn((ServerWorld) player.world, pos, xpPoints);
+                ItemScatterer.spawn(playerWorld, new BlockPos(pos), items);
+                ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
                 return;
             } else if (!graveConfig.putXpInGrave) {
-                ExperienceOrbEntity.spawn((ServerWorld) player.world, pos, xpPoints);
+                ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
                 xpPoints = 0;
             }
 
@@ -249,7 +251,7 @@ public abstract class LivingEntityMixin {
             }
 
             if (allItems.size() > 0 || xpPoints > 0 || graveConfig.generateEmptyGraves) {
-                GraveHelper.placeDeathGrave(player.world, pos, inventory.player, items, modInventories, xpPoints, source);
+                GraveHelper.placeDeathGrave(playerWorld, pos, inventory.player, items, modInventories, xpPoints, source);
             }
 
             this.dropInventory();

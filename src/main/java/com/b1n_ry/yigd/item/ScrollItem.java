@@ -126,7 +126,6 @@ public class ScrollItem extends Item {
         }
 
         List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(userId);
-        graves.removeIf(grave -> grave.availability != 1);
 
         if (graves.size() <= 0) {
             user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.you_have_no_graves")), true);
@@ -146,22 +145,20 @@ public class ScrollItem extends Item {
         } else {
             selectedGrave = graves.get(graves.size() - 1);
         }
-        if (selectedGrave == null) {
+        if (selectedGrave == null || selectedGrave.availability != 1) {
             user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.grave_now_gone")), true);
             return;
         }
 
-        DeadPlayerData grave = graves.get(graves.size() - 1);
-
-        if (grave.gravePos == null || grave.worldId != world.getRegistryKey().getValue()) {
-            if (grave.gravePos == null) {
+        if (selectedGrave.gravePos == null || selectedGrave.worldId != world.getRegistryKey().getValue()) {
+            if (selectedGrave.gravePos == null) {
                 user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_grave_location")), true);
             } else {
                 user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.cross_dim_error")), true);
             }
             return;
         }
-        user.teleport(grave.gravePos.getX() + 0.5, grave.gravePos.getY() + 0.5, grave.gravePos.getZ() + 0.5);
+        user.teleport(selectedGrave.gravePos.getX() + 0.5, selectedGrave.gravePos.getY() + 0.5, selectedGrave.gravePos.getZ() + 0.5);
         scroll.decrement(1);
     }
 }

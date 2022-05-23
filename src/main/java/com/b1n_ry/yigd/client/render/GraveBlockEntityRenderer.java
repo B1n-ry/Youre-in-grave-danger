@@ -34,7 +34,7 @@ import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
-import net.minecraft.util.math.random.AbstractRandom;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 
 import java.util.*;
@@ -323,13 +323,13 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         if (modelTextures.containsKey("Base_Layer")) {
             if (config.graveSettings.graveRenderSettings.adaptRenderer && blockUnder != null && blockUnder.isOpaqueFullCube(world, pos)) {
                 ModelPart baseLayer = graveModel.getChild("Base_Layer");
-                ModelPart.Cuboid cuboid = baseLayer.getRandomCuboid(AbstractRandom.create());
+                ModelPart.Cuboid cuboid = baseLayer.getRandomCuboid(Random.create());
                 float scaleX = cuboid.maxX - cuboid.minX;
                 float scaleZ = cuboid.maxZ - cuboid.minZ;
 
                 matrices.translate((cuboid.minX / 16f) + 0.0005f, (cuboid.maxY / 16f) - 1, (cuboid.minZ / 16f) + 0.0005f);
                 matrices.scale(0.999f * (scaleX / 16f), 1, 0.999f * (scaleZ / 16f));
-                client.getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, AbstractRandom.create());
+                client.getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, Random.create());
             } else {
                 Identifier identifier = new Identifier(modelTextures.get("Base_Layer"));
                 SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);

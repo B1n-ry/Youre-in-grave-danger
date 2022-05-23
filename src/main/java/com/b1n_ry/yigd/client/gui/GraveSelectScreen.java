@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GraveSelectScreen extends Screen {
-    private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_menu.png");
+    private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_grave_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
     private final List<DeadPlayerData> data;
@@ -31,14 +31,17 @@ public class GraveSelectScreen extends Screen {
     private boolean mouseIsClicked = false;
     private String hoveredElement = null;
 
-    private boolean showClaimed = false;
-    private boolean showDeleted = false;
-    private boolean showPlaced = true;
-    private boolean showStatus = false;
+    private boolean showClaimed;
+    private boolean showDeleted;
+    private boolean showPlaced;
+    private boolean showStatus;
 
     private final List<GuiGraveInfo> filteredGraves = new ArrayList<>();
 
     public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen) {
+        this(data, page, previousScreen, true, false, false, false);
+    }
+    public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen, boolean showPlaced, boolean showClaimed, boolean showDeleted, boolean showStatus) {
         super(MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.title")));
         List<GuiGraveInfo> info = new ArrayList<>();
         for (DeadPlayerData deadData : data) {
@@ -66,6 +69,11 @@ public class GraveSelectScreen extends Screen {
         this.graveInfo = info;
         this.page = page;
         this.previousScreen = previousScreen;
+
+        this.showPlaced = showPlaced;
+        this.showClaimed = showClaimed;
+        this.showDeleted = showDeleted;
+        this.showStatus = showStatus;
 
         if (data.size() > 0) {
             this.graveOwner = data.get(0).graveOwner;
