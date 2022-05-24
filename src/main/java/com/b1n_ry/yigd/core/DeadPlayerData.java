@@ -240,7 +240,7 @@ public class DeadPlayerData {
             moddedSoulbound.forEach((uuid, objects) -> {
                 NbtCompound playerNbt = new NbtCompound();
                 NbtCompound inventories = new NbtCompound();
-                for (int i = 0; i < objects.size(); i++) {
+                for (int i = 0; i < Math.min(objects.size(), Yigd.apiMods.size()); i++) {
                     YigdApi yigdApi = Yigd.apiMods.get(i);
                     inventories.put(yigdApi.getModName(), yigdApi.writeNbt(objects.get(i)));
                 }

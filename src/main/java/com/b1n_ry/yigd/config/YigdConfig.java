@@ -53,7 +53,7 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig priority = PriorityInventoryConfig.GRAVE;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         @ConfigEntry.Gui.CollapsibleObject
         public GraveRobbing graveRobbing = new GraveRobbing();
 
@@ -68,35 +68,35 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public ItemLoss itemLoss = new ItemLoss();
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 3)
         public List<String> deleteEnchantments = List.of("minecraft:vanishing_curse", "vanishing_curse"); // Apparently without the namespace/id vanilla will still make it work
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public List<String> soulboundEnchantments = List.of("yigd:soulbound");
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public List<Integer> voidSlots = new ArrayList<>();
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public List<Integer> soulboundSlots = new ArrayList<>();
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean applyBindingCurse = true;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 4)
         public boolean trySoft = false;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 5)
         public boolean tryStrict = true;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean replaceWhenClaimed = true;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public List<Integer> blacklistDimensions = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
         public boolean graveInVoid = true;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public List<String> ignoreDeathTypes = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
@@ -113,7 +113,7 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public boolean defaultXpDrop = false;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 3)
         @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
         public int xpDropPercent = 50;
 
@@ -121,27 +121,27 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public BlockUnderGrave blockUnderGrave = new BlockUnderGrave();
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean tellDeathPos = true;
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public GraveCompatConfig graveCompatConfig = new GraveCompatConfig();
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         @ConfigEntry.Gui.CollapsibleObject
         public GraveRenderSettings graveRenderSettings = new GraveRenderSettings();
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 3)
         public int maxGraveBackups = 50;
     }
 
     public static class GraveRobbing {
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean enableRobbing = true;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean onlyMurderer = false;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public int afterTime = 1;
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
@@ -170,21 +170,21 @@ public class YigdConfig implements ConfigData {
         public boolean enableLoss = false;
         @ConfigEntry.Gui.Tooltip
         public boolean ignoreSoulboundItems = true;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean affectStacks = false;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean usePercentRange = false;
         @ConfigEntry.Gui.Tooltip
         public int lossRangeFrom = 0;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 3)
         public int lossRangeTo = 5;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
         public int percentChanceOfLoss = 100;
     }
 
     public static class BlockUnderGrave {
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 3)
         public boolean generateBlockUnder = true;
 
         @ConfigEntry.Gui.Tooltip
@@ -201,9 +201,9 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class GraveCompatConfig {
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean levelzXpInGraves = true;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
         public int levelzXpDropPercent = 100;
 
@@ -211,9 +211,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DeathEffectConfig claimRuleOverride = DeathEffectConfig.CREATE_GRAVE;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean prioritiseTheGraveyardGraves = false;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public int graveyardSearchRadius = 10;
     }
 
@@ -228,11 +228,11 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public boolean adaptRenderer = false;
 
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 3)
         public boolean glowingGrave = true;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 3)
         public int glowMinDistance = 0;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 4)
         public int glowMaxDistance = 10;
     }
 
@@ -271,7 +271,7 @@ public class YigdConfig implements ConfigData {
         public boolean retrieveOnRespawn = true;
         @ConfigEntry.Gui.Tooltip
         public boolean getFromGui = false;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean rebindable = false;
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
@@ -306,7 +306,7 @@ public class YigdConfig implements ConfigData {
         public boolean isTreasure;
         @ConfigEntry.Gui.Tooltip
         public boolean villagerTrade;
-        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.Tooltip(count = 2)
         public boolean tableAndLoot;
 
         public EnchantmentConfig (boolean enabled, boolean isTreasure, boolean villagerTrade, boolean tableAndLoot) {
