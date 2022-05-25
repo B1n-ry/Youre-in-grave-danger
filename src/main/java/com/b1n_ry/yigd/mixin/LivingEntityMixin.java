@@ -112,7 +112,7 @@ public abstract class LivingEntityMixin {
             for (int i = 0; i < items.size(); i++) {
                 ItemStack stack = items.get(i);
 
-                if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i)) soulboundInventory.set(i, stack);
+                if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) || GraveHelper.hasBotaniaKeepIvy(stack, false)) soulboundInventory.set(i, stack);
             }
 
             GraveHelper.removeFromList(items, soulboundInventory); // Keep soulbound items from appearing in both player inventory and grave

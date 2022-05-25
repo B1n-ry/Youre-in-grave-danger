@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.enchantment;
 
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.core.ModTags;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -14,7 +15,7 @@ public class SoulboundEnchantment extends Enchantment {
     }
 
     public boolean isAcceptableItem(ItemStack stack) {
-        return !stack.isIn(ModTags.SOULBOUND_BLACKLIST) && !stack.isIn(ModTags.SOULBOUND_ITEM); // Enchantment is always applicable unless it can't be or always is soulbound
+        return !stack.isIn(ModTags.SOULBOUND_BLACKLIST) && !stack.isIn(ModTags.SOULBOUND_ITEM) && !GraveHelper.hasBotaniaKeepIvy(stack, false); // Enchantment is always applicable unless it can't be or always is soulbound
     }
 
     public int getMinPower(int level) {
