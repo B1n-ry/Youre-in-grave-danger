@@ -239,6 +239,8 @@ public abstract class LivingEntityMixin {
 
                 ItemScatterer.spawn(playerWorld, new BlockPos(pos), items);
                 ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
+
+                Yigd.LOGGER.info("Dropped items as grave couldn't generate due to configs");
                 return;
             } else if (!graveConfig.putXpInGrave) {
                 ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
@@ -252,6 +254,8 @@ public abstract class LivingEntityMixin {
 
             if (allItems.size() > 0 || xpPoints > 0 || graveConfig.generateEmptyGraves) {
                 GraveHelper.placeDeathGrave(playerWorld, pos, inventory.player, items, modInventories, xpPoints, source);
+            } else {
+                Yigd.LOGGER.info("Didn't generate grave as grave wouldn't contain anything");
             }
 
             this.dropInventory();

@@ -84,7 +84,15 @@ public class YigdCommand {
                         .then(literal("add")
                                 .requires(source -> config.whitelistAdd)
                                 .then(argument("player", EntityArgumentType.player())
-                                        .executes(ctx -> addWhitelist((PlayerEntity) ctx.getSource().getEntity(), EntityArgumentType.getPlayer(ctx, "player")))
+                                        .executes(ctx -> {
+                                            ServerCommandSource src = ctx.getSource();
+                                            Entity entity = src.getEntity();
+                                            if (entity instanceof PlayerEntity commandUser) {
+                                                return addWhitelist(commandUser, EntityArgumentType.getPlayer(ctx, "player"));
+                                            } else {
+                                                return addWhitelist(null, EntityArgumentType.getPlayer(ctx, "player"));
+                                            }
+                                        })
                                 )
                         )
                         .then(literal("remove")

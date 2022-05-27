@@ -82,7 +82,10 @@ public class GraveHelper {
         int topY = world.getTopY();
 
         YigdConfig config = YigdConfig.getConfig();
-        if (!config.graveSettings.graveInVoid && pos.y < bottomY + 1) return;
+        if (!config.graveSettings.graveInVoid && pos.y < bottomY + 1) {
+            Yigd.LOGGER.info("Didn't generate grave as player died outside of the world");
+            return;
+        }
 
         double yPos = pos.y - 1D;
         if ((int) yPos != (int) (yPos + 0.5D) && player.isOnGround()) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
@@ -366,6 +369,8 @@ public class GraveHelper {
             DeathInfoManager.INSTANCE.markDirty();
 
             Yigd.LOGGER.info("Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ() + " | " + deadData.dimensionName);
+        } else {
+            Yigd.LOGGER.error("Grave block did not have grave block entity");
         }
         return true;
     }
