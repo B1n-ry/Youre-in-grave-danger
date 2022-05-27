@@ -97,7 +97,7 @@ dependencies {
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
 	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
 	modImplementation("mods.compat:inventorio-${project.inventorio_version}") { transitive = false }
-//	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
+	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
 }
 
 processResources {
