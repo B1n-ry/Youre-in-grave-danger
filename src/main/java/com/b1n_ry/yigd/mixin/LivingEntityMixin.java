@@ -110,7 +110,7 @@ public abstract class LivingEntityMixin {
             for (int i = 0; i < items.size(); i++) {
                 ItemStack stack = items.get(i);
 
-                if (stack.isIn(ModTags.SOULBOUND_ITEM)) soulboundInventory.set(i, stack);
+                if (stack.isIn(ModTags.SOULBOUND_ITEM) || GraveHelper.hasBotaniaKeepIvy(stack, false)) soulboundInventory.set(i, stack);
             }
 
 

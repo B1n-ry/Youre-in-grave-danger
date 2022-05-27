@@ -32,7 +32,7 @@ public class TravelersBackpackCompat implements YigdApi {
         if (onDeath) {
             ItemStack soulbound;
             boolean shouldDelete = false;
-            if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack) || backpack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS) {
+            if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack) || backpack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS || GraveHelper.hasBotaniaKeepIvy(backpack, true)) {
                 soulbound = backpack;
                 shouldDelete = true;
             } else {

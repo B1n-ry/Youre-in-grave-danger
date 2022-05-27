@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.item.KeyItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -65,6 +66,7 @@ public class ServerPlayerEntityMixin {
 
                 for (int i = 0; i < soulboundItems.size(); i++) {
                     ItemStack stack = soulboundItems.get(i);
+                    GraveHelper.removeBotaniaKeepIvy(stack); // To remove the keeping ivy from items as it should disappear when used
                     if (stack.isEmpty()) continue;
 
                     if (i >= mainSize && i < mainSize + armorSize) {

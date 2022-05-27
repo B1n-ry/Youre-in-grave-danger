@@ -8,9 +8,11 @@ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.TranslatableText;
@@ -30,91 +32,131 @@ public class YigdCommand {
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(literal(config.coreCommandName)
                 .executes(ctx -> viewGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer()))
                 .then(literal("restore")
-                        .requires(source -> source.hasPermissionLevel(4) && config.retrieveGrave)
+                        .requires(source -> source.hasPermissionLevel(2) && config.retrieveGrave)
                         .then(argument("player", EntityArgumentType.player())
-                                .executes(ctx -> restoreGrave(EntityArgumentType.getPlayer(ctx, "player"), ctx.getSource().getPlayer(), null))
+                                .executes(ctx -> {
+                                    ServerCommandSource src = ctx.getSource();
+                                    Entity entity = src.getEntity();
+                                    if (entity instanceof PlayerEntity commandUser) {
+                                        return restoreGrave(EntityArgumentType.getPlayer(ctx, "player"), commandUser, null);
+                                    } else {
+                                        return restoreGrave(EntityArgumentType.getPlayer(ctx, "player"), null, null);
+                                    }
+                                })
                         )
                         .executes(ctx -> restoreGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer(), null))
                 )
                 .then(literal("rob")
-                        .requires(source -> source.hasPermissionLevel(4) && config.robGrave)
+                        .requires(source -> source.hasPermissionLevel(2) && config.robGrave)
                         .then(argument("victim", EntityArgumentType.player())
                                 .executes(ctx -> robGrave(EntityArgumentType.getPlayer(ctx, "victim").getGameProfile(), ctx.getSource().getPlayer(), null))
                         )
                 )
                 .then(literal("grave")
-                        .requires(source -> config.selfView || source.hasPermissionLevel(4))
+                        .requires(source -> config.selfView || source.hasPermissionLevel(2))
                         .executes(ctx -> viewGrave(ctx.getSource().getPlayer(), ctx.getSource().getPlayer()))
                         .then(argument("player", EntityArgumentType.player())
-                                .requires(source -> source.hasPermissionLevel(4) && config.adminView)
+                                .requires(source -> source.hasPermissionLevel(2) && config.adminView)
                                 .executes(ctx -> viewGrave(EntityArgumentType.getPlayer(ctx, "player"), ctx.getSource().getPlayer()))
                         )
                 )
                 .then(literal("moderate")
-                        .requires(source -> source.hasPermissionLevel(4) && config.moderateGraves)
+                        .requires(source -> source.hasPermissionLevel(2) && config.moderateGraves)
                         .executes(ctx -> moderateGraves(ctx.getSource().getPlayer()))
                 )
                 .then(literal("clear")
-                        .requires(source -> source.hasPermissionLevel(4) && config.clearGraveBackups)
+                        .requires(source -> source.hasPermissionLevel(3) && config.clearGraveBackups)
                         .then(argument("victim", EntityArgumentType.players())
-                                .executes(ctx -> clearBackup(EntityArgumentType.getPlayers(ctx, "victim"), ctx.getSource().getPlayer()))
+                                .executes(ctx -> {
+                                    ServerCommandSource src = ctx.getSource();
+                                    Entity entity = src.getEntity();
+                                    if (entity instanceof PlayerEntity commandUser) {
+                                        return clearBackup(EntityArgumentType.getPlayers(ctx, "victim"), commandUser);
+                                    } else {
+                                        return clearBackup(EntityArgumentType.getPlayers(ctx, "victim"), null);
+                                    }
+                                })
                         )
                 )
                 .then(literal("whitelist")
-                        .requires(source -> source.hasPermissionLevel(4) && config.whitelist)
+                        .requires(source -> source.hasPermissionLevel(2) && config.whitelist)
                         .then(literal("add")
                                 .requires(source -> config.whitelistAdd)
                                 .then(argument("player", EntityArgumentType.player())
-                                        .executes(ctx -> addWhitelist(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player")))
+                                        .executes(ctx -> {
+                                            ServerCommandSource src = ctx.getSource();
+                                            Entity entity = src.getEntity();
+                                            if (entity instanceof PlayerEntity commandUser) {
+                                                return addWhitelist(commandUser, EntityArgumentType.getPlayer(ctx, "player"));
+                                            } else {
+                                                return addWhitelist(null, EntityArgumentType.getPlayer(ctx, "player"));
+                                            }
+                                        })
                                 )
                         )
                         .then(literal("remove")
                                 .requires(source -> config.whitelistRemove)
                                 .then(argument("player", EntityArgumentType.player())
-                                        .executes(ctx -> removeWhitelist(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player")))
+                                        .executes(ctx -> {
+                                            ServerCommandSource src = ctx.getSource();
+                                            Entity entity = src.getEntity();
+                                            if (entity instanceof PlayerEntity commandUser) {
+                                                return removeWhitelist(commandUser, EntityArgumentType.getPlayer(ctx, "player"));
+                                            } else {
+                                                return removeWhitelist(null, EntityArgumentType.getPlayer(ctx, "player"));
+                                            }
+                                        })
                                 )
                         )
                         .then(literal("toggle")
                                 .requires(source -> config.whitelistToggle)
-                                .executes(ctx -> toggleWhitelist(ctx.getSource().getPlayer()))
+                                .executes(ctx -> {
+                                    ServerCommandSource src = ctx.getSource();
+                                    Entity entity = src.getEntity();
+                                    if (entity instanceof PlayerEntity commandUser) {
+                                        return toggleWhitelist(commandUser);
+                                    } else {
+                                        return toggleWhitelist(null);
+                                    }
+                                })
                         )
                 )
         ));
     }
 
-    private static int addWhitelist(PlayerEntity commandUser, PlayerEntity addedPlayer) {
-        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.whitelistAdd) {
-            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+    private static int addWhitelist(@Nullable PlayerEntity commandUser, PlayerEntity addedPlayer) {
+        if (commandUser != null && !commandUser.hasPermissionLevel(2) || !YigdConfig.getConfig().commandToggles.whitelistAdd) {
+            if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
 
         DeathInfoManager.INSTANCE.addToWhiteList(addedPlayer.getUuid());
-        commandUser.sendMessage(new TranslatableText("text.yigd.message.whitelist.added_player", addedPlayer.getDisplayName().asString()), false);
+        if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.whitelist.added_player", addedPlayer.getDisplayName().asString()), false);
         return 1;
     }
-    private static int removeWhitelist(PlayerEntity commandUser, PlayerEntity removedPlayer) {
-        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.whitelistRemove) {
-            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+    private static int removeWhitelist(@Nullable PlayerEntity commandUser, PlayerEntity removedPlayer) {
+        if (commandUser != null && !commandUser.hasPermissionLevel(2) || !YigdConfig.getConfig().commandToggles.whitelistRemove) {
+            if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
 
         DeathInfoManager.INSTANCE.removeFromWhiteList(removedPlayer.getUuid());
-        commandUser.sendMessage(new TranslatableText("text.yigd.message.whitelist.removed_player", removedPlayer.getDisplayName().asString()), false);
+        if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.whitelist.removed_player", removedPlayer.getDisplayName().asString()), false);
         return 1;
     }
-    private static int toggleWhitelist(PlayerEntity commandUser) {
-        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.whitelistToggle) {
-            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+    private static int toggleWhitelist(@Nullable PlayerEntity commandUser) {
+        if (commandUser != null && !commandUser.hasPermissionLevel(2) || !YigdConfig.getConfig().commandToggles.whitelistToggle) {
+            if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
 
         boolean toggledTo = DeathInfoManager.INSTANCE.toggleListMode();
-        commandUser.sendMessage(new TranslatableText(toggledTo ? "text.yigd.message.whitelist.to_whitelist" : "text.yigd.message.whitelist.to_blacklist"), false);
+        if (commandUser != null) commandUser.sendMessage(new TranslatableText(toggledTo ? "text.yigd.message.whitelist.to_whitelist" : "text.yigd.message.whitelist.to_blacklist"), false);
         return 1;
     }
 
     private static int moderateGraves(ServerPlayerEntity player) {
-        if (!player.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.moderateGraves) {
+        if (!player.hasPermissionLevel(2) || !YigdConfig.getConfig().commandToggles.moderateGraves) {
             player.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
@@ -158,7 +200,7 @@ public class YigdCommand {
     private static int viewGrave(PlayerEntity player, PlayerEntity commandUser) {
         UUID userId = player.getUuid();
         YigdConfig config = YigdConfig.getConfig();
-        if (!((commandUser.hasPermissionLevel(4) && config.commandToggles.adminView) || (config.commandToggles.selfView && userId.equals(commandUser.getUuid())))) {
+        if (!((commandUser.hasPermissionLevel(2) && config.commandToggles.adminView) || (config.commandToggles.selfView && userId.equals(commandUser.getUuid())))) {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
@@ -202,7 +244,7 @@ public class YigdCommand {
     }
 
     public static int robGrave(GameProfile victim, PlayerEntity stealer, @Nullable UUID graveId) {
-        if (!stealer.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.robGrave) {
+        if (!stealer.hasPermissionLevel(2) || !YigdConfig.getConfig().commandToggles.robGrave) {
             stealer.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
@@ -258,21 +300,21 @@ public class YigdCommand {
         return 1;
     }
 
-    public static int restoreGrave(PlayerEntity player, PlayerEntity commandUser, @Nullable UUID graveId) {
-        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.retrieveGrave) {
-            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+    public static int restoreGrave(PlayerEntity player, @Nullable PlayerEntity commandUser, @Nullable UUID graveId) {
+        if (commandUser != null && !commandUser.hasPermissionLevel(2) || !YigdConfig.getConfig().commandToggles.retrieveGrave) {
+            if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
         UUID userId = player.getUuid();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
-            commandUser.sendMessage(new TranslatableText("text.yigd.message.restore_command.fail"), true);
+            if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.restore_command.fail"), true);
             return -1;
         }
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
 
         if (deadPlayerData.size() <= 0) {
-            commandUser.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
+            if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.unclaimed_grave_missing", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
         DeadPlayerData foundDeath = null;
@@ -308,13 +350,13 @@ public class YigdCommand {
 
         GraveHelper.RetrieveItems(player, foundDeath.inventory, modInv, foundDeath.xp, false);
 
-        commandUser.sendMessage(new TranslatableText("text.yigd.message.restore_command.success"), true);
+        if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.restore_command.success"), true);
         return 1;
     }
 
-    private static int clearBackup(Collection<ServerPlayerEntity> victims, PlayerEntity commandUser) {
-        if (!commandUser.hasPermissionLevel(4) || !YigdConfig.getConfig().commandToggles.clearGraveBackups) {
-            commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
+    private static int clearBackup(Collection<ServerPlayerEntity> victims, @Nullable PlayerEntity commandUser) {
+        if (commandUser != null && !commandUser.hasPermissionLevel(3) || !YigdConfig.getConfig().commandToggles.clearGraveBackups) {
+            if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), false);
             return -1;
         }
         int i = 0;
@@ -326,7 +368,7 @@ public class YigdCommand {
             DeathInfoManager.INSTANCE.data.get(victimId).clear();
         }
         DeathInfoManager.INSTANCE.markDirty();
-        commandUser.sendMessage(new TranslatableText("text.yigd.message.backup.delete_player", i), false);
+        if (commandUser != null) commandUser.sendMessage(new TranslatableText("text.yigd.message.backup.delete_player", i), false);
         return 1;
     }
 }

@@ -60,7 +60,7 @@ public class GraveHelper {
             ItemStack stack = itemList.get(i);
             if (!stack.isEmpty()) continue;
             if (stack.isIn(ModTags.RANDOM_DELETE_BLACKLIST) || hasEnchantments(ignoreEnchantments, stack)) continue;
-            if ((itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM))) continue;
+            if (itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM) || GraveHelper.hasBotaniaKeepIvy(stack, false)) continue;
 
             itemSlots.add(i);
         }
@@ -531,5 +531,26 @@ public class GraveHelper {
         }
 
         return extraItems;
+    }
+
+    public static boolean hasBotaniaKeepIvy(ItemStack stack, boolean alsoDelete) {
+        if (stack.isEmpty() || !stack.hasNbt()) return false;
+        NbtCompound nbt = stack.getNbt();
+        if (nbt == null) return false;
+        if (nbt.contains("Botania_keepIvy")) {
+            if (nbt.getBoolean("Botania_keepIvy")) {
+                if (alsoDelete) removeBotaniaKeepIvy(stack);
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void removeBotaniaKeepIvy(ItemStack stack) {
+        if (stack.isEmpty() || !stack.hasNbt()) return;
+        NbtCompound nbt = stack.getNbt();
+        if (nbt == null) return;
+        if (nbt.contains("Botania_keepIvy")) {
+            stack.removeSubNbt("Botania_keepIvy");
+        }
     }
 }

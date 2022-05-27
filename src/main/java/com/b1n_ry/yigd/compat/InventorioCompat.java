@@ -48,7 +48,7 @@ public class InventorioCompat implements YigdApi {
             for (int i = 0; i < inventories.size(); i++) {
                 ItemStack stack = inventories.get(i);
 
-                if (stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS) soulboundItems.set(i, stack);
+                if (stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS || GraveHelper.hasBotaniaKeepIvy(stack, true)) soulboundItems.set(i, stack);
             }
 
             DefaultedList<ItemStack> deletedItems = GraveHelper.getEnchantedItems(inventories, deleteEnchantments);
