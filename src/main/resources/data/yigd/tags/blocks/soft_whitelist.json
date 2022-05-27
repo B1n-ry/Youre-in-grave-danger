@@ -2,6 +2,10 @@
   "replace": false,
   "values": [
     "minecraft:air",
-    "minecraft:water"
+    "minecraft:water",
+    "minecraft:dead_bush",
+    "minecraft:grass",
+    "minecraft:fern",
+    "minecraft:snow"
   ]
 }

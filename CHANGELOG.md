@@ -10,10 +10,12 @@
  - Added a very basic search function for the player select in the GUI you get when executing `/yigd moderate`
  - Some commands can now be used from server console, command blocks, and similar
  - Added back travelers backpack compat
+ - Added compatibility with botania resolute ivy
 
 ### Fixes
  - Filters will no longer reset when changing pages in the GUIs
  - Fixed graves that very rarely was placed in the wrong dimension
+ - Graves will now ignore blocks as grass, snow layers, ferns, and dead bushes when generating (added to block whitelist)
 
 ---
 
