@@ -221,8 +221,9 @@ public class Yigd implements ModInitializer {
         ServerPacketReceivers.register();
 
         ServerWorldEvents.LOAD.register((server, world) -> {
-            if (world == server.getOverworld()) {
+            if (world == server.getOverworld()) { // Prevent from loading data more than once
                 DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
+                LOGGER.info("Loaded data from grave data file");
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

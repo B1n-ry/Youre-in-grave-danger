@@ -15,7 +15,6 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -31,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -116,20 +116,28 @@ public class ServerPlayerEntityMixin {
             YigdConfig yigdConfig = YigdConfig.getConfig();
 
             List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
-            if (deadPlayerData != null && deadPlayerData.size() > 0) {
-                DeadPlayerData latestDeath = deadPlayerData.get(deadPlayerData.size() - 1);
-                BlockPos deathPos = latestDeath.gravePos;
 
-                giveScroll(player, latestDeath.id);
-
-                // Give grave key linked to the grave if it should give keys on respawn. Function will by itself fail if the item is disabled
-                if (yigdConfig.utilitySettings.graveKeySettings.retrieveOnRespawn) {
-                    KeyItem.giveStackToPlayer(player, latestDeath.id);
+            if (deadPlayerData != null) {
+                List<DeadPlayerData> availableData = new ArrayList<>();
+                for (DeadPlayerData data : deadPlayerData) {
+                    if (data.availability != 1) continue;
+                    availableData.add(data);
                 }
+                if (availableData.size() > 0) {
+                    DeadPlayerData latestDeath = availableData.get(availableData.size() - 1);
+                    BlockPos deathPos = latestDeath.gravePos;
 
-                if (deathPos != null && yigdConfig.graveSettings.tellDeathPos) {
-                    player.sendMessage(new TranslatableText("text.yigd.message.grave_location_info", deathPos.getX(), deathPos.getY(), deathPos.getZ(), latestDeath.dimensionName), false);
-                }
+                    giveScroll(player, latestDeath.id);
+
+                    // Give grave key linked to the grave if it should give keys on respawn. Function will by itself fail if the item is disabled
+                    if (yigdConfig.utilitySettings.graveKeySettings.retrieveOnRespawn) {
+                        KeyItem.giveStackToPlayer(player, latestDeath.id);
+                    }
+
+                    if (deathPos != null && yigdConfig.graveSettings.tellDeathPos) {
+                        player.sendMessage(new TranslatableText("text.yigd.message.grave_location_info", deathPos.getX(), deathPos.getY(), deathPos.getZ(), latestDeath.dimensionName), false);
+                    }
+            }
             }
         }
         catch (Exception e) {

@@ -243,10 +243,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
-            YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
+            YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+            YigdConfig.GraveRobbing graveRobbing = config.graveRobbing;
             boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-            boolean timePassed = graveEntity.age > graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
-            if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || (canRobGrave && timePassed))) || graveEntity.getGraveOwner() == null) {
+            if ((config.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }

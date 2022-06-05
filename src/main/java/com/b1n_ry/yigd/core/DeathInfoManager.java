@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.core;
 
+import com.b1n_ry.yigd.Yigd;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -27,6 +28,8 @@ public class DeathInfoManager extends PersistentState {
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
+        Yigd.LOGGER.info("Saving grave backup data");
+
         NbtCompound graveData = new NbtCompound();
         NbtList userList = new NbtList();
 
