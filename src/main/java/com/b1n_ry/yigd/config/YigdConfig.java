@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.config;
 
+import com.b1n_ry.yigd.Yigd;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
@@ -318,6 +319,6 @@ public class YigdConfig implements ConfigData {
     }
 
     public static YigdConfig getConfig() {
-        return AutoConfig.getConfigHolder(YigdConfig.class).getConfig();
+        return Yigd.defaultConfig == null ? AutoConfig.getConfigHolder(YigdConfig.class).getConfig() : Yigd.defaultConfig;
     }
 }

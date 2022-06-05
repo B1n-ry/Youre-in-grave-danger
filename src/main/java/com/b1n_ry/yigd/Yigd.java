@@ -21,9 +21,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
+import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -40,6 +41,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -50,7 +52,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
-public class Yigd implements ModInitializer {
+public class Yigd implements ModInitializer, DedicatedServerModInitializer, ServerLifecycleEvents.ServerStarted, ServerLifecycleEvents.ServerStopped {
     public static final Logger LOGGER = LoggerFactory.getLogger("YIGD");
 
     public static List<UUID> notNotifiedPlayers = new ArrayList<>();
@@ -74,13 +76,20 @@ public class Yigd implements ModInitializer {
     public static final List<String> miscCompatMods = new ArrayList<>();
     public static final List<Runnable> NEXT_TICK = new ArrayList<>();
 
+    public static YigdConfig defaultConfig = null;
+
     @Override
     public void onInitialize() {
-        AutoConfig.register(YigdConfig.class, Toml4jConfigSerializer::new);
+        try {
+            AutoConfig.register(YigdConfig.class, Toml4jConfigSerializer::new);
+        }
+        catch (Exception e) {
+            defaultConfig = new YigdConfig();
+            LOGGER.error("Loading default YIGD config due to an error reading the config file. Delete yigd.toml, and a new working config file should generate", e);
+        }
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
-            @SuppressWarnings("deprecation")
             public void reload(ResourceManager manager) {
                 graveyard = null;
 
@@ -93,26 +102,6 @@ public class Yigd implements ModInitializer {
                     } catch(Exception e) {
                         LOGGER.error("Error occurred while loading resource json " + id + "\n" + e);
                     }
-                }
-                // Using experimental features so things may or may not cause issues
-                try {
-                    if (FabricLoader.getInstance() != null) {
-                        if (FabricLoader.getInstance().getGameInstance() instanceof MinecraftServer) {
-                            for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
-                                if (!id.getNamespace().equals("yigd")) continue;
-                                try (InputStream stream = manager.getResource(id).getInputStream()) {
-                                    LOGGER.info("Reloading grave shape (server side)");
-                                    GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
-                                    break;
-                                } catch (Exception e) {
-                                    LOGGER.error("Error occurred while loading custom grave shape (server side)\n" + e);
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception e) {
-                    LOGGER.error("Error occurred while trying to generate server side voxel-shape\n" + e);
                 }
 
                 for (Identifier id : manager.findResources("custom", path -> path.equals("grave_areas.json"))) {
@@ -220,12 +209,6 @@ public class Yigd implements ModInitializer {
         YigdCommand.registerCommands();
         ServerPacketReceivers.register();
 
-        ServerWorldEvents.LOAD.register((server, world) -> {
-            if (world == server.getOverworld()) { // Prevent from loading data more than once
-                DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
-                LOGGER.info("Loaded data from grave data file");
-            }
-        });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             UUID playerId = handler.player.getUuid();
             if (notNotifiedPlayers.contains(playerId)) {
@@ -244,5 +227,48 @@ public class Yigd implements ModInitializer {
                 function.run();
             }
         });
+    }
+
+    @Override
+    public void onInitializeServer() {
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            public void reload(ResourceManager manager) {
+                for (Identifier id : manager.findResources("custom", path -> path.equals("grave.json"))) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        LOGGER.info("Reloading grave shape (server side)");
+                        GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
+                        break;
+                    } catch (Exception e) {
+                        LOGGER.error("Error occurred while loading custom grave shape (server side)\n" + e);
+                    }
+                }
+            }
+
+            @Override
+            public Identifier getFabricId() {
+                return new Identifier("yigd", "grave_model");
+            }
+        });
+    }
+
+    @Override
+    public void onServerStarted(MinecraftServer server) {
+        ServerWorld world = server.getOverworld();
+        if (world == null) { // If for some reason the overworld is not loaded
+            for (ServerWorld serverWorld : server.getWorlds()) {
+                world = serverWorld;
+                break;
+            }
+        }
+        if (world == null) return; // If for some reason there's no world loaded
+        DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
+        LOGGER.info("Loaded data from grave data file");
+    }
+
+    @Override
+    public void onServerStopped(MinecraftServer server) {
+        DeathInfoManager.INSTANCE = null;
     }
 }
