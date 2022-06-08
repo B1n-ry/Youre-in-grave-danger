@@ -333,4 +333,15 @@ public class PlayerSelectScreen extends Screen {
             hoveredElement = "search_bar";
         }
     }
+
+    public void addData(UUID user, DeadPlayerData data) {
+        List<DeadPlayerData> dataList = this.data.get(user);
+        if (dataList == null) {
+            this.data.put(user, List.of(data));
+        } else {
+            dataList.add(data);
+        }
+
+        reloadFilters();
+    }
 }

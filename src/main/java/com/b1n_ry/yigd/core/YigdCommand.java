@@ -171,26 +171,44 @@ public class YigdCommand {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.GraveKeySettings keySettings = config.utilitySettings.graveKeySettings;
         if (existsGraves) {
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeInt(DeathInfoManager.INSTANCE.data.size());
+//            PacketByteBuf buf = PacketByteBufs.create();
+//            buf.writeInt(DeathInfoManager.INSTANCE.data.size());
+//            DeathInfoManager.INSTANCE.data.forEach((uuid, deadPlayerData) -> {
+//                buf.writeUuid(uuid);
+//                buf.writeInt(deadPlayerData.size());
+//                for (DeadPlayerData data : deadPlayerData) {
+//                    buf.writeNbt(data.toNbt());
+//                }
+//            });
+//
+//            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+//            buf.writeBoolean(config.graveSettings.unlockableGraves);
+//
+//            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
+//            buf.writeInt(unlockedGravesAmount);
+//            for (int i = 0; i < unlockedGravesAmount; i++) {
+//                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
+//            }
+//
+//            ServerPlayNetworking.send(player, PacketIdentifiers.ALL_PLAYER_GRAVES, buf);
+
+            PacketByteBuf configBuf = PacketByteBufs.create();
+            configBuf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+            configBuf.writeBoolean(config.graveSettings.unlockableGraves);
+
+            ServerPlayNetworking.send(player, PacketIdentifiers.KEY_AND_UNLOCK_CONFIG, configBuf);
+
             DeathInfoManager.INSTANCE.data.forEach((uuid, deadPlayerData) -> {
-                buf.writeUuid(uuid);
-                buf.writeInt(deadPlayerData.size());
                 for (DeadPlayerData data : deadPlayerData) {
+                    PacketByteBuf buf = PacketByteBufs.create();
+                    buf.writeUuid(uuid);
                     buf.writeNbt(data.toNbt());
+
+                    buf.writeBoolean(DeathInfoManager.INSTANCE.unlockedGraves.contains(data.id));
+
+                    ServerPlayNetworking.send(player, PacketIdentifiers.ALL_PLAYER_GRAVES, buf);
                 }
             });
-
-            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
-            buf.writeBoolean(config.graveSettings.unlockableGraves);
-
-            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
-            buf.writeInt(unlockedGravesAmount);
-            for (int i = 0; i < unlockedGravesAmount; i++) {
-                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
-            }
-
-            ServerPlayNetworking.send(player, PacketIdentifiers.ALL_PLAYER_GRAVES, buf);
         } else {
             player.sendMessage(new TranslatableText("text.yigd.message.grave_not_found"), false);
             return 0;
@@ -208,22 +226,37 @@ public class YigdCommand {
         YigdConfig.GraveKeySettings keySettings = config.utilitySettings.graveKeySettings;
         if (commandUser instanceof ServerPlayerEntity spe && DeathInfoManager.INSTANCE.data.containsKey(userId) && DeathInfoManager.INSTANCE.data.get(userId).size() > 0) {
             List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeInt(deadPlayerData.size());
+//            PacketByteBuf buf = PacketByteBufs.create();
+//            buf.writeInt(deadPlayerData.size());
+//            for (DeadPlayerData data : deadPlayerData) {
+//                buf.writeNbt(data.toNbt());
+//            }
+//            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+//            buf.writeBoolean(config.graveSettings.unlockableGraves);
+//
+//            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
+//            buf.writeInt(unlockedGravesAmount);
+//            for (int i = 0; i < unlockedGravesAmount; i++) {
+//                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
+//            }
+//
+//            ServerPlayNetworking.send(spe, PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
+            Yigd.LOGGER.info("Sending packets to " + spe.getDisplayName().asString() + " with grave info...");
+
+            PacketByteBuf configBuf = PacketByteBufs.create();
+            configBuf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
+            configBuf.writeBoolean(config.graveSettings.unlockableGraves);
+            ServerPlayNetworking.send(spe, PacketIdentifiers.KEY_AND_UNLOCK_CONFIG, configBuf);
+
             for (DeadPlayerData data : deadPlayerData) {
+                PacketByteBuf buf = PacketByteBufs.create();
+                buf.writeUuid(userId);
                 buf.writeNbt(data.toNbt());
-            }
-            buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
-            buf.writeBoolean(config.graveSettings.unlockableGraves);
+                buf.writeBoolean(DeathInfoManager.INSTANCE.unlockedGraves.contains(data.id));
 
-            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
-            buf.writeInt(unlockedGravesAmount);
-            for (int i = 0; i < unlockedGravesAmount; i++) {
-                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
+                ServerPlayNetworking.send(spe, PacketIdentifiers.PLAYER_GRAVES_GUI, configBuf);
             }
 
-            ServerPlayNetworking.send(spe, PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
-            Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");
         } else {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.view_command.fail", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
             return 0;
