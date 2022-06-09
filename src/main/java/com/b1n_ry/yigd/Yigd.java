@@ -5,6 +5,8 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
+import com.b1n_ry.yigd.compat.GomlCompat;
+import com.b1n_ry.yigd.compat.TrinketsCompat;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -24,7 +26,6 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -187,9 +188,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
             Registry.register(Registry.ITEM, new Identifier("yigd", "grave_key"), KEY_ITEM);
         }
 
-//        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
-//            apiMods.add(new TrinketsCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            apiMods.add(new TrinketsCompat());
+        }
 //        if (FabricLoader.getInstance().isModLoaded("levelz")) {
 //            apiMods.add(new LevelzCompat());
 //        }
@@ -204,9 +205,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
 //        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
 //            claimMods.add(new FtbChunksCompat());
 //        }
-//        if (FabricLoader.getInstance().isModLoaded("goml")) {
-//            claimMods.add(new GomlCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("goml")) {
+            claimMods.add(new GomlCompat());
+        }
 
         if (FabricLoader.getInstance().isModLoaded("graveyard")) {
             miscCompatMods.add("graveyard");
@@ -218,11 +219,6 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         YigdCommand.registerCommands();
         ServerPacketReceivers.register();
 
-        ServerWorldEvents.LOAD.register((server, world) -> {
-            if (world == server.getOverworld()) {
-                DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
-            }
-        });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             UUID playerId = handler.player.getUuid();
             if (notNotifiedPlayers.contains(playerId)) {

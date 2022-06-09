@@ -5,7 +5,7 @@ import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.item.KeyItem;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.MessageType;
+import net.minecraft.network.message.MessageType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableTextContent;

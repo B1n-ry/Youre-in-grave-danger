@@ -53,7 +53,7 @@ public class TrinketsCompat implements YigdApi {
                     boolean removed = false;
 
                     if (onDeath) {
-                        if (GraveHelper.hasEnchantments(deleteEnchantments, stack)) {
+                        if (GraveHelper.hasEnchantments(deleteEnchantments, stack) || GraveHelper.hasBotaniaKeepIvy(stack, true)) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             removed = true;
                         } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS) {
