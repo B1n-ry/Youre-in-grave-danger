@@ -334,4 +334,14 @@ public class PlayerSelectScreen extends Screen {
             hoveredElement = "search_bar";
         }
     }
+
+    public void addData(UUID user, DeadPlayerData data) {
+        List<DeadPlayerData> deadData = this.data.computeIfAbsent(user, entry -> new ArrayList<>());
+        List<DeadPlayerData> newList = new ArrayList<>(deadData);
+        newList.add(data);
+
+        this.data.put(user, newList);
+
+        reloadFilters();
+    }
 }

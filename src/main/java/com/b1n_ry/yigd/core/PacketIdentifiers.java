@@ -13,4 +13,5 @@ public class PacketIdentifiers {
     public static final Identifier SINGLE_GRAVE_GUI = new Identifier("yigd", "single_grave");
     public static final Identifier PLAYER_GRAVES_GUI = new Identifier("yigd", "single_dead_guy");
     public static final Identifier ALL_PLAYER_GRAVES = new Identifier("yigd", "all_dead_people");
+    public static final Identifier KEY_AND_UNLOCK_CONFIG = new Identifier("yigd", "key_and_unlockable");
 }

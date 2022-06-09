@@ -15,13 +15,14 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class GraveSelectScreen extends Screen {
     private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_grave_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
-    private final List<DeadPlayerData> data;
-    private final List<GuiGraveInfo> graveInfo;
+    private List<DeadPlayerData> data;
+    private List<GuiGraveInfo> graveInfo;
     private final int page;
 
     private final Screen previousScreen;
@@ -309,6 +310,39 @@ public class GraveSelectScreen extends Screen {
         }
         if (this.showStatus) drawTexture(matrices, originX, boxRow, 38, 84, 6, 6);
         textRenderer.draw(matrices, MutableText.of(new TranslatableTextContent("text.yigd.gui.grave_select.show_status")), originX + 8f, boxRow - 1f, 0x777777);
+    }
+
+    public void addData(UUID userId, DeadPlayerData data) {
+        if (!userId.equals(this.graveOwner.getId())) return;
+
+        // Looks complicated but for some reason the list is fixed size, so this is required
+        List<DeadPlayerData> deadPlayerData = new ArrayList<>(this.data);
+        deadPlayerData.add(data);
+        this.data = deadPlayerData;
+
+        int size = 0;
+        for (ItemStack stack : data.inventory) {
+            if (!stack.isEmpty()) size++;
+        }
+        for (int i = 0; i < data.modInventories.size(); i++) {
+            YigdApi yigdApi = Yigd.apiMods.get(i);
+            size += yigdApi.getInventorySize(data.modInventories.get(i));
+        }
+
+        int points = data.xp;
+        int i;
+        for (i = 0; points >= 0; i++) {
+            if (i < 16) points -= (2 * i) + 7;
+            else if (i < 31) points -= (5 * i) - 38;
+            else points -= (9 * i) - 158;
+        }
+
+        // Looks complicated but for some reason the list is fixed size, so this is required
+        List<GuiGraveInfo> guiGraveInfoList = new ArrayList<>(this.graveInfo);
+        guiGraveInfoList.add(new GuiGraveInfo(data, size, i - 1));
+        this.graveInfo = guiGraveInfoList;
+
+        reloadFilters();
     }
 
     private record GuiGraveInfo(DeadPlayerData data, int itemSize, int xpLevels) { }

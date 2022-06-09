@@ -30,7 +30,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.network.MessageType;
+import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -245,10 +245,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof GraveBlockEntity graveEntity) {
-            YigdConfig.GraveRobbing graveRobbing = YigdConfig.getConfig().graveSettings.graveRobbing;
+            YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+            YigdConfig.GraveRobbing graveRobbing = config.graveRobbing;
             boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-            boolean timePassed = graveEntity.age > graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
-            if ((YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || (canRobGrave && timePassed))) || graveEntity.getGraveOwner() == null) {
+            if ((config.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }

@@ -59,7 +59,7 @@ public class GraveHelper {
             ItemStack stack = itemList.get(i);
             if (!stack.isEmpty()) continue;
             if (stack.isIn(ModTags.RANDOM_DELETE_BLACKLIST) || hasEnchantments(ignoreEnchantments, stack)) continue;
-            if ((itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM))) continue;
+            if (itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM) || GraveHelper.hasBotaniaKeepIvy(stack, false)) continue;
 
             itemSlots.add(i);
         }
@@ -79,7 +79,12 @@ public class GraveHelper {
         if (world.isClient()) return;
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
-        if (!YigdConfig.getConfig().graveSettings.graveInVoid && pos.y < bottomY + 1) return;
+
+        YigdConfig config = YigdConfig.getConfig();
+        if (!config.graveSettings.graveInVoid && pos.y < bottomY + 1) {
+            Yigd.LOGGER.info("Didn't generate grave as player died outside of the world");
+            return;
+        }
 
         double yPos = pos.y - 1D;
         if ((int) yPos != (int) (yPos + 0.5D) && player.isOnGround()) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
@@ -87,7 +92,7 @@ public class GraveHelper {
         BlockPos blockPos = new BlockPos(pos.x, (int) yPos, pos.z);
 
         if (blockPos.getY() <= bottomY) {
-            blockPos = new BlockPos(blockPos.getX(), bottomY + YigdConfig.getConfig().graveSettings.graveSpawnHeight, blockPos.getZ());
+            blockPos = new BlockPos(blockPos.getX(), bottomY + config.graveSettings.graveSpawnHeight, blockPos.getZ());
         } else if (blockPos.getY() >= topY) {
             blockPos = new BlockPos(blockPos.getX(), topY - 2, blockPos.getZ());
         }
@@ -174,7 +179,17 @@ public class GraveHelper {
             }
         }
 
-        if (!foundViableGrave && YigdConfig.getConfig().graveSettings.trySoft) { // Trying soft
+//        if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
+//            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
+//            BlockPos gravePos = gravePosDir.getLeft();
+//            Direction dir = gravePosDir.getRight();
+//            if (dir == null) dir = player.getHorizontalFacing();
+//            if (!blockPos.equals(gravePos)) {
+//                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
+//            }
+//        }
+
+        if (!foundViableGrave && config.graveSettings.trySoft) { // Trying soft
             for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
                 if (gravePlaceableAt(world, gravePos, false)) {
                     boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
@@ -185,7 +200,7 @@ public class GraveHelper {
                 }
             }
         }
-        if (!foundViableGrave && YigdConfig.getConfig().graveSettings.tryStrict) { // Trying strict
+        if (!foundViableGrave && config.graveSettings.tryStrict) { // Trying strict
             for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
                 if (gravePlaceableAt(world, gravePos, true)) {
                     boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
@@ -199,7 +214,7 @@ public class GraveHelper {
         // If there is nowhere to place the grave for some reason the items should not disappear
         if (!foundViableGrave) { // No grave was placed
             boolean isPlaced = false;
-            if (YigdConfig.getConfig().graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
+            if (config.graveSettings.lastResort == LastResortConfig.SET_GRAVE) {
                 isPlaced = placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, source);
                 if (!isPlaced) {
                     Yigd.LOGGER.warn("Failed to set grave as a last resort");
@@ -353,6 +368,8 @@ public class GraveHelper {
             DeathInfoManager.INSTANCE.markDirty();
 
             Yigd.LOGGER.info("Grave spawned at: " + gravePos.getX() + ", " +  gravePos.getY() + ", " + gravePos.getZ() + " | " + deadData.dimensionName);
+        } else {
+            Yigd.LOGGER.error("Grave block did not have grave block entity");
         }
         return true;
     }
@@ -527,5 +544,26 @@ public class GraveHelper {
         }
 
         return extraItems;
+    }
+
+    public static boolean hasBotaniaKeepIvy(ItemStack stack, boolean alsoDelete) {
+        if (stack.isEmpty() || !stack.hasNbt()) return false;
+        NbtCompound nbt = stack.getNbt();
+        if (nbt == null) return false;
+        if (nbt.contains("Botania_keepIvy")) {
+            if (nbt.getBoolean("Botania_keepIvy")) {
+                if (alsoDelete) removeBotaniaKeepIvy(stack);
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void removeBotaniaKeepIvy(ItemStack stack) {
+        if (stack.isEmpty() || !stack.hasNbt()) return;
+        NbtCompound nbt = stack.getNbt();
+        if (nbt == null) return;
+        if (nbt.contains("Botania_keepIvy")) {
+            stack.removeSubNbt("Botania_keepIvy");
+        }
     }
 }

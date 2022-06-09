@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.config;
 
+import com.b1n_ry.yigd.Yigd;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
@@ -210,6 +211,11 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DeathEffectConfig claimRuleOverride = DeathEffectConfig.CREATE_GRAVE;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean prioritiseTheGraveyardGraves = false;
+        @ConfigEntry.Gui.Tooltip
+        public int graveyardSearchRadius = 10;
     }
 
     public static class GraveRenderSettings {
@@ -313,6 +319,6 @@ public class YigdConfig implements ConfigData {
     }
 
     public static YigdConfig getConfig() {
-        return AutoConfig.getConfigHolder(YigdConfig.class).getConfig();
+        return Yigd.defaultConfig == null ? AutoConfig.getConfigHolder(YigdConfig.class).getConfig() : Yigd.defaultConfig;
     }
 }
