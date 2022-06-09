@@ -254,7 +254,7 @@ public class YigdCommand {
                 buf.writeNbt(data.toNbt());
                 buf.writeBoolean(DeathInfoManager.INSTANCE.unlockedGraves.contains(data.id));
 
-                ServerPlayNetworking.send(spe, PacketIdentifiers.PLAYER_GRAVES_GUI, configBuf);
+                ServerPlayNetworking.send(spe, PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
             }
 
         } else {

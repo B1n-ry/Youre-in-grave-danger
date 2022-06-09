@@ -40,7 +40,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
@@ -52,7 +51,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
-public class Yigd implements ModInitializer, DedicatedServerModInitializer, ServerLifecycleEvents.ServerStarted, ServerLifecycleEvents.ServerStopped {
+public class Yigd implements ModInitializer, DedicatedServerModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("YIGD");
 
     public static List<UUID> notNotifiedPlayers = new ArrayList<>();
@@ -148,6 +147,20 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer, Serv
                 return new Identifier("yigd", "models/block/grave");
             }
         });
+
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            ServerWorld world = server.getOverworld();
+            if (world == null) { // If for some reason the overworld is not loaded
+                for (ServerWorld serverWorld : server.getWorlds()) {
+                    world = serverWorld;
+                    break;
+                }
+            }
+            if (world == null) return; // If for some reason there's NO world loaded
+            DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
+            LOGGER.info("Loaded data from grave data file");
+        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> DeathInfoManager.INSTANCE = null);
 
         GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
 
@@ -251,24 +264,5 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer, Serv
                 return new Identifier("yigd", "grave_model");
             }
         });
-    }
-
-    @Override
-    public void onServerStarted(MinecraftServer server) {
-        ServerWorld world = server.getOverworld();
-        if (world == null) { // If for some reason the overworld is not loaded
-            for (ServerWorld serverWorld : server.getWorlds()) {
-                world = serverWorld;
-                break;
-            }
-        }
-        if (world == null) return; // If for some reason there's no world loaded
-        DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
-        LOGGER.info("Loaded data from grave data file");
-    }
-
-    @Override
-    public void onServerStopped(MinecraftServer server) {
-        DeathInfoManager.INSTANCE = null;
     }
 }

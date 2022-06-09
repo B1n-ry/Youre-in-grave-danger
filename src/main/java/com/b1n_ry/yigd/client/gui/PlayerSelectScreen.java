@@ -335,12 +335,11 @@ public class PlayerSelectScreen extends Screen {
     }
 
     public void addData(UUID user, DeadPlayerData data) {
-        List<DeadPlayerData> dataList = this.data.get(user);
-        if (dataList == null) {
-            this.data.put(user, List.of(data));
-        } else {
-            dataList.add(data);
-        }
+        List<DeadPlayerData> deadData = this.data.computeIfAbsent(user, entry -> new ArrayList<>());
+        List<DeadPlayerData> newList = new ArrayList<>(deadData);
+        newList.add(data);
+
+        this.data.put(user, newList);
 
         reloadFilters();
     }

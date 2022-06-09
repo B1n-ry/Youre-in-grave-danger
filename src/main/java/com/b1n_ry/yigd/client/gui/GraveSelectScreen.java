@@ -20,8 +20,8 @@ public class GraveSelectScreen extends Screen {
     private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_grave_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
-    private final List<DeadPlayerData> data;
-    private final List<GuiGraveInfo> graveInfo;
+    private List<DeadPlayerData> data;
+    private List<GuiGraveInfo> graveInfo;
     private final int page;
 
     private final Screen previousScreen;
@@ -312,9 +312,12 @@ public class GraveSelectScreen extends Screen {
     }
 
     public void addData(UUID userId, DeadPlayerData data) {
-        if (userId != this.graveOwner.getId()) return;
+        if (!userId.equals(this.graveOwner.getId())) return;
 
-        this.data.add(data);
+        // Looks complicated but for some reason the list is fixed size, so this is required
+        List<DeadPlayerData> deadPlayerData = new ArrayList<>(this.data);
+        deadPlayerData.add(data);
+        this.data = deadPlayerData;
 
         int size = 0;
         for (ItemStack stack : data.inventory) {
@@ -333,7 +336,10 @@ public class GraveSelectScreen extends Screen {
             else points -= (9 * i) - 158;
         }
 
-        this.graveInfo.add(new GuiGraveInfo(data, size, i - 1));
+        // Looks complicated but for some reason the list is fixed size, so this is required
+        List<GuiGraveInfo> guiGraveInfoList = new ArrayList<>(this.graveInfo);
+        guiGraveInfoList.add(new GuiGraveInfo(data, size, i - 1));
+        this.graveInfo = guiGraveInfoList;
 
         reloadFilters();
     }

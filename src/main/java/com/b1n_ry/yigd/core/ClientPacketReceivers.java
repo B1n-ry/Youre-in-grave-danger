@@ -59,16 +59,16 @@ public class ClientPacketReceivers {
             DeadPlayerData data = DeadPlayerData.fromNbt(buf.readNbt());
             boolean isUnlocked = buf.readBoolean();
 
-            if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
+            client.execute(() -> {
+                if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
 
-            if (client.currentScreen instanceof GraveSelectScreen openScreen) {
-                openScreen.addData(userId, data);
-            } else {
-                client.execute(() -> {
+                if (client.currentScreen instanceof GraveSelectScreen openScreen) {
+                    openScreen.addData(userId, data);
+                } else {
                     GraveSelectScreen screen = new GraveSelectScreen(List.of(data), 1, client.currentScreen);
                     client.setScreen(screen);
-                });
-            }
+                }
+            });
         });
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.ALL_PLAYER_GRAVES, (client, handler, buf, responseSender) -> {
             if (client == null) return;
@@ -94,23 +94,23 @@ public class ClientPacketReceivers {
 //                UUID uuid = buf.readUuid();
 //                GraveViewScreen.unlockedGraves.add(uuid);
 //            }
-
             UUID userId = buf.readUuid();
             DeadPlayerData data = DeadPlayerData.fromNbt(buf.readNbt());
             boolean isUnlocked = buf.readBoolean();
 
-            if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
+            client.execute(() -> {
+                if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
 
-            if (client.currentScreen instanceof PlayerSelectScreen openScreen) {
-                openScreen.addData(userId, data);
-            } else {
-                Map<UUID, List<DeadPlayerData>> dataMap = new HashMap<>();
-                dataMap.put(userId, List.of(data));
-                client.execute(() -> {
+                if (client.currentScreen instanceof PlayerSelectScreen openScreen) {
+                    openScreen.addData(userId, data);
+                } else {
+                    Map<UUID, List<DeadPlayerData>> dataMap = new HashMap<>();
+                    dataMap.put(userId, List.of(data));
+
                     PlayerSelectScreen screen = new PlayerSelectScreen(dataMap, 1);
                     client.setScreen(screen);
-                });
-            }
+                }
+            });
         });
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.KEY_AND_UNLOCK_CONFIG, (client, handler, buf, responseSender) -> {
             GraveViewScreen.getKeysFromGui = buf.readBoolean();
