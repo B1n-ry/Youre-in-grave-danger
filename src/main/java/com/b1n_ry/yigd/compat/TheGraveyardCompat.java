@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.ModTags;
 import com.finallion.graveyard.init.TGBlocks;
+import com.finallion.graveyard.world.structures.TGJigsawStructure;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.server.world.ServerWorld;
@@ -20,6 +21,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.structure.Structure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,13 +38,13 @@ public class TheGraveyardCompat {
         BlockPos structurePos = world.locateStructure(ModTags.GRAVEYARD_STRUCTURES, pos, radius, false);
         if (structurePos == null) return posDir;
 
-        Map<ConfiguredStructureFeature<?, ?>, LongSet> map = world.getStructureAccessor().method_41037(structurePos);
+        Map<Structure, LongSet> map = world.getStructureAccessor().getStructureReferences(structurePos);
 
         List<BlockPos> graveCoords = new ArrayList<>();
         StructureAccessor accessor = world.getStructureAccessor();
 
-        for (ConfiguredStructureFeature<?, ?> feature : map.keySet()) {
-            if (!(feature.feature instanceof AbstractGraveyardStructure)) continue;
+        for (Structure feature : map.keySet()) {
+            if (!(feature instanceof TGJigsawStructure)) continue;
             // Since there's no way of knowing which y-level the structure is at, which is required to know, we loop every 10 blocks (shortest graveyard is 10 blocks high) to find a graveyard structure
             StructureStart start;
             int height = 50;

@@ -5,6 +5,7 @@ import net.minecraft.item.Item;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.structure.Structure;
 
 public class ModTags {
     public static final TagKey<Block> REPLACE_BLACKLIST = TagKey.of(Registry.BLOCK_KEY, new Identifier("yigd", "replace_blacklist"));
@@ -16,5 +17,5 @@ public class ModTags {
     public static final TagKey<Item> RANDOM_DELETE_BLACKLIST = TagKey.of(Registry.ITEM_KEY, new Identifier("yigd", "random_delete_blacklist"));
     public static final TagKey<Item> SOULBOUND_BLACKLIST = TagKey.of(Registry.ITEM_KEY, new Identifier("yigd", "soulbound_blacklist"));
 
-//    public static final TagKey<ConfiguredStructureFeature<?, ?>> GRAVEYARD_STRUCTURES = TagKey.of(Registry.CONFIGURED_STRUCTURE_FEATURE_KEY, new Identifier("yigd", "graveyard_structures"));
+    public static final TagKey<Structure> GRAVEYARD_STRUCTURES = TagKey.of(Registry.STRUCTURE_KEY, new Identifier("yigd", "graveyard_structures"));
 }

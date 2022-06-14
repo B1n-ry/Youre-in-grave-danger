@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "graveyard:small_graveyard",
+    "graveyard:small_desert_graveyard",
+    "graveyard:medium_graveyard",
+    "graveyard:large_graveyard"
+  ]
+}
