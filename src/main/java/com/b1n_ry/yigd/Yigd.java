@@ -218,6 +218,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("fabric-permissions-api")) {
             miscCompatMods.add("permissions");
         }
+        if (FabricLoader.getInstance().isModLoaded("requiem")) {
+            miscCompatMods.add("requiem");
+        }
 
         YigdCommand.registerCommands();
         ServerPacketReceivers.register();

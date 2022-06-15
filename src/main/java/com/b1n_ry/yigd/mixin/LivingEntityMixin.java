@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.mixin;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
+import com.b1n_ry.yigd.compat.RequiemCompat;
 import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.*;
@@ -41,9 +42,21 @@ public abstract class LivingEntityMixin {
 
     @Redirect(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropInventory()V"))
     private void generateGrave(LivingEntity livingEntity, DamageSource source) {
-        if (!(livingEntity instanceof PlayerEntity player) || livingEntity.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) {
+        if (livingEntity.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) {
             this.dropInventory();
             return;
+        }
+
+        PlayerEntity player;
+        if (!(livingEntity instanceof PlayerEntity playerEntity)) {
+            if (Yigd.miscCompatMods.contains("requiem") && RequiemCompat.isPossessedByPlayer(livingEntity)) {
+                player = RequiemCompat.getPossessor(livingEntity);
+            } else {
+                this.dropInventory();
+                return;
+            }
+        } else {
+            player = playerEntity;
         }
         YigdConfig config = YigdConfig.getConfig();
         Vec3d pos = player.getPos();
@@ -180,6 +193,9 @@ public abstract class LivingEntityMixin {
             allItems.removeIf(ItemStack::isEmpty);
 
             UUID playerId = player.getUuid();
+            if (Yigd.miscCompatMods.contains("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
+                playerId = RequiemCompat.getDisplayId(player);
+            }
 
             int xpPoints;
             if (graveConfig.defaultXpDrop) {
