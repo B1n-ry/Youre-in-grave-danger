@@ -394,13 +394,17 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         }
 
         if (config.graveSettings.dropType == DropTypeConfig.ON_GROUND) {
+            DefaultedList<ItemStack> itemList = DefaultedList.of();
+            itemList.addAll(items);
             for (YigdApi yigdApi : Yigd.apiMods) {
                 Object o = graveModItems.get(yigdApi.getModName());
-                items.addAll(yigdApi.toStackList(o));
+                itemList.addAll(yigdApi.toStackList(o));
+
+                if (world instanceof ServerWorld sWorld) yigdApi.dropOnGround(o, sWorld, Vec3d.of(pos));
             }
 
             if (world instanceof ServerWorld sWorld) ExperienceOrbEntity.spawn(sWorld, Vec3d.of(pos), graveEntity.getStoredXp());
-            ItemScatterer.spawn(world, pos, items);
+            ItemScatterer.spawn(world, pos, itemList);
             if (config.graveSettings.dropGraveBlock) {
                 ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
