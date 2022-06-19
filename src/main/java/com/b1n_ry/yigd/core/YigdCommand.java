@@ -5,9 +5,11 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.compat.PermissionsCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,6 +23,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -37,6 +40,54 @@ public class YigdCommand {
                 .then(literal("restore")
                         .requires(source -> hasPermission(source, "yigd.command.restore") && config.retrieveGrave)
                         .then(argument("player", EntityArgumentType.player())
+                                .then(argument("x", IntegerArgumentType.integer())
+                                        .then(argument("y", IntegerArgumentType.integer())
+                                                .then(argument("z", IntegerArgumentType.integer())
+                                                        .then(argument("dim", DimensionArgumentType.dimension())
+                                                                .executes(ctx -> {
+                                                                    ServerCommandSource src = ctx.getSource();
+                                                                    Entity entity = src.getEntity();
+
+                                                                    ServerPlayerEntity player = EntityArgumentType.getPlayer(ctx, "player");
+
+                                                                    int posX = IntegerArgumentType.getInteger(ctx, "x");
+                                                                    int posY = IntegerArgumentType.getInteger(ctx, "y");
+                                                                    int posZ = IntegerArgumentType.getInteger(ctx, "z");
+                                                                    Identifier worldId = DimensionArgumentType.getDimensionArgument(ctx, "dim").getRegistryKey().getValue();
+                                                                    BlockPos pos = new BlockPos(posX, posY, posZ);
+
+                                                                    UUID graveId = posToId(pos, worldId, player.getUuid());
+
+                                                                    if (entity instanceof ServerPlayerEntity commandUser) {
+                                                                        return restoreGrave(player, commandUser, graveId);
+                                                                    } else {
+                                                                        return restoreGrave(player, null, graveId);
+                                                                    }
+                                                                })
+                                                        )
+                                                        .executes(ctx -> {
+                                                            ServerCommandSource src = ctx.getSource();
+                                                            Entity entity = src.getEntity();
+
+                                                            ServerPlayerEntity player = EntityArgumentType.getPlayer(ctx, "player");
+
+                                                            int posX = IntegerArgumentType.getInteger(ctx, "x");
+                                                            int posY = IntegerArgumentType.getInteger(ctx, "y");
+                                                            int posZ = IntegerArgumentType.getInteger(ctx, "z");
+                                                            Identifier worldId = player.world.getRegistryKey().getValue();
+                                                            BlockPos pos = new BlockPos(posX, posY, posZ);
+
+                                                            UUID graveId = posToId(pos, worldId, player.getUuid());
+
+                                                            if (entity instanceof ServerPlayerEntity commandUser) {
+                                                                return restoreGrave(player, commandUser, graveId);
+                                                            } else {
+                                                                return restoreGrave(player, null, graveId);
+                                                            }
+                                                        })
+                                                )
+                                        )
+                                )
                                 .executes(ctx -> {
                                     ServerCommandSource src = ctx.getSource();
                                     Entity entity = src.getEntity();
@@ -52,6 +103,43 @@ public class YigdCommand {
                 .then(literal("rob")
                         .requires(source -> hasPermission(source, "yigd.command.rob") && config.robGrave)
                         .then(argument("victim", EntityArgumentType.player())
+                                .then(argument("x", IntegerArgumentType.integer())
+                                        .then(argument("y", IntegerArgumentType.integer())
+                                                .then(argument("z", IntegerArgumentType.integer())
+                                                        .then(argument("dim", DimensionArgumentType.dimension())
+                                                                .executes(ctx -> {
+                                                                    ServerPlayerEntity player = EntityArgumentType.getPlayer(ctx, "victim");
+
+                                                                    int posX = IntegerArgumentType.getInteger(ctx, "x");
+                                                                    int posY = IntegerArgumentType.getInteger(ctx, "y");
+                                                                    int posZ = IntegerArgumentType.getInteger(ctx, "z");
+                                                                    Identifier worldId = DimensionArgumentType.getDimensionArgument(ctx, "dim").getRegistryKey().getValue();
+                                                                    BlockPos pos = new BlockPos(posX, posY, posZ);
+
+                                                                    UUID graveId = posToId(pos, worldId, player.getUuid());
+
+                                                                    return robGrave(player.getGameProfile(), ctx.getSource().getPlayer(), graveId);
+                                                                })
+                                                        )
+                                                        .executes(ctx -> {
+                                                            ServerPlayerEntity commandUser = ctx.getSource().getPlayer();
+                                                            if (commandUser == null) return -1;
+
+                                                            ServerPlayerEntity player = EntityArgumentType.getPlayer(ctx, "victim");
+
+                                                            int posX = IntegerArgumentType.getInteger(ctx, "x");
+                                                            int posY = IntegerArgumentType.getInteger(ctx, "y");
+                                                            int posZ = IntegerArgumentType.getInteger(ctx, "z");
+                                                            Identifier worldId = commandUser.world.getRegistryKey().getValue();
+                                                            BlockPos pos = new BlockPos(posX, posY, posZ);
+
+                                                            UUID graveId = posToId(pos, worldId, player.getUuid());
+
+                                                            return robGrave(player.getGameProfile(), commandUser, graveId);
+                                                        })
+                                                )
+                                        )
+                                )
                                 .executes(ctx -> robGrave(EntityArgumentType.getPlayer(ctx, "victim").getGameProfile(), ctx.getSource().getPlayer(), null))
                         )
                 )
@@ -298,6 +386,15 @@ public class YigdCommand {
         return 1;
     }
 
+    private static UUID posToId(BlockPos pos, Identifier worldId, UUID userId) {
+        List<DeadPlayerData> data = DeathInfoManager.INSTANCE.data.get(userId);
+        if (data == null) return null;
+
+        for (DeadPlayerData deadData : data) {
+            if (deadData.gravePos.equals(pos) && deadData.worldId.equals(worldId)) return deadData.id;
+        }
+        return null;
+    }
     public static int restoreGrave(PlayerEntity player, @Nullable ServerPlayerEntity commandUser, @Nullable UUID graveId) {
         if (commandUser != null && !hasPermission(commandUser, "yigd.command.restore") || !YigdConfig.getConfig().commandToggles.retrieveGrave) {
             if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
