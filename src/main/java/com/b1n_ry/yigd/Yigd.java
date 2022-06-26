@@ -208,8 +208,8 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
             claimMods.add(new FtbChunksCompat());
         }
-        if (FabricLoader.getInstance().isModLoaded("goml")) {
-            claimMods.add(new GomlCompat());
+        if (FabricLoader.getInstance().isModLoaded("common-protection-api")) {
+            claimMods.add(new ProtectionApiCompat());
         }
 
         if (FabricLoader.getInstance().isModLoaded("graveyard")) {

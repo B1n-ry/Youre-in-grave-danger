@@ -31,6 +31,10 @@ repositories {
 			includeGroup "dev.ftb.mods"
 		}
 	}
+	maven {
+		url = "https://modmaven.dev/"
+		name = "modmaven"
+	}
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 	flatDir {
 		dirs "./modsWithCompat"
@@ -52,6 +56,7 @@ repositories {
 	}
 	maven { url "https://maven.nucleoid.xyz/" }
 	maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+	mavenCentral()
 }
 
 dependencies {
@@ -78,24 +83,22 @@ dependencies {
 	modImplementation("mods.compat:The_Graveyard_1.9_(FABRIC)_for_1.18.2")
 	modImplementation "io.github.ladysnake:requiem:${project.requiem_version}"
 
-	// Hammerlike compat
+	// Fixed incompat
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")
+	modImplementation("mods.compat:twilightforest-fabric-1.18.2-${project.twilight_version}")
 
 	// Required for some mod compatibility to work
 	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
-	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}") { transitive = false }
-	modImplementation("eu.pb4:placeholder-api:${project.placeholder_version}")
-	modImplementation("eu.pb4:polymer:${project.polymer_version}")
-	modImplementation("eu.pb4:sgui:${project.sgui_version}")
-	modImplementation("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") { transitive = false } // Required for goml compat to work
-	modImplementation("io.github.ladysnake:PlayerAbilityLib:${project.pal_version}")
+	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-api:${project.cca_version}") { transitive = false }
 	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
 	modImplementation "software.bernie.geckolib:geckolib-fabric-1.18:${project.geckolib_version_fabric}"
+	modImplementation("com.github.Chocohead:Fabric-ASM:v2.3")
+
 
 	// Land claim compat mods
 	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
 	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
-	modImplementation("mods.compat:goml-${project.goml_version}")
+	modImplementation("eu.pb4:common-protection-api:${project.protection_api_version}")
 
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"

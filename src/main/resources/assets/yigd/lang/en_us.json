@@ -197,6 +197,8 @@
   "text.autoconfig.yigd.option.commandToggles.whitelistToggle": "/yigd whitelist toggle",
   "text.autoconfig.yigd.option.commandToggles.whitelistToggle.@Tooltip": "Toggles whitelist between whitelist and blacklist mode",
 
+  "text.autoconfig.yigd.option.debugConfig.clearInventoryOnRespawn": "Clear inventory on respawn",
+
   "block.yigd.grave": "Grave",
   "item.yigd.tp_scroll": "Scroll of Return",
   "item.yigd.death_scroll": "Death Scroll",
