@@ -46,10 +46,14 @@ public class ServerPlayerEntityMixin {
 
         if (player.getWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;
 
-        // In case some items are by mistake placed in the inventory that should not be there
-        player.getInventory().clear();
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            yigdApi.dropAll(player);
+        YigdConfig yigdConfig = YigdConfig.getConfig();
+        if (yigdConfig.debugConfig.clearInventoryOnRespawn) {
+            // In case some items are by mistake placed in the inventory that should not be there
+            player.getInventory().clear();
+
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                yigdApi.dropAll(player);
+            }
         }
 
         List<Object> modSoulbounds = DeadPlayerData.Soulbound.getModdedSoulbound(userId);
@@ -112,8 +116,6 @@ public class ServerPlayerEntityMixin {
         }
 
         try {
-            YigdConfig yigdConfig = YigdConfig.getConfig();
-
             List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
             if (deadPlayerData != null) {
                 List<DeadPlayerData> availableData = new ArrayList<>();

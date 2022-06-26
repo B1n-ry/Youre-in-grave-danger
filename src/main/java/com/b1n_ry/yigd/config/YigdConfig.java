@@ -20,6 +20,9 @@ public class YigdConfig implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     public CommandToggles commandToggles = new CommandToggles();
 
+    @ConfigEntry.Gui.Excluded
+    public DebugConfig debugConfig = new DebugConfig();
+
     public static class GraveSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean generateGraves = true;
@@ -316,6 +319,10 @@ public class YigdConfig implements ConfigData {
             this.villagerTrade = villagerTrade;
             this.tableAndLoot = tableAndLoot;
         }
+    }
+
+    public static class DebugConfig {
+        public boolean clearInventoryOnRespawn = false;
     }
 
     public static YigdConfig getConfig() {

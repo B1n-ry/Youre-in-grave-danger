@@ -5,10 +5,7 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
-import com.b1n_ry.yigd.compat.FtbChunksCompat;
-import com.b1n_ry.yigd.compat.GomlCompat;
-import com.b1n_ry.yigd.compat.LevelzCompat;
-import com.b1n_ry.yigd.compat.TrinketsCompat;
+import com.b1n_ry.yigd.compat.*;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -196,9 +193,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("levelz")) {
             apiMods.add(new LevelzCompat());
         }
-//        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
-//            apiMods.add(new InventorioCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
+            apiMods.add(new InventorioCompat());
+        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
 //        if (FabricLoader.getInstance().isModLoaded("flan")) {
@@ -207,8 +204,8 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
             claimMods.add(new FtbChunksCompat());
         }
-        if (FabricLoader.getInstance().isModLoaded("goml")) {
-            claimMods.add(new GomlCompat());
+        if (FabricLoader.getInstance().isModLoaded("common-protection-api")) {
+            claimMods.add(new ProtectionApiCompat());
         }
 
         if (FabricLoader.getInstance().isModLoaded("graveyard")) {
