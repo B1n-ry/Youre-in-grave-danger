@@ -1,3 +1,20 @@
+# You're in Grave Danger 1.3.7
+
+### Changes
+ - Re-added requiem compat (for fake players and possessed mobs)
+ - Graves can now be restored/robbed using coordinates
+ - When a player respawn after dying their inventory is no longer cleared (can be toggled with config)
+ - Replaced goml compat with common protection api compat
+
+### Fixes
+ - Graves can now be robbed when configured to claim on destroy
+ - The game will now start when the config file is broken, but will print an error
+ - When opening grave GUI data will be sent in smaller parts allowing much more data to be sent
+ - Game will no longer crash when graves drop items on the ground
+ - Soulbound will now work again with twilight forest mod present
+
+---
+
 # You're in Grave Danger 1.3.6
 
 ### Changes

@@ -1,12 +1,14 @@
 package com.b1n_ry.yigd.client;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.client.gui.ConfigWarningScreen;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.ClientPacketReceivers;
 import com.b1n_ry.yigd.core.PacketIdentifiers;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
@@ -24,6 +26,11 @@ public class YigdClient implements ClientModInitializer {
         BlockEntityRendererRegistry.register(GRAVE_BLOCK_ENTITY, GraveBlockEntityRenderer::new);
 
         ClientPacketReceivers.register();
+
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+            if (Yigd.defaultConfig != null)
+                client.setScreen(new ConfigWarningScreen(client.currentScreen));
+        });
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             YigdConfig config = YigdConfig.getConfig();
