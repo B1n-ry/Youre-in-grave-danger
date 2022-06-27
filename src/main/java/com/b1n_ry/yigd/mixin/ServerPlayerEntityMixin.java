@@ -18,8 +18,7 @@ import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.text.Text;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -135,7 +134,7 @@ public class ServerPlayerEntityMixin {
                     }
 
                     if (deathPos != null && yigdConfig.graveSettings.tellDeathPos) {
-                        player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.grave_location_info", deathPos.getX(), deathPos.getY(), deathPos.getZ(), latestDeath.dimensionName)), false);
+                        player.sendMessage(Text.translatable("text.yigd.message.grave_location_info", deathPos.getX(), deathPos.getY(), deathPos.getZ(), latestDeath.dimensionName), false);
                     }
                 }
             }

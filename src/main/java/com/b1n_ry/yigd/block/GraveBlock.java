@@ -38,8 +38,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -330,7 +329,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         if (graveOwner == null) return false;
         if (graveEntity.getGraveOwner() != null && graveEntity.age < 20) {
-            ((ServerPlayerEntity) player).sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.too_fast")), MessageType.SYSTEM);
+            ((ServerPlayerEntity) player).sendMessage(Text.translatable("text.yigd.message.too_fast"), MessageType.SYSTEM);
             return false;
         }
 
@@ -367,9 +366,9 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
                     int seconds = (int) timeRemaining;
 
-                    player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.retrieve.rob_cooldown", hours, minutes, seconds)), true);
+                    player.sendMessage(Text.translatable("text.yigd.message.retrieve.rob_cooldown", hours, minutes, seconds), true);
                 } else {
-                    player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.retrieve.missing_permission")), true);
+                    player.sendMessage(Text.translatable("text.yigd.message.retrieve.missing_permission"), true);
                 }
                 if (!isRobbing) return false;
             } else {
@@ -378,7 +377,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         } else if(config.utilitySettings.graveKeySettings.alwaysRequire) {
             ItemStack stack = player.getMainHandStack();
             if (!KeyItem.isKeyForGrave(stack, graveEntity)) {
-                ((ServerPlayerEntity) player).sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.retrieve.missing_key")), MessageType.SYSTEM);
+                ((ServerPlayerEntity) player).sendMessage(Text.translatable("text.yigd.message.retrieve.missing_key"), MessageType.SYSTEM);
                 return false;
             }
         }
@@ -431,7 +430,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             UUID playerId = graveOwner.getId();
             ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(playerId);
             if (robbedPlayer != null) {
-                robbedPlayer.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.robbed")), false);
+                robbedPlayer.sendMessage(Text.translatable("text.yigd.message.robbed"), false);
             } else {
                 Yigd.notNotifiedRobberies.add(playerId);
             }

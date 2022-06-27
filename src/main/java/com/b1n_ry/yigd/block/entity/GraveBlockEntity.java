@@ -19,8 +19,7 @@ import net.minecraft.network.message.MessageType;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.text.Text;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -198,7 +197,7 @@ public class GraveBlockEntity extends BlockEntity {
             Yigd.notNotifiedPlayers.add(grave.graveOwner.getId());
             return;
         }
-        graveOwner.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.timeout" + (deletion.dropInventory ? ".dropped" : ""))), MessageType.SYSTEM);
+        graveOwner.sendMessage(Text.translatable("text.yigd.message.timeout" + (deletion.dropInventory ? ".dropped" : "")), MessageType.SYSTEM);
     }
 
     public void setGraveOwner(GameProfile owner) {

@@ -7,8 +7,7 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.text.Text;
 
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class ServerPacketReceivers {
             if (graveOwner != null) {
                 YigdCommand.restoreGrave(graveOwner, player, graveId);
             } else {
-                player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.backup.restore.fail")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+                player.sendMessage(Text.translatable("text.yigd.message.backup.restore.fail").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             }
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.DELETE_GRAVE, (server, player, handler, buf, responseSender) -> {
@@ -49,7 +48,7 @@ public class ServerPacketReceivers {
                 if (!data.id.equals(graveId)) continue;
                 deadPlayerData.remove(data);
 
-                player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.backup.delete_one")), MessageType.SYSTEM);
+                player.sendMessage(Text.translatable("text.yigd.message.backup.delete_one"), MessageType.SYSTEM);
                 break;
             }
             DeathInfoManager.INSTANCE.markDirty();

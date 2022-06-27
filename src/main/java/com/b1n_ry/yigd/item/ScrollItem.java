@@ -15,8 +15,7 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -33,7 +32,7 @@ public class ScrollItem extends Item {
     public ItemStack getDefaultStack() {
         ItemStack stack = super.getDefaultStack();
         ScrollTypeConfig scrollTypeConfig = YigdConfig.getConfig().utilitySettings.scrollItem.scrollType;
-        if (scrollTypeConfig == ScrollTypeConfig.SCROLL_OF_RETURN) stack.setCustomName(MutableText.of(new TranslatableTextContent("item.yigd.tp_scroll")));
+        if (scrollTypeConfig == ScrollTypeConfig.SCROLL_OF_RETURN) stack.setCustomName(Text.translatable("item.yigd.tp_scroll"));
         return stack;
     }
 
@@ -60,7 +59,7 @@ public class ScrollItem extends Item {
                 scroll = user.getOffHandStack();
             }
             if (scroll.getItem() != Yigd.SCROLL_ITEM) {
-                user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.scroll_error", scroll.getItem().getName().getString())), true);
+                user.sendMessage(Text.translatable("text.yigd.message.scroll_error", scroll.getItem().getName().getString()), true);
                 return;
             }
 
@@ -76,13 +75,13 @@ public class ScrollItem extends Item {
                 }
             } else {
                 if (deadPlayerData.size() <= 0) {
-                    user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.you_have_no_graves")), true);
+                    user.sendMessage(Text.translatable("text.yigd.message.you_have_no_graves"), true);
                     return;
                 }
                 selectedGrave = deadPlayerData.get(deadPlayerData.size() - 1);
             }
             if (selectedGrave == null) {
-                user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.grave_now_gone")), true);
+                user.sendMessage(Text.translatable("text.yigd.message.grave_now_gone"), true);
                 return;
             }
 
@@ -103,7 +102,7 @@ public class ScrollItem extends Item {
             ServerPlayNetworking.send(spe, PacketIdentifiers.SINGLE_GRAVE_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().getString() + " with grave info");
         } else {
-            user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.you_have_no_graves")), true);
+            user.sendMessage(Text.translatable("text.yigd.message.you_have_no_graves"), true);
         }
     }
 
@@ -115,20 +114,20 @@ public class ScrollItem extends Item {
             scroll = user.getOffHandStack();
         }
         if (scroll.getItem() != Yigd.SCROLL_ITEM) {
-            user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.scroll_error", scroll.getItem().getName().getString())), true);
+            user.sendMessage(Text.translatable("text.yigd.message.scroll_error", scroll.getItem().getName().getString()), true);
             return;
         }
 
         UUID userId = user.getUuid();
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
-            user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.you_have_no_graves")), true);
+            user.sendMessage(Text.translatable("text.yigd.message.you_have_no_graves"), true);
             return;
         }
 
         List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(userId);
 
         if (graves.size() <= 0) {
-            user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.you_have_no_graves")), true);
+            user.sendMessage(Text.translatable("text.yigd.message.you_have_no_graves"), true);
             return;
         }
 
@@ -146,15 +145,15 @@ public class ScrollItem extends Item {
             selectedGrave = graves.get(graves.size() - 1);
         }
         if (selectedGrave == null || selectedGrave.availability != 1) {
-            user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.grave_now_gone")), true);
+            user.sendMessage(Text.translatable("text.yigd.message.grave_now_gone"), true);
             return;
         }
 
         if (selectedGrave.gravePos == null || selectedGrave.worldId != world.getRegistryKey().getValue()) {
             if (selectedGrave.gravePos == null) {
-                user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_grave_location")), true);
+                user.sendMessage(Text.translatable("text.yigd.message.missing_grave_location"), true);
             } else {
-                user.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.cross_dim_error")), true);
+                user.sendMessage(Text.translatable("text.yigd.message.cross_dim_error"), true);
             }
             return;
         }

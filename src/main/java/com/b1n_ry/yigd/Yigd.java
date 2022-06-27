@@ -43,8 +43,7 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.slf4j.Logger;
@@ -221,11 +220,11 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             UUID playerId = handler.player.getUuid();
             if (notNotifiedPlayers.contains(playerId)) {
-                handler.player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.timeout.offline")), MessageType.SYSTEM);
+                handler.player.sendMessage(Text.translatable("text.yigd.message.timeout.offline"), MessageType.SYSTEM);
                 notNotifiedPlayers.remove(playerId);
             }
             if (notNotifiedRobberies.contains(playerId)) {
-                handler.player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.robbed.offline")), MessageType.SYSTEM);
+                handler.player.sendMessage(Text.translatable("text.yigd.message.robbed.offline"), MessageType.SYSTEM);
                 notNotifiedRobberies.remove(playerId);
             }
         });

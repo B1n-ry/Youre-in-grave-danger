@@ -19,8 +19,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.math.BlockPos;
@@ -217,38 +216,38 @@ public class YigdCommand {
 
     private static int addWhitelist(@Nullable ServerPlayerEntity commandUser, PlayerEntity addedPlayer) {
         if (commandUser != null && !hasPermission(commandUser, "yigd.command.whitelist") || !YigdConfig.getConfig().commandToggles.whitelistAdd) {
-            if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
 
         DeathInfoManager.INSTANCE.addToWhiteList(addedPlayer.getUuid());
-        if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.whitelist.added_player", addedPlayer.getDisplayName().getString())), MessageType.SYSTEM);
+        if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.whitelist.added_player", addedPlayer.getDisplayName().getString()), MessageType.SYSTEM);
         return 1;
     }
     private static int removeWhitelist(@Nullable ServerPlayerEntity commandUser, PlayerEntity removedPlayer) {
         if (commandUser != null && !hasPermission(commandUser, "yigd.command.whitelist") || !YigdConfig.getConfig().commandToggles.whitelistRemove) {
-            if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
 
         DeathInfoManager.INSTANCE.removeFromWhiteList(removedPlayer.getUuid());
-        if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.whitelist.removed_player", removedPlayer.getDisplayName().getString())), MessageType.SYSTEM);
+        if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.whitelist.removed_player", removedPlayer.getDisplayName().getString()), MessageType.SYSTEM);
         return 1;
     }
     private static int toggleWhitelist(@Nullable ServerPlayerEntity commandUser) {
         if (commandUser != null && !hasPermission(commandUser, "yigd.command.whitelist") || !YigdConfig.getConfig().commandToggles.whitelistToggle) {
-            if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
 
         boolean toggledTo = DeathInfoManager.INSTANCE.toggleListMode();
-        if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent(toggledTo ? "text.yigd.message.whitelist.to_whitelist" : "text.yigd.message.whitelist.to_blacklist")), MessageType.SYSTEM);
+        if (commandUser != null) commandUser.sendMessage(Text.translatable(toggledTo ? "text.yigd.message.whitelist.to_whitelist" : "text.yigd.message.whitelist.to_blacklist"), MessageType.SYSTEM);
         return 1;
     }
 
     private static int moderateGraves(ServerPlayerEntity player) {
         if (!hasPermission(player, "yigd.command.moderate") || !YigdConfig.getConfig().commandToggles.moderateGraves) {
-            player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            player.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
         boolean existsGraves = false;
@@ -278,7 +277,7 @@ public class YigdCommand {
                 }
             });
         } else {
-            player.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.grave_not_found")), MessageType.SYSTEM);
+            player.sendMessage(Text.translatable("text.yigd.message.grave_not_found"), MessageType.SYSTEM);
             return 0;
         }
         return 1;
@@ -289,7 +288,7 @@ public class YigdCommand {
         UUID userId = player.getUuid();
         YigdConfig config = YigdConfig.getConfig();
         if (!((hasPermission(commandUser, "yigd.command.view") && config.commandToggles.adminView) || (config.commandToggles.selfView && userId.equals(commandUser.getUuid())))) {
-            commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            commandUser.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
         YigdConfig.GraveKeySettings keySettings = config.utilitySettings.graveKeySettings;
@@ -312,7 +311,7 @@ public class YigdCommand {
                 ServerPlayNetworking.send(commandUser, PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
             }
         } else {
-            commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.view_command.fail", player.getDisplayName().getString())).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            commandUser.sendMessage(Text.translatable("text.yigd.message.view_command.fail", player.getDisplayName().getString()).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return 0;
         }
         return 1;
@@ -333,19 +332,19 @@ public class YigdCommand {
 
     public static int robGrave(GameProfile victim, ServerPlayerEntity stealer, @Nullable UUID graveId) {
         if (!hasPermission(stealer, "yigd.command.rob") || !YigdConfig.getConfig().commandToggles.robGrave) {
-            stealer.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            stealer.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
         UUID victimId = victim.getId();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(victimId)) {
-            stealer.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.rob_command.fail")), MessageType.SYSTEM);
+            stealer.sendMessage(Text.translatable("text.yigd.message.rob_command.fail"), MessageType.SYSTEM);
             return 0;
         }
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(victimId);
 
         if (deadPlayerData.size() <= 0) {
-            stealer.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.unclaimed_grave_missing", victim.getName())).styled(style -> style.withColor(0xFF0000)), true);
+            stealer.sendMessage(Text.translatable("text.yigd.message.unclaimed_grave_missing", victim.getName()).styled(style -> style.withColor(0xFF0000)), true);
             return 0;
         }
         DeadPlayerData foundDeath = deadPlayerData.get(deadPlayerData.size() - 1);
@@ -375,11 +374,11 @@ public class YigdCommand {
 
         GraveHelper.RetrieveItems(stealer, foundDeath.inventory, modInv, foundDeath.xp, true);
 
-        stealer.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.rob_command.success")), true);
+        stealer.sendMessage(Text.translatable("text.yigd.message.rob_command.success"), true);
 
         ServerPlayerEntity victimPlayer = stealer.server.getPlayerManager().getPlayer(victimId);
         if (victimPlayer != null) {
-            victimPlayer.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.rob_command.victim")), MessageType.SYSTEM);
+            victimPlayer.sendMessage(Text.translatable("text.yigd.message.rob_command.victim"), MessageType.SYSTEM);
         } else {
             Yigd.notNotifiedRobberies.add(victimId);
         }
@@ -397,19 +396,19 @@ public class YigdCommand {
     }
     public static int restoreGrave(PlayerEntity player, @Nullable ServerPlayerEntity commandUser, @Nullable UUID graveId) {
         if (commandUser != null && !hasPermission(commandUser, "yigd.command.restore") || !YigdConfig.getConfig().commandToggles.retrieveGrave) {
-            if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
         UUID userId = player.getUuid();
 
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
-            if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.restore_command.fail")), true);
+            if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.restore_command.fail"), true);
             return -1;
         }
         List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
 
         if (deadPlayerData.size() <= 0) {
-            if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.unclaimed_grave_missing", player.getDisplayName().getString())).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.unclaimed_grave_missing", player.getDisplayName().getString()).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
         DeadPlayerData foundDeath = null;
@@ -445,13 +444,13 @@ public class YigdCommand {
 
         GraveHelper.RetrieveItems(player, foundDeath.inventory, modInv, foundDeath.xp, false);
 
-        if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.restore_command.success")), true);
+        if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.restore_command.success"), true);
         return 1;
     }
 
     private static int clearBackup(Collection<ServerPlayerEntity> victims, @Nullable ServerPlayerEntity commandUser) {
         if (commandUser != null && !hasPermission(commandUser, "yigd.command.clear") || !YigdConfig.getConfig().commandToggles.clearGraveBackups) {
-            if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.missing_permission")).styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
+            if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.missing_permission").styled(style -> style.withColor(0xFF0000)), MessageType.SYSTEM);
             return -1;
         }
         int i = 0;
@@ -463,7 +462,7 @@ public class YigdCommand {
             DeathInfoManager.INSTANCE.data.get(victimId).clear();
         }
         DeathInfoManager.INSTANCE.markDirty();
-        if (commandUser != null) commandUser.sendMessage(MutableText.of(new TranslatableTextContent("text.yigd.message.backup.delete_player", i)), MessageType.SYSTEM);
+        if (commandUser != null) commandUser.sendMessage(Text.translatable("text.yigd.message.backup.delete_player", i), MessageType.SYSTEM);
         return 1;
     }
 
