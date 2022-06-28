@@ -323,6 +323,7 @@ public class YigdConfig implements ConfigData {
 
     public static class DebugConfig {
         public boolean clearInventoryOnRespawn = false;
+        public boolean createGraveBeforeDeathMessage = false;
     }
 
     public static YigdConfig getConfig() {
