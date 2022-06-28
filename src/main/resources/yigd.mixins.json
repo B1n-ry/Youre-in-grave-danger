@@ -9,6 +9,7 @@
     "MinecraftDedicatedServerMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
+    "ShapedRecipeMixin",
     "TFEventListenerMixin",
     "WorldChunkMixin"
   ],

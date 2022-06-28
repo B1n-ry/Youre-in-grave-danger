@@ -16,6 +16,10 @@ public interface YigdApi {
     // With the Object as a custom type you can define location of said item with e.g. a map variable
     String getModName();
 
+    default boolean applySoulbound() {
+        return true;
+    }
+
     default Object getInventory(PlayerEntity player) {
         return getInventory(player, false, null); // Get a custom return value containing inventory items. If handleAsDeath is true, soulbound and delete methods will be run
     }
