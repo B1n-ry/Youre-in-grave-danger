@@ -74,9 +74,7 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
-//	modImplementation("curse.maven:thegraveyard-${project.graveyard_version}")
 	modImplementation("mods.compat:The_Graveyard_1.10_(FABRIC)_for_1.19")
-//	modImplementation("maven.modrinth:QivVPB8W:1.10+1.19") // The Graveyard
 
 	// Hammerlike compat
 //	modImplementation("com.github.Draylar:magna:${project.magna_version}")

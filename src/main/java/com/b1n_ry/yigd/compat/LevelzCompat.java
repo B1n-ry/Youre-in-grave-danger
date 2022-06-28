@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.core.DeadPlayerData;
 import net.levelz.access.PlayerStatsManagerAccess;
 import net.levelz.access.PlayerSyncAccess;
 import net.levelz.entity.LevelExperienceOrbEntity;
@@ -26,6 +27,11 @@ public class LevelzCompat implements YigdApi {
     }
 
     @Override
+    public boolean applySoulbound() {
+        return false;
+    }
+
+    @Override
     public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         YigdConfig.GraveCompatConfig graveCompatConfig = YigdConfig.getConfig().graveSettings.graveCompatConfig;
 
@@ -37,6 +43,8 @@ public class LevelzCompat implements YigdApi {
                 // If mod configured to not include levelz exp in graves, it should instead drop it
                 LevelExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), exp);
             }
+
+            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), 0);
 
             // Handle experience
             if (!graveCompatConfig.levelzXpInGraves) exp = 0; // If feature not enabled, set to 0 and let other functions handle everything

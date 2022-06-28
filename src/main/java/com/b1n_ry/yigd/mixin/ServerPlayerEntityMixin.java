@@ -103,6 +103,7 @@ public class ServerPlayerEntityMixin {
                 if (modSoulbounds != null && modSoulbounds.size() > 0) {
                     for (int i = 0; i < Math.min(Yigd.apiMods.size(), modSoulbounds.size()); i++) {
                         YigdApi yigdApi = Yigd.apiMods.get(i);
+                        if (!yigdApi.applySoulbound()) continue;
                         Object modSoulbound = modSoulbounds.get(i);
 
                         yigdApi.setInventory(modSoulbound, player);
