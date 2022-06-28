@@ -10,7 +10,6 @@
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
     "ShapedRecipeMixin",
-    "TFEventListenerMixin",
     "WorldChunkMixin"
   ],
   "client": [

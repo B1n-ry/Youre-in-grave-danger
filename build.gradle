@@ -85,14 +85,12 @@ dependencies {
 
 	// Fixed incompat
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")
-	modImplementation("mods.compat:twilightforest-fabric-1.18.2-${project.twilight_version}")
 
 	// Required for some mod compatibility to work
 	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
 	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-api:${project.cca_version}") { transitive = false }
 	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
 	modImplementation "software.bernie.geckolib:geckolib-fabric-1.18:${project.geckolib_version_fabric}"
-	modImplementation("com.github.Chocohead:Fabric-ASM:v2.3")
 
 
 	// Land claim compat mods
