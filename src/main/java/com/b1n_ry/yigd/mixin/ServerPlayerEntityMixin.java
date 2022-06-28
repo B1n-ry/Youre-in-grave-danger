@@ -7,10 +7,12 @@ import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.DeathInfoManager;
+import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.item.KeyItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -22,8 +24,10 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -34,7 +38,24 @@ import java.util.List;
 import java.util.UUID;
 
 @Mixin(ServerPlayerEntity.class)
-public class ServerPlayerEntityMixin {
+public abstract class ServerPlayerEntityMixin {
+
+    @Shadow
+    public abstract ServerWorld getWorld();
+
+    @Inject(method = "onDeath", at = @At("HEAD"))
+    private void onDeath(DamageSource source, CallbackInfo ci) {
+        if (this.getWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;
+
+        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+        Vec3d pos = player.getPos();
+        ServerWorld playerWorld = player.getWorld();
+
+        if (YigdConfig.getConfig().debugConfig.createGraveBeforeDeathMessage && !player.isSpectator()) {
+            Yigd.NEXT_TICK.add(() -> GraveHelper.onDeath(player, playerWorld, pos, source));
+        }
+    }
+
     @Inject(method = "copyFrom", at = @At(value = "TAIL"))
     private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
         if (alive || oldPlayer.isSpectator()) return;

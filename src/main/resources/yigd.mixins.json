@@ -8,6 +8,7 @@
     "MinecraftDedicatedServerMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
+    "ShapedRecipeMixin",
     "WorldChunkMixin"
   ],
   "client": [
