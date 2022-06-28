@@ -5,13 +5,17 @@
  - Graves can now be restored/robbed using coordinates
  - When a player respawn after dying their inventory is no longer cleared (can be toggled with config)
  - Replaced goml compat with common protection api compat
+ - Players will now be told when starting their game if the config is broken, and how to fix it
+ - You can now configure any of two places in the code where graves can generate, this to fix potential issues
 
 ### Fixes
  - Graves can now be robbed when configured to claim on destroy
  - The game will now start when the config file is broken, but will print an error
  - When opening grave GUI data will be sent in smaller parts allowing much more data to be sent
  - Game will no longer crash when graves drop items on the ground
- - Soulbound will now work again with twilight forest mod present
+ - Stopped parsing error with death scroll item from showing
+ - Fixed an issue where levelz could cause soulbound items from inventorio and/or travelers backpack to disappear
+ - Fixed botania resolute ivy behaviour
 
 ---
 
