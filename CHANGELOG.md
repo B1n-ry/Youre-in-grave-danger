@@ -1,4 +1,4 @@
-# You're in Grave Danger 1.4.1-beta.2
+# You're in Grave Danger 1.4.1
 
 ### Changes
  - Added back graveyard compat
