@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.client.gui;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
@@ -36,6 +37,8 @@ public class PlayerSelectScreen extends Screen {
     private boolean includeClaimed;
     private boolean includeDestroyed;
     private boolean showWithoutGrave;
+
+    private final YigdConfig.GuiTextColors textColors;
 
     public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page) {
         this(data, page, null, true, false, false, false);
@@ -82,6 +85,8 @@ public class PlayerSelectScreen extends Screen {
         this.showWithoutGrave = showWithoutGrave;
 
         reloadFilters();
+
+        this.textColors = YigdConfig.getConfig().graveSettings.graveRenderSettings.guiTextColors;
     }
 
     private void reloadFilters() {
@@ -240,8 +245,8 @@ public class PlayerSelectScreen extends Screen {
             RenderSystem.setShaderTexture(0, playerSkinTextures.get(playerId));
             drawTexture(matrices, left + 5, top + 5, 32, 32, 32, 32);
 
-            textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, 0x004000);
-            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size()), left + 42, top + 22, 0x555555);
+            textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, this.textColors.playerSelectPlayerName);
+            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size()), left + 42, top + 22, this.textColors.playerSelectGraveCount);
         }
 
         super.render(matrices, mouseX, mouseY, delta);
@@ -250,10 +255,10 @@ public class PlayerSelectScreen extends Screen {
         renderSearchBar(matrices, screenTop, screenLeft, mouseX, mouseY);
 
         String gravesDisplayed = (startValue + 1) + "-" + whileLessThan + "/" + infoSize;
-        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.players_with_graves"), screenLeft + 19f, screenTop + 10f, 0x555555);
+        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.players_with_graves"), screenLeft + 19f, screenTop + 10f, this.textColors.playerSelectTitle);
 
         int offset = textRenderer.getWidth(gravesDisplayed);
-        textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, 0x007700);
+        textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, this.textColors.playerSelectPageView);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -283,7 +288,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, leftEdge, boxTop, 32, 84, 6, 6);
         }
         if (this.includeAvailable) drawTexture(matrices, leftEdge, boxTop, 38, 84, 6, 6);
-        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.include_available"), leftEdge + 8f, boxTop - 1f, 0x777777);
+        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.include_available"), leftEdge + 8f, boxTop - 1f, this.textColors.playerSelectIncludeAvailableCheckbox);
 
         // Include Claimed
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -296,7 +301,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, originX, boxTop, 32, 84, 6, 6);
         }
         if (this.includeClaimed) drawTexture(matrices, originX, boxTop, 38, 84, 6, 6);
-        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.include_claimed"), originX + 8f, boxTop - 1f, 0x777777);
+        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.include_claimed"), originX + 8f, boxTop - 1f, this.textColors.playerSelectIncludeClaimedCheckbox);
 
         // Include Destroyed
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -309,7 +314,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, leftEdge, boxRow, 32, 84, 6, 6);
         }
         if (this.includeDestroyed) drawTexture(matrices, leftEdge, boxRow, 38, 84, 6, 6);
-        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.include_destroyed"), leftEdge + 8f, boxRow - 1f, 0x777777);
+        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.include_destroyed"), leftEdge + 8f, boxRow - 1f, this.textColors.playerSelectIncludeDestroyedCheckbox);
 
         // Show empty
         RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
@@ -322,11 +327,11 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, originX, boxRow, 32, 84, 6, 6);
         }
         if (this.showWithoutGrave) drawTexture(matrices, originX, boxRow, 38, 84, 6, 6);
-        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.show_zero"), originX + 8f, boxRow - 1f, 0x777777);
+        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.show_zero"), originX + 8f, boxRow - 1f, this.textColors.playerSelectShowZeroCheckbox);
     }
 
     private void renderSearchBar(MatrixStack matrices, int screenTop, int screenLeft, int mouseX, int mouseY) {
-        textRenderer.draw(matrices, Text.of(searchField.toString() + (isTyping ? "_" : "")), screenLeft + 20, screenTop + 41, 0xFFFFFF);
+        textRenderer.draw(matrices, Text.of(searchField.toString() + (isTyping ? "_" : "")), screenLeft + 20, screenTop + 41, this.textColors.playerSelectSearchBar);
 
         if (mouseX > screenLeft + 18 && mouseX < screenLeft + 202 && mouseY > screenTop + 39 && mouseY < screenTop + 51) {
             hoveredElement = "search_bar";

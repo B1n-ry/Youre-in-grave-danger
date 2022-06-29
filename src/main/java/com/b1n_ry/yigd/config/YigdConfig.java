@@ -238,6 +238,72 @@ public class YigdConfig implements ConfigData {
         public int glowMinDistance = 0;
         @ConfigEntry.Gui.Tooltip
         public int glowMaxDistance = 10;
+
+        @ConfigEntry.Gui.Tooltip
+        public GuiTextColors guiTextColors = new GuiTextColors();
+    }
+
+    public static class GuiTextColors {
+        @ConfigEntry.ColorPicker
+        public int graveSelectGraveLocation = 0xCC00CC;
+        @ConfigEntry.ColorPicker
+        public int graveSelectItemSize = 0x0000CC;
+        @ConfigEntry.ColorPicker
+        public int graveSelectLevelSize = 0x299608;
+        @ConfigEntry.ColorPicker
+        public int graveSelectTitle = 0x555555;
+        @ConfigEntry.ColorPicker
+        public int graveSelectPageView = 0x007700;
+        @ConfigEntry.ColorPicker
+        public int graveSelectShowAvailableCheckbox = 0x777777;
+        @ConfigEntry.ColorPicker
+        public int graveSelectShowClaimedCheckbox = 0x777777;
+        @ConfigEntry.ColorPicker
+        public int graveSelectShowDestroyedCheckbox = 0x777777;
+        @ConfigEntry.ColorPicker
+        public int graveSelectShowStatusCheckbox = 0x777777;
+
+        @ConfigEntry.ColorPicker
+        public int graveViewLockGrave = 0x000000;
+        @ConfigEntry.ColorPicker
+        public int graveViewUnlockGrave = 0x000000;
+        @ConfigEntry.ColorPicker
+        public int graveViewRestoreGrave = 0x000000;
+        @ConfigEntry.ColorPicker
+        public int graveViewDeleteGrave = 0x000000;
+        @ConfigEntry.ColorPicker
+        public int graveViewRobGrave = 0x000000;
+        @ConfigEntry.ColorPicker
+        public int graveViewGiveKey = 0x000000;
+        @ConfigEntry.ColorPicker
+        public int graveViewDeathMessage = 0xAA0000;
+        @ConfigEntry.ColorPicker
+        public int graveViewDeathDimension = 0x0055c4;
+        @ConfigEntry.ColorPicker
+        public int graveViewCoordinates = 0xBB00BB;
+        @ConfigEntry.ColorPicker
+        public int graveViewModItemSize = 0x555555;
+        @ConfigEntry.ColorPicker
+        public int graveViewLevelSize = 0x299608;
+
+        @ConfigEntry.ColorPicker
+        public int playerSelectPlayerName = 0x004000;
+        @ConfigEntry.ColorPicker
+        public int playerSelectGraveCount = 0x555555;
+        @ConfigEntry.ColorPicker
+        public int playerSelectTitle = 0x555555;
+        @ConfigEntry.ColorPicker
+        public int playerSelectPageView = 0x007700;
+        @ConfigEntry.ColorPicker
+        public int playerSelectIncludeAvailableCheckbox = 0x777777;
+        @ConfigEntry.ColorPicker
+        public int playerSelectIncludeClaimedCheckbox = 0x777777;
+        @ConfigEntry.ColorPicker
+        public int playerSelectIncludeDestroyedCheckbox = 0x777777;
+        @ConfigEntry.ColorPicker
+        public int playerSelectShowZeroCheckbox = 0x777777;
+        @ConfigEntry.ColorPicker
+        public int playerSelectSearchBar = 0xFFFFFF;
     }
 
     public static class UtilitySettings {
