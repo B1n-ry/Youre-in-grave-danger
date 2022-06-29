@@ -11,7 +11,7 @@ import java.util.List;
 
 @Config(name = "yigd")
 public class YigdConfig implements ConfigData {
-    @ConfigEntry.Gui.CollapsibleObject
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
     public GraveSettings graveSettings = new GraveSettings();
 
     @ConfigEntry.Gui.CollapsibleObject
@@ -240,6 +240,7 @@ public class YigdConfig implements ConfigData {
         public int glowMaxDistance = 10;
 
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
         public GuiTextColors guiTextColors = new GuiTextColors();
     }
 
