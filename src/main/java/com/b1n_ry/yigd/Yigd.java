@@ -215,7 +215,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("graveyard")) {
             miscCompatMods.add("graveyard");
         }
-        if (FabricLoader.getInstance().isModLoaded("fabric-permissions-api")) {
+        if (FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0")) {
             miscCompatMods.add("permissions");
         }
         if (FabricLoader.getInstance().isModLoaded("requiem")) {
