@@ -77,7 +77,7 @@ dependencies {
 	modImplementation("mods.compat:The_Graveyard_1.10_(FABRIC)_for_1.19")
 
 	// Hammerlike compat
-//	modImplementation("com.github.Draylar:magna:${project.magna_version}")
+	modImplementation("com.github.Technici4n:magna:${project.magna_version}")
 
 	// Required for some mod compatibility to work
 	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)

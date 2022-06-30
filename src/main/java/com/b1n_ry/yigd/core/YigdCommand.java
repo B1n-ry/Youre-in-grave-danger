@@ -479,7 +479,7 @@ public class YigdCommand {
                 default -> false;
             };
         }
-        return player.hasPermissionLevel(4);
+        return player.hasPermissionLevel(2);
     }
     private static boolean hasPermission(ServerCommandSource source, String permission) {
         if (Yigd.miscCompatMods.contains("permissions")) {
@@ -493,6 +493,6 @@ public class YigdCommand {
                 default -> false;
             };
         }
-        return source.hasPermissionLevel(4);
+        return source.hasPermissionLevel(2);
     }
 }
