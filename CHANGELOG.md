@@ -11,6 +11,7 @@
  - Inventory will no longer be cleared when respawning, before soulbound items are given back (configurable)
  - User will now be prompted with a screen complaining, if the yigd config file is broken
  - Graves can now be configured as of what will cause them to generate. Player death or when the inventory would usually drop (both still when player dies)
+ - Improved modded inventory storage in grave data and soulbound data
 
 ### Fixes
  - Removed error print in log when death scroll is disabled
