@@ -57,9 +57,11 @@ public class GraveViewScreen extends Screen {
             if (data.inventory.get(i).isEmpty()) continue;
             size++;
         }
-        for (int i = 0; i < data.modInventories.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            size += yigdApi.getInventorySize(data.modInventories.get(i));
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            String modName = yigdApi.getModName();
+            if (!data.modInventories.containsKey(modName)) continue;
+
+            size += yigdApi.getInventorySize(data.modInventories.get(modName));
         }
         this.modItemSize = size;
 

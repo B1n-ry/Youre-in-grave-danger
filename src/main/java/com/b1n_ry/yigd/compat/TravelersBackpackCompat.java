@@ -38,7 +38,7 @@ public class TravelersBackpackCompat implements YigdApi {
             } else {
                 soulbound = ItemStack.EMPTY;
             }
-            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulbound);
+            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulbound, this.getModName());
 
             if (GraveHelper.hasEnchantments(deleteEnchantments, backpack)) {
                 shouldDelete = true;

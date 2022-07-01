@@ -52,9 +52,10 @@ public class GraveSelectScreen extends Screen {
             for (ItemStack stack : deadData.inventory) {
                 if (!stack.isEmpty()) size++;
             }
-            for (int i = 0; i < deadData.modInventories.size(); i++) {
-                YigdApi yigdApi = Yigd.apiMods.get(i);
-                size += yigdApi.getInventorySize(deadData.modInventories.get(i));
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                String modName = yigdApi.getModName();
+                if (!deadData.modInventories.containsKey(yigdApi.getModName())) continue;
+                size += yigdApi.getInventorySize(deadData.modInventories.get(modName));
             }
 
             int points = deadData.xp;
@@ -328,9 +329,11 @@ public class GraveSelectScreen extends Screen {
         for (ItemStack stack : data.inventory) {
             if (!stack.isEmpty()) size++;
         }
-        for (int i = 0; i < data.modInventories.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            size += yigdApi.getInventorySize(data.modInventories.get(i));
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            String modName = yigdApi.getModName();
+            if (!data.modInventories.containsKey(modName)) continue;
+
+            size += yigdApi.getInventorySize(data.modInventories.get(modName));
         }
 
         int points = data.xp;

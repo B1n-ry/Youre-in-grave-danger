@@ -35,6 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Mixin(ServerPlayerEntity.class)
@@ -76,7 +77,7 @@ public abstract class ServerPlayerEntityMixin {
             }
         }
 
-        List<Object> modSoulbounds = DeadPlayerData.Soulbound.getModdedSoulbound(userId);
+        Map<String, Object> modSoulbounds = DeadPlayerData.Soulbound.getModdedSoulbound(userId);
         DefaultedList<ItemStack> soulboundItems = DeadPlayerData.Soulbound.getSoulboundInventory(userId);
 
         if (soulboundItems != null || modSoulbounds != null) {
@@ -122,10 +123,11 @@ public abstract class ServerPlayerEntityMixin {
             // Modded soulbound doesn't work without this because of cardinal components for some reason
             Yigd.NEXT_TICK.add(() -> {
                 if (modSoulbounds != null && modSoulbounds.size() > 0) {
-                    for (int i = 0; i < Math.min(Yigd.apiMods.size(), modSoulbounds.size()); i++) {
-                        YigdApi yigdApi = Yigd.apiMods.get(i);
-                        if (!yigdApi.applySoulbound()) continue;
-                        Object modSoulbound = modSoulbounds.get(i);
+                    for (YigdApi yigdApi : Yigd.apiMods) {
+                        String modName = yigdApi.getModName();
+
+                        if (!yigdApi.applySoulbound() || !modSoulbounds.containsKey(modName)) continue;
+                        Object modSoulbound = modSoulbounds.get(modName);
 
                         yigdApi.setInventory(modSoulbound, player);
                     }

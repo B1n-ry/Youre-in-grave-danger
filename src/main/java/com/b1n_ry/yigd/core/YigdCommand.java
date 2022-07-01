@@ -358,9 +358,11 @@ public class YigdCommand {
         DeathInfoManager.INSTANCE.markDirty();
 
         Map<String, Object> modInv = new HashMap<>();
-        for (int i = 0; i < Yigd.apiMods.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            modInv.put(yigdApi.getModName(), foundDeath.modInventories.get(i));
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            String modName = yigdApi.getModName();
+            if (!foundDeath.modInventories.containsKey(modName)) continue;
+
+            modInv.put(yigdApi.getModName(), foundDeath.modInventories.get(modName));
         }
 
         ServerWorld world = worldFromId(stealer.getServer(), foundDeath.worldId);
@@ -425,9 +427,11 @@ public class YigdCommand {
         if (foundDeath == null) return -1;
 
         Map<String, Object> modInv = new HashMap<>();
-        for (int i = 0; i < Yigd.apiMods.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            modInv.put(yigdApi.getModName(), foundDeath.modInventories.get(i));
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            String modName = yigdApi.getModName();
+            if (!foundDeath.modInventories.containsKey(modName)) continue;
+
+            modInv.put(yigdApi.getModName(), foundDeath.modInventories.get(modName));
         }
 
         ServerWorld world = worldFromId(player.getServer(), foundDeath.worldId);

@@ -54,7 +54,7 @@ public class InventorioCompat implements YigdApi {
             DefaultedList<ItemStack> deletedItems = GraveHelper.getEnchantedItems(inventories, deleteEnchantments);
             GraveHelper.removeFromList(inventories, deletedItems);
 
-            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulboundItems.stream().toList());
+            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulboundItems.stream().toList(), this.getModName());
         }
 
         return inventories.stream().toList();

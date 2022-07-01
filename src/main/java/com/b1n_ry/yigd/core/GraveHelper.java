@@ -201,10 +201,10 @@ public class GraveHelper {
             }
         }
 
-        List<Object> modInventories = new ArrayList<>();
+        Map<String, Object> modInventories = new HashMap<>();
         for (YigdApi yigdApi : Yigd.apiMods) {
             Object modInv = yigdApi.getInventory(player, true, alteredSpawnRules);
-            modInventories.add(modInv);
+            modInventories.put(yigdApi.getModName(), modInv);
             allItems.addAll(yigdApi.toStackList(modInv));
 
             yigdApi.dropAll(player);
@@ -264,9 +264,8 @@ public class GraveHelper {
 
         int dimId = dimManager.getRawId(playerDimension);
         if (!graveConfig.generateGraves || graveConfig.blacklistDimensions.contains(dimId) || graveConfig.ignoreDeathTypes.contains(source.name) || !canGenerate) {
-            for (int i = 0; i < Yigd.apiMods.size(); i++) {
-                YigdApi yigdApi = Yigd.apiMods.get(i);
-                Object o = modInventories.get(i);
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                Object o = modInventories.get(yigdApi.getModName());
                 items.addAll(yigdApi.toStackList(o));
                 yigdApi.dropOnGround(o, serverWorld, pos);
             }
@@ -291,7 +290,7 @@ public class GraveHelper {
         }
     }
 
-    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source) {
+    public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, Map<String, Object> modInventories, int xpPoints, DamageSource source) {
         if (world.isClient()) return;
         int bottomY = world.getBottomY();
         int topY = world.getTopY();
@@ -479,12 +478,12 @@ public class GraveHelper {
         return !(xPos >= boundEast && xPos <= boundWest && yPos <= world.getBottomY() && yPos >= world.getTopY() && zPos <= boundNorth && zPos >= boundSouth);
     }
 
-    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source) {
+    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, Map<String, Object> modInventories, int xpPoints, DamageSource source) {
         Direction direction = player.getHorizontalFacing();
         return placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, direction);
     }
 
-    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, List<Object> modInventories, int xpPoints, DamageSource source, Direction direction) {
+    private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, Map<String, Object> modInventories, int xpPoints, DamageSource source, Direction direction) {
         // If close enough to end portal, and is standing on bedrock, place grave a block up. This is so the portal won't replace graves
         DimensionType playerDimension = player.world.getDimension();
         Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
@@ -544,9 +543,9 @@ public class GraveHelper {
             GameProfile playerProfile = player.getGameProfile();
 
             Map<String, Object> moddedInvStacks = new HashMap<>();
-            for (int i = 0; i < Yigd.apiMods.size(); i++) {
-                YigdApi yigdApi = Yigd.apiMods.get(i);
-                moddedInvStacks.put(yigdApi.getModName(), modInventories.get(i));
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                String modName = yigdApi.getModName();
+                moddedInvStacks.put(modName, modInventories.get(modName));
             }
 
             UUID killerId;
@@ -753,9 +752,11 @@ public class GraveHelper {
         }
 
         if (modInv != null) {
-            for (int i = 0; i < modInv.size(); i++) {
-                YigdApi yigdApi = Yigd.apiMods.get(i);
-                extraItems.addAll(yigdApi.setInventory(modInv.get(yigdApi.getModName()), player));
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                String modName = yigdApi.getModName();
+                if (!modInv.containsKey(modName)) continue;
+
+                extraItems.addAll(yigdApi.setInventory(modInv.get(modName), player));
             }
         }
 

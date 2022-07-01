@@ -44,7 +44,7 @@ public class LevelzCompat implements YigdApi {
                 LevelExperienceOrbEntity.spawn((ServerWorld) player.world, player.getPos(), exp);
             }
 
-            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), 0);
+            DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), 0, this.getModName());
 
             // Handle experience
             if (!graveCompatConfig.levelzXpInGraves) exp = 0; // If feature not enabled, set to 0 and let other functions handle everything

@@ -27,7 +27,7 @@ import static net.minecraft.entity.damage.DamageSource.GENERIC;
 
 public class DeadPlayerData {
     public DefaultedList<ItemStack> inventory;
-    public List<Object> modInventories;
+    public Map<String, Object> modInventories;
     public BlockPos gravePos;
     public GameProfile graveOwner;
     public int xp;
@@ -38,12 +38,12 @@ public class DeadPlayerData {
     public UUID id;
     public byte availability; // 0 = retrieved, 1 = available, -1 = broken/missing
 
-    public static DeadPlayerData create(DefaultedList<ItemStack> inventory, List<Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DamageSource deathSource, UUID id) {
+    public static DeadPlayerData create(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DamageSource deathSource, UUID id) {
         Identifier dimId = world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getId(world.getDimension());
         String dimName = dimId != null ? dimId.getPath() : "void";
         return new DeadPlayerData(inventory, modInventories, gravePos, graveOwner, xp, world.getRegistryKey().getValue(), dimName, deathSource, (byte) 1, id);
     }
-    public DeadPlayerData(DefaultedList<ItemStack> inventory, List<Object> modInventories, BlockPos gravePos, GameProfile graveOwner, int xp, Identifier worldId, String dimensionName, DamageSource deathSource, byte availability, UUID id) {
+    public DeadPlayerData(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner, int xp, Identifier worldId, String dimensionName, DamageSource deathSource, byte availability, UUID id) {
         this.inventory = inventory;
         this.modInventories = modInventories;
         this.gravePos = gravePos;
@@ -62,9 +62,11 @@ public class DeadPlayerData {
 
         NbtCompound invNbt = Inventories.writeNbt(new NbtCompound(), this.inventory);
         NbtCompound modNbt = new NbtCompound();
-        for (int i = 0; i < modInventories.size(); i++) {
-            YigdApi yigdApi = Yigd.apiMods.get(i);
-            modNbt.put(yigdApi.getModName(), yigdApi.writeNbt(modInventories.get(i)));
+        for (YigdApi yigdApi : Yigd.apiMods) {
+            String modName = yigdApi.getModName();
+            if (!modInventories.containsKey(modName)) continue;
+
+            modNbt.put(modName, yigdApi.writeNbt(modInventories.get(modName)));
         }
         NbtCompound posNbt = NbtHelper.fromBlockPos(this.gravePos);
         NbtCompound graveOwnerNbt = NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner);
@@ -107,14 +109,14 @@ public class DeadPlayerData {
             Inventories.readNbt(itemNbtCompound, items);
         }
         NbtElement modNbt = nbt.get("modInventory");
-        List<Object> modInventories = new ArrayList<>();
+        Map<String, Object> modInventories = new HashMap<>();
         if (modNbt instanceof NbtCompound modNbtCompound) {
-            for (int i = 0; i < Yigd.apiMods.size(); i++) {
-                YigdApi yigdApi = Yigd.apiMods.get(i);
-                NbtElement e = modNbtCompound.get(yigdApi.getModName());
+            for (YigdApi yigdApi : Yigd.apiMods) {
+                String modName = yigdApi.getModName();
+                NbtElement e = modNbtCompound.get(modName);
                 if (!(e instanceof NbtCompound c)) continue;
 
-                modInventories.add(yigdApi.readNbt(c));
+                modInventories.put(modName, yigdApi.readNbt(c));
             }
         }
         BlockPos pos;
@@ -195,12 +197,12 @@ public class DeadPlayerData {
 
     public static class Soulbound {
         private static final Map<UUID, DefaultedList<ItemStack>> soulboundInventories = new HashMap<>();
-        private static final Map<UUID, List<Object>> moddedSoulbound = new HashMap<>();
+        private static final Map<UUID, Map<String, Object>> moddedSoulbound = new HashMap<>();
 
         public static DefaultedList<ItemStack> getSoulboundInventory(UUID userId) {
             return soulboundInventories.get(userId);
         }
-        public static List<Object> getModdedSoulbound(UUID userId) {
+        public static Map<String, Object> getModdedSoulbound(UUID userId) {
             return moddedSoulbound.get(userId);
         }
         public static void setSoulboundInventories(UUID userId, DefaultedList<ItemStack> soulboundItems) {
@@ -208,11 +210,11 @@ public class DeadPlayerData {
             soulboundInventories.put(userId, soulboundItems);
             DeathInfoManager.INSTANCE.markDirty();
         }
-        public static void addModdedSoulbound(UUID userId, Object modInventory) {
+        public static void addModdedSoulbound(UUID userId, Object modInventory, String modName) {
             if (!moddedSoulbound.containsKey(userId)) {
-                moddedSoulbound.put(userId, new ArrayList<>());
+                moddedSoulbound.put(userId, new HashMap<>());
             }
-            moddedSoulbound.get(userId).add(modInventory);
+            moddedSoulbound.get(userId).put(modName, modInventory);
             DeathInfoManager.INSTANCE.markDirty();
         }
 
@@ -240,9 +242,11 @@ public class DeadPlayerData {
             moddedSoulbound.forEach((uuid, objects) -> {
                 NbtCompound playerNbt = new NbtCompound();
                 NbtCompound inventories = new NbtCompound();
-                for (int i = 0; i < Math.min(objects.size(), Yigd.apiMods.size()); i++) {
-                    YigdApi yigdApi = Yigd.apiMods.get(i);
-                    inventories.put(yigdApi.getModName(), yigdApi.writeNbt(objects.get(i)));
+                for (YigdApi yigdApi : Yigd.apiMods) {
+                    String modName = yigdApi.getModName();
+                    if (!objects.containsKey(modName)) continue;
+
+                    inventories.put(modName, yigdApi.writeNbt(objects.get(modName)));
                 }
                 playerNbt.put("Inventories", inventories);
                 playerNbt.putUuid("user", uuid);
@@ -279,10 +283,11 @@ public class DeadPlayerData {
                 UUID userId = cMods.getUuid("user");
 
                 for (YigdApi yigdApi : Yigd.apiMods) {
-                    NbtCompound modNbt = modsNbt.getCompound(yigdApi.getModName());
+                    String modName = yigdApi.getModName();
+                    NbtCompound modNbt = modsNbt.getCompound(modName);
                     Object modInventory = yigdApi.readNbt(modNbt);
 
-                    addModdedSoulbound(userId, modInventory);
+                    addModdedSoulbound(userId, modInventory, modName);
                 }
             }
         }

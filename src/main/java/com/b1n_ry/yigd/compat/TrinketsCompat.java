@@ -68,7 +68,7 @@ public class TrinketsCompat implements YigdApi {
                 invGroupRef.computeIfAbsent(slot, s -> stacks);
             });
         });
-        if (onDeath) DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulbound);
+        if (onDeath) DeadPlayerData.Soulbound.addModdedSoulbound(player.getUuid(), soulbound, this.getModName());
         return playerInv;
     }
 

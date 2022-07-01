@@ -143,6 +143,8 @@ public class GraveBlockEntity extends BlockEntity {
                 String modName = yigdApi.getModName();
 
                 NbtCompound nbt = modNbt.getCompound(modName);
+                if (nbt == null) continue;
+
                 this.moddedInventories.computeIfAbsent(modName, s -> yigdApi.readNbt(nbt));
             }
         }
