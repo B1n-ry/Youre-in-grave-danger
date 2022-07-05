@@ -88,6 +88,7 @@ dependencies {
 
 	// Land claim compat mods
 //	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
+	modCompileOnly("mods.compat:flan-${project.minecraft_version}-${project.flan_version}-fabric") { transitive = false }
 	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
 	modImplementation("eu.pb4:common-protection-api:${project.protection_api_version}")
 

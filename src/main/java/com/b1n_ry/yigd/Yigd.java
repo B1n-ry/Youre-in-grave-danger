@@ -200,9 +200,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
-//        if (FabricLoader.getInstance().isModLoaded("flan")) {
-//            claimMods.add(new FlanCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("flan")) {
+            claimMods.add(new FlanCompat());
+        }
         if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
             claimMods.add(new FtbChunksCompat());
         }

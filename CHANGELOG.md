@@ -1,3 +1,10 @@
+# You're in Grave Danger 1.4.2
+
+### Changes
+ - Added back FLAN compat
+
+---
+
 # You're in Grave Danger 1.4.1
 
 ### Changes
