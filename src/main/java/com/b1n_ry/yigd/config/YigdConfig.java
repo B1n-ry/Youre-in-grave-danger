@@ -154,6 +154,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public PriorityInventoryConfig robPriority = PriorityInventoryConfig.INVENTORY;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean tellRobber = true;
     }
 
     public static class GraveDeletion {

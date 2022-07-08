@@ -41,6 +41,7 @@ public class GraveViewScreen extends Screen {
     private final int xpLevels;
     private final Screen previousScreen;
 
+    public static boolean showGraveRobber = false;
     public static boolean getKeysFromGui = false;
     public static boolean unlockableGraves = false;
     public static List<UUID> unlockedGraves = new ArrayList<>();
@@ -284,10 +285,10 @@ public class GraveViewScreen extends Screen {
 
         super.render(matrices, mouseX, mouseY, delta);
 
-        float textX = originX - screenWidth / 2f + 80f;
+        float textX = originX - screenWidth / 2f + 78f;
         textRenderer.draw(matrices, deathMsg, originX - screenWidth / 2f + 7f, originY - screenHeight / 2f + 5f, this.textColors.graveViewDeathMessage);
         textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.dim_name", data.dimensionName), textX, originY - screenHeight / 2f + 16, this.textColors.graveViewDeathDimension);
-        textRenderer.draw(matrices, data.gravePos.getX() + " " + data.gravePos.getY() + " " + data.gravePos.getZ(), textX, originY - screenHeight / 2f + 28f, this.textColors.graveViewCoordinates);
+        textRenderer.draw(matrices, data.gravePos.getX() + " " + data.gravePos.getY() + " " + data.gravePos.getZ(), textX, originY - screenHeight / 2f + 25f, this.textColors.graveViewCoordinates);
         if (data.modInventories.size() > 0 || data.inventory.size() > 41) {
             // Kind of a huge block of code made to print strings with break row
             String modItemsText = Text.translatable("text.yigd.gui.grave_view.mod_inv_items", modItemSize).getString();
@@ -300,7 +301,7 @@ public class GraveViewScreen extends Screen {
             for (String word : words) {
                 stringLength += textRenderer.getWidth(word);
                 if (stringLength >= maxLength && wordsOnRow > 0) {
-                    textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 40f + 9f * row++, this.textColors.graveViewModItemSize);
+                    textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 37f + 9f * row++, this.textColors.graveViewModItemSize);
                     cachedString = new StringBuilder();
                     wordsOnRow = 0;
                     stringLength = 0;
@@ -313,7 +314,10 @@ public class GraveViewScreen extends Screen {
                 }
                 wordsOnRow++;
             }
-            textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 40f + 9f * row, this.textColors.graveViewModItemSize);
+            textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 37f + 9f * row, this.textColors.graveViewModItemSize);
+        }
+        if (data.claimedBy != null && showGraveRobber) {
+            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.claimed_by", data.claimedBy.getName()), textX, originY - screenHeight / 2f + 58f, 0x000);
         }
         textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.level_count", this.xpLevels), textX + 18f, originY - screenHeight / 2f + 77f, this.textColors.graveViewLevelSize);
 

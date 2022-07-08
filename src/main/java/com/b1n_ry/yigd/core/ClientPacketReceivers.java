@@ -69,9 +69,10 @@ public class ClientPacketReceivers {
                 }
             });
         });
-        ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.KEY_AND_UNLOCK_CONFIG, (client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GUI_CONFIGS, (client, handler, buf, responseSender) -> {
             GraveViewScreen.getKeysFromGui = buf.readBoolean();
             GraveViewScreen.unlockableGraves = buf.readBoolean();
+            GraveViewScreen.showGraveRobber = buf.readBoolean();
         });
     }
 }

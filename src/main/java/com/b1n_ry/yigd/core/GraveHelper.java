@@ -50,7 +50,7 @@ public class GraveHelper {
         List<Integer> openSlots = new ArrayList<>();
 
         for (int i = 0; i < inventory.size(); i++) {
-            if(inventory.get(i) == ItemStack.EMPTY)
+            if(inventory.get(i).isEmpty())
                 openSlots.add(i);
         }
 
@@ -710,7 +710,7 @@ public class GraveHelper {
                 if (!equipped.isEmpty()) {
                     extraItems.add(equipped);
                 }
-                inventory.setStack(mainInventory.size() + i, armorItem);
+                inventory.setStack(mainSize + i, armorItem);
             } else if (hasEnchantments(bindingCurse, armorItem) && YigdConfig.getConfig().graveSettings.applyBindingCurse) {
                 if (!fromGrave) {
                     ItemStack equipped = inventory.getArmorStack(i);
