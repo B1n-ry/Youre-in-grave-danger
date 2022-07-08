@@ -289,6 +289,8 @@ public class YigdConfig implements ConfigData {
         public int graveViewModItemSize = 0x555555;
         @ConfigEntry.ColorPicker
         public int graveViewLevelSize = 0x299608;
+        @ConfigEntry.ColorPicker
+        public int claimedBy = 0x000000;
 
         @ConfigEntry.ColorPicker
         public int playerSelectPlayerName = 0x004000;

@@ -317,7 +317,7 @@ public class GraveViewScreen extends Screen {
             textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 37f + 9f * row, this.textColors.graveViewModItemSize);
         }
         if (data.claimedBy != null && showGraveRobber) {
-            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.claimed_by", data.claimedBy.getName()), textX, originY - screenHeight / 2f + 58f, 0x000);
+            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.claimed_by", data.claimedBy.getName()), textX, originY - screenHeight / 2f + 58f, this.textColors.claimedBy);
         }
         textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.level_count", this.xpLevels), textX + 18f, originY - screenHeight / 2f + 77f, this.textColors.graveViewLevelSize);
 
