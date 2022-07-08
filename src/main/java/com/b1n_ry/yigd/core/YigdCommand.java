@@ -262,8 +262,9 @@ public class YigdCommand {
             PacketByteBuf configBuf = PacketByteBufs.create();
             configBuf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
             configBuf.writeBoolean(config.graveSettings.unlockableGraves);
+            configBuf.writeBoolean(config.graveSettings.graveRobbing.tellRobber);
 
-            ServerPlayNetworking.send(player, PacketIdentifiers.KEY_AND_UNLOCK_CONFIG, configBuf);
+            ServerPlayNetworking.send(player, PacketIdentifiers.GUI_CONFIGS, configBuf);
 
             DeathInfoManager.INSTANCE.data.forEach((uuid, deadPlayerData) -> {
                 for (DeadPlayerData data : deadPlayerData) {
@@ -299,7 +300,8 @@ public class YigdCommand {
             PacketByteBuf configBuf = PacketByteBufs.create();
             configBuf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
             configBuf.writeBoolean(config.graveSettings.unlockableGraves);
-            ServerPlayNetworking.send(spe, PacketIdentifiers.KEY_AND_UNLOCK_CONFIG, configBuf);
+            configBuf.writeBoolean(config.graveSettings.graveRobbing.tellRobber);
+            ServerPlayNetworking.send(spe, PacketIdentifiers.GUI_CONFIGS, configBuf);
 
             for (DeadPlayerData data : deadPlayerData) {
                 PacketByteBuf buf = PacketByteBufs.create();
@@ -381,7 +383,7 @@ public class YigdCommand {
             if (victimPlayer != null) {
                 victimPlayer.sendMessage(new TranslatableText("text.yigd.message.rob_command.victim"), false);
             } else {
-                Yigd.notNotifiedRobberies.add(victimId);
+                Yigd.notNotifiedRobberies.put(victimId, stealer.getGameProfile().getName());
             }
         }
         return 1;

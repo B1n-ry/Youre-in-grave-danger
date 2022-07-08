@@ -55,7 +55,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("YIGD");
 
     public static List<UUID> notNotifiedPlayers = new ArrayList<>();
-    public static List<UUID> notNotifiedRobberies = new ArrayList<>();
+    public static Map<UUID, String> notNotifiedRobberies = new HashMap<>();
 
     public static Map<UUID, PriorityInventoryConfig> clientPriorities = new HashMap<>();
     public static Map<UUID, PriorityInventoryConfig> clientRobPriorities = new HashMap<>();
@@ -226,13 +226,19 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         ServerPacketReceivers.register();
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            YigdConfig config = YigdConfig.getConfig();
+
             UUID playerId = handler.player.getUuid();
             if (notNotifiedPlayers.contains(playerId)) {
                 handler.player.sendMessage(new TranslatableText("text.yigd.message.timeout.offline"), false);
                 notNotifiedPlayers.remove(playerId);
             }
-            if (notNotifiedRobberies.contains(playerId)) {
-                handler.player.sendMessage(new TranslatableText("text.yigd.message.robbed.offline"), false);
+            if (notNotifiedRobberies.containsKey(playerId)) {
+                if (config.graveSettings.graveRobbing.tellRobber) {
+                    handler.player.sendMessage(new TranslatableText("text.yigd.message.robbed_by.offline"), false);
+                } else {
+                    handler.player.sendMessage(new TranslatableText("text.yigd.message.robbed.offline"), false);
+                }
                 notNotifiedRobberies.remove(playerId);
             }
         });

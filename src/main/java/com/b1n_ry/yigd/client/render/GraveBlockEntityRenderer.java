@@ -121,7 +121,14 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             float z2 = to.get(2).getAsFloat();
 
             String name = o.get("name") != null ? o.get("name").getAsString() : "" + i;
-            String textureLocation = textures.get(textureName).getAsString();
+            JsonElement texture = textures.get(textureName);
+
+            String textureLocation;
+            if (texture == null) {
+                textureLocation = "air";
+            } else {
+                textureLocation = textures.get(textureName).getAsString();
+            }
             modelTextures.put(name, textureLocation);
 
             // For some reason all shapes generates upside down, so they have to be re-rotated to be as they should

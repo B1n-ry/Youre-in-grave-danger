@@ -33,6 +33,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveRobbing.timeType.@Tooltip": "Set time unit for \"After Time\"",
   "text.autoconfig.yigd.option.graveSettings.graveRobbing.robPriority": "Inventory Priority",
   "text.autoconfig.yigd.option.graveSettings.graveRobbing.robPriority.@Tooltip": "What inventory should be prioritized.\nGRAVE: Your inventory will be generated on top of grave inventory\nINVENTORY: Grave inventory will be generated on top of your inventory",
+  "text.autoconfig.yigd.option.graveSettings.graveRobbing.tellRobber": "Tell robber",
+  "text.autoconfig.yigd.option.graveSettings.graveRobbing.tellRobber.@Tooltip": "If users should find out who robbed their grave",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion": "Grave Expiration",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.@Tooltip": "If and when graves disappear",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.canDelete": "Can Expire",
@@ -213,7 +215,9 @@
   "text.yigd.message.timeout.dropped": "Your grave has been deleted and dropped your items due to you not retrieving it in time",
   "text.yigd.message.timeout.offline": "While you were offline a grave of yours has been deleted due to you not retrieving it in time",
   "text.yigd.message.robbed": "One of your graves has been robbed",
+  "text.yigd.message.robbed_by": "One of your graves has been robbed by %s",
   "text.yigd.message.robbed.offline": "While you were offline a grave of yours has been robbed",
+  "text.yigd.message.robbed_by.offline": "While you were offline a grave of yours has been robbed by %s",
   "text.yigd.message.retrieve.missing_permission": "You are not allowed to retrieve these items",
   "text.yigd.message.retrieve.missing_key": "You need a key to retrieve your items",
   "text.yigd.message.retrieve.rob_cooldown": "You can retrieve the items from this grave in: %d:%d:%d",
@@ -264,6 +268,7 @@
 
   "text.yigd.gui.grave_view.dim_name": "Dim: %s",
   "text.yigd.gui.grave_view.mod_inv_items": "%d items in mod inventories",
+  "text.yigd.gui.grave_view.claimed_by": "Claimed: %s",
   "text.yigd.gui.grave_view.level_count": "Levels: %d",
 
   "text.yigd.gui.player_select.include_available": "Show available",
