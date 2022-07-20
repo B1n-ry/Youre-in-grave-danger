@@ -1,0 +1,86 @@
+{
+  "block.yigd.grave": "坟墓",
+  "item.yigd.tp_scroll": "回归卷轴",
+  "item.yigd.death_scroll": "死亡卷轴",
+  "item.yigd.grave_key": "坟墓钥匙",
+  "enchantment.yigd.soulbound": "灵魂绑定",
+  "enchantment.yigd.soulbound.desc": "死亡时保留物品，而不放入坟墓",
+  "enchantment.yigd.death_sight": "死亡之眼",
+  "enchantment.yigd.death_sight.desc": "启用坟墓透视",
+
+  "text.yigd.message.too_fast": "你需要在取回物品之前等待一秒",
+  "text.yigd.message.timeout": "你没有及时取回物品，坟墓已被删除",
+  "text.yigd.message.timeout.dropped": "你没有及时取回物品，坟墓已被删除，其中的物品已掉落",
+  "text.yigd.message.timeout.offline": "当你离线时，因为没有及时取回物品，你的一个坟墓已被删除",
+  "text.yigd.message.robbed": "你的一个坟墓被掠夺了",
+  "text.yigd.message.robbed_by": "你的一个坟墓被 %s 掠夺了",
+  "text.yigd.message.robbed.offline": "当你离线时，你的一个坟墓被掠夺了",
+  "text.yigd.message.robbed_by.offline": "当你离线时，你的一个坟墓被 %s 掠夺了",
+  "text.yigd.message.retrieve.missing_permission": "你不被允许取回这些物品",
+  "text.yigd.message.retrieve.missing_key": "你需要一把钥匙才能取回物品",
+  "text.yigd.message.retrieve.rob_cooldown": "你可以在 %d:%d:%d 之后获取这些物品",
+
+  "text.yigd.message.grave_not_found": "没有找到坟墓",
+  "text.yigd.message.unclaimed_grave_missing": "%s 没有任何未认领的坟墓",
+  "text.yigd.message.rob_command.fail": "无法找到可以获取的坟墓",
+  "text.yigd.message.rob_command.success": "成功远程掠夺坟墓",
+  "text.yigd.message.rob_command.victim": "一名服务器管理员掠夺了你的坟墓",
+  "text.yigd.message.restore_command.fail": "无法找到可以获取的坟墓",
+  "text.yigd.message.restore_command.success": "成功远程恢复坟墓",
+  "text.yigd.message.view_command.fail": "%s 没有任何已注册的坟墓",
+
+  "text.yigd.message.scroll_error": "发生了一些错误…游戏认为你手持的是%s",
+  "text.yigd.message.grave_now_gone": "你尝试寻找的坟墓不再存在",
+  "text.yigd.message.you_have_no_graves": "你没有任何坟墓",
+  "text.yigd.message.missing_grave_location": "你的坟墓没有注册位置",
+  "text.yigd.message.cross_dim_error": "你无法从另一个维度传送到坟墓",
+
+  "text.yigd.message.grave_location_info": "你的坟墓生成在\nX: %d / Y: %d / Z: %d / %s",
+
+  "text.yigd.message.missing_permission": "你不被允许执行此命令绑定的功能",
+  "text.yigd.message.backup.restore.fail": "此玩家目前无法恢复物品",
+  "text.yigd.message.backup.delete_one": "成功删除坟墓备份",
+  "text.yigd.message.backup.delete_player": "清除了 %d 名玩家的坟墓备份",
+
+  "text.yigd.message.whitelist.to_whitelist": "当前名单模式为白名单",
+  "text.yigd.message.whitelist.to_blacklist": "当前名单模式为黑名单",
+  "text.yigd.message.whitelist.added_player": "添加 %s 到名单",
+  "text.yigd.message.whitelist.removed_player": "从名单中删除 %s",
+
+  "text.yigd.gui.grave_select.title": "坟墓选择",
+  "text.yigd.gui.grave_view.title": "%s 的坟墓内容",
+  "text.yigd.gui.grave_view.title.missing": "你怎么会找到这座坟墓？这座坟墓没有主人！",
+  "text.yigd.gui.player_select.title": "玩家选择",
+
+  "text.yigd.gui.grave_select.show_available": "显示可用",
+  "text.yigd.gui.grave_select.show_claimed": "显示已认领",
+  "text.yigd.gui.grave_select.show_destroyed": "显示已破坏",
+  "text.yigd.gui.grave_select.show_status": "显示状态",
+
+  "text.yigd.gui.player_select.grave_count": "%d 座坟墓",
+  "text.yigd.gui.player_select.players_with_graves": "有坟墓的玩家",
+
+  "text.yigd.gui.grave_select.x_items": "%d 物品",
+  "text.yigd.gui.grave_select.x_levels": "%d 等级",
+  "text.yigd.gui.grave_select.graves_of_user": "%s 的坟墓",
+
+  "text.yigd.gui.grave_view.dim_name": "维度: %s",
+  "text.yigd.gui.grave_view.mod_inv_items": "%d 个物品在模组库存中",
+  "text.yigd.gui.grave_view.claimed_by": "认领者: %s",
+  "text.yigd.gui.grave_view.level_count": "等级: %d",
+
+  "text.yigd.gui.player_select.include_available": "显示可用",
+  "text.yigd.gui.player_select.include_claimed": "显示已认领",
+  "text.yigd.gui.player_select.include_destroyed": "显示已破坏",
+  "text.yigd.gui.player_select.show_zero": "显示无坟墓玩家",
+
+  "text.yigd.word.restore": "恢复",
+  "text.yigd.word.rob": "掠夺",
+  "text.yigd.word.delete": "删除",
+  "text.yigd.word.give_key": "获取钥匙",
+  "text.yigd.word.lock": "锁定",
+  "text.yigd.word.unlock": "解锁",
+
+  "text.yigd.gui.config_warning.header": "yigd.toml 文件损坏",
+  "text.yigd.gui.config_warning.message": "加载 yigd.toml (You're in Grave Danger 配置文件) 时发生了一个错误。已加载默认设置。请删除配置文件以重新自定义设置"
+}
