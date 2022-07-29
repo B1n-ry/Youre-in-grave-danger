@@ -5,10 +5,7 @@ import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.compat.TheGraveyardCompat;
-import com.b1n_ry.yigd.config.DeathEffectConfig;
-import com.b1n_ry.yigd.config.LastResortConfig;
-import com.b1n_ry.yigd.config.PriorityInventoryConfig;
-import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -405,13 +402,61 @@ public class GraveHelper {
         }
 
         if (!foundViableGrave && config.graveSettings.trySoft) { // Trying soft
-            for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
-                if (gravePlaceableAt(world, gravePos, false)) {
-                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
-                    if (!isPlaced) continue;
+            TrySoftConfig trySoftApproach = config.graveSettings.trySoftApproach;
+            switch (trySoftApproach) {
+                case RADIUS -> {
+                    for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
+                        if (gravePlaceableAt(world, gravePos, false)) {
+                            boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
+                            if (!isPlaced) continue;
 
-                    foundViableGrave = true;
-                    break;
+                            foundViableGrave = true;
+                            break;
+                        }
+                    }
+                }
+                case Y_UP -> {
+                    BlockPos gravePos = blockPos;
+
+                    while (world.isInBuildLimit(gravePos)) {
+                        if (gravePlaceableAt(world, gravePos, false)) {
+                            boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
+                            if (!isPlaced) {
+                                gravePos = gravePos.up();
+                                continue;
+                            }
+
+                            foundViableGrave = true;
+                            break;
+                        } else {
+                            gravePos = gravePos.up();
+                        }
+                    }
+                }
+                case CLOSEST_Y -> {
+                    if (gravePlaceableAt(world, blockPos, false)) {
+                        boolean isPlaced = placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, source);
+                        if (isPlaced) {
+                            foundViableGrave = true;
+                        }
+                    }
+                    if (!foundViableGrave) {
+                        for (int offset = 1; offset < 500; offset++) {
+                            if (gravePlaceableAt(world, blockPos.up(offset), false)) {
+                                boolean isPlaced = placeGraveBlock(player, world, blockPos.up(offset), invItems, modInventories, xpPoints, source);
+                                if (!isPlaced) continue;
+
+                                foundViableGrave = true;
+                                break;
+                            } else if (gravePlaceableAt(world, blockPos.down(offset), false)) {
+                                boolean isPlaced = placeGraveBlock(player, world, blockPos.down(offset), invItems, modInventories, xpPoints, source);
+                                if (!isPlaced) continue;
+
+                                foundViableGrave = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }

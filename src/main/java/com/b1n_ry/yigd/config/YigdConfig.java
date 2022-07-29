@@ -88,6 +88,8 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean trySoft = false;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public TrySoftConfig trySoftApproach = TrySoftConfig.RADIUS;
         @ConfigEntry.Gui.Tooltip
         public boolean tryStrict = true;
 
