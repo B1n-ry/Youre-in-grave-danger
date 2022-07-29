@@ -51,9 +51,13 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     public static boolean renderGraveGlowing = false;
 
+    private final YigdConfig savedConfig;
+
     public GraveBlockEntityRenderer(Context ctx) {
         this.textRenderer = ctx.getTextRenderer();
         this.renderLayer = ctx.getLayerRenderDispatcher();
+
+        this.savedConfig = YigdConfig.getConfig();
 
         if (GraveBlock.customModel == null || !GraveBlock.customModel.isJsonObject()) {
             ModelPartData data = new ModelData().getRoot();
@@ -137,8 +141,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     @Override
     public void render(GraveBlockEntity blockEntity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        YigdConfig config = YigdConfig.getConfig();
-        if (!config.graveSettings.graveRenderSettings.useRenderFeatures) return;
+        if (!savedConfig.graveSettings.graveRenderSettings.useRenderFeatures) return;
         if (blockEntity == null) {
             return;
         }
@@ -153,11 +156,11 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         ItemStack headItem = client.player != null ? client.player.getInventory().armor.get(3) : ItemStack.EMPTY;
         boolean wearingGraveXray = !headItem.isEmpty() && EnchantmentHelper.get(headItem).containsKey(Yigd.DEATH_SIGHT);
-        boolean withingGlowDistance = client.player != null && pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMaxDistance) && !pos.isWithinDistance(client.player.getPos(), config.graveSettings.graveRenderSettings.glowMinDistance);
+        boolean withingGlowDistance = client.player != null && pos.isWithinDistance(client.player.getPos(), savedConfig.graveSettings.graveRenderSettings.glowMaxDistance) && !pos.isWithinDistance(client.player.getPos(), savedConfig.graveSettings.graveRenderSettings.glowMinDistance);
 
-        boolean canGlow = wearingGraveXray || (config.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && withingGlowDistance);
+        boolean canGlow = wearingGraveXray || (savedConfig.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && withingGlowDistance);
         GameProfile graveSkull = blockEntity.getGraveSkull();
-        if (graveSkull != null && config.graveSettings.graveRenderSettings.renderGraveSkull) {
+        if (graveSkull != null && savedConfig.graveSettings.graveRenderSettings.renderGraveSkull) {
             matrices.push();
 
             matrices.translate(0.5f, 0.25f, 0.5f);
@@ -232,7 +235,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         String customName = blockEntity.getCustomName();
         if (customName != null) {
-            boolean renderText = config.graveSettings.graveRenderSettings.renderGraveOwner;
+            boolean renderText = savedConfig.graveSettings.graveRenderSettings.renderGraveOwner;
             if (renderText) {
                 matrices.push();
 
@@ -278,7 +281,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 matrices.scale(scale, scale, scale);
                 matrices.translate(-width / 2.0, -4.5, 0);
 
-                if (showText) this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, config.graveSettings.graveRenderSettings.textShadow, matrices.peek().getPositionMatrix(), vertexConsumers, false, 0, light);
+                if (showText) this.textRenderer.draw(customName, 0, 0, 0xFFFFFF, savedConfig.graveSettings.graveRenderSettings.textShadow, matrices.peek().getPositionMatrix(), vertexConsumers, false, 0, light);
 
                 matrices.pop();
             }
@@ -309,33 +312,35 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         }
 
 
-        for (Map.Entry<String, String> entry : modelTextures.entrySet()) {
-            if (entry.getKey().equals("Base_Layer")) continue;
+        if (savedConfig.graveSettings.graveRenderSettings.useSpecialBlockRenderer) {
+            for (Map.Entry<String, String> entry : modelTextures.entrySet()) {
+                if (entry.getKey().equals("Base_Layer")) continue;
 
-            Identifier identifier = new Identifier(entry.getValue());
-            SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);
-            VertexConsumer vertexConsumer = texture.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
-
-            ModelPart child = graveModel.getChild(entry.getKey());
-            child.render(matrices, vertexConsumer, light, overlay);
-        }
-
-        if (modelTextures.containsKey("Base_Layer")) {
-            if (config.graveSettings.graveRenderSettings.adaptRenderer && blockUnder != null && blockUnder.isOpaqueFullCube(world, pos)) {
-                ModelPart baseLayer = graveModel.getChild("Base_Layer");
-                ModelPart.Cuboid cuboid = baseLayer.getRandomCuboid(Random.create());
-                float scaleX = cuboid.maxX - cuboid.minX;
-                float scaleZ = cuboid.maxZ - cuboid.minZ;
-
-                matrices.translate((cuboid.minX / 16f) + 0.0005f, (cuboid.maxY / 16f) - 1, (cuboid.minZ / 16f) + 0.0005f);
-                matrices.scale(0.999f * (scaleX / 16f), 1, 0.999f * (scaleZ / 16f));
-                client.getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, Random.create());
-            } else {
-                Identifier identifier = new Identifier(modelTextures.get("Base_Layer"));
+                Identifier identifier = new Identifier(entry.getValue());
                 SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);
                 VertexConsumer vertexConsumer = texture.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
 
-                graveModel.getChild("Base_Layer").render(matrices, vertexConsumer, light, overlay);
+                ModelPart child = graveModel.getChild(entry.getKey());
+                child.render(matrices, vertexConsumer, light, overlay);
+            }
+
+            if (modelTextures.containsKey("Base_Layer")) {
+                if (savedConfig.graveSettings.graveRenderSettings.adaptRenderer && blockUnder != null && blockUnder.isOpaqueFullCube(world, pos)) {
+                    ModelPart baseLayer = graveModel.getChild("Base_Layer");
+                    ModelPart.Cuboid cuboid = baseLayer.getRandomCuboid(Random.create());
+                    float scaleX = cuboid.maxX - cuboid.minX;
+                    float scaleZ = cuboid.maxZ - cuboid.minZ;
+
+                    matrices.translate((cuboid.minX / 16f) + 0.0005f, (cuboid.maxY / 16f) - 1, (cuboid.minZ / 16f) + 0.0005f);
+                    matrices.scale(0.999f * (scaleX / 16f), 1, 0.999f * (scaleZ / 16f));
+                    client.getBlockRenderManager().renderBlock(blockUnder, pos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, Random.create());
+                } else {
+                    Identifier identifier = new Identifier(modelTextures.get("Base_Layer"));
+                    SpriteIdentifier texture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, identifier);
+                    VertexConsumer vertexConsumer = texture.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
+
+                    graveModel.getChild("Base_Layer").render(matrices, vertexConsumer, light, overlay);
+                }
             }
         }
 

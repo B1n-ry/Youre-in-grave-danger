@@ -1,9 +1,21 @@
 {
   "replace": false,
   "values": [
-    "graveyard:small_graveyard",
-    "graveyard:small_desert_graveyard",
-    "graveyard:medium_graveyard",
-    "graveyard:large_graveyard"
+    {
+      "id": "graveyard:small_graveyard",
+      "required": false
+    },
+    {
+      "id": "graveyard:medium_graveyard",
+      "required": false
+    },
+    {
+      "id": "graveyard:large_graveyard",
+      "required": false
+    },
+    {
+      "id": "graveyard:small_desert_graveyard",
+      "required": false
+    }
   ]
 }

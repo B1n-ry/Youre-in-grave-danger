@@ -156,7 +156,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public BlockRenderType getRenderType(BlockState state) {
-        if (YigdConfig.getConfig().graveSettings.graveRenderSettings.useRenderFeatures) return BlockRenderType.INVISIBLE;
+        YigdConfig.GraveRenderSettings renderSettings = YigdConfig.getConfig().graveSettings.graveRenderSettings;
+        if (renderSettings.useRenderFeatures && renderSettings.useSpecialBlockRenderer) return BlockRenderType.INVISIBLE;
         return BlockRenderType.MODEL;
     }
 

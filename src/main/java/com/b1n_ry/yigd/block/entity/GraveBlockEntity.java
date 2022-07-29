@@ -162,13 +162,16 @@ public class GraveBlockEntity extends BlockEntity {
         return this.createNbt();
     }
 
+    private static YigdConfig savedConfig = YigdConfig.getConfig();
     public static void tick(World world, BlockPos pos, BlockState ignoredState, BlockEntity blockEntity) {
         if (!(blockEntity instanceof GraveBlockEntity grave)) return;
         if (world == null || world.isClient) return;
         grave.age++;
         if (grave.getGraveOwner() == null) return;
 
-        YigdConfig.GraveDeletion deletion = YigdConfig.getConfig().graveSettings.graveDeletion;
+        if (grave.age % 2400 == 0) savedConfig = YigdConfig.getConfig(); // Every two minutes the config will be updated. This is so there won't be any lag if the getConfig method is demanding to run
+
+        YigdConfig.GraveDeletion deletion = savedConfig.graveSettings.graveDeletion;
         if (!deletion.canDelete) return;
 
         boolean timeHasPassed = grave.age > deletion.afterTime * deletion.timeType.tickFactor();
