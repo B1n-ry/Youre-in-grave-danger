@@ -35,6 +35,8 @@
   "text.autoconfig.yigd.option.graveSettings.graveRobbing.robPriority.@Tooltip": "What inventory should be prioritized.\nGRAVE: Your inventory will be generated on top of grave inventory\nINVENTORY: Grave inventory will be generated on top of your inventory",
   "text.autoconfig.yigd.option.graveSettings.graveRobbing.tellRobber": "Tell robber",
   "text.autoconfig.yigd.option.graveSettings.graveRobbing.tellRobber.@Tooltip": "If users should find out who robbed their grave",
+  "text.autoconfig.yigd.option.graveSettings.graveRobbing.notifyWhenRobbed": "Robbed Notification",
+  "text.autoconfig.yigd.option.graveSettings.graveRobbing.notifyWhenRobbed.@Tooltip": "If player will be told when their grave is robbed",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion": "Grave Expiration",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.@Tooltip": "If and when graves disappear",
   "text.autoconfig.yigd.option.graveSettings.graveDeletion.canDelete": "Can Expire",

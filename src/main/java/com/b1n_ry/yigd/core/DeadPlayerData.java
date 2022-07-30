@@ -41,7 +41,7 @@ public class DeadPlayerData {
 
     public static DeadPlayerData create(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DamageSource deathSource, UUID id) {
         Identifier dimId = world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getId(world.getDimension());
-        String dimName = dimId != null ? dimId.getPath() : "void";
+        String dimName = dimId != null ? dimId.toString() : "void";
         return new DeadPlayerData(inventory, modInventories, gravePos, graveOwner, xp, world.getRegistryKey().getValue(), dimName, deathSource, (byte) 1, null, id);
     }
     public DeadPlayerData(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner, int xp, Identifier worldId, String dimensionName, DamageSource deathSource, byte availability, GameProfile claimedBy, UUID id) {

@@ -23,9 +23,7 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Environment(EnvType.CLIENT)
 public class GraveViewScreen extends Screen {
@@ -45,6 +43,8 @@ public class GraveViewScreen extends Screen {
     public static boolean getKeysFromGui = false;
     public static boolean unlockableGraves = false;
     public static List<UUID> unlockedGraves = new ArrayList<>();
+
+    public static final Map<String, String> dimensionNameOverrides = new HashMap<>();
 
     private final YigdConfig config;
 
@@ -287,9 +287,16 @@ public class GraveViewScreen extends Screen {
 
         super.render(matrices, mouseX, mouseY, delta);
 
+        String dimName;
+        if (dimensionNameOverrides.containsKey(data.dimensionName)) {
+            dimName = dimensionNameOverrides.get(data.dimensionName);
+        } else {
+            dimName = data.dimensionName;
+        }
+
         float textX = originX - screenWidth / 2f + 78f;
         textRenderer.draw(matrices, deathMsg, originX - screenWidth / 2f + 7f, originY - screenHeight / 2f + 5f, textColors.graveViewDeathMessage);
-        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.dim_name", data.dimensionName), textX, originY - screenHeight / 2f + 16, textColors.graveViewDeathDimension);
+        textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.dim_name", dimName), textX, originY - screenHeight / 2f + 16, textColors.graveViewDeathDimension);
         textRenderer.draw(matrices, data.gravePos.getX() + " " + data.gravePos.getY() + " " + data.gravePos.getZ(), textX, originY - screenHeight / 2f + 25f, textColors.graveViewCoordinates);
         if (data.modInventories.size() > 0 || data.inventory.size() > 41) {
             // Kind of a huge block of code made to print strings with break row

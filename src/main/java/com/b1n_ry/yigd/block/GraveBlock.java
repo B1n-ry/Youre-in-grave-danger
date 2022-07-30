@@ -433,14 +433,16 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (isRobbing && server != null) {
             UUID playerId = graveOwner.getId();
             ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(playerId);
-            if (robbedPlayer != null) {
-                if (config.graveSettings.graveRobbing.tellRobber) {
-                    robbedPlayer.sendMessage(Text.translatable("text.yigd.message.robbed_by", playerName), false);
+            if (config.graveSettings.graveRobbing.notifyWhenRobbed) {
+                if (robbedPlayer != null) {
+                    if (config.graveSettings.graveRobbing.tellRobber) {
+                        robbedPlayer.sendMessage(Text.translatable("text.yigd.message.robbed_by", playerName), false);
+                    } else {
+                        robbedPlayer.sendMessage(Text.translatable("text.yigd.message.robbed"), false);
+                    }
                 } else {
-                    robbedPlayer.sendMessage(Text.translatable("text.yigd.message.robbed"), false);
+                    Yigd.notNotifiedRobberies.put(playerId, playerName);
                 }
-            } else {
-                Yigd.notNotifiedRobberies.put(playerId, playerName);
             }
         }
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);

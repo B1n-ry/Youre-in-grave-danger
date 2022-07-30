@@ -159,6 +159,8 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean tellRobber = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean notifyWhenRobbed = true;
     }
 
     public static class GraveDeletion {
