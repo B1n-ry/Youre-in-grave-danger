@@ -97,6 +97,9 @@ public class YigdConfig implements ConfigData {
         public boolean replaceWhenClaimed = true;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean persistGraves = false;
+
+        @ConfigEntry.Gui.Tooltip
         public List<Integer> blacklistDimensions = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
@@ -332,6 +335,8 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public GraveKeySettings graveKeySettings = new GraveKeySettings();
+//        @ConfigEntry.Gui.Tooltip
+//        public GraveCompassSettings graveCompassSettings = new GraveCompassSettings();
     }
 
     public static class ScrollSettings {
@@ -358,6 +363,11 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public GraveKeySpecificationConfig graveKeySpecification = GraveKeySpecificationConfig.PLAYER;
     }
+
+//    public static class GraveCompassSettings {
+//        public boolean enabled = false;
+//        public boolean receiveOnDeath = false;
+//    }
 
     public static class CommandToggles {
         @ConfigEntry.Gui.RequiresRestart

@@ -41,6 +41,7 @@ public class GraveBlockEntity extends BlockEntity {
     private GameProfile graveSkull;
 
     private BlockState previousState;
+    private boolean claimed;
 
     private boolean glowing;
 
@@ -60,6 +61,7 @@ public class GraveBlockEntity extends BlockEntity {
 
         this.glowing = YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave;
         this.previousState = Blocks.AIR.getDefaultState();
+        this.claimed = false;
 
         this.graveId = UUID.randomUUID();
     }
@@ -73,6 +75,7 @@ public class GraveBlockEntity extends BlockEntity {
         tag.putInt("ItemCount", this.storedInventory.size());
         tag.putLong("age", this.age);
         tag.put("replaceState", NbtHelper.fromBlockState(this.previousState));
+        tag.putBoolean("claimed", this.claimed);
         tag.putUuid("graveId", this.graveId);
 
         if (this.graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
@@ -107,9 +110,13 @@ public class GraveBlockEntity extends BlockEntity {
     public void dropCosmeticSkull() {
         ItemStack stack = Items.PLAYER_HEAD.getDefaultStack();
         NbtCompound nbt = stack.getNbt();
+
         if (this.graveSkull.getId() != null) {
             stack.setSubNbt("SkullOwner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
-        } else if (nbt != null) {
+        } else {
+            if (nbt == null) {
+                nbt = new NbtCompound();
+            }
             nbt.putString("SkullOwner", this.graveSkull.getName());
             stack.writeNbt(nbt);
         }
@@ -128,6 +135,7 @@ public class GraveBlockEntity extends BlockEntity {
         this.storedXp = tag.getInt("StoredXp");
         this.age = tag.getInt("age");
         this.previousState = NbtHelper.toBlockState(tag.getCompound("replaceState"));
+        this.claimed = tag.contains("claimed") && tag.getBoolean("claimed");
         this.graveId = tag.getUuid("graveId");
 
         if (tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
@@ -159,7 +167,9 @@ public class GraveBlockEntity extends BlockEntity {
     }
     @Override
     public NbtCompound toInitialChunkDataNbt() {
-        return this.createNbt();
+        NbtCompound nbt = this.createNbt();
+        nbt.putBoolean("claimed", this.claimed);
+        return nbt;
     }
 
     private static YigdConfig savedConfig = YigdConfig.getConfig();
@@ -229,6 +239,9 @@ public class GraveBlockEntity extends BlockEntity {
     public void setGraveSkull(GameProfile skullOwner) {
         this.graveSkull = skullOwner;
     }
+    public void setClaimed(boolean claimed) {
+        this.claimed = claimed;
+    }
 
     public GameProfile getGraveOwner() {
         return this.graveOwner;
@@ -259,5 +272,8 @@ public class GraveBlockEntity extends BlockEntity {
     }
     public GameProfile getGraveSkull() {
         return this.graveSkull;
+    }
+    public boolean isClaimed() {
+        return this.claimed;
     }
 }

@@ -317,6 +317,7 @@
   "text.yigd.word.give_key": "Get Key",
   "text.yigd.word.lock": "Lock",
   "text.yigd.word.unlock": "Unlock",
+  "text.yigd.word.day": "Day %d",
 
   "text.yigd.gui.config_warning.header": "yigd.toml is damaged",
   "text.yigd.gui.config_warning.message": "An error occurred when loading yigd.toml (You're in Grave Danger config file). Default configs are thus loaded. Delete config file to use your own configuration",

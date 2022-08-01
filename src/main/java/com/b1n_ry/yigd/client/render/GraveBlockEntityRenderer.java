@@ -158,7 +158,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         boolean wearingGraveXray = !headItem.isEmpty() && EnchantmentHelper.get(headItem).containsKey(Yigd.DEATH_SIGHT);
         boolean withingGlowDistance = client.player != null && pos.isWithinDistance(client.player.getPos(), savedConfig.graveSettings.graveRenderSettings.glowMaxDistance) && !pos.isWithinDistance(client.player.getPos(), savedConfig.graveSettings.graveRenderSettings.glowMinDistance);
 
-        boolean canGlow = wearingGraveXray || (savedConfig.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && withingGlowDistance);
+        boolean canGlow = wearingGraveXray || (savedConfig.graveSettings.graveRenderSettings.glowingGrave && blockEntity.canGlow() && client.player != null && blockEntity.getGraveOwner() != null && client.player.getUuid().equals(blockEntity.getGraveOwner().getId()) && withingGlowDistance && !blockEntity.isClaimed());
         GameProfile graveSkull = blockEntity.getGraveSkull();
         if (graveSkull != null && savedConfig.graveSettings.graveRenderSettings.renderGraveSkull) {
             matrices.push();

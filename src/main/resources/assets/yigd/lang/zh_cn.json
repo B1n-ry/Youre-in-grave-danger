@@ -80,6 +80,7 @@
   "text.yigd.word.give_key": "获取钥匙",
   "text.yigd.word.lock": "锁定",
   "text.yigd.word.unlock": "解锁",
+  "text.yigd.word.day": "第 %d 天",
 
   "text.yigd.gui.config_warning.header": "yigd.toml 文件损坏",
   "text.yigd.gui.config_warning.message": "加载 yigd.toml (You're in Grave Danger 配置文件) 时发生了一个错误。已加载默认设置。请删除配置文件以重新自定义设置"

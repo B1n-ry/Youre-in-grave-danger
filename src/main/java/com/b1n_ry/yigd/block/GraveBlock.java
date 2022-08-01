@@ -18,6 +18,8 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
@@ -172,9 +174,25 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         BlockEntity be = world.getBlockEntity(pos);
         if (!(be instanceof GraveBlockEntity grave)) return super.onUse(state, world, pos, player, hand, hit);
 
-        if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) && grave.getGraveOwner() != null) {
+        if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) && grave.getGraveOwner() != null && !grave.isClaimed()) {
             RetrieveItems(player, world, pos);
             return ActionResult.SUCCESS;
+        } else if (grave.getGraveOwner() != null && grave.isClaimed() && !world.isClient) {
+            UUID graveId = grave.getGraveId();
+            UUID ownerId = grave.getGraveOwner().getId();
+
+            List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(ownerId);
+            if (graves != null) {
+                for (DeadPlayerData data : graves) {
+                    if (!graveId.equals(data.id)) continue;
+
+                    player.sendMessage(data.deathSource.getDeathMessage(player), false);
+                    player.sendMessage(Text.translatable("text.yigd.word.day", (int) (data.deathTime / 24000L)), false);
+
+                    return ActionResult.SUCCESS;
+                }
+            }
+            return ActionResult.FAIL;
         }
 
         ItemStack heldItem = player.getStackInHand(hand);
@@ -223,6 +241,24 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return;
         }
 
+        if (graveBlockEntity.isClaimed()) {
+            if (EnchantmentHelper.get(stack).containsKey(Enchantments.SILK_TOUCH)) {
+                ItemStack itemStack = new ItemStack(Yigd.GRAVE_BLOCK);
+                NbtCompound nbtCompound = new NbtCompound();
+                NbtCompound blockNbt = new NbtCompound();
+                graveBlockEntity.writeNbt(blockNbt);
+                nbtCompound.put("BlockEntityTag", blockNbt);
+
+                itemStack.setNbt(nbtCompound);
+                itemStack.setCustomName(Text.of(graveBlockEntity.getCustomName()));
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), itemStack);
+            } else {
+                super.afterBreak(world, player, pos, state, be, stack);
+            }
+
+            return;
+        }
+
         if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK) {
             if (RetrieveItems(player, world, pos, be)) return;
         }
@@ -248,7 +284,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
             YigdConfig.GraveRobbing graveRobbing = config.graveRobbing;
             boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-            if ((config.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null) {
+            if ((config.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null || graveEntity.isClaimed()) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }
@@ -325,6 +361,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (player == null || player.isDead()) return false;
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
+        if (graveEntity.isClaimed()) return false;
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
@@ -390,6 +427,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             data.availability = 0;
             data.claimedBy = player.getGameProfile();
             DeathInfoManager.INSTANCE.markDirty();
+
+            graveEntity.setClaimed(true);
+            graveEntity.markDirty();
+            world.updateListeners(pos, world.getBlockState(pos), world.getBlockState(pos), Block.NOTIFY_ALL);
         } else {
             Yigd.LOGGER.warn("Tried to change status of grave for %s (%s) at %s, but grave was not found".formatted(graveOwner.getName(), graveOwner.getId(), pos));
         }
@@ -409,21 +450,25 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             if (config.graveSettings.dropGraveBlock) {
                 ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
+            if (!config.graveSettings.persistGraves) {
+                if (config.graveSettings.replaceWhenClaimed) {
+                    world.setBlockState(pos, graveEntity.getPreviousState());
+                } else {
+                    world.removeBlock(pos, false);
+                }
+            }
+            return true;
+        }
+
+        if (!config.graveSettings.persistGraves) {
+            if (config.graveSettings.dropGraveBlock) {
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+            }
             if (config.graveSettings.replaceWhenClaimed) {
                 world.setBlockState(pos, graveEntity.getPreviousState());
             } else {
                 world.removeBlock(pos, false);
             }
-            return true;
-        }
-
-        if (config.graveSettings.dropGraveBlock) {
-            ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
-        }
-        if (config.graveSettings.replaceWhenClaimed) {
-            world.setBlockState(pos, graveEntity.getPreviousState());
-        } else {
-            world.removeBlock(pos, false);
         }
 
         String playerName = player.getGameProfile().getName();
