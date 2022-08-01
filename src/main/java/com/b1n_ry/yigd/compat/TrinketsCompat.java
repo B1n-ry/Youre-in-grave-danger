@@ -35,8 +35,10 @@ public class TrinketsCompat implements YigdApi {
         Map<String, Map<String, TrinketInventory>> inventory = component.getInventory();
         Map<String, Map<String, DefaultedList<ItemStack>>> playerInv = new HashMap<>();
 
-        List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
-        List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
+        YigdConfig config = YigdConfig.getConfig();
+
+        List<String> soulboundEnchantments = config.graveSettings.soulboundEnchantments;
+        List<String> deleteEnchantments = config.graveSettings.deleteEnchantments;
 
         Map<String, Map<String, DefaultedList<ItemStack>>> soulbound = new HashMap<>();
         inventory.forEach((group, slots) -> {
@@ -53,10 +55,10 @@ public class TrinketsCompat implements YigdApi {
                     boolean removed = false;
 
                     if (onDeath) {
-                        if (GraveHelper.hasEnchantments(deleteEnchantments, stack) || GraveHelper.hasBotaniaKeepIvy(stack, true)) {
+                        if ((GraveHelper.hasEnchantments(deleteEnchantments, stack) || GraveHelper.hasBotaniaKeepIvy(stack, true)) && !config.graveSettings.graveCompatConfig.keepAllTrinkets) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             removed = true;
-                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS) {
+                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS || config.graveSettings.graveCompatConfig.keepAllTrinkets) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             soulInv.add(stack);
                             removed = true;

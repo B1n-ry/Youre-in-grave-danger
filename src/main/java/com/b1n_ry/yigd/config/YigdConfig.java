@@ -229,6 +229,8 @@ public class YigdConfig implements ConfigData {
         public boolean prioritiseTheGraveyardGraves = false;
         @ConfigEntry.Gui.Tooltip
         public int graveyardSearchRadius = 10;
+
+        public boolean keepAllTrinkets = false;
     }
 
     public static class GraveRenderSettings {
