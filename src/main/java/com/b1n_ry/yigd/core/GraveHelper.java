@@ -90,6 +90,12 @@ public class GraveHelper {
         items.addAll(inventory.armor);
         items.addAll(inventory.offHand);
 
+        if (inventory.size() > items.size()) {
+            for (int i = items.size(); i < inventory.size(); i++) {
+                items.add(inventory.getStack(i));
+            }
+        }
+
         // These lines should never be triggered, but just in case there is any problem this is here
         int currentSize = items.size();
         if (inventory.size() > currentSize) {

@@ -32,7 +32,6 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -367,7 +366,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         if (graveOwner == null) return false;
         if (graveEntity.getGraveOwner() != null && graveEntity.age < 20) {
-            ((ServerPlayerEntity) player).sendMessage(Text.translatable("text.yigd.message.too_fast"), MessageType.SYSTEM);
+            player.sendMessage(Text.translatable("text.yigd.message.too_fast"), false);
             return false;
         }
 
@@ -415,7 +414,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         } else if(config.utilitySettings.graveKeySettings.alwaysRequire) {
             ItemStack stack = player.getMainHandStack();
             if (!KeyItem.isKeyForGrave(stack, graveEntity)) {
-                ((ServerPlayerEntity) player).sendMessage(Text.translatable("text.yigd.message.retrieve.missing_key"), MessageType.SYSTEM);
+                player.sendMessage(Text.translatable("text.yigd.message.retrieve.missing_key"), false);
                 return false;
             }
         }

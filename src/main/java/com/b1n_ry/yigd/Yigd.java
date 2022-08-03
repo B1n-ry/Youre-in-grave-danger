@@ -40,7 +40,6 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
-import net.minecraft.network.message.MessageType;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
@@ -220,9 +219,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("flan")) {
             claimMods.add(new FlanCompat());
         }
-        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
-            claimMods.add(new FtbChunksCompat());
-        }
+//        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
+//            claimMods.add(new FtbChunksCompat());
+//        }
         if (FabricLoader.getInstance().isModLoaded("common-protection-api")) {
             claimMods.add(new ProtectionApiCompat());
         }
@@ -241,14 +240,14 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
             YigdConfig config = YigdConfig.getConfig();
             UUID playerId = handler.player.getUuid();
             if (notNotifiedPlayers.contains(playerId)) {
-                handler.player.sendMessage(Text.translatable("text.yigd.message.timeout.offline"), MessageType.SYSTEM);
+                handler.player.sendMessage(Text.translatable("text.yigd.message.timeout.offline"), false);
                 notNotifiedPlayers.remove(playerId);
             }
             if (notNotifiedRobberies.containsKey(playerId)) {
                 if (config.graveSettings.graveRobbing.tellRobber) {
-                    handler.player.sendMessage(Text.translatable("text.yigd.message.robbed_by.offline", notNotifiedRobberies.get(playerId)), MessageType.SYSTEM);
+                    handler.player.sendMessage(Text.translatable("text.yigd.message.robbed_by.offline", notNotifiedRobberies.get(playerId)), false);
                 } else {
-                    handler.player.sendMessage(Text.translatable("text.yigd.message.robbed.offline"), MessageType.SYSTEM);
+                    handler.player.sendMessage(Text.translatable("text.yigd.message.robbed.offline"), false);
                 }
                 notNotifiedRobberies.remove(playerId);
             }
