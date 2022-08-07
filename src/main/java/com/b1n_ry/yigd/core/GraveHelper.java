@@ -30,10 +30,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.*;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
@@ -573,6 +570,7 @@ public class GraveHelper {
         if (!isPlaced) {
             return false;
         }
+        player.setLastDeathPos(Optional.of(GlobalPos.create(world.getRegistryKey(), gravePos)));
 
         BlockPos blockPosUnder = gravePos.down();
 

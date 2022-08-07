@@ -74,7 +74,7 @@ public class GraveBlockEntity extends BlockEntity {
         tag.putInt("StoredXp", storedXp);
         tag.put("Items", Inventories.writeNbt(new NbtCompound(), this.storedInventory, true));
         tag.putInt("ItemCount", this.storedInventory.size());
-        tag.putLong("age", this.age);
+        tag.putInt("age", this.age);
         tag.put("replaceState", NbtHelper.fromBlockState(this.previousState));
         tag.putBoolean("claimed", this.claimed);
         tag.putUuid("graveId", this.graveId);

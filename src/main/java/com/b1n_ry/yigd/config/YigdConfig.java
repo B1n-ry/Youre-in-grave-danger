@@ -337,8 +337,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public GraveKeySettings graveKeySettings = new GraveKeySettings();
-//        @ConfigEntry.Gui.Tooltip
-//        public GraveCompassSettings graveCompassSettings = new GraveCompassSettings();
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveCompassSettings graveCompassSettings = new GraveCompassSettings();
     }
 
     public static class ScrollSettings {
@@ -366,10 +367,10 @@ public class YigdConfig implements ConfigData {
         public GraveKeySpecificationConfig graveKeySpecification = GraveKeySpecificationConfig.PLAYER;
     }
 
-//    public static class GraveCompassSettings {
-//        public boolean enabled = false;
-//        public boolean receiveOnDeath = false;
-//    }
+    public static class GraveCompassSettings {
+        public boolean receiveOnDeath = false;
+        public boolean tryDeleteOnClaim = true;
+    }
 
     public static class CommandToggles {
         @ConfigEntry.Gui.RequiresRestart

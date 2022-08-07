@@ -177,6 +177,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             RetrieveItems(player, world, pos);
             return ActionResult.SUCCESS;
         } else if (grave.getGraveOwner() != null && grave.isClaimed() && !world.isClient) {
+            if (hand == Hand.OFF_HAND) return ActionResult.PASS;
+
             UUID graveId = grave.getGraveId();
             UUID ownerId = grave.getGraveOwner().getId();
 
@@ -376,9 +378,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         if (items == null) return false;
 
+        UUID playerId = player.getUuid();
+
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.GraveRobbing graveRobbing = config.graveSettings.graveRobbing;
-        boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
+        boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == playerId);
         boolean unlocked = config.graveSettings.unlockableGraves && DeathInfoManager.INSTANCE.unlockedGraves.contains(graveEntity.getGraveId());
         int age = graveEntity.age;
         int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
@@ -469,14 +473,19 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 world.removeBlock(pos, false);
             }
         }
+        player.getInventory().remove(stack -> {
+            NbtCompound nbt = stack.getOrCreateNbt();
+            UUID graveId = nbt.getUuid("forGrave");
+            return stack.isOf(Items.COMPASS) && graveEntity.getGraveId().equals(graveId);
+        }, 1, player.getInventory());
 
         String playerName = player.getGameProfile().getName();
 
         Yigd.LOGGER.info(playerName + " is retrieving " + (isRobbing ? "someone else's" : "their") + " grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
         MinecraftServer server = world.getServer();
         if (isRobbing && server != null) {
-            UUID playerId = graveOwner.getId();
-            ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(playerId);
+            UUID ownerId = graveOwner.getId();
+            ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(ownerId);
             if (config.graveSettings.graveRobbing.notifyWhenRobbed) {
                 if (robbedPlayer != null) {
                     if (config.graveSettings.graveRobbing.tellRobber) {
@@ -485,7 +494,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                         robbedPlayer.sendMessage(Text.translatable("text.yigd.message.robbed"), false);
                     }
                 } else {
-                    Yigd.notNotifiedRobberies.put(playerId, playerName);
+                    Yigd.notNotifiedRobberies.put(ownerId, playerName);
                 }
             }
         }
