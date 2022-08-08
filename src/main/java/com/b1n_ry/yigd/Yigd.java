@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.client.gui.GraveViewScreen;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.compat.*;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
@@ -17,6 +18,7 @@ import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
 import com.b1n_ry.yigd.item.KeyItem;
 import com.b1n_ry.yigd.item.ScrollItem;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -138,6 +140,21 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                         break;
                     } catch (Exception e) {
                         LOGGER.error("Error occurred while loading custom grave model " + id + "\n" + e);
+                    }
+                }
+
+                Collection<Identifier> translateIds = manager.findResources("texts", path -> path.equals("dim_names.json"));
+                for (Identifier id : translateIds) {
+                    if (!id.getNamespace().equals("yigd")) continue;
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        LOGGER.info("Reloading dimension name overrides for grave GUI");
+                        JsonObject jObject = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
+                        for (Map.Entry<String, JsonElement> entry : jObject.entrySet()) {
+                            GraveViewScreen.dimensionNameOverrides.put(entry.getKey(), entry.getValue().getAsString());
+                        }
+                    }
+                    catch (Exception e) {
+                        LOGGER.error("Error occurred while loading dimension name overrides for grave GUI\n" + e);
                     }
                 }
             }

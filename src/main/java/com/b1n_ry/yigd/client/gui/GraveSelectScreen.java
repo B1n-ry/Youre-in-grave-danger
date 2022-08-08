@@ -225,7 +225,14 @@ public class GraveSelectScreen extends Screen {
                 drawTexture(matrices, left, top, 0, 0, width, height);
             }
 
-            textRenderer.draw(matrices, info.data.gravePos.getX() + " " + info.data.gravePos.getY() + " " + info.data.gravePos.getZ() + " " + info.data.dimensionName, left + 5f, top + 5f, 0xCC00CC);
+            String dimName;
+            if (GraveViewScreen.dimensionNameOverrides.containsKey(info.data.dimensionName)) {
+                dimName = GraveViewScreen.dimensionNameOverrides.get(info.data.dimensionName);
+            } else {
+                dimName = info.data.dimensionName;
+            }
+
+            textRenderer.draw(matrices, info.data.gravePos.getX() + " " + info.data.gravePos.getY() + " " + info.data.gravePos.getZ() + " " + dimName, left + 5f, top + 5f, 0xCC00CC);
             textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.x_items", info.itemSize), left + 5f, top + 17f, 0x0000CC);
             textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_select.x_levels", info.xpLevels), left + 5f, top + 29f, 0x299608);
             iterations++;

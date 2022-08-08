@@ -6,10 +6,7 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.compat.RequiemCompat;
 import com.b1n_ry.yigd.compat.TheGraveyardCompat;
-import com.b1n_ry.yigd.config.DeathEffectConfig;
-import com.b1n_ry.yigd.config.LastResortConfig;
-import com.b1n_ry.yigd.config.PriorityInventoryConfig;
-import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -41,7 +38,6 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.gen.feature.EndPortalFeature;
 
 import java.util.*;
 
@@ -50,7 +46,7 @@ public class GraveHelper {
         List<Integer> openSlots = new ArrayList<>();
 
         for (int i = 0; i < inventory.size(); i++) {
-            if(inventory.get(i) == ItemStack.EMPTY)
+            if(inventory.get(i).isEmpty())
                 openSlots.add(i);
         }
 
@@ -92,6 +88,12 @@ public class GraveHelper {
         items.addAll(inventory.main);
         items.addAll(inventory.armor);
         items.addAll(inventory.offHand);
+
+        if (inventory.size() > items.size()) {
+            for (int i = items.size(); i < inventory.size(); i++) {
+                items.add(inventory.getStack(i));
+            }
+        }
 
         // These lines should never be triggered, but just in case there is any problem this is here
         int currentSize = items.size();
@@ -214,9 +216,6 @@ public class GraveHelper {
         allItems.removeIf(ItemStack::isEmpty);
 
         UUID playerId = player.getUuid();
-        if (Yigd.miscCompatMods.contains("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
-            playerId = RequiemCompat.getDisplayId(player);
-        }
 
         int xpPoints;
         if (graveConfig.defaultXpDrop) {
@@ -338,11 +337,32 @@ public class GraveHelper {
         if (server != null && Yigd.graveyard != null) {
             JsonElement json = Yigd.graveyard.get("coordinates");
             boolean point2point = Yigd.graveyard.get("point2point").getAsBoolean();
-            ServerWorld overworld = world.getServer().getOverworld();
+
+            String worldId = Yigd.graveyard.get("dimension") != null ? Yigd.graveyard.get("dimension").getAsString() : null;
+            boolean useClosest = Yigd.graveyard.get("use_closest") != null && Yigd.graveyard.get("use_closest").getAsBoolean();
+            ServerWorld graveyardWorld = null;
+            if (worldId != null) {
+                for (ServerWorld serverWorld : server.getWorlds()) {
+                    Identifier value = serverWorld.getRegistryKey().getValue();
+
+                    if (value.toString().equals(worldId)) {
+                        graveyardWorld = serverWorld;
+                        break;
+                    }
+                }
+            }
+            if (graveyardWorld == null) {
+                graveyardWorld = world.getServer().getOverworld();
+            }
             if (json instanceof JsonArray coordinates) {
+                List<Pair<Integer, Pair<Direction, BlockPos>>> graveyardSpots = new ArrayList<>();
                 if (!point2point) {
                     for (JsonElement blockPosition : coordinates) {
                         if (blockPosition instanceof JsonObject xyz) {
+                            String forPlayer = xyz.get("for_player") != null ? xyz.get("for_player").getAsString() : null;
+
+                            if (forPlayer != null && !forPlayer.equals(player.getGameProfile().getName())) continue;
+
                             int x = xyz.get("x").getAsInt();
                             int y = xyz.get("y").getAsInt();
                             int z = xyz.get("z").getAsInt();
@@ -359,11 +379,15 @@ public class GraveHelper {
 
                             BlockPos gravePos = new BlockPos(x, y, z);
 
-                            if (gravePlaceableAt(overworld, gravePos, false)) {
-                                boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, source, direction);
-                                if (!isPlaced) continue;
-                                foundViableGrave = true;
-                                break;
+                            if (gravePlaceableAt(graveyardWorld, gravePos, false)) {
+                                if (useClosest) {
+                                    graveyardSpots.add(new Pair<>((int) gravePos.getSquaredDistance(player.getPos()), new Pair<>(direction, gravePos)));
+                                } else {
+                                    boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source, direction);
+                                    if (!isPlaced) continue;
+                                    foundViableGrave = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -386,14 +410,35 @@ public class GraveHelper {
                                 for (int x = x1; x != x2; x += changeX) {
                                     BlockPos gravePos = new BlockPos(x, y, z);
 
-                                    if (gravePlaceableAt(overworld, gravePos, false)) {
-                                        boolean isPlaced = placeGraveBlock(player, overworld, gravePos, invItems, modInventories, xpPoints, source);
-                                        if (!isPlaced) continue;
-                                        foundViableGrave = true;
-                                        break;
+                                    if (gravePlaceableAt(graveyardWorld, gravePos, false)) {
+                                        if (useClosest) {
+                                            graveyardSpots.add(new Pair<>((int) gravePos.getSquaredDistance(player.getPos()), new Pair<>(player.getHorizontalFacing(), gravePos)));
+                                        } else {
+                                            boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source);
+                                            if (!isPlaced) continue;
+                                            foundViableGrave = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+
+                if (useClosest) {
+                    graveyardSpots.sort(Comparator.comparingInt(Pair::getLeft));
+                    for (Pair<Integer, Pair<Direction, BlockPos>> pair : graveyardSpots) {
+                        Pair<Direction, BlockPos> placement = pair.getRight();
+
+                        BlockPos gravePos = placement.getRight();
+                        Direction direction = placement.getLeft();
+
+                        if (gravePlaceableAt(graveyardWorld, gravePos, false)) {
+                            boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source, direction);
+                            if (!isPlaced) continue;
+                            foundViableGrave = true;
+                            break;
                         }
                     }
                 }
@@ -411,13 +456,61 @@ public class GraveHelper {
         }
 
         if (!foundViableGrave && config.graveSettings.trySoft) { // Trying soft
-            for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
-                if (gravePlaceableAt(world, gravePos, false)) {
-                    boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
-                    if (!isPlaced) continue;
+            TrySoftConfig trySoftApproach = config.graveSettings.trySoftApproach;
+            switch (trySoftApproach) {
+                case RADIUS -> {
+                    for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
+                        if (gravePlaceableAt(world, gravePos, false)) {
+                            boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
+                            if (!isPlaced) continue;
 
-                    foundViableGrave = true;
-                    break;
+                            foundViableGrave = true;
+                            break;
+                        }
+                    }
+                }
+                case Y_UP -> {
+                    BlockPos gravePos = blockPos;
+
+                    while (world.isInBuildLimit(gravePos)) {
+                        if (gravePlaceableAt(world, gravePos, false)) {
+                            boolean isPlaced = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source);
+                            if (!isPlaced) {
+                                gravePos = gravePos.up();
+                                continue;
+                            }
+
+                            foundViableGrave = true;
+                            break;
+                        } else {
+                            gravePos = gravePos.up();
+                        }
+                    }
+                }
+                case CLOSEST_Y -> {
+                    if (gravePlaceableAt(world, blockPos, false)) {
+                        boolean isPlaced = placeGraveBlock(player, world, blockPos, invItems, modInventories, xpPoints, source);
+                        if (isPlaced) {
+                            foundViableGrave = true;
+                        }
+                    }
+                    if (!foundViableGrave) {
+                        for (int offset = 1; offset < 500; offset++) {
+                            if (gravePlaceableAt(world, blockPos.up(offset), false)) {
+                                boolean isPlaced = placeGraveBlock(player, world, blockPos.up(offset), invItems, modInventories, xpPoints, source);
+                                if (!isPlaced) continue;
+
+                                foundViableGrave = true;
+                                break;
+                            } else if (gravePlaceableAt(world, blockPos.down(offset), false)) {
+                                boolean isPlaced = placeGraveBlock(player, world, blockPos.down(offset), invItems, modInventories, xpPoints, source);
+                                if (!isPlaced) continue;
+
+                                foundViableGrave = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -496,7 +589,7 @@ public class GraveHelper {
 
         Identifier playerWorldId = dimManager.getId(playerDimension);
         if (playerWorldId != null && playerWorldId.equals(DimensionType.THE_END_ID)) {
-            if (EndPortalFeature.ORIGIN.isWithinDistance(gravePos, 10) && world.getBlockState(gravePos.down()).isOf(Blocks.BEDROCK)) {
+            if (Math.abs(gravePos.getX()) + Math.abs(gravePos.getZ()) < 25 && world.getBlockState(gravePos.down()).isOf(Blocks.BEDROCK)) {
                 gravePos = gravePos.up();
             }
         }
@@ -545,6 +638,7 @@ public class GraveHelper {
 
         BlockEntity placed = world.getBlockEntity(gravePos);
         if (placed instanceof GraveBlockEntity placedGraveEntity) {
+            placedGraveEntity.creationTime = world.getTime();
 
             GameProfile playerProfile = player.getGameProfile();
             if (Yigd.miscCompatMods.contains("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
@@ -719,7 +813,7 @@ public class GraveHelper {
                 if (!equipped.isEmpty()) {
                     extraItems.add(equipped);
                 }
-                inventory.setStack(mainInventory.size() + i, armorItem);
+                inventory.setStack(mainSize + i, armorItem);
             } else if (hasEnchantments(bindingCurse, armorItem) && YigdConfig.getConfig().graveSettings.applyBindingCurse) {
                 if (!fromGrave) {
                     ItemStack equipped = inventory.getArmorStack(i);

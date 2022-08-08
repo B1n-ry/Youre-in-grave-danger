@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.item.KeyItem;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.TranslatableText;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class ServerPacketReceivers {
             UUID graveOwnerId = buf.readUuid();
             UUID graveId = buf.readUuid();
 
-            PlayerEntity graveOwner = server.getPlayerManager().getPlayer(graveOwnerId);
+            ServerPlayerEntity graveOwner = server.getPlayerManager().getPlayer(graveOwnerId);
             if (graveOwner != null) {
                 YigdCommand.restoreGrave(graveOwner, player, graveId);
             } else {

@@ -5,10 +5,12 @@ import com.b1n_ry.yigd.client.gui.GraveViewScreen;
 import com.b1n_ry.yigd.client.gui.PlayerSelectScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.nbt.NbtCompound;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ClientPacketReceivers {
     public static void register() {

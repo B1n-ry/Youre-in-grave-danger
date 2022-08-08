@@ -14,6 +14,7 @@
   ],
   "client": [
     "AbstractConfigScreenMixin",
+    "CompassMixin",
     "DebugHudMixin",
     "WorldRendererMixin"
   ],

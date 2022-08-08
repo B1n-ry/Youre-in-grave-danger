@@ -1,0 +1,18 @@
+{
+  "minecraft:overworld": "Overworld",
+  "minecraft:the_nether": "The Nether",
+  "minecraft:the_end": "The End",
+
+  "mining_dims:mining_dim": "Mining Dimension",
+  "mining_dims:hunting_dim": "Climbing Dimension",
+  "mining_dims:caving_dim": "Caving Dimension",
+  "mining_dims:nethering_dim": "Nethering Dimension",
+  "mining_dims:climbing_dim": "Climbing Dimension",
+
+  "dimdoors:limbo": "Limbo",
+  "dimdoors:personal_pockets": "Personal Pocket",
+  "dimdoors:public_pockets": "Public Pocket",
+  "dimdoors:dungeon_pockets": "Dungeon Pocket",
+
+  "the_bumblezone:the_bumblezone": "The Bumblezone"
+}

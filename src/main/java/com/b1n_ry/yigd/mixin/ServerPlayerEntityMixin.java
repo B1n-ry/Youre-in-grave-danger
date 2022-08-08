@@ -16,16 +16,23 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIntArray;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -153,6 +160,20 @@ public abstract class ServerPlayerEntityMixin {
                     // Give grave key linked to the grave if it should give keys on respawn. Function will by itself fail if the item is disabled
                     if (yigdConfig.utilitySettings.graveKeySettings.retrieveOnRespawn) {
                         KeyItem.giveStackToPlayer(player, latestDeath.id);
+                    }
+                    if (yigdConfig.utilitySettings.graveCompassSettings.receiveOnDeath) {
+                        ItemStack stack = Items.COMPASS.getDefaultStack();
+                        NbtCompound nbt = new NbtCompound();
+                        nbt.put("pos", NbtHelper.fromBlockPos(latestDeath.gravePos));
+
+                        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, latestDeath.worldId);
+                        World.CODEC.encodeStart(NbtOps.INSTANCE, worldKey).resultOrPartial(Yigd.LOGGER::error).ifPresent(nbtElement -> nbt.put("dimension", nbtElement));
+
+                        stack.setSubNbt("pointTowards", nbt);
+                        stack.setSubNbt("forGrave", NbtHelper.fromUuid(latestDeath.id));
+
+                        stack.setCustomName(new LiteralText("item.yigd.grave_compass").styled(style -> style.withItalic(false)));
+                        player.giveItemStack(stack);
                     }
 
                     if (deathPos != null && yigdConfig.graveSettings.tellDeathPos) {

@@ -34,12 +34,13 @@ public class GraveBlockEntity extends BlockEntity {
     private DefaultedList<ItemStack> storedInventory;
     private Map<String, Object> moddedInventories;
     private UUID killer;
-    public int age;
+    public long creationTime;
     private UUID graveId;
 
     private GameProfile graveSkull;
 
     private BlockState previousState;
+    private boolean claimed;
 
     private boolean glowing;
 
@@ -54,11 +55,12 @@ public class GraveBlockEntity extends BlockEntity {
         this.customName = customName;
         this.storedInventory = DefaultedList.ofSize(41, ItemStack.EMPTY);
 
-        this.age = 0;
+        this.creationTime = world != null ? world.getTime() : 0;
         this.graveSkull = null;
 
         this.glowing = YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave;
         this.previousState = Blocks.AIR.getDefaultState();
+        this.claimed = false;
 
         this.graveId = UUID.randomUUID();
     }
@@ -70,8 +72,9 @@ public class GraveBlockEntity extends BlockEntity {
         tag.putInt("StoredXp", storedXp);
         tag.put("Items", Inventories.writeNbt(new NbtCompound(), this.storedInventory, true));
         tag.putInt("ItemCount", this.storedInventory.size());
-        tag.putLong("age", this.age);
+        tag.putLong("creationTime", this.creationTime);
         tag.put("replaceState", NbtHelper.fromBlockState(this.previousState));
+        tag.putBoolean("claimed", this.claimed);
         tag.putUuid("graveId", this.graveId);
 
         if (this.graveOwner != null) tag.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveOwner));
@@ -106,14 +109,18 @@ public class GraveBlockEntity extends BlockEntity {
     public void dropCosmeticSkull() {
         ItemStack stack = Items.PLAYER_HEAD.getDefaultStack();
         NbtCompound nbt = stack.getNbt();
+
         if (this.graveSkull.getId() != null) {
             stack.setSubNbt("SkullOwner", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
-        } else if (nbt != null) {
+        } else {
+            if (nbt == null) {
+                nbt = new NbtCompound();
+            }
             nbt.putString("SkullOwner", this.graveSkull.getName());
             stack.writeNbt(nbt);
         }
+        if (world == null) return;
         ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), stack);
-
     }
 
     @Override
@@ -125,8 +132,9 @@ public class GraveBlockEntity extends BlockEntity {
         Inventories.readNbt(tag.getCompound("Items"), this.storedInventory);
 
         this.storedXp = tag.getInt("StoredXp");
-        this.age = tag.getInt("age");
+        this.creationTime = tag.contains("creationTime") ? tag.getLong("creationTime") : world != null ? world.getTime() : 0;
         this.previousState = NbtHelper.toBlockState(tag.getCompound("replaceState"));
+        this.claimed = tag.contains("claimed") && tag.getBoolean("claimed");
         this.graveId = tag.getUuid("graveId");
 
         if (tag.contains("owner")) this.graveOwner = NbtHelper.toGameProfile(tag.getCompound("owner"));
@@ -142,6 +150,8 @@ public class GraveBlockEntity extends BlockEntity {
                 String modName = yigdApi.getModName();
 
                 NbtCompound nbt = modNbt.getCompound(modName);
+                if (nbt == null) continue;
+
                 this.moddedInventories.computeIfAbsent(modName, s -> yigdApi.readNbt(nbt));
             }
         }
@@ -156,19 +166,23 @@ public class GraveBlockEntity extends BlockEntity {
     }
     @Override
     public NbtCompound toInitialChunkDataNbt() {
-        return this.createNbt();
+        NbtCompound nbt = this.createNbt();
+        nbt.putBoolean("claimed", this.claimed);
+        return nbt;
     }
 
+    private static YigdConfig savedConfig = YigdConfig.getConfig();
     public static void tick(World world, BlockPos pos, BlockState ignoredState, BlockEntity blockEntity) {
         if (!(blockEntity instanceof GraveBlockEntity grave)) return;
         if (world == null || world.isClient) return;
-        grave.age++;
         if (grave.getGraveOwner() == null) return;
 
-        YigdConfig.GraveDeletion deletion = YigdConfig.getConfig().graveSettings.graveDeletion;
+        if ((int) world.getTime() % 2400 == 0) savedConfig = YigdConfig.getConfig(); // Every two minutes the config will be updated. This is so there won't be any lag if the getConfig method is demanding to run
+
+        YigdConfig.GraveDeletion deletion = savedConfig.graveSettings.graveDeletion;
         if (!deletion.canDelete) return;
 
-        boolean timeHasPassed = grave.age > deletion.afterTime * deletion.timeType.tickFactor();
+        boolean timeHasPassed = grave.creationTime + (long) deletion.afterTime * deletion.timeType.tickFactor() <= world.getTime();
 
         if (!timeHasPassed) return;
         if (deletion.dropInventory) {
@@ -223,6 +237,9 @@ public class GraveBlockEntity extends BlockEntity {
     public void setGraveSkull(GameProfile skullOwner) {
         this.graveSkull = skullOwner;
     }
+    public void setClaimed(boolean claimed) {
+        this.claimed = claimed;
+    }
 
     public GameProfile getGraveOwner() {
         return this.graveOwner;
@@ -253,5 +270,8 @@ public class GraveBlockEntity extends BlockEntity {
     }
     public GameProfile getGraveSkull() {
         return this.graveSkull;
+    }
+    public boolean isClaimed() {
+        return this.claimed;
     }
 }

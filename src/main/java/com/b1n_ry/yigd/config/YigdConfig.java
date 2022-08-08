@@ -11,7 +11,7 @@ import java.util.List;
 
 @Config(name = "yigd")
 public class YigdConfig implements ConfigData {
-    @ConfigEntry.Gui.CollapsibleObject
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
     public GraveSettings graveSettings = new GraveSettings();
 
     @ConfigEntry.Gui.CollapsibleObject
@@ -88,11 +88,16 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean trySoft = false;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public TrySoftConfig trySoftApproach = TrySoftConfig.RADIUS;
         @ConfigEntry.Gui.Tooltip
         public boolean tryStrict = true;
 
         @ConfigEntry.Gui.Tooltip
         public boolean replaceWhenClaimed = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean persistGraves = false;
 
         @ConfigEntry.Gui.Tooltip
         public List<Integer> blacklistDimensions = new ArrayList<>();
@@ -157,6 +162,8 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean tellRobber = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean notifyWhenRobbed = true;
     }
 
     public static class GraveDeletion {
@@ -222,12 +229,15 @@ public class YigdConfig implements ConfigData {
         public boolean prioritiseTheGraveyardGraves = false;
         @ConfigEntry.Gui.Tooltip
         public int graveyardSearchRadius = 10;
+
+        public boolean keepAllTrinkets = false;
     }
 
     public static class GraveRenderSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean useRenderFeatures = true;
 
+        public boolean useSpecialBlockRenderer = true;
         public boolean renderGraveSkull = true;
         public boolean renderGraveOwner = true;
         @ConfigEntry.Gui.Tooltip
@@ -258,6 +268,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public GraveKeySettings graveKeySettings = new GraveKeySettings();
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveCompassSettings graveCompassSettings = new GraveCompassSettings();
     }
 
     public static class ScrollSettings {
@@ -267,6 +280,11 @@ public class YigdConfig implements ConfigData {
         public ScrollTypeConfig scrollType = ScrollTypeConfig.DISABLED;
         @ConfigEntry.Gui.Tooltip
         public boolean retrieveOnRespawn = true;
+    }
+
+    public static class GraveCompassSettings {
+        public boolean receiveOnDeath = false;
+        public boolean tryDeleteOnClaim = true;
     }
 
     public static class GraveKeySettings {

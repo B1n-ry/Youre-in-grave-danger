@@ -18,6 +18,8 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
@@ -37,6 +39,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -155,7 +158,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public BlockRenderType getRenderType(BlockState state) {
-        if (YigdConfig.getConfig().graveSettings.graveRenderSettings.useRenderFeatures) return BlockRenderType.INVISIBLE;
+        YigdConfig.GraveRenderSettings renderSettings = YigdConfig.getConfig().graveSettings.graveRenderSettings;
+        if (renderSettings.useRenderFeatures && renderSettings.useSpecialBlockRenderer) return BlockRenderType.INVISIBLE;
         return BlockRenderType.MODEL;
     }
 
@@ -170,9 +174,27 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         BlockEntity be = world.getBlockEntity(pos);
         if (!(be instanceof GraveBlockEntity grave)) return super.onUse(state, world, pos, player, hand, hit);
 
-        if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) && grave.getGraveOwner() != null) {
+        if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) && grave.getGraveOwner() != null && !grave.isClaimed()) {
             RetrieveItems(player, world, pos);
             return ActionResult.SUCCESS;
+        } else if (grave.getGraveOwner() != null && grave.isClaimed() && !world.isClient) {
+            if (hand == Hand.OFF_HAND) return ActionResult.PASS;
+
+            UUID graveId = grave.getGraveId();
+            UUID ownerId = grave.getGraveOwner().getId();
+
+            List<DeadPlayerData> graves = DeathInfoManager.INSTANCE.data.get(ownerId);
+            if (graves != null) {
+                for (DeadPlayerData data : graves) {
+                    if (!graveId.equals(data.id)) continue;
+
+                    player.sendMessage(data.deathSource.getDeathMessage(player), false);
+                    player.sendMessage(new TranslatableText("text.yigd.word.day", (int) (data.deathTime / 24000L)), false);
+
+                    return ActionResult.SUCCESS;
+                }
+            }
+            return ActionResult.FAIL;
         }
 
         ItemStack heldItem = player.getStackInHand(hand);
@@ -221,6 +243,24 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return;
         }
 
+        if (graveBlockEntity.isClaimed()) {
+            if (EnchantmentHelper.get(stack).containsKey(Enchantments.SILK_TOUCH)) {
+                ItemStack itemStack = new ItemStack(Yigd.GRAVE_BLOCK);
+                NbtCompound nbtCompound = new NbtCompound();
+                NbtCompound blockNbt = new NbtCompound();
+                graveBlockEntity.writeNbt(blockNbt);
+                nbtCompound.put("BlockEntityTag", blockNbt);
+
+                itemStack.setNbt(nbtCompound);
+                itemStack.setCustomName(Text.of(graveBlockEntity.getCustomName()));
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), itemStack);
+            } else {
+                super.afterBreak(world, player, pos, state, be, stack);
+            }
+
+            return;
+        }
+
         if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK) {
             if (RetrieveItems(player, world, pos, be)) return;
         }
@@ -246,7 +286,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
             YigdConfig.GraveRobbing graveRobbing = config.graveRobbing;
             boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-            if ((config.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null) {
+            if ((config.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null || graveEntity.isClaimed()) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }
@@ -323,11 +363,12 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (player == null || player.isDead()) return false;
 
         if (!(blockEntity instanceof GraveBlockEntity graveEntity)) return false;
+        if (graveEntity.isClaimed()) return false;
 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
         if (graveOwner == null) return false;
-        if (graveEntity.getGraveOwner() != null && graveEntity.age < 20) {
+        if (graveEntity.getGraveOwner() != null && graveEntity.getGraveOwner().getId().equals(player.getUuid()) && graveEntity.creationTime + 20 >= world.getTime()) {
             player.sendMessage(new TranslatableText("text.yigd.message.too_fast"), false);
             return false;
         }
@@ -338,15 +379,18 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         if (items == null) return false;
 
+        UUID playerId = player.getUuid();
+
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.GraveRobbing graveRobbing = config.graveSettings.graveRobbing;
-        boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
+        boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == playerId);
         boolean unlocked = config.graveSettings.unlockableGraves && DeathInfoManager.INSTANCE.unlockedGraves.contains(graveEntity.getGraveId());
-        int age = graveEntity.age;
-        int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+        long creationTime = graveEntity.creationTime;
+        long requiredTime = creationTime + (long) graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+        long currentTime = world.getTime();
 
         boolean isRobbing = false;
-        boolean timePassed = age > requiredAge;
+        boolean timePassed = currentTime >= requiredTime;
         boolean isGraveOwner = player.getGameProfile().getId().equals(graveOwner.getId());
         if (!isGraveOwner) {
             if (!(canRobGrave && timePassed) && !unlocked) {
@@ -355,7 +399,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     isRobbing = KeyItem.isKeyForGrave(heldStack, graveEntity);
                 }
                 if (canRobGrave && !isRobbing) {
-                    double timeRemaining = ((double) requiredAge - age) / 20;
+                    double timeRemaining = ((double) requiredTime - currentTime) / 20;
 
                     int hours = (int) (timeRemaining / 3600);
                     timeRemaining %= 3600;
@@ -388,6 +432,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             data.availability = 0;
             data.claimedBy = player.getGameProfile();
             DeathInfoManager.INSTANCE.markDirty();
+
+            graveEntity.setClaimed(true);
+            graveEntity.markDirty();
+            world.updateListeners(pos, world.getBlockState(pos), world.getBlockState(pos), Block.NOTIFY_ALL);
         } else {
             Yigd.LOGGER.warn("Tried to change status of grave for %s (%s) at %s, but grave was not found".formatted(graveOwner.getName(), graveOwner.getId(), pos));
         }
@@ -407,21 +455,33 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             if (config.graveSettings.dropGraveBlock) {
                 ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
             }
+            if (!config.graveSettings.persistGraves) {
+                if (config.graveSettings.replaceWhenClaimed) {
+                    world.setBlockState(pos, graveEntity.getPreviousState());
+                } else {
+                    world.removeBlock(pos, false);
+                }
+            }
+            return true;
+        }
+
+        if (!config.graveSettings.persistGraves) {
+            if (config.graveSettings.dropGraveBlock) {
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
+            }
             if (config.graveSettings.replaceWhenClaimed) {
                 world.setBlockState(pos, graveEntity.getPreviousState());
             } else {
                 world.removeBlock(pos, false);
             }
-            return true;
         }
-
-        if (config.graveSettings.dropGraveBlock) {
-            ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), Yigd.GRAVE_BLOCK.asItem().getDefaultStack());
-        }
-        if (config.graveSettings.replaceWhenClaimed) {
-            world.setBlockState(pos, graveEntity.getPreviousState());
-        } else {
-            world.removeBlock(pos, false);
+        if (config.utilitySettings.graveCompassSettings.tryDeleteOnClaim) {
+            player.getInventory().remove(stack -> {
+                NbtCompound nbt = stack.getOrCreateNbt();
+                if (!nbt.contains("forGrave")) return false;
+                UUID graveId = nbt.getUuid("forGrave");
+                return stack.isOf(Items.COMPASS) && graveEntity.getGraveId().equals(graveId);
+            }, 1, player.getInventory());
         }
 
         String playerName = player.getGameProfile().getName();
@@ -429,16 +489,18 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         Yigd.LOGGER.info(playerName + " is retrieving " + (isRobbing ? "someone else's" : "their") + " grave at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
         MinecraftServer server = world.getServer();
         if (isRobbing && server != null) {
-            UUID playerId = graveOwner.getId();
-            ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(playerId);
-            if (robbedPlayer != null) {
-                if (config.graveSettings.graveRobbing.tellRobber) {
-                    robbedPlayer.sendMessage(new TranslatableText("text.yigd.message.robbed_by", playerName), false);
+            UUID ownerId = graveOwner.getId();
+            ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(ownerId);
+            if (config.graveSettings.graveRobbing.notifyWhenRobbed) {
+                if (robbedPlayer != null) {
+                    if (config.graveSettings.graveRobbing.tellRobber) {
+                        robbedPlayer.sendMessage(new TranslatableText("text.yigd.message.robbed_by", playerName), false);
+                    } else {
+                        robbedPlayer.sendMessage(new TranslatableText("text.yigd.message.robbed"), false);
+                    }
                 } else {
-                    robbedPlayer.sendMessage(new TranslatableText("text.yigd.message.robbed"), false);
+                    Yigd.notNotifiedRobberies.put(ownerId, playerName);
                 }
-            } else {
-                Yigd.notNotifiedRobberies.put(playerId, playerName);
             }
         }
         GraveHelper.RetrieveItems(player, items, graveModItems, xp, isRobbing);

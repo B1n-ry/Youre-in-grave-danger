@@ -341,6 +341,25 @@ public class PlayerSelectScreen extends Screen {
 
         this.data.put(user, newList);
 
+        if (!graveOwners.containsKey(user)) {
+            graveOwners.put(user, data.graveOwner);
+        }
+        if (!playerSkinTextures.containsKey(user)) {
+            Identifier defaultPlayerSkin = DefaultSkinHelper.getTexture(user);
+
+            MinecraftClient minecraftClient = MinecraftClient.getInstance();
+            if (minecraftClient != null) {
+                Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(data.graveOwner);
+                if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
+                    playerSkinTextures.put(user, minecraftClient.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
+                } else {
+                    playerSkinTextures.put(user, defaultPlayerSkin);
+                }
+            } else {
+                playerSkinTextures.put(user, defaultPlayerSkin);
+            }
+        }
+
         reloadFilters();
     }
 }
