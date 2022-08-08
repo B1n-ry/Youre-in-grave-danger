@@ -473,11 +473,13 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 world.removeBlock(pos, false);
             }
         }
-        player.getInventory().remove(stack -> {
-            NbtCompound nbt = stack.getOrCreateNbt();
-            UUID graveId = nbt.getUuid("forGrave");
-            return stack.isOf(Items.COMPASS) && graveEntity.getGraveId().equals(graveId);
-        }, 1, player.getInventory());
+        if (config.utilitySettings.graveCompassSettings.tryDeleteOnClaim) {
+            player.getInventory().remove(stack -> {
+                NbtCompound nbt = stack.getOrCreateNbt();
+                UUID graveId = nbt.getUuid("forGrave");
+                return stack.isOf(Items.COMPASS) && graveEntity.getGraveId().equals(graveId);
+            }, 1, player.getInventory());
+        }
 
         String playerName = player.getGameProfile().getName();
 

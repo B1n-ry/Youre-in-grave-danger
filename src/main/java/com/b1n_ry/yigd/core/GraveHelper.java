@@ -334,6 +334,7 @@ public class GraveHelper {
             boolean point2point = Yigd.graveyard.get("point2point").getAsBoolean();
 
             String worldId = Yigd.graveyard.get("dimension") != null ? Yigd.graveyard.get("dimension").getAsString() : null;
+            boolean useClosest = Yigd.graveyard.get("use_closest") != null && Yigd.graveyard.get("use_closest").getAsBoolean();
             ServerWorld graveyardWorld = null;
             if (worldId != null) {
                 for (ServerWorld serverWorld : server.getWorlds()) {
@@ -349,6 +350,7 @@ public class GraveHelper {
                 graveyardWorld = world.getServer().getOverworld();
             }
             if (json instanceof JsonArray coordinates) {
+                List<Pair<Integer, Pair<Direction, BlockPos>>> graveyardSpots = new ArrayList<>();
                 if (!point2point) {
                     for (JsonElement blockPosition : coordinates) {
                         if (blockPosition instanceof JsonObject xyz) {
@@ -373,10 +375,14 @@ public class GraveHelper {
                             BlockPos gravePos = new BlockPos(x, y, z);
 
                             if (gravePlaceableAt(graveyardWorld, gravePos, false)) {
-                                boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source, direction);
-                                if (!isPlaced) continue;
-                                foundViableGrave = true;
-                                break;
+                                if (useClosest) {
+                                    graveyardSpots.add(new Pair<>((int) gravePos.getSquaredDistance(player.getPos()), new Pair<>(direction, gravePos)));
+                                } else {
+                                    boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source, direction);
+                                    if (!isPlaced) continue;
+                                    foundViableGrave = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -400,13 +406,34 @@ public class GraveHelper {
                                     BlockPos gravePos = new BlockPos(x, y, z);
 
                                     if (gravePlaceableAt(graveyardWorld, gravePos, false)) {
-                                        boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source);
-                                        if (!isPlaced) continue;
-                                        foundViableGrave = true;
-                                        break;
+                                        if (useClosest) {
+                                            graveyardSpots.add(new Pair<>((int) gravePos.getSquaredDistance(player.getPos()), new Pair<>(player.getHorizontalFacing(), gravePos)));
+                                        } else {
+                                            boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source);
+                                            if (!isPlaced) continue;
+                                            foundViableGrave = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+
+                if (useClosest) {
+                    graveyardSpots.sort(Comparator.comparingInt(Pair::getLeft));
+                    for (Pair<Integer, Pair<Direction, BlockPos>> pair : graveyardSpots) {
+                        Pair<Direction, BlockPos> placement = pair.getRight();
+
+                        BlockPos gravePos = placement.getRight();
+                        Direction direction = placement.getLeft();
+
+                        if (gravePlaceableAt(graveyardWorld, gravePos, false)) {
+                            boolean isPlaced = placeGraveBlock(player, graveyardWorld, gravePos, invItems, modInventories, xpPoints, source, direction);
+                            if (!isPlaced) continue;
+                            foundViableGrave = true;
+                            break;
                         }
                     }
                 }

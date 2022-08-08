@@ -1,6 +1,7 @@
 {
   "point2point": false,
   "dimension": "minecraft:the_nether",
+  "use_closest": false,
   "coordinates": [
     {
       "x": 497,
