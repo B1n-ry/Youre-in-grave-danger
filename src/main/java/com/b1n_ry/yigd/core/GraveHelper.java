@@ -597,7 +597,6 @@ public class GraveHelper {
         if (!isPlaced) {
             return false;
         }
-        player.setLastDeathPos(Optional.of(GlobalPos.create(world.getRegistryKey(), gravePos)));
 
         BlockPos blockPosUnder = gravePos.down();
 
@@ -634,6 +633,7 @@ public class GraveHelper {
 
         BlockEntity placed = world.getBlockEntity(gravePos);
         if (placed instanceof GraveBlockEntity placedGraveEntity) {
+            placedGraveEntity.creationTime = world.getTime();
 
             GameProfile playerProfile = player.getGameProfile();
 

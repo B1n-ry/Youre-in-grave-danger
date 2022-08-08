@@ -36,7 +36,7 @@ public class GraveBlockEntity extends BlockEntity {
     private DefaultedList<ItemStack> storedInventory;
     private Map<String, Object> moddedInventories;
     private UUID killer;
-    public int age;
+    public long creationTime;
     private UUID graveId;
 
     private GameProfile graveSkull;
@@ -57,7 +57,7 @@ public class GraveBlockEntity extends BlockEntity {
         this.customName = customName;
         this.storedInventory = DefaultedList.ofSize(41, ItemStack.EMPTY);
 
-        this.age = 0;
+        this.creationTime = world != null ? world.getTime() : 0;
         this.graveSkull = null;
 
         this.glowing = YigdConfig.getConfig().graveSettings.graveRenderSettings.glowingGrave;
@@ -74,7 +74,7 @@ public class GraveBlockEntity extends BlockEntity {
         tag.putInt("StoredXp", storedXp);
         tag.put("Items", Inventories.writeNbt(new NbtCompound(), this.storedInventory, true));
         tag.putInt("ItemCount", this.storedInventory.size());
-        tag.putInt("age", this.age);
+        tag.putLong("creationTime", this.creationTime);
         tag.put("replaceState", NbtHelper.fromBlockState(this.previousState));
         tag.putBoolean("claimed", this.claimed);
         tag.putUuid("graveId", this.graveId);
@@ -134,7 +134,7 @@ public class GraveBlockEntity extends BlockEntity {
         Inventories.readNbt(tag.getCompound("Items"), this.storedInventory);
 
         this.storedXp = tag.getInt("StoredXp");
-        this.age = tag.getInt("age");
+        this.creationTime = tag.contains("creationTime") ? tag.getLong("creationTime") : world != null ? world.getTime() : 0;
         this.previousState = NbtHelper.toBlockState(tag.getCompound("replaceState"));
         this.claimed = tag.contains("claimed") && tag.getBoolean("claimed");
         this.graveId = tag.getUuid("graveId");
@@ -177,15 +177,14 @@ public class GraveBlockEntity extends BlockEntity {
     public static void tick(World world, BlockPos pos, BlockState ignoredState, BlockEntity blockEntity) {
         if (!(blockEntity instanceof GraveBlockEntity grave)) return;
         if (world == null || world.isClient) return;
-        grave.age++;
         if (grave.getGraveOwner() == null) return;
 
-        if (grave.age % 2400 == 0) savedConfig = YigdConfig.getConfig(); // Every two minutes the config will be updated. This is so there won't be any lag if the getConfig method is demanding to run
+        if ((int) world.getTime() % 2400 == 0) savedConfig = YigdConfig.getConfig(); // Every two minutes the config will be updated. This is so there won't be any lag if the getConfig method is demanding to run
 
         YigdConfig.GraveDeletion deletion = savedConfig.graveSettings.graveDeletion;
         if (!deletion.canDelete) return;
 
-        boolean timeHasPassed = grave.age > deletion.afterTime * deletion.timeType.tickFactor();
+        boolean timeHasPassed = grave.creationTime + (long) deletion.afterTime * deletion.timeType.tickFactor() <= world.getTime();
 
         if (!timeHasPassed) return;
         if (deletion.dropInventory) {

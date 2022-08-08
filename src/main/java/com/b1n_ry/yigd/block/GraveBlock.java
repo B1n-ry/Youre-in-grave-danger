@@ -367,7 +367,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
         if (graveOwner == null) return false;
-        if (graveEntity.getGraveOwner() != null && graveEntity.age < 20) {
+        if (graveEntity.getGraveOwner() != null && graveEntity.getGraveOwner().getId().equals(player.getUuid()) && graveEntity.creationTime + 20 < world.getTime()) {
             player.sendMessage(Text.translatable("text.yigd.message.too_fast"), false);
             return false;
         }
@@ -384,11 +384,12 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         YigdConfig.GraveRobbing graveRobbing = config.graveSettings.graveRobbing;
         boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == playerId);
         boolean unlocked = config.graveSettings.unlockableGraves && DeathInfoManager.INSTANCE.unlockedGraves.contains(graveEntity.getGraveId());
-        int age = graveEntity.age;
-        int requiredAge = graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+        long creationTime = graveEntity.creationTime;
+        long requiredTime = creationTime + (long) graveRobbing.afterTime * graveRobbing.timeType.tickFactor();
+        long currentTime = world.getTime();
 
         boolean isRobbing = false;
-        boolean timePassed = age > requiredAge;
+        boolean timePassed = currentTime >= requiredTime;
         boolean isGraveOwner = player.getGameProfile().getId().equals(graveOwner.getId());
         if (!isGraveOwner) {
             if (!(canRobGrave && timePassed) && !unlocked) {
@@ -397,7 +398,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     isRobbing = KeyItem.isKeyForGrave(heldStack, graveEntity);
                 }
                 if (canRobGrave && !isRobbing) {
-                    double timeRemaining = ((double) requiredAge - age) / 20;
+                    double timeRemaining = ((double) requiredTime - currentTime) / 20;
 
                     int hours = (int) (timeRemaining / 3600);
                     timeRemaining %= 3600;
@@ -476,6 +477,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (config.utilitySettings.graveCompassSettings.tryDeleteOnClaim) {
             player.getInventory().remove(stack -> {
                 NbtCompound nbt = stack.getOrCreateNbt();
+                if (!nbt.contains("forGrave")) return false;
                 UUID graveId = nbt.getUuid("forGrave");
                 return stack.isOf(Items.COMPASS) && graveEntity.getGraveId().equals(graveId);
             }, 1, player.getInventory());
