@@ -30,12 +30,14 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
-import net.minecraft.world.gen.feature.EndPortalFeature;
 
 import java.util.*;
 
@@ -584,7 +586,7 @@ public class GraveHelper {
 
         Identifier playerWorldId = dimManager.getId(playerDimension);
         if (playerWorldId != null && playerWorldId.equals(DimensionTypes.THE_END_ID)) {
-            if (EndPortalFeature.ORIGIN.isWithinDistance(gravePos, 10) && world.getBlockState(gravePos.down()).isOf(Blocks.BEDROCK)) {
+            if (Math.abs(gravePos.getX()) + Math.abs(gravePos.getZ()) < 25 && world.getBlockState(gravePos.down()).isOf(Blocks.BEDROCK)) {
                 gravePos = gravePos.up();
             }
         }

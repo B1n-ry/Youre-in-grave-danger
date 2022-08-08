@@ -367,7 +367,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         GameProfile graveOwner = graveEntity.getGraveOwner();
 
         if (graveOwner == null) return false;
-        if (graveEntity.getGraveOwner() != null && graveEntity.getGraveOwner().getId().equals(player.getUuid()) && graveEntity.creationTime + 20 < world.getTime()) {
+        if (graveEntity.getGraveOwner() != null && graveEntity.getGraveOwner().getId().equals(player.getUuid()) && graveEntity.creationTime + 20 >= world.getTime()) {
             player.sendMessage(Text.translatable("text.yigd.message.too_fast"), false);
             return false;
         }

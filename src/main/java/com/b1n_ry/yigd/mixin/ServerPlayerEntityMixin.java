@@ -170,6 +170,8 @@ public abstract class ServerPlayerEntityMixin {
 
                         stack.setSubNbt("pointTowards", nbt);
                         stack.setSubNbt("forGrave", NbtHelper.fromUuid(latestDeath.id));
+
+                        stack.setCustomName(Text.translatable("item.yigd.grave_compass").styled(style -> style.withItalic(false)));
                         player.giveItemStack(stack);
                     }
 

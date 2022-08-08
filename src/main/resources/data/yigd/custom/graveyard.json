@@ -1,13 +1,8 @@
 {
   "point2point": false,
-  "dimension": "minecraft:the_nether",
+  "dimension": "minecraft:overworld",
   "use_closest": false,
   "coordinates": [
-    {
-      "x": 497,
-      "y": 89,
-      "z": 340,
-      "for_player": "Player112"
-    }
+
   ]
 }

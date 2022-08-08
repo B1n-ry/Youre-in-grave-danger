@@ -2,6 +2,23 @@
 
 ### Changes
  - Added back FLAN compat
+ - Updated to 1.19.2
+ - You can now see who robbed your graves (configurable)
+ - Added zh_cn translation, thanks to @deluxghost
+ - TrySoft config is now more customizable, and you can config graves to keep same x and z, but change z coordinate
+ - Graveyard spots can now be designated to specific players
+ - You can now change in which dimension the graveyard should work in (default overworld)
+ - You can now configure graveyards to generate graves at the closest place to the dying player
+ - Dimension names in GUIs can now be changed with resource packs
+ - Notifications for robbed graves can now be disabled
+ - Graves can now be configured to stay after being claimed. You can click them to see when you died (which minecraft day) and you can move this grave with silk touch
+ - Added config to keep all trinket items
+ - Added grave compass item (normal compass pointing to your grave)
+
+### Fixes
+ - Fixed backslot compat
+ - Fixed a crash with `/yigd moderate`
+ - Grave timer for robbing and expiration is no longer reset on world restart
 
 ---
 
