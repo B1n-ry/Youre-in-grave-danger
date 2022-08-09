@@ -45,14 +45,16 @@ public class ClientPacketReceivers {
             boolean isUnlocked = buf.readBoolean();
 
             client.execute(() -> {
-                if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
-
                 if (client.currentScreen instanceof GraveSelectScreen openScreen) {
                     openScreen.addData(userId, data);
                 } else {
+                    GraveViewScreen.unlockedGraves.clear();
+
                     GraveSelectScreen screen = new GraveSelectScreen(List.of(data), 1, client.currentScreen);
                     client.setScreen(screen);
                 }
+
+                if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
             });
         });
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.ALL_PLAYER_GRAVES, (client, handler, buf, responseSender) -> {
@@ -63,17 +65,19 @@ public class ClientPacketReceivers {
             boolean isUnlocked = buf.readBoolean();
 
             client.execute(() -> {
-                if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
-
                 if (client.currentScreen instanceof PlayerSelectScreen openScreen) {
                     openScreen.addData(userId, data);
                 } else {
+                    GraveViewScreen.unlockedGraves.clear();
+
                     Map<UUID, List<DeadPlayerData>> dataMap = new HashMap<>();
                     dataMap.put(userId, List.of(data));
 
                     PlayerSelectScreen screen = new PlayerSelectScreen(dataMap, 1);
                     client.setScreen(screen);
                 }
+
+                if (isUnlocked) GraveViewScreen.unlockedGraves.add(data.id);
             });
         });
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GUI_CONFIGS, (client, handler, buf, responseSender) -> {
@@ -83,13 +87,6 @@ public class ClientPacketReceivers {
             GraveViewScreen.Permissions.restore = buf.readBoolean();
             GraveViewScreen.Permissions.delete = buf.readBoolean();
             GraveViewScreen.Permissions.rob = buf.readBoolean();
-
-            GraveViewScreen.unlockedGraves.clear();
-            int unlockedGraveSize = buf.readInt();
-            for (int i = 0; i < unlockedGraveSize; i++) {
-                UUID uuid = buf.readUuid();
-                GraveViewScreen.unlockedGraves.add(uuid);
-            }
         });
     }
 }

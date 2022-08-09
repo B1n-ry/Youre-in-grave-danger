@@ -267,12 +267,6 @@ public class YigdCommand {
             configBuf.writeBoolean(hasPermission(player, "yigd.command.delete"));
             configBuf.writeBoolean(config.commandToggles.robGrave && hasPermission(player, "yigd.command.rob"));
 
-            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
-            configBuf.writeInt(unlockedGravesAmount);
-            for (int i = 0; i < unlockedGravesAmount; i++) {
-                configBuf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
-            }
-
             ServerPlayNetworking.send(player, PacketIdentifiers.GUI_CONFIGS, configBuf);
 
             DeathInfoManager.INSTANCE.data.forEach((uuid, deadPlayerData) -> {
@@ -313,12 +307,6 @@ public class YigdCommand {
             configBuf.writeBoolean(config.commandToggles.retrieveGrave && hasPermission(player, "yigd.command.restore"));
             configBuf.writeBoolean(hasPermission(player, "yigd.command.delete"));
             configBuf.writeBoolean(config.commandToggles.robGrave && hasPermission(player, "yigd.command.rob"));
-
-            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
-            configBuf.writeInt(unlockedGravesAmount);
-            for (int i = 0; i < unlockedGravesAmount; i++) {
-                configBuf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
-            }
 
             ServerPlayNetworking.send(spe, PacketIdentifiers.GUI_CONFIGS, configBuf);
 
