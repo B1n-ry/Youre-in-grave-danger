@@ -182,7 +182,7 @@ public class GraveBlockEntity extends BlockEntity {
         if ((int) world.getTime() % 2400 == 0) savedConfig = YigdConfig.getConfig(); // Every two minutes the config will be updated. This is so there won't be any lag if the getConfig method is demanding to run
 
         YigdConfig.GraveDeletion deletion = savedConfig.graveSettings.graveDeletion;
-        if (!deletion.canDelete) return;
+        if (!deletion.canDelete || grave.claimed) return;
 
         boolean timeHasPassed = grave.creationTime + (long) deletion.afterTime * deletion.timeType.tickFactor() <= world.getTime();
 
