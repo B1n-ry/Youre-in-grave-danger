@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.b1n_ry.yigd.core.PacketIdentifiers;
+import com.b1n_ry.yigd.core.YigdCommand;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
@@ -92,6 +93,9 @@ public class ScrollItem extends Item {
             YigdConfig.GraveKeySettings keySettings = config.utilitySettings.graveKeySettings;
             buf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
             buf.writeBoolean(config.graveSettings.unlockableGraves);
+            buf.writeBoolean(config.commandToggles.retrieveGrave && YigdCommand.hasPermission(user, "yigd.command.restore"));
+            buf.writeBoolean(YigdCommand.hasPermission(user, "yigd.command.delete"));
+            buf.writeBoolean(config.commandToggles.robGrave && YigdCommand.hasPermission(user, "yigd.command.rob"));
 
             int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
             buf.writeInt(unlockedGravesAmount);
