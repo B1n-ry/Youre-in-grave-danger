@@ -186,6 +186,7 @@ public class GraveViewScreen extends Screen {
             } else {
                 textRenderer.draw(matrices, Text.translatable("text.yigd.word.unlock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, textColors.graveViewUnlockGrave);
             }
+            yOffset += 16;
         }
 
         if (Permissions.restore) {
