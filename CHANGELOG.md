@@ -5,7 +5,7 @@
  - Updated to 1.19.2
  - You can now see who robbed your graves (configurable)
  - Added zh_cn translation, thanks to @deluxghost
- - TrySoft config is now more customizable, and you can config graves to keep same x and z, but change z coordinate
+ - TrySoft config is now more customizable, and you can config graves to keep same x and z, but change y coordinate
  - Graveyard spots can now be designated to specific players
  - You can now change in which dimension the graveyard should work in (default overworld)
  - You can now configure graveyards to generate graves at the closest place to the dying player
@@ -20,6 +20,7 @@
  - Fixed a crash with `/yigd moderate`
  - Grave timer for robbing and expiration is no longer reset on world restart
  - GUI buttons will now also check permission api permissions
+ - Unlocking graves now works
 
 ---
 
