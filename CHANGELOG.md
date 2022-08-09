@@ -19,6 +19,7 @@
  - Fixed backslot compat
  - Fixed a crash with `/yigd moderate`
  - Grave timer for robbing and expiration is no longer reset on world restart
+ - GUI buttons will now also check permission api permissions
 
 ---
 

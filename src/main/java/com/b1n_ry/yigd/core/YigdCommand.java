@@ -263,6 +263,15 @@ public class YigdCommand {
             configBuf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
             configBuf.writeBoolean(config.graveSettings.unlockableGraves);
             configBuf.writeBoolean(config.graveSettings.graveRobbing.tellRobber);
+            configBuf.writeBoolean(config.commandToggles.retrieveGrave && hasPermission(player, "yigd.command.restore"));
+            configBuf.writeBoolean(hasPermission(player, "yigd.command.delete"));
+            configBuf.writeBoolean(config.commandToggles.robGrave && hasPermission(player, "yigd.command.rob"));
+
+            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
+            configBuf.writeInt(unlockedGravesAmount);
+            for (int i = 0; i < unlockedGravesAmount; i++) {
+                configBuf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
+            }
 
             ServerPlayNetworking.send(player, PacketIdentifiers.GUI_CONFIGS, configBuf);
 
@@ -301,6 +310,16 @@ public class YigdCommand {
             configBuf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
             configBuf.writeBoolean(config.graveSettings.unlockableGraves);
             configBuf.writeBoolean(config.graveSettings.graveRobbing.tellRobber);
+            configBuf.writeBoolean(config.commandToggles.retrieveGrave && hasPermission(player, "yigd.command.restore"));
+            configBuf.writeBoolean(hasPermission(player, "yigd.command.delete"));
+            configBuf.writeBoolean(config.commandToggles.robGrave && hasPermission(player, "yigd.command.rob"));
+
+            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
+            configBuf.writeInt(unlockedGravesAmount);
+            for (int i = 0; i < unlockedGravesAmount; i++) {
+                configBuf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
+            }
+
             ServerPlayNetworking.send(commandUser, PacketIdentifiers.GUI_CONFIGS, configBuf);
 
             for (DeadPlayerData data : deadPlayerData) {

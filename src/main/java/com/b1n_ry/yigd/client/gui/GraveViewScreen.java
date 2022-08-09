@@ -5,7 +5,6 @@ import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.PacketIdentifiers;
-import com.b1n_ry.yigd.core.YigdCommand;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -40,8 +39,6 @@ public class GraveViewScreen extends Screen {
     private final Screen previousScreen;
 
     public static boolean showGraveRobber = false;
-    public static boolean getKeysFromGui = false;
-    public static boolean unlockableGraves = false;
     public static List<UUID> unlockedGraves = new ArrayList<>();
 
     public static final Map<String, String> dimensionNameOverrides = new HashMap<>();
@@ -92,7 +89,7 @@ public class GraveViewScreen extends Screen {
         if (button == 0 && hoveredButton != null && client != null) {
             switch (hoveredButton) {
                 case "restore" -> {
-                    if (client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.restore")) {
+                    if (Permissions.restore) {
                         PacketByteBuf buf = PacketByteBufs.create()
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
@@ -103,7 +100,7 @@ public class GraveViewScreen extends Screen {
                     }
                 }
                 case "delete" -> {
-                    if (client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.delete")) {
+                    if (Permissions.delete) {
                         PacketByteBuf buf = PacketByteBufs.create()
                                 .writeUuid(this.data.graveOwner.getId())
                                 .writeUuid(this.data.id);
@@ -114,7 +111,7 @@ public class GraveViewScreen extends Screen {
                     }
                 }
                 case "rob" -> {
-                    if (client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.rob")) {
+                    if (Permissions.rob) {
                         PacketByteBuf buf = PacketByteBufs.create()
                                 .writeString(this.data.graveOwner.getName())
                                 .writeUuid(this.data.graveOwner.getId())
@@ -172,7 +169,7 @@ public class GraveViewScreen extends Screen {
 
         YigdConfig.GuiTextColors textColors = config.graveSettings.graveRenderSettings.guiTextColors;
 
-        if (unlockableGraves) {
+        if (Permissions.toggleLock) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
 
             if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
@@ -191,7 +188,7 @@ public class GraveViewScreen extends Screen {
             }
         }
 
-        if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.restore")) {
+        if (Permissions.restore) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
             if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "restore";
@@ -204,7 +201,7 @@ public class GraveViewScreen extends Screen {
             textRenderer.draw(matrices, Text.translatable("text.yigd.word.restore"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, textColors.graveViewRestoreGrave);
             yOffset += 16;
         }
-        if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.delete")) {
+        if (Permissions.delete) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
             if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "delete";
@@ -217,7 +214,7 @@ public class GraveViewScreen extends Screen {
             textRenderer.draw(matrices, Text.translatable("text.yigd.word.delete"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, textColors.graveViewDeleteGrave);
             yOffset += 16;
         }
-        if (client != null && client.player != null && YigdCommand.hasPermission(client.player, "yigd.command.rob")) {
+        if (Permissions.rob) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
             if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "rob";
@@ -232,7 +229,7 @@ public class GraveViewScreen extends Screen {
             yOffset += 16;
         }
 
-        if (getKeysFromGui) {
+        if (Permissions.giveKey) {
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
             if (mouseX > originX + screenWidth / 2 + 1 && mouseX < originX + screenWidth / 2 + 52 && mouseY > originY - screenHeight / 2 + yOffset && mouseY < originY - screenHeight / 2 + 15 + yOffset) {
                 hoveredButton = "give_key";
@@ -376,5 +373,13 @@ public class GraveViewScreen extends Screen {
 
         itemRenderer.renderGuiItemIcon(stack, x, y);
         itemRenderer.renderGuiItemOverlay(textRenderer, stack, x, y);
+    }
+
+    public static class Permissions {
+        public static boolean restore = false;
+        public static boolean delete = false;
+        public static boolean rob = false;
+        public static boolean giveKey = false;
+        public static boolean toggleLock = false;
     }
 }

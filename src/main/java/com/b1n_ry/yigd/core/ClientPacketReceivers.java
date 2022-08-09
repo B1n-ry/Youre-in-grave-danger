@@ -14,8 +14,12 @@ public class ClientPacketReceivers {
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.SINGLE_GRAVE_GUI, (client, handler, buf, responseSender) -> {
             if (client == null) return;
             NbtCompound nbtData = buf.readNbt();
-            GraveViewScreen.getKeysFromGui = buf.readBoolean();
-            GraveViewScreen.unlockableGraves = buf.readBoolean();
+            GraveViewScreen.Permissions.giveKey = buf.readBoolean();
+            GraveViewScreen.Permissions.toggleLock = buf.readBoolean();
+            GraveViewScreen.Permissions.restore = buf.readBoolean();
+            GraveViewScreen.Permissions.delete = buf.readBoolean();
+            GraveViewScreen.Permissions.rob = buf.readBoolean();
+
             DeadPlayerData data = DeadPlayerData.fromNbt(nbtData);
 
             GraveViewScreen.unlockedGraves.clear();
@@ -70,9 +74,19 @@ public class ClientPacketReceivers {
             });
         });
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GUI_CONFIGS, (client, handler, buf, responseSender) -> {
-            GraveViewScreen.getKeysFromGui = buf.readBoolean();
-            GraveViewScreen.unlockableGraves = buf.readBoolean();
+            GraveViewScreen.Permissions.giveKey = buf.readBoolean();
+            GraveViewScreen.Permissions.toggleLock = buf.readBoolean();
             GraveViewScreen.showGraveRobber = buf.readBoolean();
+            GraveViewScreen.Permissions.restore = buf.readBoolean();
+            GraveViewScreen.Permissions.delete = buf.readBoolean();
+            GraveViewScreen.Permissions.rob = buf.readBoolean();
+
+            GraveViewScreen.unlockedGraves.clear();
+            int unlockedGraveSize = buf.readInt();
+            for (int i = 0; i < unlockedGraveSize; i++) {
+                UUID uuid = buf.readUuid();
+                GraveViewScreen.unlockedGraves.add(uuid);
+            }
         });
     }
 }
