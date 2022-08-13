@@ -1,3 +1,13 @@
+# You're in Grave Danger 1.4.3
+
+### Changes
+ - Added back FTB Chunks compat
+
+### Fixes
+ - All custom resource files now support UTF-8 encoding
+
+---
+
 # You're in Grave Danger 1.4.2
 
 ### Changes

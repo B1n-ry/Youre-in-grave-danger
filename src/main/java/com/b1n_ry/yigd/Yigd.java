@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Yigd implements ModInitializer, DedicatedServerModInitializer {
@@ -103,7 +104,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                 for (Resource resource : graveyardResources) {
                     try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading graveyard");
-                        graveyard = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
+                        graveyard = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
                     }
                     catch (Exception e) {
                         LOGGER.error("Error occurred while loading resource json yigd:graveyard" + "\n" + e);
@@ -114,7 +115,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                 for (Resource resource : graveAreaResources) {
                     try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading custom grave areas");
-                        GraveAreaOverride.reloadGraveAreas((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
+                        GraveAreaOverride.reloadGraveAreas((JsonObject) JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)));
                         break;
                     }
                     catch (Exception e) {
@@ -132,7 +133,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                 for (Resource resource : blockResources) {
                     try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading grave model (client)");
-                        GraveBlock.customModel = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
+                        GraveBlock.customModel = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
                         GraveBlock.reloadVoxelShapes(GraveBlock.customModel);
                         GraveBlockEntityRenderer.reloadCustomModel();
                     } catch (Exception e) {
@@ -145,7 +146,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                 for (Resource resource : overrideResources) {
                     try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading dimension name overrides for grave GUI");
-                        JsonObject jObject = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream));
+                        JsonObject jObject = (JsonObject) JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
                         for (Map.Entry<String, JsonElement> entry : jObject.entrySet()) {
                             GraveViewScreen.dimensionNameOverrides.put(entry.getKey(), entry.getValue().getAsString());
                         }
@@ -219,9 +220,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("flan")) {
             claimMods.add(new FlanCompat());
         }
-//        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
-//            claimMods.add(new FtbChunksCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
+            claimMods.add(new FtbChunksCompat());
+        }
         if (FabricLoader.getInstance().isModLoaded("common-protection-api")) {
             claimMods.add(new ProtectionApiCompat());
         }
@@ -270,7 +271,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                 for (Resource resource : graveResources) {
                     try (InputStream stream = resource.getInputStream()) {
                         LOGGER.info("Reloading grave shape (server side)");
-                        GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream)));
+                        GraveBlock.reloadVoxelShapes((JsonObject) JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)));
                     }
                     catch (Exception e) {
                         LOGGER.error("Error occurred while loading custom grave shape (server side)\n" + e);

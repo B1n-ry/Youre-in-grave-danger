@@ -11,7 +11,8 @@
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/youre-in-grave-danger",
     "sources": "https://github.com/B1n-ry/Youre-in-grave-danger",
-    "issues": "https://github.com/B1n-ry/Youre-in-grave-danger/issues"
+    "issues": "https://github.com/B1n-ry/Youre-in-grave-danger/issues",
+    "email": "b1nry.dev@gmail.com"
   },
 
   "license": "MIT",
@@ -33,6 +34,14 @@
   "mixins": [
     "yigd.mixins.json"
   ],
+
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/GyrfpAVH3Q"
+      }
+    }
+  },
 
   "depends": {
     "fabricloader": ">=0.14.6",
