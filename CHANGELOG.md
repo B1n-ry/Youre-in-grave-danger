@@ -1,3 +1,10 @@
+# You're in Grave Danger 1.3.9
+
+### Fixes
+ - All custom resource files now support UTF-8 encoding
+
+---
+
 # You're in Grave Danger 1.3.8
 
 ### Changes
