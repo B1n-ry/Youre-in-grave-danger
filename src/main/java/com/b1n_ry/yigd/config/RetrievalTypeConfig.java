@@ -4,5 +4,6 @@ public enum RetrievalTypeConfig {
     ON_USE,
     ON_SNEAK,
     ON_STAND,
-    ON_BREAK
+    ON_BREAK,
+    ON_BREAK_OR_USE
 }

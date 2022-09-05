@@ -12,8 +12,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.TranslatableText;
@@ -33,7 +32,7 @@ public class ScrollItem extends Item {
     public ItemStack getDefaultStack() {
         ItemStack stack = super.getDefaultStack();
         ScrollTypeConfig scrollTypeConfig = YigdConfig.getConfig().utilitySettings.scrollItem.scrollType;
-        if (scrollTypeConfig == ScrollTypeConfig.SCROLL_OF_RETURN) stack.setCustomName(new TranslatableText("item.yigd.tp_scroll"));
+        if (scrollTypeConfig == ScrollTypeConfig.SCROLL_OF_RETURN) stack.setCustomName(new TranslatableText("item.yigd.tp_scroll").styled(style -> style.withItalic(false)));
         return stack;
     }
 
@@ -49,25 +48,30 @@ public class ScrollItem extends Item {
     }
 
     private void showInfo(PlayerEntity user, Hand hand) {
-        UUID userId = user.getUuid();
+        ItemStack scroll;
+        if (hand == Hand.MAIN_HAND) {
+            scroll = user.getMainHandStack();
+        } else {
+            scroll = user.getOffHandStack();
+        }
+        NbtCompound nbt = scroll.getOrCreateNbt();
+        UUID userId;
+        if (nbt.contains("for_user")) {
+            userId = nbt.getUuid("for_user");
+        } else {
+            userId = user.getUuid();
+        }
         if (user instanceof ServerPlayerEntity spe && DeathInfoManager.INSTANCE.data.containsKey(userId) && DeathInfoManager.INSTANCE.data.get(userId).size() > 0) {
             List<DeadPlayerData> deadPlayerData = DeathInfoManager.INSTANCE.data.get(userId);
 
-            ItemStack scroll;
-            if (hand == Hand.MAIN_HAND) {
-                scroll = user.getMainHandStack();
-            } else {
-                scroll = user.getOffHandStack();
-            }
             if (scroll.getItem() != Yigd.SCROLL_ITEM) {
                 user.sendMessage(new TranslatableText("text.yigd.message.scroll_error", scroll.getItem().getName().asString()), true);
                 return;
             }
 
             DeadPlayerData selectedGrave = null;
-            NbtElement refNbt = scroll.getSubNbt("ref");
-            if (refNbt != null) {
-                UUID graveId = NbtHelper.toUuid(refNbt);
+            if (nbt.contains("for_grave")) {
+                UUID graveId = nbt.getUuid("for_grave");
                 for (DeadPlayerData data : deadPlayerData) {
                     if (data.id.equals(graveId)) {
                         selectedGrave = data;
@@ -122,7 +126,15 @@ public class ScrollItem extends Item {
             return;
         }
 
-        UUID userId = user.getUuid();
+        NbtCompound nbt = scroll.getOrCreateNbt();
+
+        UUID userId;
+        if (nbt.contains("for_player")) {
+            userId = nbt.getUuid("for_player");
+        } else {
+            userId = user.getUuid();
+        }
+
         if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {
             user.sendMessage(new TranslatableText("text.yigd.message.you_have_no_graves"), true);
             return;
@@ -136,9 +148,8 @@ public class ScrollItem extends Item {
         }
 
         DeadPlayerData selectedGrave = null;
-        NbtElement refNbt = scroll.getSubNbt("ref");
-        if (refNbt != null) {
-            UUID graveId = NbtHelper.toUuid(refNbt);
+        if (nbt.contains("for_grave")) {
+            UUID graveId = nbt.getUuid("for_grave");
             for (DeadPlayerData data : graves) {
                 if (data.id.equals(graveId)) {
                     selectedGrave = data;
@@ -163,5 +174,21 @@ public class ScrollItem extends Item {
         }
         user.teleport(selectedGrave.gravePos.getX() + 0.5, selectedGrave.gravePos.getY() + 0.5, selectedGrave.gravePos.getZ() + 0.5);
         scroll.decrement(1);
+    }
+
+    @Override
+    public void onCraft(ItemStack stack, World world, PlayerEntity player) {
+        UUID playerId = player.getUuid();
+        List<DeadPlayerData> data = DeathInfoManager.INSTANCE.data.get(playerId);
+        if (data != null) {
+            if (data.size() > 0) {
+                NbtCompound itemNbt = new NbtCompound();
+                itemNbt.putUuid("for_player", playerId);
+                itemNbt.putUuid("for_grave", data.get(data.size() - 1).id);
+
+                stack.setNbt(itemNbt);
+            }
+        }
+        super.onCraft(stack, world, player);
     }
 }

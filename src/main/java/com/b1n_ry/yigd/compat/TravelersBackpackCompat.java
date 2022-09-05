@@ -24,15 +24,22 @@ public class TravelersBackpackCompat implements YigdApi {
 
     @Override
     public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
-        List<String> soulboundEnchantments = YigdConfig.getConfig().graveSettings.soulboundEnchantments;
-        List<String> deleteEnchantments = YigdConfig.getConfig().graveSettings.deleteEnchantments;
+        YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+        List<String> soulboundEnchantments = config.soulboundEnchantments;
+        List<String> deleteEnchantments = config.deleteEnchantments;
 
         ItemStack backpack = ComponentUtils.getWearingBackpack(player);
 
         if (onDeath) {
             ItemStack soulbound;
             boolean shouldDelete = false;
-            if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack) || backpack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS || GraveHelper.hasBotaniaKeepIvy(backpack, true)) {
+            if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack)) {
+                if (config.loseSoulboundLevelOnDeath) {
+                    GraveHelper.removeSoulboundLevel(backpack, soulboundEnchantments);
+                }
+                soulbound = backpack;
+                shouldDelete = true;
+            } else if (backpack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS || GraveHelper.hasBotaniaKeepIvy(backpack, true)) {
                 soulbound = backpack;
                 shouldDelete = true;
             } else {

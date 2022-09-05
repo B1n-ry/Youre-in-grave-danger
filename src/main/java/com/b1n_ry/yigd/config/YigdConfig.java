@@ -79,6 +79,9 @@ public class YigdConfig implements ConfigData {
         public List<String> soulboundEnchantments = List.of("yigd:soulbound");
 
         @ConfigEntry.Gui.Tooltip
+        public boolean loseSoulboundLevelOnDeath = false;
+
+        @ConfigEntry.Gui.Tooltip
         public List<Integer> voidSlots = new ArrayList<>();
         @ConfigEntry.Gui.Tooltip
         public List<Integer> soulboundSlots = new ArrayList<>();
@@ -322,6 +325,8 @@ public class YigdConfig implements ConfigData {
         public boolean whitelistRemove = true;
         @ConfigEntry.Gui.Tooltip
         public boolean whitelistToggle = true;
+        @ConfigEntry.Gui.Tooltip
+        public boolean coordinateToggle = true;
     }
 
     public static class EnchantmentConfig {

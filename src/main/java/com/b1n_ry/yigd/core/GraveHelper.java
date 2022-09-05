@@ -24,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
@@ -74,6 +75,22 @@ public class GraveHelper {
         } else {
             stack.decrement(1);
         }
+    }
+
+    public static void removeSoulboundLevel(ItemStack stack, List<String> enchantments) {
+        NbtList stackNbt = stack.getEnchantments();
+        List<NbtCompound> removeCompounds = new ArrayList<>();
+        for (NbtElement e : stackNbt) {
+            if (!(e instanceof NbtCompound c) || !enchantments.contains(c.getString("id"))) continue;
+            int newLevel = c.getInt("lvl") - 1;
+            if (newLevel <= 0) {
+                removeCompounds.add(c);
+            } else {
+                c.putInt("lvl", newLevel);
+            }
+        }
+
+        stackNbt.removeAll(removeCompounds);
     }
 
     public static void onDeath(PlayerEntity player, World playerWorld, Vec3d pos, DamageSource source) {
@@ -145,6 +162,12 @@ public class GraveHelper {
         DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
         DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
 
+        // If soulbound levels should decrease, make sure they do, and if they reach zero get deleted
+        if (graveConfig.loseSoulboundLevelOnDeath) {
+            for (ItemStack stack : soulboundInventory) {
+                removeSoulboundLevel(stack, soulboundEnchantments);
+            }
+        }
 
         // Add defaulted soulbound items
         for (int i = 0; i < items.size(); i++) {

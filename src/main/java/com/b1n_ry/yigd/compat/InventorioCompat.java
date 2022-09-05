@@ -42,6 +42,10 @@ public class InventorioCompat implements YigdApi {
         }
         if (onDeath) {
             DefaultedList<ItemStack> soulboundItems = GraveHelper.getEnchantedItems(inventories, soulboundEnchantments);
+
+            for (ItemStack stack : soulboundItems) {
+                GraveHelper.removeSoulboundLevel(stack, soulboundEnchantments);
+            }
             GraveHelper.removeFromList(inventories, soulboundItems);
 
             // Add defaulted soulbound items
