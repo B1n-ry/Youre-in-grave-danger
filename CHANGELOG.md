@@ -1,7 +1,13 @@
 # You're in Grave Danger 1.3.9
 
+### Changes
+ - Added config to break or click on graves to claim them (2 in 1)
+ - Added config to make soulbound level decrease when used (on death)
+ - Added command to see coordinates for your latest death
+
 ### Fixes
  - All custom resource files now support UTF-8 encoding
+ - Trinket destroy and keep slot types are now supported
 
 ---
 
