@@ -191,8 +191,10 @@ public abstract class ServerPlayerEntityMixin {
         if (utilityConfig.scrollItem.scrollType == ScrollTypeConfig.DISABLED || !utilityConfig.scrollItem.retrieveOnRespawn) return;
         ItemStack stack = Yigd.SCROLL_ITEM.getDefaultStack();
 
-        NbtIntArray idNbt = NbtHelper.fromUuid(graveId);
-        stack.setSubNbt("ref", idNbt);
+        NbtIntArray graveIdNbt = NbtHelper.fromUuid(graveId);
+        NbtIntArray playerIdNbt = NbtHelper.fromUuid(player.getUuid());
+        stack.setSubNbt("for_player", playerIdNbt);
+        stack.setSubNbt("for_grave", graveIdNbt);
 
         player.giveItemStack(stack);
     }

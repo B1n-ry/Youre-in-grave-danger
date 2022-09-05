@@ -69,6 +69,8 @@
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments.@Tooltip": "Removes items with this enchantment from the grave. Gives Curse of Vanishing effect. Useful if soulbound items are ignored and ends up in both your inventory and your grave\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments": "Soulbound Enchantments",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments.@Tooltip": "Items with this enchantment will not generate in graves, but be kept by the player when they respawn.\nFormat: [namespace]:[enchantment_name]",
+  "text.autoconfig.yigd.option.graveSettings.loseSoulboundLevelOnDeath": "Lose Soulbound Level on Death",
+  "text.autoconfig.yigd.option.graveSettings.loseSoulboundLevelOnDeath.@Tooltip": "When dying with anything soulbound, soulbound will lose a level. If only one level is present, enchantment will be removed. Works for all soulbound enchantments",
   "text.autoconfig.yigd.option.graveSettings.voidSlots": "Void Slots",
   "text.autoconfig.yigd.option.graveSettings.voidSlots.@Tooltip": "Items in these slots will always be deleted when respawning",
   "text.autoconfig.yigd.option.graveSettings.soulboundSlots": "Void Slots",
@@ -240,6 +242,8 @@
   "text.autoconfig.yigd.option.commandToggles.whitelistRemove": "/yigd whitelist remove [user]",
   "text.autoconfig.yigd.option.commandToggles.whitelistToggle": "/yigd whitelist toggle",
   "text.autoconfig.yigd.option.commandToggles.whitelistToggle.@Tooltip": "Toggles whitelist between whitelist and blacklist mode",
+  "text.autoconfig.yigd.option.commandToggles.coordinateToggle": "/yigd coordinate toggle",
+  "text.autoconfig.yigd.option.commandToggles.coordinateToggle.@Tooltip": "Toggles the coordinate command that quickly shows your latest grave coordinates in chat",
 
   "text.autoconfig.yigd.option.debugConfig.clearInventoryOnRespawn": "Clear inventory on respawn",
 

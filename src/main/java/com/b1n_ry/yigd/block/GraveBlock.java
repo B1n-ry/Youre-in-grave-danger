@@ -173,7 +173,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         BlockEntity be = world.getBlockEntity(pos);
         if (!(be instanceof GraveBlockEntity grave)) return super.onUse(state, world, pos, player, hand, hit);
 
-        if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == null) && grave.getGraveOwner() != null && !grave.isClaimed()) {
+        if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == RetrievalTypeConfig.ON_BREAK_OR_USE || retrievalType == null) && grave.getGraveOwner() != null && !grave.isClaimed()) {
             RetrieveItems(player, world, pos);
             return ActionResult.SUCCESS;
         } else if (grave.getGraveOwner() != null && grave.isClaimed() && !world.isClient) {
@@ -260,7 +260,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return;
         }
 
-        if (YigdConfig.getConfig().graveSettings.retrievalType == RetrievalTypeConfig.ON_BREAK) {
+        RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
+        if (retrievalType == RetrievalTypeConfig.ON_BREAK || retrievalType == RetrievalTypeConfig.ON_BREAK_OR_USE) {
             if (RetrieveItems(player, world, pos, be)) return;
         }
 
@@ -285,7 +286,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
             YigdConfig.GraveRobbing graveRobbing = config.graveRobbing;
             boolean canRobGrave = graveRobbing.enableRobbing && (!graveRobbing.onlyMurderer || graveEntity.getKiller() == player.getUuid());
-            if ((config.retrievalType == RetrievalTypeConfig.ON_BREAK && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null || graveEntity.isClaimed()) {
+            if (((config.retrievalType == RetrievalTypeConfig.ON_BREAK || config.retrievalType == RetrievalTypeConfig.ON_BREAK_OR_USE) && (player.getGameProfile().equals(graveEntity.getGraveOwner()) || canRobGrave)) || graveEntity.getGraveOwner() == null || graveEntity.isClaimed()) {
                 return super.calcBlockBreakingDelta(state, player, world, pos);
             }
         }

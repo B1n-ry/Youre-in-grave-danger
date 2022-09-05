@@ -6,7 +6,9 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.core.ModTags;
+import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.TrinketComponent;
+import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.api.TrinketsApi;
 import net.minecraft.entity.player.PlayerEntity;
@@ -48,6 +50,7 @@ public class TrinketsCompat implements YigdApi {
             slots.forEach((slot, trinkets) -> {
                 DefaultedList<ItemStack> soulInv = DefaultedList.of();
                 DefaultedList<ItemStack> stacks = DefaultedList.of();
+                DropRule defaultDropRule = trinkets.getSlotType().getDropRule();
                 for (int i = 0; i < trinkets.size(); i++) {
                     ItemStack stack = trinkets.getStack(i);
                     if (stack.isEmpty()) continue;
@@ -55,10 +58,21 @@ public class TrinketsCompat implements YigdApi {
                     boolean removed = false;
 
                     if (onDeath) {
-                        if ((GraveHelper.hasEnchantments(deleteEnchantments, stack) || GraveHelper.hasBotaniaKeepIvy(stack, true)) && !config.graveSettings.graveCompatConfig.keepAllTrinkets) {
+                        SlotReference ref = new SlotReference(trinkets, i);
+                        DropRule dropRule = TrinketsApi.getTrinket(stack.getItem()).getDropRule(stack, ref, player);
+                        if (dropRule == DropRule.DEFAULT) dropRule = defaultDropRule;
+
+                        if ((GraveHelper.hasEnchantments(deleteEnchantments, stack) || GraveHelper.hasBotaniaKeepIvy(stack, true) || dropRule == DropRule.DESTROY) && !config.graveSettings.graveCompatConfig.keepAllTrinkets) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             removed = true;
-                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack) || stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS || config.graveSettings.graveCompatConfig.keepAllTrinkets) {
+                        } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack)) {
+                            if (config.graveSettings.loseSoulboundLevelOnDeath) {
+                                GraveHelper.removeSoulboundLevel(stack, soulboundEnchantments);
+                            }
+                            trinkets.setStack(i, ItemStack.EMPTY);
+                            soulInv.add(stack);
+                            removed = true;
+                        } else if (stack.isIn(ModTags.SOULBOUND_ITEM) || onDeathHandling == DeathEffectConfig.KEEP_ITEMS || config.graveSettings.graveCompatConfig.keepAllTrinkets || dropRule == DropRule.KEEP) {
                             trinkets.setStack(i, ItemStack.EMPTY);
                             soulInv.add(stack);
                             removed = true;
@@ -82,18 +96,18 @@ public class TrinketsCompat implements YigdApi {
         if (optional.isEmpty()) return extraItems;
         TrinketComponent playerComponent = optional.get();
 
-        if (!(inventory instanceof Map fullInv)) return extraItems;
+        if (!(inventory instanceof Map<?, ?> fullInv)) return extraItems;
         fullInv.forEach((g, map) -> {
-            if (!(map instanceof Map groupInv && g instanceof String group)) return;
+            if (!(map instanceof Map<?, ?> groupInv && g instanceof String group)) return;
             groupInv.forEach((s, trinket) -> {
-                if (!(trinket instanceof DefaultedList stacks && s instanceof String slot)) return;
+                if (!(trinket instanceof DefaultedList<?> stacks && s instanceof String slot)) return;
                 if (playerComponent.getInventory().get(group) == null) {
-                    extraItems.addAll(stacks);
+                    extraItems.addAll((DefaultedList<ItemStack>) stacks);
                     return;
                 }
                 TrinketInventory equippedInv = playerComponent.getInventory().get(group).get(slot);
                 if (equippedInv == null) {
-                    extraItems.addAll(stacks);
+                    extraItems.addAll((DefaultedList<ItemStack>) stacks);
                     return;
                 }
 
@@ -142,11 +156,11 @@ public class TrinketsCompat implements YigdApi {
     @Override
     public List<ItemStack> toStackList(Object inventory) {
         List<ItemStack> stacks = new ArrayList<>();
-        if (!(inventory instanceof Map inv)) return stacks;
+        if (!(inventory instanceof Map<?, ?> inv)) return stacks;
         inv.forEach((group, slots) -> {
-            if (!(slots instanceof Map slotMap)) return;
+            if (!(slots instanceof Map<?, ?> slotMap)) return;
             slotMap.forEach((slot, items) -> {
-                if (!(items instanceof DefaultedList trinketInv)) return;
+                if (!(items instanceof DefaultedList<?> trinketInv)) return;
                 for (ItemStack item : (DefaultedList<ItemStack>) trinketInv) {
                     if (item.isEmpty()) continue;
                     stacks.add(item);
@@ -160,13 +174,13 @@ public class TrinketsCompat implements YigdApi {
     @Override
     public NbtCompound writeNbt(Object o) {
         NbtCompound nbt = new NbtCompound();
-        if (!(o instanceof Map inv)) return nbt;
+        if (!(o instanceof Map<?, ?> inv)) return nbt;
         inv.forEach((group, slots) -> {
-            if (!(group instanceof String groupName && slots instanceof Map slotMap)) return;
+            if (!(group instanceof String groupName && slots instanceof Map<?, ?> slotMap)) return;
             NbtCompound groupNbt = new NbtCompound();
 
             slotMap.forEach((slot, items) -> {
-                if (!(slot instanceof String slotName && items instanceof DefaultedList stacks)) return;
+                if (!(slot instanceof String slotName && items instanceof DefaultedList<?> stacks)) return;
                 groupNbt.put(slotName, Inventories.writeNbt(new NbtCompound(), (DefaultedList<ItemStack>) stacks));
             });
 

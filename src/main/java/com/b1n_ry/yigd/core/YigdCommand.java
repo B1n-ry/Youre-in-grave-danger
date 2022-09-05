@@ -210,7 +210,25 @@ public class YigdCommand {
                                 })
                         )
                 )
+                .then(literal("coordinates")
+                        .requires(source -> config.coordinateToggle)
+                        .executes(ctx -> showGraveCoordinates(ctx.getSource().getPlayer()))
+                )
         ));
+    }
+
+    private static int showGraveCoordinates(PlayerEntity commandUser) {
+        if (!YigdConfig.getConfig().commandToggles.coordinateToggle) {
+            commandUser.sendMessage(Text.translatable("text.yigd.message.missing_permission"), false);
+            return -1;
+        }
+        List<DeadPlayerData> data = DeathInfoManager.INSTANCE.data.get(commandUser.getUuid());
+        if (data != null && data.size() > 0) {
+            DeadPlayerData graveData = data.get(data.size() - 1);
+            commandUser.sendMessage(Text.translatable("text.yigd.message.grave_location_info", graveData.gravePos.getX(), graveData.gravePos.getY(), graveData.gravePos.getZ(), graveData.dimensionName), false);
+            return 1;
+        }
+        return 0;
     }
 
     private static int addWhitelist(@Nullable ServerPlayerEntity commandUser, PlayerEntity addedPlayer) {
