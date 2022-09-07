@@ -322,9 +322,9 @@ public class YigdCommand {
             configBuf.writeBoolean(keySettings.enableKeys && keySettings.getFromGui);
             configBuf.writeBoolean(config.graveSettings.unlockableGraves);
             configBuf.writeBoolean(config.graveSettings.graveRobbing.tellRobber);
-            configBuf.writeBoolean(config.commandToggles.retrieveGrave && hasPermission(player, "yigd.command.restore"));
-            configBuf.writeBoolean(hasPermission(player, "yigd.command.delete"));
-            configBuf.writeBoolean(config.commandToggles.robGrave && hasPermission(player, "yigd.command.rob"));
+            configBuf.writeBoolean(config.commandToggles.retrieveGrave && hasPermission(commandUser, "yigd.command.restore"));
+            configBuf.writeBoolean(hasPermission(commandUser, "yigd.command.delete"));
+            configBuf.writeBoolean(config.commandToggles.robGrave && hasPermission(commandUser, "yigd.command.rob"));
 
             ServerPlayNetworking.send(commandUser, PacketIdentifiers.GUI_CONFIGS, configBuf);
 
