@@ -817,6 +817,7 @@ public class GraveHelper {
     }
 
     private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {
+        YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
         PlayerInventory inventory = player.getInventory();
 
         int mainSize = inventory.main.size();
@@ -837,7 +838,7 @@ public class GraveHelper {
                     extraItems.add(equipped);
                 }
                 inventory.setStack(mainSize + i, armorItem);
-            } else if (hasEnchantments(bindingCurse, armorItem) && YigdConfig.getConfig().graveSettings.applyBindingCurse) {
+            } else if (hasEnchantments(bindingCurse, armorItem) && graveSettings.applyBindingCurse) {
                 if (!fromGrave) {
                     ItemStack equipped = inventory.getArmorStack(i);
                     if (!equipped.isEmpty()) {
@@ -858,22 +859,38 @@ public class GraveHelper {
         }
 
         for (int i = mainSize + armorSize; i < inv.size(); i++) {
+            ItemStack stackToAdd = inv.get(i);
+            if (stackToAdd.isEmpty()) continue;
+            if (!stackToAdd.hasNbt()) stackToAdd.setNbt(null);
+
             ItemStack stack = inventory.getStack(i);
-            if (inventory.size() <= i) {
-                extraItems.add(inv.get(i));
-            } else if (stack.isEmpty()) {
-                inventory.setStack(i, inv.get(i));
+            if (inventory.size() <= i || !stack.isEmpty()) {
+                int slot = inventory.getOccupiedSlotWithRoomForStack(stackToAdd);
+                if (graveSettings.compactRetrieveItems && slot >= 0) {
+                    inventory.getStack(slot).increment(stackToAdd.getCount());
+                } else {
+                    extraItems.add(stackToAdd);
+                }
             } else {
-                extraItems.add(inv.get(i));
+                inventory.setStack(i, stackToAdd);
             }
         }
 
         for (int i = 0; i < mainInventory.size(); i++) {
+            ItemStack stackToAdd = inv.get(i);
+            if (stackToAdd.isEmpty()) continue;
+            if (!stackToAdd.hasNbt()) stackToAdd.setNbt(null);
+
             ItemStack stack = inventory.getStack(i);
             if (stack.isEmpty()) {
-                inventory.setStack(i, inv.get(i));
+                inventory.setStack(i, stackToAdd);
             } else {
-                extraItems.add(inv.get(i));
+                int slot = inventory.getOccupiedSlotWithRoomForStack(stackToAdd);
+                if (graveSettings.compactRetrieveItems && slot >= 0) {
+                    inventory.getStack(slot).increment(stackToAdd.getCount());
+                } else {
+                    extraItems.add(stackToAdd);
+                }
             }
         }
 

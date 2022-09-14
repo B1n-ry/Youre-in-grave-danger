@@ -1,3 +1,14 @@
+# You're in Grave Danger 1.3.10
+
+### Changes
+- When retrieving items, and an items assigned slot is occupied, it will look for a slot to stack in
+
+### Fixes
+- When retrieving items, equipped items would get empty nbt elements, causing them unable to stack with other items of same type
+- Using the command `/yigd grave [player]` on a non OP, while having proper permissions, "cheat buttons" did not show up
+
+---
+
 # You're in Grave Danger 1.3.9
 
 ### Changes
