@@ -32,6 +32,9 @@ public class YigdConfig implements ConfigData {
         public RetrievalTypeConfig retrievalType = RetrievalTypeConfig.ON_USE;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean compactRetrieveItems = true;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 

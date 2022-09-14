@@ -5,6 +5,8 @@
   "text.autoconfig.yigd.option.graveSettings.generateGraves.@Tooltip": "If graves should be generated on death",
   "text.autoconfig.yigd.option.graveSettings.retrievalType": "Retrieval Type",
   "text.autoconfig.yigd.option.graveSettings.retrievalType.@Tooltip": "How players can retrieve their items from graves\nON_USE: Right click the grave\nON_SNEAK: Sneak on top of th grave\nON_STAND: Step on top of the grave\nON_BREAK: Break the grave",
+  "text.autoconfig.yigd.option.graveSettings.compactRetrieveItems": "Compact Retrieve Items",
+  "text.autoconfig.yigd.option.graveSettings.compactRetrieveItems.@Tooltip": "If enabled, every item will try stacking with another item if assigned slot is occupied",
   "text.autoconfig.yigd.option.graveSettings.dropType": "Drop Type",
   "text.autoconfig.yigd.option.graveSettings.dropType.@Tooltip": "How items should be retrieved from graves\nIN_INVENTORY: Items go straight into your inventory, in the same slots as when you died\nON_GROUND: All items land on the ground as if you broke a chest",
   "text.autoconfig.yigd.option.graveSettings.dropPlayerHead": "Drop Player Head",
