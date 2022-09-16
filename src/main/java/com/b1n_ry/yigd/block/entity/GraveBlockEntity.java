@@ -206,6 +206,7 @@ public class GraveBlockEntity extends BlockEntity {
             }
         }
         world.removeBlock(pos, false);
+        Yigd.LOGGER.info("Grave at %d %d %d expired".formatted(pos.getX(), pos.getY(), pos.getZ()));
         if (world.getServer() == null || grave.graveOwner == null) return;
         ServerPlayerEntity graveOwner = world.getServer().getPlayerManager().getPlayer(grave.graveOwner.getId());
         if (graveOwner == null) {

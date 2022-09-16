@@ -35,7 +35,7 @@ public class LevelzCompat implements YigdApi {
     public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
         YigdConfig.GraveCompatConfig graveCompatConfig = YigdConfig.getConfig().graveSettings.graveCompatConfig;
 
-        PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager(player);
+        PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
         int exp = (int) (playerStatsManager.levelProgress * playerStatsManager.getNextLevelExperience());
 
         if (onDeath) {
@@ -69,7 +69,7 @@ public class LevelzCompat implements YigdApi {
 
     @Override
     public void dropAll(PlayerEntity player) {
-        PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager(player);
+        PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
         playerStatsManager.levelProgress = 0;
     }
 
