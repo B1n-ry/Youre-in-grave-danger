@@ -35,6 +35,9 @@ public class YigdConfig implements ConfigData {
         public boolean compactRetrieveItems = true;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean retrievalRequireShovel = false;
+
+        @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropTypeConfig dropType = DropTypeConfig.IN_INVENTORY;
 
@@ -74,6 +77,10 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
         public ItemLoss itemLoss = new ItemLoss();
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
+        public int zombieSpawnPercentage = 0;
 
         @ConfigEntry.Gui.Tooltip
         public List<String> deleteEnchantments = List.of("minecraft:vanishing_curse", "vanishing_curse"); // Apparently without the namespace/id vanilla will still make it work

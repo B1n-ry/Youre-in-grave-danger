@@ -20,15 +20,12 @@ import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
+import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -169,13 +166,19 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
+        YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+        RetrievalTypeConfig retrievalType = config.retrievalType;
         BlockEntity be = world.getBlockEntity(pos);
         if (!(be instanceof GraveBlockEntity grave)) return super.onUse(state, world, pos, player, hand, hit);
 
         if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == RetrievalTypeConfig.ON_BREAK_OR_USE || retrievalType == null) && grave.getGraveOwner() != null && !grave.isClaimed()) {
-            RetrieveItems(player, world, pos);
-            return ActionResult.SUCCESS;
+            if (!config.retrievalRequireShovel || player.getMainHandStack().getItem() instanceof ShovelItem) {
+                RetrieveItems(player, world, pos);
+                return ActionResult.SUCCESS;
+            } else {
+                player.sendMessage(Text.translatable("text.yigd.message.requires_shovel"));
+                return ActionResult.FAIL;
+            }
         } else if (grave.getGraveOwner() != null && grave.isClaimed() && !world.isClient) {
             if (hand == Hand.OFF_HAND) return ActionResult.PASS;
 
@@ -260,9 +263,14 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return;
         }
 
-        RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
+        YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+        RetrievalTypeConfig retrievalType = config.retrievalType;
         if (retrievalType == RetrievalTypeConfig.ON_BREAK || retrievalType == RetrievalTypeConfig.ON_BREAK_OR_USE) {
-            if (RetrieveItems(player, world, pos, be)) return;
+            if (!config.retrievalRequireShovel || stack.getItem() instanceof ShovelItem) {
+                if (RetrieveItems(player, world, pos, be)) return;
+            } else {
+                player.sendMessage(Text.translatable("text.yigd.message.requires_shovel"));
+            }
         }
 
         boolean bs = world.setBlockState(pos, state);
@@ -473,6 +481,18 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 world.setBlockState(pos, graveEntity.getPreviousState());
             } else {
                 world.removeBlock(pos, false);
+            }
+        }
+        if (config.graveSettings.zombieSpawnPercentage > 0) {
+            if (config.graveSettings.zombieSpawnPercentage > new Random().nextInt(100)) {
+                ItemStack playerHead = Items.PLAYER_HEAD.getDefaultStack();
+                NbtCompound nbt = new NbtCompound();
+                nbt.put("SkullOwner", NbtHelper.writeGameProfile(new NbtCompound(), graveOwner));
+                playerHead.setNbt(nbt);
+
+                ZombieEntity zombie = EntityType.ZOMBIE.spawn((ServerWorld) world, null ,null, null, pos, SpawnReason.TRIGGERED, false, false);
+
+                if (zombie != null) zombie.equipStack(EquipmentSlot.HEAD, playerHead);
             }
         }
         if (config.utilitySettings.graveCompassSettings.tryDeleteOnClaim) {

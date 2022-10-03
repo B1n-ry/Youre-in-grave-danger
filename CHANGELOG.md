@@ -1,11 +1,23 @@
+# You're in Grave Danger 1.4.5
+
+### Changes
+ - You can now configure the graves to only be loot-able when holding a shovel. Default disabled
+ - You can configure probability of a zombie spawning with the grave owner's head when looting a grave. Default disabled (0%)
+
+### Fixes
+ - Grave scroll is now craft-able when not disabled
+
+---
+
 # You're in Grave Danger 1.4.4
 
 ### Changes
  - When retrieving items, and an items assigned slot is occupied, it will look for a slot to stack in
 
 ### Fixes
- - When retrieving items, equipped items would get empty nbt elements, causing them unable to stack with other items of same type
- - Using the command `/yigd grave [player]` on a non OP, while having proper permissions, "cheat buttons" did not show up
+ - Fixed an issue where when retrieving items, equipped items would get empty nbt elements, causing them unable to stack with other items of same type
+ - Fixed an issue where when using the command `/yigd grave [player]` on a non OP, while having proper permissions, "cheat buttons" did not show up
+ - Fixed an issue when using latest levelz version (1.4.0), game would crash on death
 
 ---
 

@@ -17,6 +17,9 @@ repositories {
 		url = "https://maven.terraformersmc.com/"
 	}
 	maven {
+		url = "https://modmaven.dev/"
+	}
+	maven {
 		name = "Ladysnake Libs"
 		url = "https://ladysnake.jfrog.io/artifactory/mods"
 	}
@@ -76,7 +79,7 @@ dependencies {
 	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 	modImplementation("mods.compat:The_Graveyard_1.10_(FABRIC)_for_1.19")
 
-	// Hammerlike compat
+	// Don't destroy grave compat
 	modImplementation("com.github.Technici4n:magna:${project.magna_version}")
 
 	// Required for some mod compatibility to work
