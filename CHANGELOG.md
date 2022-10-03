@@ -2,7 +2,9 @@
 
 ### Changes
  - You can now configure the graves to only be loot-able when holding a shovel. Default disabled
- - You can configure probability of a zombie spawning with the grave owner's head when looting a grave. Default disabled (0%)
+ - You can configure probability of any entity spawning when looting a grave. Default disabled (0%)
+   - The entity can be configured to which entity, and also completely custom NBT
+   - Nbt can contain special values representing player name (of grave owner), player UUID, and/or any item in grave
 
 ### Fixes
  - Grave scroll is now craft-able when not disabled
