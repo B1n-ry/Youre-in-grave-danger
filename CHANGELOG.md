@@ -8,6 +8,7 @@
 
 ### Fixes
  - Grave scroll is now craft-able when not disabled
+ - Twilight bosses can no longer destroy graves
 
 ---
 

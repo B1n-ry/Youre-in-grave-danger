@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ShapedRecipe.class)
 public class ShapedRecipeMixin {
-    @Inject(method = "getItem", at = @At(value = "INVOKE", target = "java/util/Optional.orElseThrow (Ljava/util/function/Supplier;)Ljava/lang/Object;"), cancellable = true)
+    @Inject(method = "getItem", at = @At(value = "HEAD"), cancellable = true)
     private static void throwError(JsonObject json, CallbackInfoReturnable<Item> cir) {
         String string = JsonHelper.getString(json, "item");
         if (string.equals("yigd:death_scroll") && YigdConfig.getConfig().utilitySettings.scrollItem.scrollType == ScrollTypeConfig.DISABLED) cir.setReturnValue(Items.AIR);
