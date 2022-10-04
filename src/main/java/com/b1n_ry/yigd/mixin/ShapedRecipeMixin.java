@@ -1,5 +1,7 @@
 package com.b1n_ry.yigd.mixin;
 
+import com.b1n_ry.yigd.config.ScrollTypeConfig;
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.google.gson.JsonObject;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -15,6 +17,6 @@ public class ShapedRecipeMixin {
     @Inject(method = "getItem", at = @At(value = "HEAD"), cancellable = true)
     private static void throwError(JsonObject json, CallbackInfoReturnable<Item> cir) {
         String string = JsonHelper.getString(json, "item");
-        if (string.equals("yigd:death_scroll")) cir.setReturnValue(Items.AIR);
+        if (string.equals("yigd:death_scroll") && YigdConfig.getConfig().utilitySettings.scrollItem.scrollType == ScrollTypeConfig.DISABLED) cir.setReturnValue(Items.AIR);
     }
 }

@@ -7,6 +7,8 @@
   "text.autoconfig.yigd.option.graveSettings.retrievalType.@Tooltip": "How players can retrieve their items from graves\nON_USE: Right click the grave\nON_SNEAK: Sneak on top of th grave\nON_STAND: Step on top of the grave\nON_BREAK: Break the grave",
   "text.autoconfig.yigd.option.graveSettings.compactRetrieveItems": "Compact Retrieve Items",
   "text.autoconfig.yigd.option.graveSettings.compactRetrieveItems.@Tooltip": "If enabled, every item will try stacking with another item if assigned slot is occupied",
+  "text.autoconfig.yigd.option.graveSettings.retrievalRequireShovel": "Require Shovel to Claim",
+  "text.autoconfig.yigd.option.graveSettings.retrievalRequireShovel.@Tooltip": "For those who want a more realistic experience. Because IRL you need a shovel to loot a grave",
   "text.autoconfig.yigd.option.graveSettings.dropType": "Drop Type",
   "text.autoconfig.yigd.option.graveSettings.dropType.@Tooltip": "How items should be retrieved from graves\nIN_INVENTORY: Items go straight into your inventory, in the same slots as when you died\nON_GROUND: All items land on the ground as if you broke a chest",
   "text.autoconfig.yigd.option.graveSettings.dropPlayerHead": "Drop Player Head",
@@ -67,6 +69,13 @@
   "text.autoconfig.yigd.option.graveSettings.itemLoss.lossRangeTo.@Tooltip": "Upper number in range of how many items can be deleted. If lower or equal to lower limit, items lost will always be same as lower limit",
   "text.autoconfig.yigd.option.graveSettings.itemLoss.percentChanceOfLoss": "Percent Chance of Loss",
   "text.autoconfig.yigd.option.graveSettings.itemLoss.percentChanceOfLoss.@Tooltip": "Specify the probability of each selected item to actually be destroyed",
+  "text.autoconfig.yigd.option.graveSettings.randomSpawnSettings": "Random Spawn Settings",
+  "text.autoconfig.yigd.option.graveSettings.randomSpawnSettings.@Tooltip": "Any entity can spawn by a random chance when looting a grave",
+  "text.autoconfig.yigd.option.graveSettings.randomSpawnSettings.percentSpawnChance": "Spawn Chance (%)",
+  "text.autoconfig.yigd.option.graveSettings.randomSpawnSettings.spawnEntity": "Spawn Entity Type",
+  "text.autoconfig.yigd.option.graveSettings.randomSpawnSettings.spawnEntity.@Tooltip": "Which entity should spawn",
+  "text.autoconfig.yigd.option.graveSettings.randomSpawnSettings.spawnNbt": "Spawn Entity Nbt",
+  "text.autoconfig.yigd.option.graveSettings.randomSpawnSettings.spawnNbt.@Tooltip": "Put ${name} to get player name, ${uuid} for player UUID, and ${item[n]} for the item in slot n",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments": "Remove Enchantments",
   "text.autoconfig.yigd.option.graveSettings.deleteEnchantments.@Tooltip": "Removes items with this enchantment from the grave. Gives Curse of Vanishing effect. Useful if soulbound items are ignored and ends up in both your inventory and your grave\nFormat: [namespace]:[enchantment_name]",
   "text.autoconfig.yigd.option.graveSettings.soulboundEnchantments": "Soulbound Enchantments",
@@ -192,6 +201,8 @@
   "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.rebindable.@Tooltip": "Rebindable means you can shift + right click to bind the key to your latest grave",
   "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.graveKeySpecification": "Target Scope",
   "text.autoconfig.yigd.option.utilitySettings.graveKeySettings.graveKeySpecification.@Tooltip": "Which scope the keys will target\nGRAVE: Different keys for all graves\nPLAYER: Different keys for all players\nALL: All keys can unlock all graves (preferably used as an admin only item)",
+  "text.autoconfig.yigd.option.utilitySettings.graveCompassSettings": "Grave Compass Settings",
+  "text.autoconfig.yigd.option.utilitySettings.graveCompassSettings.@Tooltip": "Configure compasses that points to your death location",
   "text.autoconfig.yigd.option.utilitySettings.graveCompassSettings.receiveOnDeath": "Receive on death",
   "text.autoconfig.yigd.option.utilitySettings.graveCompassSettings.tryDeleteOnClaim": "Try delete on claim",
 
@@ -238,6 +249,7 @@
   "text.yigd.message.retrieve.missing_permission": "You are not allowed to retrieve these items",
   "text.yigd.message.retrieve.missing_key": "You need a key to retrieve your items",
   "text.yigd.message.retrieve.rob_cooldown": "You can retrieve the items from this grave in: %d:%d:%d",
+  "text.yigd.message.requires_shovel": "You can't dig up a grave without a shovel!",
 
   "text.yigd.message.grave_not_found": "No graves found",
   "text.yigd.message.unclaimed_grave_missing": "%s does not have any unclaimed graves",
@@ -302,6 +314,6 @@
   "text.yigd.word.day": "Day %d",
 
   "text.yigd.gui.config_warning.header": "yigd.toml is damaged",
-  "text.yigd.gui.config_warning.message": "An error occurred when loading yigd.toml (You're in Grave Danger config file). Default configs are thus loaded. Delete config file to use your own configuration",
+  "text.yigd.gui.config_warning.message": "An error occurred when loading yigd.toml (You're in Grave Danger config file). Default configs are thus loaded. Delete the yigd.toml config file to reset the configs, and this popup should disappear",
   "text.yigd.gui.config_warning.check": "I like trains"
 }

@@ -1,11 +1,26 @@
+# You're in Grave Danger 1.3.11
+
+### Changes
+- You can now configure the graves to only be loot-able when holding a shovel. Default disabled
+- You can configure probability of any entity spawning when looting a grave. Default disabled (0%)
+    - The entity can be configured to which entity, and also completely custom NBT
+    - Nbt can contain special values representing player name (of grave owner), player UUID, and/or any item in grave
+
+### Fixes
+- Grave scroll is now craft-able when not disabled
+- Twilight bosses can no longer destroy graves
+- Item name of the grave compass is now properly translated
+
+---
+
 # You're in Grave Danger 1.3.10
 
 ### Changes
 - When retrieving items, and an items assigned slot is occupied, it will look for a slot to stack in
 
 ### Fixes
-- When retrieving items, equipped items would get empty nbt elements, causing them unable to stack with other items of same type
-- Using the command `/yigd grave [player]` on a non OP, while having proper permissions, "cheat buttons" did not show up
+- Fixed issue where when retrieving items, equipped items would get empty nbt elements, causing them unable to stack with other items of same type
+- Fixed issue where when using the command `/yigd grave [player]` on a non OP, while having proper permissions, "cheat buttons" did not show up
 
 ---
 

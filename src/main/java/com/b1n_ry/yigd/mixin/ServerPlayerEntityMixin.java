@@ -23,7 +23,6 @@ import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -172,7 +171,7 @@ public abstract class ServerPlayerEntityMixin {
                         stack.setSubNbt("pointTowards", nbt);
                         stack.setSubNbt("forGrave", NbtHelper.fromUuid(latestDeath.id));
 
-                        stack.setCustomName(new LiteralText("item.yigd.grave_compass").styled(style -> style.withItalic(false)));
+                        stack.setCustomName(new TranslatableText("item.yigd.grave_compass").styled(style -> style.withItalic(false)));
                         player.giveItemStack(stack);
                     }
 

@@ -21,6 +21,7 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -29,6 +30,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.ShovelItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -49,6 +51,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -59,6 +62,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("deprecation")
 public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
@@ -170,13 +175,19 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
+        YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+        RetrievalTypeConfig retrievalType = config.retrievalType;
         BlockEntity be = world.getBlockEntity(pos);
         if (!(be instanceof GraveBlockEntity grave)) return super.onUse(state, world, pos, player, hand, hit);
 
         if ((retrievalType == RetrievalTypeConfig.ON_USE || retrievalType == RetrievalTypeConfig.ON_BREAK_OR_USE || retrievalType == null) && grave.getGraveOwner() != null && !grave.isClaimed()) {
-            RetrieveItems(player, world, pos);
-            return ActionResult.SUCCESS;
+            if (!config.retrievalRequireShovel || player.getMainHandStack().getItem() instanceof ShovelItem) {
+                RetrieveItems(player, world, pos);
+                return ActionResult.SUCCESS;
+            } else {
+                player.sendMessage(new TranslatableText("text.yigd.message.requires_shovel"), false);
+                return ActionResult.FAIL;
+            }
         } else if (grave.getGraveOwner() != null && grave.isClaimed() && !world.isClient) {
             if (hand == Hand.OFF_HAND) return ActionResult.PASS;
 
@@ -261,9 +272,14 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return;
         }
 
-        RetrievalTypeConfig retrievalType = YigdConfig.getConfig().graveSettings.retrievalType;
+        YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
+        RetrievalTypeConfig retrievalType = config.retrievalType;
         if (retrievalType == RetrievalTypeConfig.ON_BREAK || retrievalType == RetrievalTypeConfig.ON_BREAK_OR_USE) {
-            if (RetrieveItems(player, world, pos, be)) return;
+            if (!config.retrievalRequireShovel || stack.getItem() instanceof ShovelItem) {
+                if (RetrieveItems(player, world, pos, be)) return;
+            } else {
+                player.sendMessage(new TranslatableText("text.yigd.message.requires_shovel"), false);
+            }
         }
 
         boolean bs = world.setBlockState(pos, state);
@@ -474,6 +490,51 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 world.setBlockState(pos, graveEntity.getPreviousState());
             } else {
                 world.removeBlock(pos, false);
+            }
+        }
+        if (config.graveSettings.randomSpawnSettings.percentSpawnChance > 0) {
+            if (config.graveSettings.randomSpawnSettings.percentSpawnChance > new Random().nextInt(100)) {
+                String summonNbt = config.graveSettings.randomSpawnSettings.spawnNbt.replace("${name}", graveOwner.getName()).replace("${uuid}", graveOwner.getId().toString());
+
+                // While the nbt string has an item to add (text contains "${item[i]}")
+                Matcher nbtMatcher;
+                do {
+                    Pattern nbtPattern = Pattern.compile("\\$\\{item\\[[0-9]{1,3}]}");
+                    nbtMatcher = nbtPattern.matcher(summonNbt);
+                    if (!nbtMatcher.find()) break;
+
+                    // Get the integer of the item to replace
+                    Pattern pattern = Pattern.compile("(?<=\\$\\{item\\[)[0-9]{1,3}(?=]})");
+                    Matcher matcher = pattern.matcher(summonNbt);
+                    if (!matcher.find()) break;
+
+                    String res = matcher.group();
+                    if (!res.matches("[0-9]*")) break; // The string is not an integer -> break loop before error happens
+                    int itemNumber = Integer.parseInt(res);
+
+                    // Package item as NBT, and put inside NBT summon string
+                    ItemStack item = items.get(itemNumber);
+                    NbtCompound itemNbt = item.getNbt();
+                    NbtCompound newNbt = new NbtCompound();
+                    newNbt.put("tag", itemNbt);
+                    newNbt.putString("id", Registry.ITEM.getId(item.getItem()).toString());
+                    newNbt.putInt("Count", item.getCount());
+
+                    summonNbt = summonNbt.replaceFirst("\\$\\{item\\[[0-9]{1,3}]}", newNbt.asString());
+                } while (nbtMatcher.find());
+                try {
+                    NbtCompound nbt = NbtHelper.fromNbtProviderString(summonNbt);
+                    nbt.putString("id", config.graveSettings.randomSpawnSettings.spawnEntity);
+                    Entity entity = EntityType.loadEntityWithPassengers(nbt, world, e -> {
+                        e.refreshPositionAndAngles(pos, e.getYaw(), e.getPitch());
+                        return e;
+                    });
+
+                    world.spawnEntity(entity);
+                }
+                catch (Exception e) {
+                    Yigd.LOGGER.error("Failed spawning entity at grave", e);
+                }
             }
         }
         if (config.utilitySettings.graveCompassSettings.tryDeleteOnClaim) {
