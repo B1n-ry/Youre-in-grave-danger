@@ -520,7 +520,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     newNbt.putString("id", Registry.ITEM.getId(item.getItem()).toString());
                     newNbt.putInt("Count", item.getCount());
 
-                    summonNbt = summonNbt.replaceFirst("\\$\\{item\\[[0-9]{1,3}]}", newNbt.asString());
+                    boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
+
+                    summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", newNbt.asString());
+
+                    if (removeItem) items.set(itemNumber, ItemStack.EMPTY); // Make sure item gets "used"
                 } while (nbtMatcher.find());
                 try {
                     NbtCompound nbt = NbtHelper.fromNbtProviderString(summonNbt);

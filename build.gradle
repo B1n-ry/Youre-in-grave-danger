@@ -85,7 +85,6 @@ dependencies {
 
 	// Don't destroy blocks compat
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")
-	modImplementation("mods.compat:twilightforest-fabric-${project.minecraft_version}-${project.twilight_version}")
 
 	// Required for some mod compatibility to work
 	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
