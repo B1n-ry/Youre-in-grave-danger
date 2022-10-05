@@ -187,7 +187,16 @@ public class GraveHelper {
         Registry<DimensionType> dimManager = playerWorld.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
 
         BlockPos blockPos = new BlockPos(pos);
-        boolean canGenerate = GraveAreaOverride.canGenerateOnPos(blockPos, dimManager.getId(playerDimension), graveConfig.generateGraves);
+
+        DeathEffectConfig areaDropType = GraveAreaOverride.canGenerateOnPos(blockPos, dimManager.getId(playerDimension), graveConfig.generateGraves);
+        if (areaDropType == DeathEffectConfig.KEEP_ITEMS) {
+            for (int i = 0; i < items.size(); i++) {
+                if (!soulboundInventory.get(i).isEmpty()) continue;
+                soulboundInventory.set(i, items.get(i));
+                items.set(i, ItemStack.EMPTY);
+            }
+        }
+        boolean canGenerate = areaDropType != DeathEffectConfig.DROP_ITEMS;
 
         DeathEffectConfig spawnProtectionRule = graveConfig.deathInSpawnProtection;
         DeathEffectConfig alteredSpawnRules = DeathEffectConfig.CREATE_GRAVE;
@@ -198,7 +207,8 @@ public class GraveHelper {
                 alteredSpawnRules = spawnProtectionRule;
                 for (int i = 0; i < items.size(); i++) {
                     if (!soulboundInventory.get(i).isEmpty()) continue;
-                    soulboundInventory.set(i, items.remove(i));
+                    soulboundInventory.set(i, items.get(i));
+                    items.set(i, ItemStack.EMPTY);
                 }
             } else if (isSpawnProtected && spawnProtectionRule == DeathEffectConfig.DROP_ITEMS) {
                 alteredSpawnRules = spawnProtectionRule;
@@ -288,7 +298,7 @@ public class GraveHelper {
         }
 
         int dimId = dimManager.getRawId(playerDimension);
-        if (!graveConfig.generateGraves || graveConfig.blacklistDimensions.contains(dimId) || graveConfig.ignoreDeathTypes.contains(source.name) || !canGenerate) {
+        if (graveConfig.blacklistDimensions.contains(dimId) || graveConfig.ignoreDeathTypes.contains(source.name) || !canGenerate) {
             for (YigdApi yigdApi : Yigd.apiMods) {
                 Object o = modInventories.get(yigdApi.getModName());
                 items.addAll(yigdApi.toStackList(o));

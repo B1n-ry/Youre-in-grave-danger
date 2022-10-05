@@ -493,17 +493,18 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         }
         if (config.graveSettings.randomSpawnSettings.percentSpawnChance > 0) {
             if (config.graveSettings.randomSpawnSettings.percentSpawnChance > new Random().nextInt(100)) {
-                String summonNbt = config.graveSettings.randomSpawnSettings.spawnNbt.replace("${name}", graveOwner.getName()).replace("${uuid}", graveOwner.getId().toString());
+                String summonNbt = config.graveSettings.randomSpawnSettings.spawnNbt.replaceAll("\\$\\{owner\\.name}", graveOwner.getName()).replaceAll("\\$\\{owner\\.uuid}", graveOwner.getId().toString());
+                summonNbt = summonNbt.replaceAll("\\$\\{looter\\.name}", player.getGameProfile().getName()).replaceAll("\\$\\{looter\\.uuid}", player.getUuid().toString());
 
                 // While the nbt string has an item to add (text contains "${item[i]}")
                 Matcher nbtMatcher;
                 do {
-                    Pattern nbtPattern = Pattern.compile("\\$\\{item\\[[0-9]{1,3}]}");
+                    Pattern nbtPattern = Pattern.compile("\\$\\{!?item\\[[0-9]{1,3}]}");
                     nbtMatcher = nbtPattern.matcher(summonNbt);
                     if (!nbtMatcher.find()) break;
 
-                    // Get the integer of the item to replace
-                    Pattern pattern = Pattern.compile("(?<=\\$\\{item\\[)[0-9]{1,3}(?=]})");
+                    // Get the integer of the item to replace with
+                    Pattern pattern = Pattern.compile("(?<=\\$\\{!?item\\[)[0-9]{1,3}(?=]})");
                     Matcher matcher = pattern.matcher(summonNbt);
                     if (!matcher.find()) break;
 
@@ -519,7 +520,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     newNbt.putString("id", Registry.ITEM.getId(item.getItem()).toString());
                     newNbt.putInt("Count", item.getCount());
 
-                    summonNbt = summonNbt.replaceFirst("\\$\\{item\\[[0-9]{1,3}]}", newNbt.asString());
+                    boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
+
+                    summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", newNbt.asString());
+
+                    if (removeItem) items.set(itemNumber, ItemStack.EMPTY); // Make sure item gets "used"
                 } while (nbtMatcher.find());
                 try {
                     NbtCompound nbt = NbtHelper.fromNbtProviderString(summonNbt);

@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.core;
 
+import com.b1n_ry.yigd.config.DeathEffectConfig;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,15 +26,15 @@ public class GraveAreaOverride {
             BlockPos fromPos = new BlockPos(fromCords.get(0).getAsInt(), fromCords.get(1).getAsInt(), fromCords.get(2).getAsInt());
             BlockPos toPos = new BlockPos(toCords.get(0).getAsInt(), toCords.get(1).getAsInt(), toCords.get(2).getAsInt());
 
-            boolean placeGraves = area.get("place_graves").getAsBoolean();
+            DeathEffectConfig dropType = Enum.valueOf(DeathEffectConfig.class, area.get("drop_rule").getAsString());
             boolean yDependant = area.get("y_dependant").getAsBoolean();
             String worldId = area.get("world_id").getAsString();
 
-            areaOverrides.add(new GraveArea(placeGraves, yDependant, fromPos, toPos, new Identifier(worldId)));
+            areaOverrides.add(new GraveArea(dropType, yDependant, fromPos, toPos, new Identifier(worldId)));
         }
     }
 
-    public static boolean canGenerateOnPos(BlockPos pos, Identifier worldId, boolean defaultGraves) {
+    public static DeathEffectConfig canGenerateOnPos(BlockPos pos, Identifier worldId, boolean defaultGraves) {
         int x = pos.getX();
         int y = pos.getY();
         int z = pos.getZ();
@@ -42,10 +43,11 @@ public class GraveAreaOverride {
             if (!area.worldId.equals(worldId)) continue;
             if (x < area.fromCorner.getX() || x > area.toCorner.getX() || z < area.fromCorner.getZ() || z > area.toCorner.getZ()) continue;
             if (area.yDependant && (y < area.fromCorner.getY() || y > area.toCorner.getY())) continue;
-            return area.placeGraves;
+            return area.dropType;
         }
-        return defaultGraves;
+
+        return defaultGraves ? DeathEffectConfig.CREATE_GRAVE : DeathEffectConfig.DROP_ITEMS;
     }
 
-    public record GraveArea(boolean placeGraves, boolean yDependant, BlockPos fromCorner, BlockPos toCorner, Identifier worldId) {}
+    public record GraveArea(DeathEffectConfig dropType, boolean yDependant, BlockPos fromCorner, BlockPos toCorner, Identifier worldId) {}
 }
