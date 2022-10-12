@@ -1,11 +1,5 @@
 {
   "values": [
-    {
-      "from": [100, 0, 100],
-      "to": [300, 100, 300],
-      "drop_rule": "KEEP_ITEMS",
-      "y_dependant": false,
-      "world_id": "minecraft:overworld"
-    }
+
   ]
 }

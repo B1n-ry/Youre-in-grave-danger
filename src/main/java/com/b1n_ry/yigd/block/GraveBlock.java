@@ -406,7 +406,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         long currentTime = world.getTime();
 
         boolean isRobbing = false;
-        boolean timePassed = currentTime >= requiredTime;
+        boolean timePassed = currentTime >= requiredTime || creationTime > currentTime + 20L;
         boolean isGraveOwner = player.getGameProfile().getId().equals(graveOwner.getId());
         if (!isGraveOwner) {
             if (!(canRobGrave && timePassed) && !unlocked) {
