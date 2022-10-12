@@ -14,6 +14,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -826,7 +827,6 @@ public class GraveHelper {
         List<ItemStack> armorInventory = inv.subList(mainSize, mainSize + armorSize);
         List<ItemStack> mainInventory = inv.subList(0, mainSize);
 
-        List<String> bindingCurse = Collections.singletonList("minecraft:binding_curse");
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
         for (int i = 0; i < armorInventory.size(); i++) {
@@ -838,7 +838,7 @@ public class GraveHelper {
                     extraItems.add(equipped);
                 }
                 inventory.setStack(mainSize + i, armorItem);
-            } else if (hasEnchantments(bindingCurse, armorItem) && graveSettings.applyBindingCurse) {
+            } else if (EnchantmentHelper.hasBindingCurse(armorItem) && graveSettings.applyBindingCurse) {
                 if (!fromGrave) {
                     ItemStack equipped = inventory.getArmorStack(i);
                     if (!equipped.isEmpty()) {
