@@ -78,6 +78,7 @@ public class ServerPacketReceivers {
             } else if (!DeathInfoManager.INSTANCE.unlockedGraves.contains(graveId)) {
                 DeathInfoManager.INSTANCE.unlockedGraves.add(graveId);
             }
+            DeathInfoManager.INSTANCE.markDirty();
         });
     }
 }

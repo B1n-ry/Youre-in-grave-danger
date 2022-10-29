@@ -45,14 +45,10 @@ public class GraveBlockEntity extends BlockEntity {
     private boolean glowing;
 
     public GraveBlockEntity(BlockPos pos, BlockState state) {
-        this(null, pos, state);
-    }
-    public GraveBlockEntity(String customName, BlockPos pos, BlockState state) {
         super(Yigd.GRAVE_BLOCK_ENTITY, pos, state);
 
         this.graveOwner = null;
         this.storedXp = 0;
-        this.customName = customName;
         this.storedInventory = DefaultedList.ofSize(41, ItemStack.EMPTY);
 
         this.creationTime = world != null ? world.getTime() : 0;

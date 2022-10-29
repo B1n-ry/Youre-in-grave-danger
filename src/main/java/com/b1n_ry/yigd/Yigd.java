@@ -218,6 +218,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         if (FabricLoader.getInstance().isModLoaded("travelersbackpack")) {
             apiMods.add(new TravelersBackpackCompat());
         }
+        if (FabricLoader.getInstance().isModLoaded("apoli")) {
+            apiMods.add(new OriginsCompat());
+        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
         if (FabricLoader.getInstance().isModLoaded("flan")) {

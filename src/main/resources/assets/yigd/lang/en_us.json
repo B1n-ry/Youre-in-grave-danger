@@ -125,6 +125,8 @@
   "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.inTheEnd.@Tooltip": "Block generated under grave in the end dimension",
   "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.inCustom": "Custom Dimensions",
   "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.inCustom.@Tooltip": "Block generated under grave in custom dimensions",
+  "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.generateWhenProtected": "Generate When Block is Protected",
+  "text.autoconfig.yigd.option.graveSettings.blockUnderGrave.generateWhenProtected.@Tooltip": "If set to false, there won't spawn a block under the grave when dying in claims or spawn protected area",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos": "Tell Death Pos",
   "text.autoconfig.yigd.option.graveSettings.tellDeathPos.@Tooltip": "Send a message to a player telling them where they died",
   "text.autoconfig.yigd.option.graveSettings.graveCompatConfig": "Compatibility Settings",

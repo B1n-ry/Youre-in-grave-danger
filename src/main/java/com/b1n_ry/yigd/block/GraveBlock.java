@@ -93,9 +93,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     protected static final BooleanProperty WATERLOGGED;
 
-    private String customName = null;
-
-
     public GraveBlock(Settings settings) {
         super(settings.nonOpaque());
         this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.WATERLOGGED, false));
@@ -313,7 +310,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         if (itemStack.hasCustomName()) {
-            customName = itemStack.getName().asString();
+            String customName = itemStack.getName().getString();
 
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof GraveBlockEntity graveBlockEntity) {
@@ -369,7 +366,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new GraveBlockEntity(customName, pos, state);
+        return new GraveBlockEntity(pos, state);
     }
     private void RetrieveItems(PlayerEntity player, World world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
