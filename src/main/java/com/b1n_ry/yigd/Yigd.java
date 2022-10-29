@@ -173,6 +173,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
             }
             if (world == null) return; // If for some reason there's NO world loaded
             DeathInfoManager.INSTANCE = (DeathInfoManager) world.getPersistentStateManager().getOrCreate(DeathInfoManager::fromNbt, DeathInfoManager::new, "yigd_grave_data");
+            DeathInfoManager.INSTANCE.markDirty();
             LOGGER.info("Loaded data from grave data file");
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> DeathInfoManager.INSTANCE = null);
@@ -214,6 +215,9 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         }
         if (FabricLoader.getInstance().isModLoaded("travelersbackpack")) {
             apiMods.add(new TravelersBackpackCompat());
+        }
+        if (FabricLoader.getInstance().isModLoaded("apoli")) {
+            apiMods.add(new OriginsCompat());
         }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 

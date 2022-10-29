@@ -639,10 +639,18 @@ public class GraveHelper {
         YigdConfig.BlockUnderGrave blockUnderConfig = YigdConfig.getConfig().graveSettings.blockUnderGrave;
         String replaceUnderBlock;
 
-        if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= world.getBottomY() + 1) { // If block should generate under, and if there is a "block" under that can be replaced
+        if (blockUnderConfig.generateBlockUnder && blockPosUnder.getY() >= world.getBottomY() + 1 && world instanceof ServerWorld serverWorld) { // If block should generate under, and if there is a "block" under that can be replaced
             BlockState blockUnder = world.getBlockState(blockPosUnder);
 
             boolean canPlaceUnder = blockUnder.isIn(ModTags.SUPPORT_REPLACE_WHITELIST);
+
+            if (!blockUnderConfig.generateWhenProtected) {
+                canPlaceUnder = canPlaceUnder && serverWorld.getServer().isSpawnProtected(serverWorld, blockPosUnder, player);
+
+                for (ClaimModsApi claimMod : Yigd.claimMods) {
+                    canPlaceUnder = canPlaceUnder && !claimMod.isInClaim(blockPosUnder, serverWorld);
+                }
+            }
 
             if (canPlaceUnder) {
                 if (world.getRegistryKey() == World.OVERWORLD) {
@@ -696,6 +704,8 @@ public class GraveHelper {
             placedGraveEntity.setKiller(killerId);
 
             placedGraveEntity.setPreviousState(previousState);
+
+            placedGraveEntity.markDirty(); // Trying to sync to world better
 
             DeadPlayerData deadData = DeadPlayerData.create(invItems, modInventories, gravePos, player.getGameProfile(), xpPoints, world, source, placedGraveEntity.getGraveId());
 

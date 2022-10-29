@@ -45,7 +45,18 @@ repositories {
 		}
 	}
 
-	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
+	maven {
+		url = 'https://maven.cafeteria.dev'
+		content {
+			includeGroup 'net.adriantodt.fabricmc'
+		}
+	}
+	maven {
+		url "https://maven.jamieswhiteshirt.com/libs-release"
+		content {
+			includeGroup "com.jamieswhiteshirt"
+		}
+	}
 	maven {
 		name = "CottonMC"
 		url = "https://server.bbkr.space/artifactory/libs-release"
@@ -96,6 +107,7 @@ dependencies {
 	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
 	modImplementation("mods.compat:inventorio-${project.inventorio_version}") { transitive = false }
 	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
+	modImplementation "com.github.apace100:apoli:${project.apoli_version}" // Origins inventories
 }
 
 processResources {

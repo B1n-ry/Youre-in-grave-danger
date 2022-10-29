@@ -234,6 +234,9 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public String inCustom = "minecraft:dirt";
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean generateWhenProtected = false;
     }
 
     public static class GraveCompatConfig {

@@ -7,6 +7,8 @@
    - Nbt can contain special values representing player name (of grave owner or looter), player UUID
    - Nbt can also contain any item (based on which slot) in the grave, and even if this item should be "used up" (deleted from grave) or not
  - Improved grave area overrides to handle keep inventory zones
+ - Added config for block not generating under graves in spawn protected area or claims
+ - Added "inventory origins" compat
 
 ### Fixes
  - Grave scroll is now craft-able when not disabled
