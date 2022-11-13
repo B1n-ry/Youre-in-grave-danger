@@ -1,28 +1,27 @@
 package com.b1n_ry.yigd.client.gui;
 
-import com.b1n_ry.yigd.Yigd;
-import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.core.DeadPlayerData;
+import com.b1n_ry.yigd.core.PacketIdentifiers;
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class GraveSelectScreen extends Screen {
     private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_grave_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
-    private List<DeadPlayerData> data;
-    private List<GuiGraveInfo> graveInfo;
+    private final Map<UUID, GraveGuiInfo> graveInfo; // ID for grave and info
+    private final List<UUID> graveIds;
     private final int page;
 
     private final Screen previousScreen;
@@ -39,38 +38,18 @@ public class GraveSelectScreen extends Screen {
 
     private final YigdConfig.GuiTextColors textColors;
 
-    private final List<GuiGraveInfo> filteredGraves = new ArrayList<>();
+    private final Map<UUID, GraveGuiInfo> filteredGraves = new HashMap<>();
 
-    public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen) {
-        this(data, page, previousScreen, true, false, false, false);
+    public GraveSelectScreen(GameProfile owner, Map<UUID, GraveGuiInfo> info, int page, Screen previousScreen) {
+        this(owner, info, page, previousScreen, true, false, false, false);
     }
-    public GraveSelectScreen(List<DeadPlayerData> data, int page, Screen previousScreen, boolean showPlaced, boolean showClaimed, boolean showDeleted, boolean showStatus) {
+    public GraveSelectScreen(GameProfile owner, Map<UUID, GraveGuiInfo> info, int page, Screen previousScreen, boolean showPlaced, boolean showClaimed, boolean showDeleted, boolean showStatus) {
         super(Text.translatable("text.yigd.gui.grave_select.title"));
-        List<GuiGraveInfo> info = new ArrayList<>();
-        for (DeadPlayerData deadData : data) {
-            int size = 0;
-            for (ItemStack stack : deadData.inventory) {
-                if (!stack.isEmpty()) size++;
-            }
-            for (YigdApi yigdApi : Yigd.apiMods) {
-                String modName = yigdApi.getModName();
-                if (!deadData.modInventories.containsKey(yigdApi.getModName())) continue;
-                size += yigdApi.getInventorySize(deadData.modInventories.get(modName));
-            }
 
-            int points = deadData.xp;
-            int i;
-            for (i = 0; points >= 0; i++) {
-                if (i < 16) points -= (2 * i) + 7;
-                else if (i < 31) points -= (5 * i) - 38;
-                else points -= (9 * i) - 158;
-            }
-
-            info.add(new GuiGraveInfo(deadData, size, i - 1));
-        }
-
-        this.data = data;
+        this.graveOwner = owner;
         this.graveInfo = info;
+        this.graveIds = new ArrayList<>(info.keySet());
+
         this.page = page;
         this.previousScreen = previousScreen;
 
@@ -79,12 +58,6 @@ public class GraveSelectScreen extends Screen {
         this.showDeleted = showDeleted;
         this.showStatus = showStatus;
 
-        if (data.size() > 0) {
-            this.graveOwner = data.get(0).graveOwner;
-        } else {
-            this.graveOwner = null;
-        }
-
         reloadFilters();
 
         this.textColors = YigdConfig.getConfig().graveSettings.graveRenderSettings.guiTextColors;
@@ -92,16 +65,18 @@ public class GraveSelectScreen extends Screen {
 
     private void reloadFilters() {
         this.filteredGraves.clear();
-        for (GuiGraveInfo data : this.graveInfo) {
-            switch (data.data.availability) {
+        for (Map.Entry<UUID, GraveGuiInfo> entry : this.graveInfo.entrySet()) {
+            UUID uuid = entry.getKey();
+            GraveGuiInfo info = entry.getValue();
+            switch (info.availability) {
                 case -1 -> {
-                    if (this.showDeleted) this.filteredGraves.add(data);
+                    if (this.showDeleted) this.filteredGraves.put(uuid, info);
                 }
                 case 0 -> {
-                    if (this.showClaimed) this.filteredGraves.add(data);
+                    if (this.showClaimed) this.filteredGraves.put(uuid, info);
                 }
                 case 1 -> {
-                    if (this.showPlaced) this.filteredGraves.add(data);
+                    if (this.showPlaced) this.filteredGraves.put(uuid, info);
                 }
             }
         }
@@ -144,10 +119,10 @@ public class GraveSelectScreen extends Screen {
         mouseIsClicked = false;
         if (button == 0 && hoveredElement != null && client != null) {
             if (hoveredElement.equals("left") && page > 1) {
-                GraveSelectScreen screen = new GraveSelectScreen(data, page - 1, this.previousScreen);
+                GraveSelectScreen screen = new GraveSelectScreen(this.graveOwner, this.graveInfo, this.page - 1, this.previousScreen);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("right") && filteredGraves.size() > page * 4) {
-                GraveSelectScreen screen = new GraveSelectScreen(data, page + 1, this.previousScreen);
+                GraveSelectScreen screen = new GraveSelectScreen(this.graveOwner, this.graveInfo, this.page + 1, this.previousScreen);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("show_available")) {
                 this.showPlaced = !this.showPlaced;
@@ -158,12 +133,14 @@ public class GraveSelectScreen extends Screen {
             } else if (hoveredElement.equals("show_status")) {
                 this.showStatus = !this.showStatus;
 
-            } else if (isInt(hoveredElement)) {
-                int parsedString = Integer.parseInt(hoveredElement) - 1;
-                if (filteredGraves.size() > parsedString && parsedString >= 0) {
-                    GraveViewScreen screen = new GraveViewScreen(filteredGraves.get(parsedString).data, this);
-                    client.setScreen(screen);
-                }
+            } else if (isUuid(hoveredElement)) {
+                UUID parsedUuid = UUID.fromString(hoveredElement);
+
+                PacketByteBuf buf = PacketByteBufs.create();
+                buf.writeGameProfile(this.graveOwner);
+                buf.writeUuid(parsedUuid);
+
+                ClientPlayNetworking.send(PacketIdentifiers.SINGLE_GRAVE_GUI, buf);
             }
 
             if (hoveredElement.startsWith("show_")) {
@@ -205,16 +182,17 @@ public class GraveSelectScreen extends Screen {
             drawTexture(matrices, screenLeft + screenWidth - 14, originY - 8, 8, 84, 8, 15);
         }
 
-        int infoSize = this.filteredGraves.size();
+        int infoSize = this.graveIds.size();
         int startValue = infoSize - (page - 1) * 4;
         int whileMoreThan = Math.max(startValue - 4, 0);
         int iterations = 0;
         for (int i = startValue; i > whileMoreThan; i--) {
-            GuiGraveInfo info = this.filteredGraves.get(i - 1);
+            UUID graveId = this.graveIds.get(i - 1);
+            GraveGuiInfo info = this.graveInfo.get(graveId);
 
-            if (this.showStatus && info.data.availability != 1) {
-                if (info.data.availability == -1) RenderSystem.setShaderColor(1f, 0, 0, 0.5f);
-                if (info.data.availability == 0) RenderSystem.setShaderColor(1f, 1f, 0, 0.5f);
+            if (this.showStatus && info.availability != 1) {
+                if (info.availability == -1) RenderSystem.setShaderColor(1f, 0, 0, 0.5f);
+                if (info.availability == 0) RenderSystem.setShaderColor(1f, 1f, 0, 0.5f);
             }
             RenderSystem.setShaderTexture(0, SELECT_ELEMENT_TEXTURE);
             int left = screenLeft + 19;
@@ -223,24 +201,24 @@ public class GraveSelectScreen extends Screen {
             int height = 42;
 
             if (mouseX > left && mouseX < left + width && mouseY > top && mouseY < top + height) {
-                hoveredElement = "" + i;
+                hoveredElement = graveId.toString();
             }
-            if (isInt(hoveredElement) && Integer.parseInt(hoveredElement) == i && mouseIsClicked) {
+            if (isUuid(hoveredElement) && UUID.fromString(hoveredElement).equals(graveId) && mouseIsClicked) {
                 drawTexture(matrices, left, top, 0, height, width, height);
             } else {
                 drawTexture(matrices, left, top, 0, 0, width, height);
             }
 
             String dimName;
-            if (GraveViewScreen.dimensionNameOverrides.containsKey(info.data.dimensionName)) {
-                dimName = GraveViewScreen.dimensionNameOverrides.get(info.data.dimensionName);
+            if (GraveViewScreen.dimensionNameOverrides.containsKey(info.dimension)) {
+                dimName = GraveViewScreen.dimensionNameOverrides.get(info.dimension);
             } else {
-                dimName = info.data.dimensionName;
+                dimName = info.dimension;
             }
 
-            textRenderer.draw(matrices, info.data.gravePos.getX() + " " + info.data.gravePos.getY() + " " + info.data.gravePos.getZ() + " " + dimName, left + 5f, top + 5f, this.textColors.graveSelectGraveLocation);
-            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_select.x_items", info.itemSize), left + 5f, top + 17f, this.textColors.graveSelectItemSize);
-            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_select.x_levels", info.xpLevels), left + 5f, top + 29f, this.textColors.graveSelectLevelSize);
+            textRenderer.draw(matrices, info.pos.getX() + " " + info.pos.getY() + " " + info.pos.getZ() + " " + dimName, left + 5f, top + 5f, this.textColors.graveSelectGraveLocation);
+            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_select.x_items", info.itemCount), left + 5f, top + 17f, this.textColors.graveSelectItemSize);
+            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_select.x_levels", info.levelCount), left + 5f, top + 29f, this.textColors.graveSelectLevelSize);
             iterations++;
         }
 
@@ -256,10 +234,11 @@ public class GraveSelectScreen extends Screen {
         textRenderer.draw(matrices, gravesDisplayed, screenLeft + screenWidth - 19f - offset, screenTop + 10f, this.textColors.graveSelectPageView);
     }
 
-    private boolean isInt(String intString) {
-        if (intString == null) return false;
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private boolean isUuid(String uuidString) {
+        if (uuidString == null) return false;
         try {
-            Integer.parseInt(intString);
+            UUID.fromString(uuidString);
             return true;
         } catch (NumberFormatException e) {
             return false;
@@ -324,40 +303,5 @@ public class GraveSelectScreen extends Screen {
         textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_select.show_status"), originX + 8f, boxRow - 1f, this.textColors.graveSelectShowStatusCheckbox);
     }
 
-    public void addData(UUID userId, DeadPlayerData data) {
-        if (!userId.equals(this.graveOwner.getId())) return;
-
-        // Looks complicated but for some reason the list is fixed size, so this is required
-        List<DeadPlayerData> deadPlayerData = new ArrayList<>(this.data);
-        deadPlayerData.add(data);
-        this.data = deadPlayerData;
-
-        int size = 0;
-        for (ItemStack stack : data.inventory) {
-            if (!stack.isEmpty()) size++;
-        }
-        for (YigdApi yigdApi : Yigd.apiMods) {
-            String modName = yigdApi.getModName();
-            if (!data.modInventories.containsKey(modName)) continue;
-
-            size += yigdApi.getInventorySize(data.modInventories.get(modName));
-        }
-
-        int points = data.xp;
-        int i;
-        for (i = 0; points >= 0; i++) {
-            if (i < 16) points -= (2 * i) + 7;
-            else if (i < 31) points -= (5 * i) - 38;
-            else points -= (9 * i) - 158;
-        }
-
-        // Looks complicated but for some reason the list is fixed size, so this is required
-        List<GuiGraveInfo> guiGraveInfoList = new ArrayList<>(this.graveInfo);
-        guiGraveInfoList.add(new GuiGraveInfo(data, size, i - 1));
-        this.graveInfo = guiGraveInfoList;
-
-        reloadFilters();
-    }
-
-    private record GuiGraveInfo(DeadPlayerData data, int itemSize, int xpLevels) { }
+    public record GraveGuiInfo(BlockPos pos, String dimension, int itemCount, int levelCount, byte availability) {}
 }

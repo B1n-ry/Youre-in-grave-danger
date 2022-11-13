@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.core;
 
 import com.b1n_ry.yigd.Yigd;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;

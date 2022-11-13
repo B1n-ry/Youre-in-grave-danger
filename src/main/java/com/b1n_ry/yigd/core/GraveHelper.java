@@ -262,9 +262,11 @@ public class GraveHelper {
             } else if (currentLevel >= 17) {
                 totalExperience = (int) (2.5 * Math.pow(currentLevel, 2) - 40.5 * currentLevel + 360);
             } else {
-                totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
+                totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel);
             }
-            xpPoints = (int) ((graveConfig.xpDropPercent / 100f) * totalExperience);
+            totalExperience += player.experienceProgress;
+
+            xpPoints = (int) ((graveConfig.xpDropPercent / 100f) * (float) totalExperience);
         }
 
         DeadPlayerData.Soulbound.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items

@@ -1,14 +1,18 @@
 package com.b1n_ry.yigd.client.gui;
 
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.core.DeadPlayerData;
+import com.b1n_ry.yigd.core.PacketIdentifiers;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.texture.PlayerSkinProvider;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -19,12 +23,12 @@ public class PlayerSelectScreen extends Screen {
     private final Identifier GRAVE_SELECT_TEXTURE = new Identifier("yigd", "textures/gui/select_player_menu.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
-    private final Map<UUID, List<DeadPlayerData>> data;
     private final Map<UUID, Identifier> playerSkinTextures;
     private final Map<UUID, GameProfile> graveOwners;
+    private final Map<UUID, List<Byte>> graveAvailabilities;
     private final int page;
 
-    private final Map<UUID, List<DeadPlayerData>> filteredPlayers = new HashMap<>();
+    private final Map<UUID, Integer> filteredPlayers = new HashMap<>();
     private final List<UUID> filteredPlayerIds = new ArrayList<>();
 
     private boolean mouseIsClicked = false;
@@ -40,39 +44,39 @@ public class PlayerSelectScreen extends Screen {
 
     private final YigdConfig.GuiTextColors textColors;
 
-    public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page) {
-        this(data, page, null, true, false, false, false);
+    public PlayerSelectScreen(Collection<GameProfile> players, Map<UUID, List<Byte>> graveAvailabilities, int page) {
+        this(players, graveAvailabilities, page, null, true, false, false, false);
     }
-    public PlayerSelectScreen(Map<UUID, List<DeadPlayerData>> data, int page, StringBuilder search, boolean includeAvailable, boolean includeClaimed, boolean includeDestroyed, boolean showWithoutGrave) {
+    public PlayerSelectScreen(Collection<GameProfile> players, Map<UUID, List<Byte>> graveAvailabilities, int page, StringBuilder search, boolean includeAvailable, boolean includeClaimed, boolean includeDestroyed, boolean showWithoutGrave) {
         super(Text.translatable("text.yigd.gui.player_select.title"));
 
-        Map<UUID, List<DeadPlayerData>> nonEmpty = new HashMap<>();
         Map<UUID, Identifier> playerSkinTextures = new HashMap<>();
         Map<UUID, GameProfile> graveOwners = new HashMap<>();
 
-        data.forEach((uuid, userData) -> {
-            if (userData.size() > 0) {
-                GameProfile profile = userData.get(0).graveOwner;
-                nonEmpty.put(uuid, userData);
-                graveOwners.put(uuid, profile);
+        MinecraftClient client = MinecraftClient.getInstance();
+        for (GameProfile profile : players) {
+            UUID uuid = profile.getId();
 
-                Identifier defaultPlayerSkin = DefaultSkinHelper.getTexture(uuid);
+            // Build list with uuid pointing to GameProfile
+            graveOwners.put(uuid, profile);
 
-                MinecraftClient minecraftClient = MinecraftClient.getInstance();
-                if (minecraftClient != null) {
-                    Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(profile);
-                    if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
-                        playerSkinTextures.put(uuid, minecraftClient.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
-                    } else {
-                        playerSkinTextures.put(uuid, defaultPlayerSkin);
-                    }
-                } else {
-                    playerSkinTextures.put(uuid, defaultPlayerSkin);
+
+            // Add skin identifiers for each player
+            Identifier defaultSkin = DefaultSkinHelper.getTexture(uuid);
+
+            if (client != null) {
+                PlayerSkinProvider skinProvider = client.getSkinProvider();
+                Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = skinProvider.getTextures(profile);
+                if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
+                    playerSkinTextures.put(uuid, skinProvider.loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
+                    continue;
                 }
             }
-        });
 
-        this.data = nonEmpty;
+            playerSkinTextures.put(uuid, defaultSkin);
+        }
+
+        this.graveAvailabilities = graveAvailabilities;
         this.playerSkinTextures = playerSkinTextures;
         this.page = page;
         this.graveOwners = graveOwners;
@@ -90,30 +94,32 @@ public class PlayerSelectScreen extends Screen {
     }
 
     private void reloadFilters() {
-        this.filteredPlayerIds.clear();
         this.filteredPlayers.clear();
-        this.data.forEach((uuid, deadPlayerData) -> {
-            List<DeadPlayerData> filteredGraves = new ArrayList<>();
-            boolean matchSearch = true;
-            for (DeadPlayerData grave : deadPlayerData) {
-                if (!grave.graveOwner.getName().toLowerCase(Locale.ROOT).startsWith(searchField.toString().toLowerCase(Locale.ROOT))) {
-                    matchSearch = false;
-                    continue;
-                }
-                if (grave.availability == 1 && this.includeAvailable) {
-                    filteredGraves.add(grave);
-                } else if (grave.availability == 0 && this.includeClaimed) {
-                    filteredGraves.add(grave);
-                } else if (grave.availability == -1 && this.includeDestroyed) {
-                    filteredGraves.add(grave);
+        this.filteredPlayerIds.clear();
+
+        for (Map.Entry<UUID, List<Byte>> entry : this.graveAvailabilities.entrySet()) {
+            UUID uuid = entry.getKey();
+
+            GameProfile profile = this.graveOwners.get(uuid);
+            if (!profile.getName().toLowerCase(Locale.ROOT).startsWith(searchField.toString().toLowerCase(Locale.ROOT))) continue;
+
+            int filteredGraves = 0;
+            for (byte availability : entry.getValue()) { // Loop through availability for each grave and see if it matches filters
+                if (availability == 1 && this.includeAvailable) {
+                    filteredGraves++;
+                } else if (availability == 0 && this.includeClaimed) {
+                    filteredGraves++;
+                } else if (availability == -1 && this.includeDestroyed) {
+                    filteredGraves++;
                 }
             }
 
-            if ((filteredGraves.size() > 0 || this.showWithoutGrave) && matchSearch) {
-                filteredPlayers.put(uuid, filteredGraves);
-                filteredPlayerIds.add(uuid);
+            // Add to filtered if contains graves or if it doesn't matter
+            if (filteredGraves > 0 || this.showWithoutGrave) {
+                this.filteredPlayers.put(uuid, filteredGraves);
+                this.filteredPlayerIds.add(uuid);
             }
-        });
+        }
     }
 
     @Override
@@ -161,10 +167,10 @@ public class PlayerSelectScreen extends Screen {
 
         if (button == 0 && hoveredElement != null && client != null) {
             if (hoveredElement.equals("left") && page > 1) {
-                PlayerSelectScreen screen = new PlayerSelectScreen(data, page - 1, this.searchField, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
+                PlayerSelectScreen screen = new PlayerSelectScreen(this.graveOwners.values(), this.graveAvailabilities, page - 1, this.searchField, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("right") && filteredPlayers.size() > page * 4) {
-                PlayerSelectScreen screen = new PlayerSelectScreen(data, page + 1, this.searchField, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
+                PlayerSelectScreen screen = new PlayerSelectScreen(this.graveOwners.values(), this.graveAvailabilities, page + 1, this.searchField, this.includeAvailable, this.includeClaimed, this.includeDestroyed, this.showWithoutGrave);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("include_available")) {
                 this.includeAvailable = !this.includeAvailable;
@@ -180,11 +186,12 @@ public class PlayerSelectScreen extends Screen {
                 reloadFilters();
 
             } else if (isUuid(hoveredElement)) {
-                UUID parsedString = UUID.fromString(hoveredElement);
-                if (data.containsKey(parsedString)) {
-                    GraveSelectScreen screen = new GraveSelectScreen(data.get(parsedString), 1, this);
-                    client.setScreen(screen);
-                }
+                UUID parsedUuid = UUID.fromString(hoveredElement);
+
+                PacketByteBuf buf = PacketByteBufs.create();
+                buf.writeGameProfile(this.graveOwners.get(parsedUuid));
+
+                ClientPlayNetworking.send(PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
             }
         }
         return super.mouseReleased(mouseX, mouseY, button);
@@ -246,7 +253,7 @@ public class PlayerSelectScreen extends Screen {
             drawTexture(matrices, left + 5, top + 5, 32, 32, 32, 32);
 
             textRenderer.draw(matrices, graveOwners.get(playerId).getName(), left + 42, top + 7, this.textColors.playerSelectPlayerName);
-            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId).size()), left + 42, top + 22, this.textColors.playerSelectGraveCount);
+            textRenderer.draw(matrices, Text.translatable("text.yigd.gui.player_select.grave_count", filteredPlayers.get(playerId)), left + 42, top + 22, this.textColors.playerSelectGraveCount);
         }
 
         super.render(matrices, mouseX, mouseY, delta);
@@ -336,34 +343,5 @@ public class PlayerSelectScreen extends Screen {
         if (mouseX > screenLeft + 18 && mouseX < screenLeft + 202 && mouseY > screenTop + 39 && mouseY < screenTop + 51) {
             hoveredElement = "search_bar";
         }
-    }
-
-    public void addData(UUID user, DeadPlayerData data) {
-        List<DeadPlayerData> deadData = this.data.computeIfAbsent(user, entry -> new ArrayList<>());
-        List<DeadPlayerData> newList = new ArrayList<>(deadData);
-        newList.add(data);
-
-        this.data.put(user, newList);
-
-        if (!graveOwners.containsKey(user)) {
-            graveOwners.put(user, data.graveOwner);
-        }
-        if (!playerSkinTextures.containsKey(user)) {
-            Identifier defaultPlayerSkin = DefaultSkinHelper.getTexture(user);
-
-            MinecraftClient minecraftClient = MinecraftClient.getInstance();
-            if (minecraftClient != null) {
-                Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(data.graveOwner);
-                if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
-                    playerSkinTextures.put(user, minecraftClient.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
-                } else {
-                    playerSkinTextures.put(user, defaultPlayerSkin);
-                }
-            } else {
-                playerSkinTextures.put(user, defaultPlayerSkin);
-            }
-        }
-
-        reloadFilters();
     }
 }

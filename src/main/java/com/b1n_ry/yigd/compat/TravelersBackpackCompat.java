@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.core.ModTags;
 import com.tiviacz.travelersbackpack.component.ComponentUtils;
+import com.tiviacz.travelersbackpack.config.TravelersBackpackConfig;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -17,6 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TravelersBackpackCompat implements YigdApi {
+    public static boolean isTrinketIntegrationOn() {
+        return TravelersBackpackConfig.trinketsIntegration;
+    }
+
     @Override
     public String getModName() {
         return "travelers_backpack";

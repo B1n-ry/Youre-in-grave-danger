@@ -6,8 +6,6 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.PacketIdentifiers;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.screen.Screen;
@@ -24,7 +22,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
-@Environment(EnvType.CLIENT)
 public class GraveViewScreen extends Screen {
     private final Identifier GRAVE_VIEW_TEXTURE = new Identifier("yigd", "textures/gui/grave_view.png");
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
@@ -38,17 +35,20 @@ public class GraveViewScreen extends Screen {
     private final int xpLevels;
     private final Screen previousScreen;
 
-    public static boolean showGraveRobber = false;
-    public static List<UUID> unlockedGraves = new ArrayList<>();
+    private final boolean showGraveRobber;
+    private boolean unlocked;
 
     public static final Map<String, String> dimensionNameOverrides = new HashMap<>();
 
     private final YigdConfig config;
 
-    public GraveViewScreen(DeadPlayerData data, @Nullable Screen previousScreen) {
+    public GraveViewScreen(DeadPlayerData data, boolean unlocked, boolean showGraveRobber, @Nullable Screen previousScreen) {
         super(data.graveOwner != null ? Text.translatable("text.yigd.gui.grave_view.title", data.graveOwner.getName()) : Text.translatable("text.yigd.gui.grave_view.title.missing"));
         this.data = data;
         this.previousScreen = previousScreen;
+
+        this.unlocked = unlocked;
+        this.showGraveRobber = showGraveRobber;
 
         int size = 0;
         for (int i = 41; i < data.inventory.size(); i++) {
@@ -132,18 +132,11 @@ public class GraveViewScreen extends Screen {
                     this.close();
                 }
                 case "toggleLocked" -> {
-                    boolean graveIsLocked;
-                    if (unlockedGraves.contains(this.data.id)) {
-                        unlockedGraves.remove(this.data.id);
-                        graveIsLocked = true;
-                    } else {
-                        unlockedGraves.add(this.data.id);
-                        graveIsLocked = false;
-                    }
+                    this.unlocked = !this.unlocked;
 
                     PacketByteBuf buf = PacketByteBufs.create()
                             .writeUuid(this.data.id);
-                    buf.writeBoolean(graveIsLocked);
+                    buf.writeBoolean(this.unlocked);
 
                     ClientPlayNetworking.send(PacketIdentifiers.SET_GRAVE_LOCK, buf);
                 }
@@ -181,7 +174,7 @@ public class GraveViewScreen extends Screen {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
             }
 
-            if (unlockedGraves.contains(this.data.id)) {
+            if (this.unlocked) {
                 textRenderer.draw(matrices, Text.translatable("text.yigd.word.lock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, textColors.graveViewLockGrave);
             } else {
                 textRenderer.draw(matrices, Text.translatable("text.yigd.word.unlock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, textColors.graveViewUnlockGrave);
@@ -323,7 +316,7 @@ public class GraveViewScreen extends Screen {
             }
             textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 37f + 9f * row, textColors.graveViewModItemSize);
         }
-        if (data.claimedBy != null && showGraveRobber) {
+        if (this.data.claimedBy != null && this.showGraveRobber) {
             textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.claimed_by", data.claimedBy.getName()), textX, originY - screenHeight / 2f + 58f, textColors.claimedBy);
         }
         textRenderer.draw(matrices, Text.translatable("text.yigd.gui.grave_view.level_count", this.xpLevels), textX + 18f, originY - screenHeight / 2f + 77f, textColors.graveViewLevelSize);

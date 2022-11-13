@@ -13,8 +13,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -103,11 +101,8 @@ public class ScrollItem extends Item {
             buf.writeBoolean(YigdCommand.hasPermission(user, "yigd.command.delete"));
             buf.writeBoolean(config.commandToggles.robGrave && YigdCommand.hasPermission(user, "yigd.command.rob"));
 
-            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
-            buf.writeInt(unlockedGravesAmount);
-            for (int i = 0; i < unlockedGravesAmount; i++) {
-                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
-            }
+            buf.writeBoolean(DeathInfoManager.INSTANCE.unlockedGraves.contains(selectedGrave.id));
+            buf.writeBoolean(config.graveSettings.graveRobbing.tellRobber);
 
             ServerPlayNetworking.send(spe, PacketIdentifiers.SINGLE_GRAVE_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().getString() + " with grave info");
