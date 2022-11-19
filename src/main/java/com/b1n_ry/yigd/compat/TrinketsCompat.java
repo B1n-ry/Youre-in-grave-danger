@@ -67,7 +67,7 @@ public class TrinketsCompat implements YigdApi {
                             removed = true;
                         } else if (GraveHelper.hasEnchantments(soulboundEnchantments, stack)) {
                             if (config.graveSettings.loseSoulboundLevelOnDeath) {
-                                GraveHelper.removeSoulboundLevel(stack, soulboundEnchantments);
+                                GraveHelper.removeEnchantmentLevel(stack, soulboundEnchantments);
                             }
                             trinkets.setStack(i, ItemStack.EMPTY);
                             soulInv.add(stack);

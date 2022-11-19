@@ -78,7 +78,7 @@ public class GraveHelper {
         }
     }
 
-    public static void removeSoulboundLevel(ItemStack stack, List<String> enchantments) {
+    public static void removeEnchantmentLevel(ItemStack stack, List<String> enchantments) {
         NbtList stackNbt = stack.getEnchantments();
         List<NbtCompound> removeCompounds = new ArrayList<>();
         for (NbtElement e : stackNbt) {
@@ -107,13 +107,7 @@ public class GraveHelper {
         items.addAll(inventory.armor);
         items.addAll(inventory.offHand);
 
-        if (inventory.size() > items.size()) {
-            for (int i = items.size(); i < inventory.size(); i++) {
-                items.add(inventory.getStack(i));
-            }
-        }
-
-        // These lines should never be triggered, but just in case there is any problem this is here
+        // These lines should never be triggered, but just in case there is any problem with some mods compat, this is here
         int currentSize = items.size();
         if (inventory.size() > currentSize) {
             for (int i = currentSize; i < inventory.size(); i++) {
@@ -163,10 +157,10 @@ public class GraveHelper {
         DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
         DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
 
-        // If soulbound levels should decrease, make sure they do, and if they reach zero get deleted
+        // If soulbound levels should decrease, make sure they do, and if they reach zero, enchantment gets deleted
         if (graveConfig.loseSoulboundLevelOnDeath) {
             for (ItemStack stack : soulboundInventory) {
-                removeSoulboundLevel(stack, soulboundEnchantments);
+                removeEnchantmentLevel(stack, soulboundEnchantments);
             }
         }
 

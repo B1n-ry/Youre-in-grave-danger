@@ -40,7 +40,7 @@ public class TravelersBackpackCompat implements YigdApi {
             boolean shouldDelete = false;
             if (GraveHelper.hasEnchantments(soulboundEnchantments, backpack)) {
                 if (config.loseSoulboundLevelOnDeath) {
-                    GraveHelper.removeSoulboundLevel(backpack, soulboundEnchantments);
+                    GraveHelper.removeEnchantmentLevel(backpack, soulboundEnchantments);
                 }
                 soulbound = backpack;
                 shouldDelete = true;

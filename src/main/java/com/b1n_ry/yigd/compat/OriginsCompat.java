@@ -46,7 +46,7 @@ public class OriginsCompat implements YigdApi {
                         soulboundInv.set(i, currentStack); // Add to soulbound if it should stay in inventory
                     } else if (GraveHelper.hasEnchantments(config.graveSettings.soulboundEnchantments, currentStack)) { // Soulbound enchantment and not default keep
                         if (config.graveSettings.loseSoulboundLevelOnDeath) {
-                            GraveHelper.removeSoulboundLevel(currentStack, config.graveSettings.soulboundEnchantments);
+                            GraveHelper.removeEnchantmentLevel(currentStack, config.graveSettings.soulboundEnchantments);
                         }
                         soulboundInv.set(i, currentStack);
                     } else if (!GraveHelper.hasEnchantments(config.graveSettings.deleteEnchantments, currentStack)) { // Not destroyed
