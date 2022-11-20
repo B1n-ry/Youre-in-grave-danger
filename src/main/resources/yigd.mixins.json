@@ -6,7 +6,6 @@
   "mixins": [
     "LivingEntityMixin",
     "MagnaToolMixin",
-    "MinecellsBossMixin",
     "MinecraftDedicatedServerMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
