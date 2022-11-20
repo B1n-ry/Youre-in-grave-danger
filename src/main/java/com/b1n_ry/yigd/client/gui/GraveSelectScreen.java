@@ -21,7 +21,6 @@ public class GraveSelectScreen extends Screen {
     private final Identifier SELECT_ELEMENT_TEXTURE = new Identifier("yigd", "textures/gui/select_elements.png");
 
     private final Map<UUID, GraveGuiInfo> graveInfo; // ID for grave and info
-    private final List<UUID> graveIds;
     private final int page;
 
     private final Screen previousScreen;
@@ -38,7 +37,7 @@ public class GraveSelectScreen extends Screen {
 
     private final YigdConfig.GuiTextColors textColors;
 
-    private final Map<UUID, GraveGuiInfo> filteredGraves = new HashMap<>();
+    private final List<UUID> filteredGraveIds;
 
     public GraveSelectScreen(GameProfile owner, Map<UUID, GraveGuiInfo> info, int page, Screen previousScreen) {
         this(owner, info, page, previousScreen, true, false, false, false);
@@ -48,7 +47,7 @@ public class GraveSelectScreen extends Screen {
 
         this.graveOwner = owner;
         this.graveInfo = info;
-        this.graveIds = new ArrayList<>(info.keySet());
+        this.filteredGraveIds = new ArrayList<>(info.keySet());
 
         this.page = page;
         this.previousScreen = previousScreen;
@@ -64,19 +63,20 @@ public class GraveSelectScreen extends Screen {
     }
 
     private void reloadFilters() {
-        this.filteredGraves.clear();
+        this.filteredGraveIds.clear();
         for (Map.Entry<UUID, GraveGuiInfo> entry : this.graveInfo.entrySet()) {
             UUID uuid = entry.getKey();
+
             GraveGuiInfo info = entry.getValue();
             switch (info.availability) {
                 case -1 -> {
-                    if (this.showDeleted) this.filteredGraves.put(uuid, info);
+                    if (this.showDeleted) this.filteredGraveIds.add(uuid);
                 }
                 case 0 -> {
-                    if (this.showClaimed) this.filteredGraves.put(uuid, info);
+                    if (this.showClaimed) this.filteredGraveIds.add(uuid);
                 }
                 case 1 -> {
-                    if (this.showPlaced) this.filteredGraves.put(uuid, info);
+                    if (this.showPlaced) this.filteredGraveIds.add(uuid);
                 }
             }
         }
@@ -119,10 +119,10 @@ public class GraveSelectScreen extends Screen {
         mouseIsClicked = false;
         if (button == 0 && hoveredElement != null && client != null) {
             if (hoveredElement.equals("left") && page > 1) {
-                GraveSelectScreen screen = new GraveSelectScreen(this.graveOwner, this.graveInfo, this.page - 1, this.previousScreen);
+                GraveSelectScreen screen = new GraveSelectScreen(this.graveOwner, this.graveInfo, this.page - 1, this.previousScreen, this.showPlaced, this.showClaimed, this.showDeleted, this.showStatus);
                 client.setScreen(screen);
-            } else if (hoveredElement.equals("right") && filteredGraves.size() > page * 4) {
-                GraveSelectScreen screen = new GraveSelectScreen(this.graveOwner, this.graveInfo, this.page + 1, this.previousScreen);
+            } else if (hoveredElement.equals("right") && filteredGraveIds.size() > page * 4) {
+                GraveSelectScreen screen = new GraveSelectScreen(this.graveOwner, this.graveInfo, this.page + 1, this.previousScreen, this.showPlaced, this.showClaimed, this.showDeleted, this.showStatus);
                 client.setScreen(screen);
             } else if (hoveredElement.equals("show_available")) {
                 this.showPlaced = !this.showPlaced;
@@ -182,12 +182,12 @@ public class GraveSelectScreen extends Screen {
             drawTexture(matrices, screenLeft + screenWidth - 14, originY - 8, 8, 84, 8, 15);
         }
 
-        int infoSize = this.graveIds.size();
+        int infoSize = this.filteredGraveIds.size();
         int startValue = infoSize - (page - 1) * 4;
         int whileMoreThan = Math.max(startValue - 4, 0);
         int iterations = 0;
         for (int i = startValue; i > whileMoreThan; i--) {
-            UUID graveId = this.graveIds.get(i - 1);
+            UUID graveId = this.filteredGraveIds.get(i - 1);
             GraveGuiInfo info = this.graveInfo.get(graveId);
 
             if (this.showStatus && info.availability != 1) {
@@ -240,7 +240,7 @@ public class GraveSelectScreen extends Screen {
         try {
             UUID.fromString(uuidString);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return false;
         }
     }
