@@ -333,8 +333,12 @@ public class GraveHelper {
             return;
         }
 
+        if (config.graveSettings.useLastGroundPos && player instanceof ServerPlayerEntityImpl) {
+            pos = ((ServerPlayerEntityImpl) player).getLastGroundPos();
+        }
+
         double yPos = pos.y - 1D;
-        if ((int) yPos != (int) (yPos + 0.5D) && player.isOnGround()) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
+        if ((int) yPos != (int) (yPos + 0.5D) && (player.isOnGround() || config.graveSettings.useLastGroundPos)) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
 
         BlockPos blockPos = new BlockPos(pos.x, (int) yPos, pos.z);
 

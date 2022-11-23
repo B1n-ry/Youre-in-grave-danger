@@ -8,6 +8,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.DeathInfoManager;
 import com.b1n_ry.yigd.core.GraveHelper;
+import com.b1n_ry.yigd.core.ServerPlayerEntityImpl;
 import com.b1n_ry.yigd.item.KeyItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -42,7 +43,8 @@ import java.util.Map;
 import java.util.UUID;
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin {
+public abstract class ServerPlayerEntityMixin implements ServerPlayerEntityImpl {
+    private Vec3d groundPos = null;
 
     @Shadow
     public abstract ServerWorld getWorld();
@@ -184,6 +186,19 @@ public abstract class ServerPlayerEntityMixin {
         catch (Exception e) {
             Yigd.LOGGER.warn("Death data did not generate\n" + e);
         }
+    }
+
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void setGroundPos(CallbackInfo ci) {
+        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+        if (player.isOnGround()) {
+            this.groundPos = player.getPos();
+        }
+    }
+
+    @Override
+    public Vec3d getLastGroundPos() {
+        return this.groundPos;
     }
 
     private void giveScroll(PlayerEntity player, UUID graveId) {
