@@ -88,14 +88,14 @@ dependencies {
 	modImplementation("mods.compat:The_Graveyard_1.10_(FABRIC)_for_1.19")
 
 	// Don't destroy grave compat
-	modImplementation("com.github.Technici4n:magna:${project.magna_version}")
+	modImplementation("com.github.Draylar:magna:${project.magna_version}")
 
 	// Required for some mod compatibility to work
 	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
 	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}") { transitive = false }
 	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
 	modImplementation("com.github.Draylar.omega-config:omega-config-base:${project.omega_config_version}")
-	modImplementation "software.bernie.geckolib:geckolib-fabric-1.19-pre3:${project.geckolib_version_fabric}"
+	modImplementation "software.bernie.geckolib:geckolib-fabric-1.19:${project.geckolib_version_fabric}"
 
 	// Land claim compat mods
 	modImplementation("mods.compat:flan-1.19-${project.flan_version}-fabric") { transitive = false }
