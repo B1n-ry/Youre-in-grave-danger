@@ -218,6 +218,7 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         }
         if (FabricLoader.getInstance().isModLoaded("apoli")) {
             apiMods.add(new OriginsCompat());
+            miscCompatMods.add("apoli");
         }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 

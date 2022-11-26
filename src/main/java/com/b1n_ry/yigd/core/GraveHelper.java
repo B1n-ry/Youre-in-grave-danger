@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.compat.OriginsCompat;
 import com.b1n_ry.yigd.compat.TheGraveyardCompat;
 import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
@@ -168,7 +169,10 @@ public class GraveHelper {
         for (int i = 0; i < items.size(); i++) {
             ItemStack stack = items.get(i);
 
-            if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) || GraveHelper.hasBotaniaKeepIvy(stack, true)) soulboundInventory.set(i, stack);
+            if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) ||
+                    GraveHelper.hasBotaniaKeepIvy(stack, true) ||
+                    (Yigd.miscCompatMods.contains("apoli") && OriginsCompat.shouldSaveSlot(player, i)))
+                soulboundInventory.set(i, stack);
         }
 
         for (int i : graveConfig.voidSlots) {
@@ -334,7 +338,8 @@ public class GraveHelper {
         }
 
         if (config.graveSettings.useLastGroundPos && player instanceof ServerPlayerEntityImpl) {
-            pos = ((ServerPlayerEntityImpl) player).getLastGroundPos();
+            Vec3d groundPos = ((ServerPlayerEntityImpl) player).getLastGroundPos();
+            if (groundPos != null) pos = groundPos;
         }
 
         double yPos = pos.y - 1D;
