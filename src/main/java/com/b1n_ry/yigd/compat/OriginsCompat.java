@@ -164,7 +164,7 @@ public class OriginsCompat implements YigdApi {
             }
             ItemStack stack = player.getInventory().getStack(slot);
             if (!stack.isEmpty()) {
-                if (keepItemCondition != null && keepItemCondition.test(stack)) {
+                if (keepItemCondition == null || keepItemCondition.test(stack)) {
                     return true;
                 }
             }
