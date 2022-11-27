@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.compat.OriginsCompat;
 import com.b1n_ry.yigd.compat.RequiemCompat;
 import com.b1n_ry.yigd.compat.TheGraveyardCompat;
 import com.b1n_ry.yigd.config.*;
@@ -78,7 +79,7 @@ public class GraveHelper {
         }
     }
 
-    public static void removeSoulboundLevel(ItemStack stack, List<String> enchantments) {
+    public static void removeEnchantmentLevel(ItemStack stack, List<String> enchantments) {
         NbtList stackNbt = stack.getEnchantments();
         List<NbtCompound> removeCompounds = new ArrayList<>();
         for (NbtElement e : stackNbt) {
@@ -107,13 +108,7 @@ public class GraveHelper {
         items.addAll(inventory.armor);
         items.addAll(inventory.offHand);
 
-        if (inventory.size() > items.size()) {
-            for (int i = items.size(); i < inventory.size(); i++) {
-                items.add(inventory.getStack(i));
-            }
-        }
-
-        // These lines should never be triggered, but just in case there is any problem this is here
+        // These lines should never be triggered, but just in case there is any problem with some mods compat, this is here
         int currentSize = items.size();
         if (inventory.size() > currentSize) {
             for (int i = currentSize; i < inventory.size(); i++) {
@@ -163,10 +158,10 @@ public class GraveHelper {
         DefaultedList<ItemStack> soulboundInventory = GraveHelper.getEnchantedItems(items, soulboundEnchantments); // Get all soulbound enchanted items in inventory
         DefaultedList<ItemStack> removeFromGrave = GraveHelper.getEnchantedItems(items, removeEnchantments); // Find all items to be removed
 
-        // If soulbound levels should decrease, make sure they do, and if they reach zero get deleted
+        // If soulbound levels should decrease, make sure they do, and if they reach zero, enchantment gets deleted
         if (graveConfig.loseSoulboundLevelOnDeath) {
             for (ItemStack stack : soulboundInventory) {
-                removeSoulboundLevel(stack, soulboundEnchantments);
+                removeEnchantmentLevel(stack, soulboundEnchantments);
             }
         }
 
@@ -174,7 +169,10 @@ public class GraveHelper {
         for (int i = 0; i < items.size(); i++) {
             ItemStack stack = items.get(i);
 
-            if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) || GraveHelper.hasBotaniaKeepIvy(stack, true)) soulboundInventory.set(i, stack);
+            if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) ||
+                    GraveHelper.hasBotaniaKeepIvy(stack, true) ||
+                    (Yigd.miscCompatMods.contains("apoli") && OriginsCompat.shouldSaveSlot(player, i)))
+                soulboundInventory.set(i, stack);
         }
 
         for (int i : graveConfig.voidSlots) {
@@ -252,9 +250,11 @@ public class GraveHelper {
             } else if (currentLevel >= 17) {
                 totalExperience = (int) (2.5 * Math.pow(currentLevel, 2) - 40.5 * currentLevel + 360);
             } else {
-                totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel + player.experienceProgress);
+                totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel);
             }
-            xpPoints = (int) ((graveConfig.xpDropPercent / 100f) * totalExperience);
+            totalExperience += player.experienceProgress;
+
+            xpPoints = (int) ((graveConfig.xpDropPercent / 100f) * (float) totalExperience);
         }
 
         DeadPlayerData.Soulbound.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
@@ -330,8 +330,13 @@ public class GraveHelper {
             return;
         }
 
+        if (config.graveSettings.useLastGroundPos && player instanceof ServerPlayerEntityImpl) {
+            Vec3d groundPos = ((ServerPlayerEntityImpl) player).getLastGroundPos();
+            if (groundPos != null) pos = groundPos;
+        }
+
         double yPos = pos.y - 1D;
-        if ((int) yPos != (int) (yPos + 0.5D) && player.isOnGround()) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
+        if ((int) yPos != (int) (yPos + 0.5D) && (player.isOnGround() || config.graveSettings.useLastGroundPos)) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
 
         BlockPos blockPos = new BlockPos(pos.x, (int) yPos, pos.z);
 

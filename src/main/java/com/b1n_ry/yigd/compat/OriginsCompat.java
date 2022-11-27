@@ -6,9 +6,11 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.GraveHelper;
 import com.b1n_ry.yigd.core.ModTags;
+import com.b1n_ry.yigd.mixin.OriginKeepInventoryPowerAccessor;
 import io.github.apace100.apoli.component.PowerHolderComponent;
 import io.github.apace100.apoli.power.Active.Key;
 import io.github.apace100.apoli.power.InventoryPower;
+import io.github.apace100.apoli.power.KeepInventoryPower;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
@@ -16,10 +18,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class OriginsCompat implements YigdApi {
     @Override
@@ -46,7 +46,7 @@ public class OriginsCompat implements YigdApi {
                         soulboundInv.set(i, currentStack); // Add to soulbound if it should stay in inventory
                     } else if (GraveHelper.hasEnchantments(config.graveSettings.soulboundEnchantments, currentStack)) { // Soulbound enchantment and not default keep
                         if (config.graveSettings.loseSoulboundLevelOnDeath) {
-                            GraveHelper.removeSoulboundLevel(currentStack, config.graveSettings.soulboundEnchantments);
+                            GraveHelper.removeEnchantmentLevel(currentStack, config.graveSettings.soulboundEnchantments);
                         }
                         soulboundInv.set(i, currentStack);
                     } else if (!GraveHelper.hasEnchantments(config.graveSettings.deleteEnchantments, currentStack)) { // Not destroyed
@@ -152,5 +152,23 @@ public class OriginsCompat implements YigdApi {
             inventory.put(key, items);
         }
         return inventory;
+    }
+
+    public static boolean shouldSaveSlot(PlayerEntity player, int slot) {
+        for (KeepInventoryPower keepInventoryPower : PowerHolderComponent.getPowers(player, KeepInventoryPower.class)) {
+            Set<Integer> slots = ((OriginKeepInventoryPowerAccessor) keepInventoryPower).getSlots();
+            Predicate<ItemStack> keepItemCondition = ((OriginKeepInventoryPowerAccessor) keepInventoryPower).getKeepItemCondition();
+
+            if (slots != null && !slots.contains(slot)) {
+                return false;
+            }
+            ItemStack stack = player.getInventory().getStack(slot);
+            if (!stack.isEmpty()) {
+                if (keepItemCondition != null && keepItemCondition.test(stack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

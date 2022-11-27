@@ -101,11 +101,8 @@ public class ScrollItem extends Item {
             buf.writeBoolean(YigdCommand.hasPermission(user, "yigd.command.delete"));
             buf.writeBoolean(config.commandToggles.robGrave && YigdCommand.hasPermission(user, "yigd.command.rob"));
 
-            int unlockedGravesAmount = DeathInfoManager.INSTANCE.unlockedGraves.size();
-            buf.writeInt(unlockedGravesAmount);
-            for (int i = 0; i < unlockedGravesAmount; i++) {
-                buf.writeUuid(DeathInfoManager.INSTANCE.unlockedGraves.get(i));
-            }
+            buf.writeBoolean(DeathInfoManager.INSTANCE.unlockedGraves.contains(selectedGrave.id));
+            buf.writeBoolean(config.graveSettings.graveRobbing.tellRobber);
 
             ServerPlayNetworking.send(spe, PacketIdentifiers.SINGLE_GRAVE_GUI, buf);
             Yigd.LOGGER.info("Sending packet to " + spe.getDisplayName().asString() + " with grave info");

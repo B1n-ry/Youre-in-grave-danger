@@ -1,3 +1,17 @@
+# You're in Grave Danger 1.3.12
+
+### Changes
+- Added config to spawn the grave where you last touched the ground
+- Added origins keep inventory power support
+
+### Fixes
+- Improved packet networking, meaning servers should no longer crash if too many people play on it
+- Travelers backpack were disappearing when "trinket mode" in travelers backpack config was enabled
+- XP progress did not save when dying above level 17
+- Fixed incompat (crash) with inventory tabs
+
+---
+
 # You're in Grave Danger 1.3.11
 
 ### Changes

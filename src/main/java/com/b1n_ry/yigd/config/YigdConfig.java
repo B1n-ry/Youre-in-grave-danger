@@ -100,6 +100,9 @@ public class YigdConfig implements ConfigData {
         public boolean applyBindingCurse = true;
 
         @ConfigEntry.Gui.Tooltip
+        public boolean useLastGroundPos = false;
+
+        @ConfigEntry.Gui.Tooltip
         public boolean trySoft = false;
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public TrySoftConfig trySoftApproach = TrySoftConfig.RADIUS;

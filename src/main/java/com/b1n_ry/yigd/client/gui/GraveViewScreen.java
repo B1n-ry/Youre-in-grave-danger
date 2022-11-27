@@ -38,15 +38,18 @@ public class GraveViewScreen extends Screen {
     private final int xpLevels;
     private final Screen previousScreen;
 
-    public static boolean showGraveRobber = false;
-    public static List<UUID> unlockedGraves = new ArrayList<>();
+    private final boolean showGraveRobber;
+    private boolean unlocked;
 
     public static final Map<String, String> dimensionNameOverrides = new HashMap<>();
 
-    public GraveViewScreen(DeadPlayerData data, @Nullable Screen previousScreen) {
+    public GraveViewScreen(DeadPlayerData data, boolean unlocked, boolean showGraveRobber, @Nullable Screen previousScreen) {
         super(data.graveOwner != null ? new TranslatableText("text.yigd.gui.grave_view.title", data.graveOwner.getName()) : new TranslatableText("text.yigd.gui.grave_view.title.missing"));
         this.data = data;
         this.previousScreen = previousScreen;
+
+        this.unlocked = unlocked;
+        this.showGraveRobber = showGraveRobber;
 
         int size = 0;
         for (int i = 41; i < data.inventory.size(); i++) {
@@ -126,18 +129,11 @@ public class GraveViewScreen extends Screen {
                     this.close();
                 }
                 case "toggleLocked" -> {
-                    boolean graveIsLocked;
-                    if (unlockedGraves.contains(this.data.id)) {
-                        unlockedGraves.remove(this.data.id);
-                        graveIsLocked = true;
-                    } else {
-                        unlockedGraves.add(this.data.id);
-                        graveIsLocked = false;
-                    }
+                    this.unlocked = !this.unlocked;
 
                     PacketByteBuf buf = PacketByteBufs.create()
                             .writeUuid(this.data.id);
-                    buf.writeBoolean(graveIsLocked);
+                    buf.writeBoolean(this.unlocked);
 
                     ClientPlayNetworking.send(PacketIdentifiers.SET_GRAVE_LOCK, buf);
                 }
@@ -173,7 +169,7 @@ public class GraveViewScreen extends Screen {
                 drawTexture(matrices, originX + screenWidth / 2 + 1, originY - screenHeight / 2 + yOffset, 182, 0, 51, 15);
             }
 
-            if (unlockedGraves.contains(this.data.id)) {
+            if (this.unlocked) {
                 textRenderer.draw(matrices, new TranslatableText("text.yigd.word.lock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
             } else {
                 textRenderer.draw(matrices, new TranslatableText("text.yigd.word.unlock"), originX + screenWidth / 2f + 5, originY - screenHeight / 2f + 4 + yOffset, 0x000000);
@@ -314,7 +310,7 @@ public class GraveViewScreen extends Screen {
             }
             textRenderer.draw(matrices, cachedString.toString(), textX, originY - screenHeight / 2f + 37f + 9f * row, 0x555555);
         }
-        if (data.claimedBy != null && showGraveRobber) {
+        if (this.data.claimedBy != null && this.showGraveRobber) {
             textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_view.claimed_by", data.claimedBy.getName()), textX, originY - screenHeight / 2f + 58f, 0x000000);
         }
         textRenderer.draw(matrices, new TranslatableText("text.yigd.gui.grave_view.level_count", this.xpLevels), textX + 18f, originY - screenHeight / 2f + 77f, 0x299608);

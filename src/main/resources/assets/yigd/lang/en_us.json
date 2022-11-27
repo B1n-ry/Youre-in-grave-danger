@@ -88,6 +88,8 @@
   "text.autoconfig.yigd.option.graveSettings.soulboundSlots.@Tooltip": "Items in these slots will not go away when you die",
   "text.autoconfig.yigd.option.graveSettings.applyBindingCurse": "Curse of Binding",
   "text.autoconfig.yigd.option.graveSettings.applyBindingCurse.@Tooltip": "If curse of binding should be applied when opening graves",
+  "text.autoconfig.yigd.option.graveSettings.useLastGroundPos": "Use Last Ground Pos",
+  "text.autoconfig.yigd.option.graveSettings.useLastGroundPos.@Tooltip": "If true, grave will generate on the block you were last standing",
   "text.autoconfig.yigd.option.graveSettings.trySoft": "Try Soft Replace",
   "text.autoconfig.yigd.option.graveSettings.trySoft.@Tooltip": "Try to place grave using a block whitelist. Whitelist is a block tag located at data/yigd/tags/blocks/soft_whitelist.json. Defaulted to air, water, and lava",
   "text.autoconfig.yigd.option.graveSettings.trySoftApproach": "Try Soft Method",
