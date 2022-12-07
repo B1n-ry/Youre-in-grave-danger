@@ -36,7 +36,7 @@ public class LevelzCompat implements YigdApi {
         YigdConfig.GraveCompatConfig graveCompatConfig = YigdConfig.getConfig().graveSettings.graveCompatConfig;
 
         PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
-        int exp = (int) (playerStatsManager.levelProgress * playerStatsManager.getNextLevelExperience());
+        int exp = (int) (playerStatsManager.getLevelProgress() * playerStatsManager.getNextLevelExperience());
 
         if (onDeath) {
             if (!graveCompatConfig.levelzXpInGraves && ConfigInit.CONFIG.dropPlayerXP && (ConfigInit.CONFIG.resetCurrentXP || ConfigInit.CONFIG.hardMode)) {
@@ -70,7 +70,7 @@ public class LevelzCompat implements YigdApi {
     @Override
     public void dropAll(PlayerEntity player) {
         PlayerStatsManager playerStatsManager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
-        playerStatsManager.levelProgress = 0;
+        playerStatsManager.setLevelProgress(0);
     }
 
     @Override

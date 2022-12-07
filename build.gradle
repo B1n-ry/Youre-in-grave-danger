@@ -85,7 +85,7 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
-	modImplementation("mods.compat:The_Graveyard_1.10_(FABRIC)_for_1.19")
+	modImplementation("mods.compat:The_Graveyard_${project.graveyard_version}_(FABRIC)_for_${project.minecraft_version}")
 
 	// Don't destroy grave compat
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")
@@ -98,7 +98,7 @@ dependencies {
 	modImplementation "software.bernie.geckolib:geckolib-fabric-1.19:${project.geckolib_version_fabric}"
 
 	// Land claim compat mods
-	modImplementation("mods.compat:flan-1.19-${project.flan_version}-fabric") { transitive = false }
+	modImplementation("mods.compat:flan-${project.minecraft_version}-${project.flan_version}-fabric") { transitive = false }
 	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
 	modImplementation("eu.pb4:common-protection-api:${project.protection_api_version}")
 
