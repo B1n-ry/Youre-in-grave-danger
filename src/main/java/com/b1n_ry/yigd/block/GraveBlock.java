@@ -34,6 +34,7 @@ import net.minecraft.item.ShovelItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -50,7 +51,6 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -514,7 +514,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     NbtCompound itemNbt = item.getNbt();
                     NbtCompound newNbt = new NbtCompound();
                     newNbt.put("tag", itemNbt);
-                    newNbt.putString("id", Registry.ITEM.getId(item.getItem()).toString());
+                    newNbt.putString("id", Registries.ITEM.getId(item.getItem()).toString());
                     newNbt.putInt("Count", item.getCount());
 
                     boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later

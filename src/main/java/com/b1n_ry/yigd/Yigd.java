@@ -28,6 +28,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -39,14 +40,15 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemGroups;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,56 +180,64 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> DeathInfoManager.INSTANCE = null);
 
-        GRAVE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
+        GRAVE_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, "yigd:grave_block_entity", FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build(null));
 
-        Registry.register(Registry.BLOCK, new Identifier("yigd", "grave"), GRAVE_BLOCK);
-        Registry.register(Registry.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
+        Registry.register(Registries.BLOCK, new Identifier("yigd", "grave"), GRAVE_BLOCK);
+        Registry.register(Registries.ITEM, new Identifier("yigd", "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings()));
 
         YigdConfig.UtilitySettings utilityConfig = YigdConfig.getConfig().utilitySettings;
         if (utilityConfig.soulboundEnchant.enabled) {
             // Add the soulbound enchantment if it should be loaded (configured to enable)
-            Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
+            Registry.register(Registries.ENCHANTMENT, new Identifier("yigd", "soulbound"), new SoulboundEnchantment());
         }
         if (utilityConfig.deathSightEnchant.enabled) {
             // Add the death sight enchantment if it should be loaded (configured to enable)
             DEATH_SIGHT = new DeathSightEnchantment();
-            Registry.register(Registry.ENCHANTMENT, new Identifier("yigd", "death_sight"), DEATH_SIGHT);
+            Registry.register(Registries.ENCHANTMENT, new Identifier("yigd", "death_sight"), DEATH_SIGHT);
         }
         if (utilityConfig.scrollItem.scrollType != ScrollTypeConfig.DISABLED) {
             // Add the scroll item if it should be loaded (will write an error on world load if not enabled, but this can be ignored)
-            SCROLL_ITEM = new ScrollItem(new Item.Settings().group(ItemGroup.MISC));
-            Registry.register(Registry.ITEM, new Identifier("yigd", "death_scroll"), SCROLL_ITEM);
+            SCROLL_ITEM = new ScrollItem(new Item.Settings());
+            Registry.register(Registries.ITEM, new Identifier("yigd", "death_scroll"), SCROLL_ITEM);
         }
         if (utilityConfig.graveKeySettings.enableKeys) {
             // Add the grave key item if it should be loaded
-            KEY_ITEM = new KeyItem(new Item.Settings().group(ItemGroup.MISC));
-            Registry.register(Registry.ITEM, new Identifier("yigd", "grave_key"), KEY_ITEM);
+            KEY_ITEM = new KeyItem(new Item.Settings());
+            Registry.register(Registries.ITEM, new Identifier("yigd", "grave_key"), KEY_ITEM);
         }
 
-        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
-            apiMods.add(new TrinketsCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("levelz")) {
-            apiMods.add(new LevelzCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
-            apiMods.add(new InventorioCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("travelersbackpack") && !TravelersBackpackCompat.isTrinketIntegrationOn()) {
-            apiMods.add(new TravelersBackpackCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("apoli")) {
-            apiMods.add(new OriginsCompat());
-            miscCompatMods.add("apoli");
-        }
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> content.add(GRAVE_BLOCK.asItem()));
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
+            if (utilityConfig.scrollItem.scrollType != ScrollTypeConfig.DISABLED)
+                content.add(SCROLL_ITEM);
+            if (utilityConfig.graveKeySettings.enableKeys)
+                content.add(KEY_ITEM);
+        });
+
+//        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+//            apiMods.add(new TrinketsCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("levelz")) {
+//            apiMods.add(new LevelzCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
+//            apiMods.add(new InventorioCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("travelersbackpack") && !TravelersBackpackCompat.isTrinketIntegrationOn()) {
+//            apiMods.add(new TravelersBackpackCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("apoli")) {
+//            apiMods.add(new OriginsCompat());
+//            miscCompatMods.add("apoli");
+//        }
         apiMods.addAll(FabricLoader.getInstance().getEntrypoints("yigd", YigdApi.class));
 
-        if (FabricLoader.getInstance().isModLoaded("flan")) {
-            claimMods.add(new FlanCompat());
-        }
-        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
-            claimMods.add(new FtbChunksCompat());
-        }
+//        if (FabricLoader.getInstance().isModLoaded("flan")) {
+//            claimMods.add(new FlanCompat());
+//        }
+//        if (FabricLoader.getInstance().isModLoaded("ftbchunks")) {
+//            claimMods.add(new FtbChunksCompat());
+//        }
         if (FabricLoader.getInstance().isModLoaded("common-protection-api")) {
             claimMods.add(new ProtectionApiCompat());
         }

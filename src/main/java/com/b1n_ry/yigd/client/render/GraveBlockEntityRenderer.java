@@ -36,6 +36,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
+import org.joml.Quaternionf;
 
 import java.util.*;
 
@@ -171,7 +172,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 case EAST -> yRotation = 270f;
                 default -> yRotation = 0;
             }
-            matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(yRotation));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yRotation));
 
 
             float midY = 2f;
@@ -215,7 +216,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             }
 
             matrices.translate(0, -(4f - midY) / 16f, -(8f - midZ) / 16f);
-            matrices.multiply(new Quaternion(rotX, rotY, rotZ, true));
+            matrices.multiply(new Quaternionf().rotationXYZ(rotX, rotY, rotZ));
 
             matrices.scale(scaleXY, scaleXY, scaleZ);
 
@@ -262,15 +263,15 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
                 switch (direction) {
                     case SOUTH -> {
-                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180));
+                        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180));
                         matrices.translate(-1, 0, -1);
                     }
                     case WEST -> {
-                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90));
+                        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
                         matrices.translate(-1, 0, 0);
                     }
                     case EAST -> {
-                        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(270));
+                        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(270));
                         matrices.translate(0, 0, -1);
                     }
                 }
@@ -290,15 +291,15 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         switch (direction) {
             case EAST -> {
-                matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(270f));
+                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(270f));
                 matrices.translate(0, 0, -1);
             }
             case WEST -> {
-                matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90f));
+                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90f));
                 matrices.translate(-1, 0, 0);
             }
             case SOUTH -> {
-                matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180));
+                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180));
                 matrices.translate(-1, 0, -1);
             }
         }

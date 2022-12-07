@@ -4,8 +4,8 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
-import com.b1n_ry.yigd.compat.OriginsCompat;
-import com.b1n_ry.yigd.compat.TheGraveyardCompat;
+//import com.b1n_ry.yigd.compat.OriginsCompat;
+//import com.b1n_ry.yigd.compat.TheGraveyardCompat;
 import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -26,6 +26,9 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
@@ -37,7 +40,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
@@ -170,8 +172,8 @@ public class GraveHelper {
             ItemStack stack = items.get(i);
 
             if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) ||
-                    GraveHelper.hasBotaniaKeepIvy(stack, true) ||
-                    (Yigd.miscCompatMods.contains("apoli") && OriginsCompat.shouldSaveSlot(player, i)))
+                    GraveHelper.hasBotaniaKeepIvy(stack, true) /* ||
+                    (Yigd.miscCompatMods.contains("apoli")&& OriginsCompat.shouldSaveSlot(player, i))*/)
                 soulboundInventory.set(i, stack);
         }
 
@@ -183,7 +185,7 @@ public class GraveHelper {
         GraveHelper.removeFromList(items, removeFromGrave); // Delete items with set enchantment
 
         DimensionType playerDimension = playerWorld.getDimension();
-        Registry<DimensionType> dimManager = playerWorld.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
+        Registry<DimensionType> dimManager = playerWorld.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE);
 
         BlockPos blockPos = new BlockPos(pos);
 
@@ -481,15 +483,15 @@ public class GraveHelper {
             }
         }
 
-        if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
-            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
-            BlockPos gravePos = gravePosDir.getLeft();
-            Direction dir = gravePosDir.getRight();
-            if (dir == null) dir = player.getHorizontalFacing();
-            if (!blockPos.equals(gravePos)) {
-                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
-            }
-        }
+//        if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
+//            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
+//            BlockPos gravePos = gravePosDir.getLeft();
+//            Direction dir = gravePosDir.getRight();
+//            if (dir == null) dir = player.getHorizontalFacing();
+//            if (!blockPos.equals(gravePos)) {
+//                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
+//            }
+//        }
 
         if (!foundViableGrave && config.graveSettings.trySoft) { // Trying soft
             TrySoftConfig trySoftApproach = config.graveSettings.trySoftApproach;
@@ -621,7 +623,7 @@ public class GraveHelper {
     private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, Map<String, Object> modInventories, int xpPoints, DamageSource source, Direction direction) {
         // If close enough to end portal, and is standing on bedrock, place grave a block up. This is so the portal won't replace graves
         DimensionType playerDimension = player.world.getDimension();
-        Registry<DimensionType> dimManager = player.world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY);
+        Registry<DimensionType> dimManager = player.world.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE);
 
         Identifier playerWorldId = dimManager.getId(playerDimension);
         if (playerWorldId != null && playerWorldId.equals(DimensionTypes.THE_END_ID)) {
@@ -673,7 +675,7 @@ public class GraveHelper {
                 if (blockIdentifier == null) {
                     blockStateUnder = Blocks.DIRT.getDefaultState();
                 } else {
-                    blockStateUnder = Registry.BLOCK.get(blockIdentifier).getDefaultState();
+                    blockStateUnder = Registries.BLOCK.get(blockIdentifier).getDefaultState();
                 }
 
                 world.setBlockState(blockPosUnder, blockStateUnder); // Place support block under grave

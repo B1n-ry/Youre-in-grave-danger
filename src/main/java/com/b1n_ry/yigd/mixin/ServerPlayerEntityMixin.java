@@ -19,6 +19,8 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -26,8 +28,6 @@ import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -167,7 +167,7 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerEntityImpl 
                         NbtCompound nbt = new NbtCompound();
                         nbt.put("pos", NbtHelper.fromBlockPos(latestDeath.gravePos));
 
-                        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, latestDeath.worldId);
+                        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, latestDeath.worldId);
                         World.CODEC.encodeStart(NbtOps.INSTANCE, worldKey).resultOrPartial(Yigd.LOGGER::error).ifPresent(nbtElement -> nbt.put("dimension", nbtElement));
 
                         stack.setSubNbt("pointTowards", nbt);

@@ -21,7 +21,14 @@ public class ConfigWarningScreen extends WarningScreen {
     @Override
     protected void initButtons(int yOffset) {
         if (this.client == null) return;
-        this.addDrawableChild(new ButtonWidget(this.width / 2 - 155, 100 + yOffset, 150, 20, ScreenTexts.PROCEED, buttonWidget -> this.client.setScreen(parent)));
-        this.addDrawableChild(new ButtonWidget(this.width / 2 - 155 + 160, 100 + yOffset, 150, 20, Text.translatable("menu.quit"), buttonWidget -> this.client.scheduleStop()));
+        this.addDrawableChild(
+                ButtonWidget.builder(ScreenTexts.PROCEED, buttonWidget -> this.client.setScreen(parent))
+                        .dimensions(this.width / 2 - 155, 100 + yOffset, 150, 20)
+                        .build());
+
+        this.addDrawableChild(
+                ButtonWidget.builder(Text.translatable("menu.quit"), buttonWidget -> this.client.scheduleStop())
+                        .dimensions(this.width / 2 - 155 + 160, 100 + yOffset, 150, 20)
+                        .build());
     }
 }

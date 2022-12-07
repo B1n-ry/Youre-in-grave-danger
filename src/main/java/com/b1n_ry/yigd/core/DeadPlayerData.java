@@ -13,11 +13,11 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +41,7 @@ public class DeadPlayerData {
     public GameProfile claimedBy;
 
     public static DeadPlayerData create(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DamageSource deathSource, UUID id) {
-        Identifier dimId = world.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getId(world.getDimension());
+        Identifier dimId = world.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE).getId(world.getDimension());
         String dimName = dimId != null ? dimId.toString() : "void";
         return new DeadPlayerData(inventory, modInventories, gravePos, graveOwner, xp, world.getRegistryKey().getValue(), dimName, deathSource, world.getTimeOfDay(), (byte) 1, null, id);
     }
@@ -185,13 +185,10 @@ public class DeadPlayerData {
                     case "outOfWorld" -> deathSource = DamageSource.OUT_OF_WORLD;
                     case "magic" -> deathSource = DamageSource.MAGIC;
                     case "wither" -> deathSource = DamageSource.WITHER;
-                    case "anvil" -> deathSource = DamageSource.ANVIL;
-                    case "fallingBlock" -> deathSource = DamageSource.FALLING_BLOCK;
                     case "dragonBreath" -> deathSource = DamageSource.DRAGON_BREATH;
                     case "dryout" -> deathSource = DamageSource.DRYOUT;
                     case "sweetBerryBush" -> deathSource = DamageSource.SWEET_BERRY_BUSH;
                     case "freeze" -> deathSource = DamageSource.FREEZE;
-                    case "fallingStalactite" -> deathSource = DamageSource.FALLING_STALACTITE;
                     case "stalagmite" -> deathSource = DamageSource.STALAGMITE;
                     default -> deathSource = GENERIC;
                 }
