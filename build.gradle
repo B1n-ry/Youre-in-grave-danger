@@ -65,11 +65,8 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
+	// Fabric API
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
-	// You may need to force-disable transitiveness on them.
 
 	//Config
 	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
@@ -79,7 +76,6 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
-//	modImplementation("curse.maven:thegraveyard-${project.graveyard_version}")
 	modImplementation("mods.compat:The_Graveyard_1.9_(FABRIC)_for_1.18.2")
 	modImplementation "io.github.ladysnake:requiem:${project.requiem_version}"
 
@@ -87,23 +83,26 @@ dependencies {
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")
 
 	// Required for some mod compatibility to work
-	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
-	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-api:${project.cca_version}") { transitive = false }
 	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
-	modImplementation "software.bernie.geckolib:geckolib-fabric-1.18:${project.geckolib_version_fabric}"
-
 
 	// Land claim compat mods
-	modImplementation("mods.compat:flan-${project.flan_version}-fabric") { transitive = false }
-	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
+	modImplementation("mods.compat:flan-${project.flan_version}-fabric")
+	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}")
 	modImplementation("eu.pb4:common-protection-api:${project.protection_api_version}")
 
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
-	modImplementation("mods.compat:inventorio-${project.inventorio_version}") { transitive = false }
+	modImplementation("mods.compat:levelz-${project.levelz_version}")
+	modImplementation("mods.compat:inventorio-${project.inventorio_version}")
 	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
-	modImplementation "com.github.Apace100:apoli:${project.apoli_version}" // Origins inventories
+	modImplementation("com.github.Apace100:apoli:${project.apoli_version}") { transitive = false } // Origins inventories
+
+	// Compile only mods
+	modImplementation "dev.architectury:architectury:${project.architectury_version}"
+	modImplementation "com.github.apace100:calio:${project.calio_version}"
+	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+	modImplementation "dev.ftb.mods:ftb-teams-fabric:${project.ftb_teams_version}"
+	modImplementation "software.bernie.geckolib:geckolib-fabric-1.18:${project.geckolib_version_fabric}"
 }
 
 processResources {
