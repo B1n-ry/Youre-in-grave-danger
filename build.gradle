@@ -91,23 +91,26 @@ dependencies {
 	modImplementation("com.github.Draylar:magna:${project.magna_version}")
 
 	// Required for some mod compatibility to work
-	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
-	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}") { transitive = false }
 	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
-	modImplementation("com.github.Draylar.omega-config:omega-config-base:${project.omega_config_version}")
-	modImplementation "software.bernie.geckolib:geckolib-fabric-1.19:${project.geckolib_version_fabric}"
+	modImplementation "io.github.ladysnake:PlayerAbilityLib:${project.pal_version}"
 
 	// Land claim compat mods
-	modImplementation("mods.compat:flan-${project.minecraft_version}-${project.flan_version}-fabric") { transitive = false }
-	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}") { transitive = false }
+	modImplementation("mods.compat:flan-${project.minecraft_version}-${project.flan_version}-fabric")
+	modImplementation("dev.ftb.mods:ftb-chunks-fabric:${project.ftb_chunks_version}")
 	modImplementation("eu.pb4:common-protection-api:${project.protection_api_version}")
 
 	// Inventory Compat mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
-	modImplementation("mods.compat:inventorio-${project.inventorio_version}") { transitive = false }
+	modImplementation("mods.compat:levelz-${project.levelz_version}")
+	modImplementation("mods.compat:inventorio-${project.inventorio_version}")
 	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
-	modImplementation "com.github.apace100:apoli:${project.apoli_version}" // Origins inventories
+	modImplementation("com.github.apace100:apoli:${project.apoli_version}") { transitive = false } // Origins inventories
+
+	// Compile when game runs
+	modImplementation "com.github.apace100:calio:${project.calio_version}"
+	modImplementation "dev.architectury:architectury:${project.architectury_version}"
+	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+	modImplementation "software.bernie.geckolib:geckolib-fabric-1.19:${project.geckolib_version_fabric}"
 }
 
 processResources {
