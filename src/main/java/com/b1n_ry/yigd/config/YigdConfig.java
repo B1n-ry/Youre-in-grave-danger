@@ -116,7 +116,7 @@ public class YigdConfig implements ConfigData {
         public boolean persistGraves = false;
 
         @ConfigEntry.Gui.Tooltip
-        public List<Integer> blacklistDimensions = new ArrayList<>();
+        public List<String> blacklistDimensions = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
         public boolean graveInVoid = true;

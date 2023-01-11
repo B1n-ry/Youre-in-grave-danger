@@ -196,6 +196,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                         rotX = headRender.getAsJsonArray("rotation").get(0).getAsFloat();
                         rotY = headRender.getAsJsonArray("rotation").get(1).getAsFloat();
                         rotZ = headRender.getAsJsonArray("rotation").get(2).getAsFloat();
+
+                        rotX = (float) Math.toRadians(rotX);
+                        rotY = (float) Math.toRadians(rotY);
+                        rotZ = (float) Math.toRadians(rotZ);
                     } else {
                         rotX = 0;
                         rotY = 0;

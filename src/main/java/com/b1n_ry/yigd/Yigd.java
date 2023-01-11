@@ -214,15 +214,15 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                 content.add(KEY_ITEM);
         });
 
-//        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
-//            apiMods.add(new TrinketsCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            apiMods.add(new TrinketsCompat());
+        }
 //        if (FabricLoader.getInstance().isModLoaded("levelz")) {
 //            apiMods.add(new LevelzCompat());
 //        }
-//        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
-//            apiMods.add(new InventorioCompat());
-//        }
+        if (FabricLoader.getInstance().isModLoaded("inventorio")) {
+            apiMods.add(new InventorioCompat());
+        }
 //        if (FabricLoader.getInstance().isModLoaded("travelersbackpack") && !TravelersBackpackCompat.isTrinketIntegrationOn()) {
 //            apiMods.add(new TravelersBackpackCompat());
 //        }
