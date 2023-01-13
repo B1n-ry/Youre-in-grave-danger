@@ -4,7 +4,6 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
-//import com.b1n_ry.yigd.compat.OriginsCompat;
 import com.b1n_ry.yigd.compat.TheGraveyardCompat;
 import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
@@ -45,8 +44,14 @@ import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class GraveHelper {
+    /**
+     * Creates a list with all indexes of input {@link DefaultedList<ItemStack>} that points to any empty {@link ItemStack}
+     * @param inventory merged inventories into a {@link DefaultedList<ItemStack>}
+     * @return Indexes pointing to empty {@link ItemStack} in input
+     */
     public static List<Integer> getInventoryOpenSlots(DefaultedList<ItemStack> inventory) {
         List<Integer> openSlots = new ArrayList<>();
 
@@ -58,29 +63,46 @@ public class GraveHelper {
         return openSlots;
     }
 
-    public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, List<String> ignoreEnchantments) {
-        YigdConfig.ItemLoss itemLoss = YigdConfig.getConfig().graveSettings.itemLoss;
+    /**
+     * Removes ONE {@link ItemStack} from {@code itemList} that matches {@code predicate}
+     * @param itemList {@link DefaultedList<ItemStack>} that contains items to be filtered
+     * @param asStack If true, the entire {@link ItemStack} will be replaced by air.
+     *                If false, only one item from the {@link ItemStack} will be removed
+     * @param predicate Predicate function taking one argument, {@link ItemStack}, to be
+     *                  tested, if {@link ItemStack} should be kept ({@code true}) or not
+     *                  ({@code false})
+     */
+    public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, Predicate<ItemStack> predicate) {
+        // Create a list from which picking a random item
         List<Integer> itemSlots = new ArrayList<>();
         for (int i = 0; i < itemList.size(); i++) {
             ItemStack stack = itemList.get(i);
-            if (!stack.isEmpty()) continue;
-            if (stack.isIn(ModTags.RANDOM_DELETE_BLACKLIST) || hasEnchantments(ignoreEnchantments, stack)) continue;
-            if (itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM) || GraveHelper.hasBotaniaKeepIvy(stack, false)) continue;
+            if (stack.isEmpty()) continue;
+            if (!predicate.test(stack)) continue;
 
             itemSlots.add(i);
         }
 
+        if (itemSlots.isEmpty()) return;
+
         int random = new Random().nextInt(itemSlots.size());
-        int slot = itemSlots.get(random);
-        ItemStack stack = itemList.get(slot);
 
         if (asStack) {
             itemList.set(random, ItemStack.EMPTY);
         } else {
+            int slot = itemSlots.get(random);
+            ItemStack stack = itemList.get(slot);
+
             stack.decrement(1);
         }
     }
 
+    /**
+     * Removes ONE level of all enchantments (represented by IDs in string form) in
+     * {@code enchantments} from {@code stack}
+     * @param stack {@link ItemStack} from which to remove enchantments
+     * @param enchantments {@link List<String>} of enchantment identifier strings to remove
+     */
     public static void removeEnchantmentLevel(ItemStack stack, List<String> enchantments) {
         NbtList stackNbt = stack.getEnchantments();
         List<NbtCompound> removeCompounds = new ArrayList<>();
@@ -97,14 +119,22 @@ public class GraveHelper {
         stackNbt.removeAll(removeCompounds);
     }
 
+    /**
+     * Main function. Called when a player dies to handle the items
+     * @param player The {@link PlayerEntity} who died
+     * @param playerWorld Which {@link World} the player died in
+     * @param pos At what {@link BlockPos} (coordinate) the player died at
+     * @param source Why the player died
+     */
     public static void onDeath(PlayerEntity player, World playerWorld, Vec3d pos, DamageSource source) {
         YigdConfig config = YigdConfig.getConfig();
 
         PlayerInventory inventory = player.getInventory();
-        inventory.updateItems();
+        inventory.updateItems(); // Could possibly prevent item loss (I think)
 
         DefaultedList<ItemStack> allItems = DefaultedList.of();
 
+        // Compact all items into a single list
         DefaultedList<ItemStack> items = DefaultedList.of();
         items.addAll(inventory.main);
         items.addAll(inventory.armor);
@@ -118,6 +148,7 @@ public class GraveHelper {
                 items.add(stack);
             }
         }
+
         YigdConfig.GraveSettings graveConfig = config.graveSettings;
 
         List<String> soulboundEnchantments = graveConfig.soulboundEnchantments; // Get a string array with all soulbound enchantment names
@@ -147,13 +178,17 @@ public class GraveHelper {
             }
             int amount = from < to ? new Random().nextInt(from, ++to) : from;
 
-            List<String> matchingEnchantment = new ArrayList<>();
-            if (itemLoss.ignoreSoulboundItems) matchingEnchantment.addAll(soulboundEnchantments);
-
             for (int i = 0; i < amount; i++) {
                 if (Math.random() * 100 > (double) itemLoss.percentChanceOfLoss) continue;
 
-                GraveHelper.deleteItemFromList(items, handleAsStacks, matchingEnchantment);
+                GraveHelper.deleteItemFromList(items, handleAsStacks, itemStack -> (!itemLoss.ignoreSoulboundItems
+                        && (
+                                hasEnchantments(soulboundEnchantments, itemStack)
+                                || itemStack.isIn(ModTags.SOULBOUND_ITEM)
+                                || GraveHelper.hasBotaniaKeepIvy(itemStack, false)
+                        ))
+                        || itemStack.isIn(ModTags.RANDOM_DELETE_BLACKLIST)
+                );
             }
         }
 
@@ -328,6 +363,16 @@ public class GraveHelper {
         }
     }
 
+    /**
+     * Find a spot to place a grave for the dead player
+     * @param world Which {@link World} to spawn the grave in
+     * @param pos Which {@link BlockPos} to try and generate the grave at/around
+     * @param player Which {@link PlayerEntity} died
+     * @param invItems The items the player carried
+     * @param modInventories Items from modded inventories with specially provided compatibility
+     * @param xpPoints Amount of XP player had
+     * @param source Why the player died
+     */
     public static void placeDeathGrave(World world, Vec3d pos, PlayerEntity player, DefaultedList<ItemStack> invItems, Map<String, Object> modInventories, int xpPoints, DamageSource source) {
         if (world.isClient()) return;
         int bottomY = world.getBottomY();
@@ -583,6 +628,16 @@ public class GraveHelper {
         }
     }
 
+    /**
+     * Deduce if a grave can be placed somewhere
+     * @param world Which {@link World} the grave is trying to be placed in
+     * @param blockPos Which {@link BlockPos} the grave is trying to be placed at
+     * @param strict If {@code true}, grave can't generate if current block at the position
+     *               matches "strict" replace blacklist block tag.
+     *               If {@code false}, grave can't generate if current block at the position
+     *               does NOT match "soft" replace whitelist block tag
+     * @return {@link Boolean} to if grave can be placed in this certain spot
+     */
     private static boolean gravePlaceableAt(World world, BlockPos blockPos, boolean strict) {
         BlockEntity blockEntity = world.getBlockEntity(blockPos);
 
@@ -615,11 +670,28 @@ public class GraveHelper {
         return !(xPos >= boundEast && xPos <= boundWest && yPos <= world.getBottomY() && yPos >= world.getTopY() && zPos <= boundNorth && zPos >= boundSouth);
     }
 
+    /**
+     * Places the actual grave block. Orientation of the grave is decided by which direction dead player is looking
+     */
     private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, Map<String, Object> modInventories, int xpPoints, DamageSource source) {
         Direction direction = player.getHorizontalFacing();
         return placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, direction);
     }
 
+    /**
+     * Places the actual grave block, and stores the grave data
+     * @param player Which {@link PlayerEntity} who died
+     * @param world In what {@link World} the player died
+     * @param gravePos At what {@link BlockPos} the player died
+     * @param invItems Which items the player carried
+     * @param modInventories What items in special modded inventories,
+     *                       provided special compatibility for, the
+     *                       player carried
+     * @param xpPoints How much XP the player carried
+     * @param source Why the player died
+     * @param direction The direction of the grave
+     * @return Weather or not the grave was successfully placed
+     */
     private static boolean placeGraveBlock(PlayerEntity player, World world, BlockPos gravePos, DefaultedList<ItemStack> invItems, Map<String, Object> modInventories, int xpPoints, DamageSource source, Direction direction) {
         // If close enough to end portal, and is standing on bedrock, place grave a block up. This is so the portal won't replace graves
         DimensionType playerDimension = player.world.getDimension();
@@ -737,6 +809,13 @@ public class GraveHelper {
         return true;
     }
 
+    /**
+     * Sets all elements from {@code remove} that's also in {@code list} to {@link ItemStack#EMPTY}
+     * without removing them completely
+     * @param list {@link DefaultedList<ItemStack>} of all items
+     * @param remove {@link DefaultedList<ItemStack>} with some items from {@code list} to remove
+     *                                               from {@code list}
+     */
     public static void removeFromList(DefaultedList<ItemStack> list, DefaultedList<ItemStack> remove) {
         for (ItemStack item : remove) {
             int match = list.indexOf(item);
@@ -746,6 +825,13 @@ public class GraveHelper {
         }
     }
 
+    /**
+     * Get all items in {@code items} that has at least one enchantment from {@code enchantStrings}
+     * @param items {@link DefaultedList<ItemStack>} of items with potential enchantments
+     * @param enchantStrings {@link List<String>} of identifiers for enchantments in string form
+     * @return {@link DefaultedList<ItemStack>} of all items in {@code items} with one or more of the
+     * enchantments from {@code enchantStrings}. All other items are empty
+     */
     public static DefaultedList<ItemStack> getEnchantedItems(DefaultedList<ItemStack> items, List<String> enchantStrings) {
         DefaultedList<ItemStack> included = DefaultedList.ofSize(items.size(), ItemStack.EMPTY);
 
@@ -756,6 +842,12 @@ public class GraveHelper {
         return included;
     }
 
+    /**
+     * Decide if {@link ItemStack} has any of the given enchantments
+     * @param enchants {@link List<String>} of identifiers for enchantments in string form
+     * @param item {@link ItemStack} to try enchantments against
+     * @return Weather or not (true or false) item has any enchantments from {@code enchants}
+     */
     public static boolean hasEnchantments(List<String> enchants, ItemStack item) {
         if (!item.hasEnchantments()) return false;
 
@@ -770,6 +862,14 @@ public class GraveHelper {
         return false;
     }
 
+    /**
+     * Give a player back items from a grave
+     * @param player {@link PlayerEntity} who is receiving the items
+     * @param graveInv {@link DefaultedList<ItemStack>} of all returned items
+     * @param modInventories All modded inventory items
+     * @param xp Returned XP
+     * @param robbing Weather or not player is robbing the grave (if it's the player's grave)
+     */
     public static void RetrieveItems(PlayerEntity player, DefaultedList<ItemStack> graveInv, Map<String, Object> modInventories, int xp, boolean robbing) {
         PlayerInventory inventory = player.getInventory();
 
@@ -838,6 +938,14 @@ public class GraveHelper {
         Yigd.LOGGER.info(player.getDisplayName().getString() + " retrieved the items from the grave");
     }
 
+    /**
+     * Add all items to a player if the inventory slots are free
+     * @param player The {@link PlayerEntity} who is receiving items
+     * @param inv {@link DefaultedList<ItemStack>} of all items to try and add
+     * @param modInv Modded inventories to add items from
+     * @param fromGrave Keep track if items are from a grave or not (apply curse of binding correctly)
+     * @return All excess items which slots were not free/open
+     */
     private static DefaultedList<ItemStack> fillInventory(PlayerEntity player, DefaultedList<ItemStack> inv, Map<String, Object> modInv, boolean fromGrave) {
         YigdConfig.GraveSettings graveSettings = YigdConfig.getConfig().graveSettings;
         PlayerInventory inventory = player.getInventory();
@@ -927,6 +1035,12 @@ public class GraveHelper {
         return extraItems;
     }
 
+    /**
+     * Botania compatibility. Weather an item has an applied keeping ivy
+     * @param stack {@link ItemStack} to test
+     * @param alsoDelete If ivy trait should be deleted when tested
+     * @return Weather or not item has keep ivy trait
+     */
     public static boolean hasBotaniaKeepIvy(ItemStack stack, boolean alsoDelete) {
         if (stack.isEmpty() || !stack.hasNbt()) return false;
         NbtCompound nbt = stack.getNbt();
@@ -939,6 +1053,11 @@ public class GraveHelper {
         }
         return false;
     }
+
+    /**
+     * Remove keep ivy trait from an {@link ItemStack}
+     * @param stack {@link ItemStack} to remove keep ivy trait from
+     */
     public static void removeBotaniaKeepIvy(ItemStack stack) {
         if (stack.isEmpty() || !stack.hasNbt()) return;
         NbtCompound nbt = stack.getNbt();
