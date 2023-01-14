@@ -67,6 +67,10 @@ public class GraveHelper {
 
             itemSlots.add(i);
         }
+        
+        if (itemSlots.isEmpty()) {
+            return;
+        }
 
         int random = new Random().nextInt(itemSlots.size());
         int slot = itemSlots.get(random);
