@@ -23,20 +23,13 @@ public abstract class WorldRendererMixin {
     @Shadow private @Nullable ShaderEffect entityOutlineShader;
     @Shadow @Final private MinecraftClient client;
 
-    private boolean glowingShaderRendered = false;
-
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gl/ShaderEffect;render(F)V", ordinal = 0))
-    private void onRenderGlowingShader(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, CallbackInfo ci) {
-        glowingShaderRendered = true;
-    }
-
     @Inject(method = "render", at = @At("RETURN"))
     private void renderGlowingShader(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, CallbackInfo ci) {
-        if (this.entityOutlineShader != null && !glowingShaderRendered && GraveBlockEntityRenderer.renderGraveGlowing) {
+        if (this.entityOutlineShader == null || !GraveBlockEntityRenderer.renderGraveGlowing) return;
+
+        if (tickDelta != ((ShaderEffectAccessor) entityOutlineShader).getLastTickDelta()) {
             this.entityOutlineShader.render(tickDelta);
-            Framebuffer fb = this.client.getFramebuffer();
-            if (fb != null) fb.beginWrite(false);
+            this.client.getFramebuffer().beginWrite(false);
         }
-        glowingShaderRendered = false;
     }
 }
