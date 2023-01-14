@@ -1,3 +1,21 @@
+# You're in Grave Danger 1.5.0
+
+### Changes
+ - Updated to 1.19.3
+ - Changed blacklistDimensions config into taking dimension string IDs, and not integer IDs
+ - Disabled some compatibilities as mods hasn't updated. These mods are:
+   - FLAN
+   - Ftb Chunks
+   - LevelZ
+   - Origins (inventory power)
+   - Travelers backpack
+ - Changed how glowing graves are rendered. This might be able to fix some rendering issues
+
+### Fixes
+ - Fixed some issues with item-loss config not working properly, and sometimes crashing
+
+---
+
 # You're in Grave Danger 1.4.6
 
 ### Changes
@@ -8,7 +26,7 @@
  - Improved packet networking, meaning servers should no longer crash if too many people play on it
  - Travelers backpack were disappearing when "trinket mode" in travelers backpack config was enabled
  - XP progress did not save when dying above level 17
- - Mincells boss doesn't destroy graves
+ - Minecells boss doesn't destroy graves
  - Fixed incompat (crash) with inventory tabs
 
 ---
