@@ -43,6 +43,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class GraveHelper {
     public static List<Integer> getInventoryOpenSlots(DefaultedList<ItemStack> inventory) {
@@ -56,25 +57,27 @@ public class GraveHelper {
         return openSlots;
     }
 
-    public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, List<String> ignoreEnchantments) {
-        YigdConfig.ItemLoss itemLoss = YigdConfig.getConfig().graveSettings.itemLoss;
+    public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, Predicate<ItemStack> predicate) {
+        // Create a list from which picking a random item
         List<Integer> itemSlots = new ArrayList<>();
         for (int i = 0; i < itemList.size(); i++) {
             ItemStack stack = itemList.get(i);
-            if (!stack.isEmpty()) continue;
-            if (stack.isIn(ModTags.RANDOM_DELETE_BLACKLIST) || hasEnchantments(ignoreEnchantments, stack)) continue;
-            if (itemLoss.ignoreSoulboundItems && stack.isIn(ModTags.SOULBOUND_ITEM) || GraveHelper.hasBotaniaKeepIvy(stack, false)) continue;
+            if (stack.isEmpty()) continue;
+            if (!predicate.test(stack)) continue;
 
             itemSlots.add(i);
         }
 
+        if (itemSlots.isEmpty()) return;
+
         int random = new Random().nextInt(itemSlots.size());
-        int slot = itemSlots.get(random);
-        ItemStack stack = itemList.get(slot);
 
         if (asStack) {
             itemList.set(random, ItemStack.EMPTY);
         } else {
+            int slot = itemSlots.get(random);
+            ItemStack stack = itemList.get(slot);
+
             stack.decrement(1);
         }
     }
@@ -145,13 +148,17 @@ public class GraveHelper {
             }
             int amount = from < to ? new Random().nextInt(from, ++to) : from;
 
-            List<String> matchingEnchantment = new ArrayList<>();
-            if (itemLoss.ignoreSoulboundItems) matchingEnchantment.addAll(soulboundEnchantments);
-
             for (int i = 0; i < amount; i++) {
                 if (Math.random() * 100 > (double) itemLoss.percentChanceOfLoss) continue;
 
-                GraveHelper.deleteItemFromList(items, handleAsStacks, matchingEnchantment);
+                GraveHelper.deleteItemFromList(items, handleAsStacks, itemStack -> (!itemLoss.ignoreSoulboundItems
+                                && (
+                                hasEnchantments(soulboundEnchantments, itemStack)
+                                        || itemStack.isIn(ModTags.SOULBOUND_ITEM)
+                                        || GraveHelper.hasBotaniaKeepIvy(itemStack, false)
+                        ))
+                        || itemStack.isIn(ModTags.RANDOM_DELETE_BLACKLIST)
+                );
             }
         }
 

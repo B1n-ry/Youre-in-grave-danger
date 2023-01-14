@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TravelersBackpackCompat implements YigdApi {
-    public static boolean isTrinketIntegrationOn() {
+    private boolean isTrinketIntegrationOn() {
         return TravelersBackpackConfig.trinketsIntegration;
     }
 
@@ -29,6 +29,8 @@ public class TravelersBackpackCompat implements YigdApi {
 
     @Override
     public Object getInventory(PlayerEntity player, boolean onDeath, @Nullable DeathEffectConfig onDeathHandling) {
+        if (this.isTrinketIntegrationOn()) return ItemStack.EMPTY;
+
         YigdConfig.GraveSettings config = YigdConfig.getConfig().graveSettings;
         List<String> soulboundEnchantments = config.soulboundEnchantments;
         List<String> deleteEnchantments = config.deleteEnchantments;
@@ -67,7 +69,7 @@ public class TravelersBackpackCompat implements YigdApi {
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
         if (!(inventory instanceof ItemStack stack) || stack.isEmpty()) return extraItems;
 
-        if (ComponentUtils.isWearingBackpack(player)) {
+        if (ComponentUtils.isWearingBackpack(player)|| this.isTrinketIntegrationOn()) {
             extraItems.add(stack);
         } else {
             ComponentUtils.equipBackpack(player, stack);
@@ -84,6 +86,7 @@ public class TravelersBackpackCompat implements YigdApi {
 
     @Override
     public void dropAll(PlayerEntity player) {
+        if (this.isTrinketIntegrationOn()) return;
         ComponentUtils.getComponent(player).removeWearable();
     }
 
