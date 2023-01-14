@@ -1,3 +1,15 @@
+# You're in Grave Danger 1.4.7
+
+### Changes
+ - Changed glowing grave rendering. Will *maybe* solve issue for some people with invisible graves. Maybe not
+
+### Fixes
+ - Fixed crash error with item loss config enabled
+ - Fixed item loss feature from only deleting air, to actual items
+ - Fixed issue with travelers backpack trinket integration causing backpack to disappear
+
+---
+
 # You're in Grave Danger 1.4.6
 
 ### Changes
