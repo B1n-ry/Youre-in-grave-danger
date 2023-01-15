@@ -7,6 +7,7 @@
  - Fixed crash error with item loss config enabled
  - Fixed item loss feature from only deleting air, to actual items
  - Fixed issue with travelers backpack trinket integration causing backpack to disappear
+ - Fixed `/yigd grave [user]` bringing up GUI for wrong user
 
 ---
 
