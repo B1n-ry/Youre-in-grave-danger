@@ -10,9 +10,13 @@
    - Origins (inventory power)
    - Travelers backpack
  - Changed how glowing graves are rendered. This might be able to fix some rendering issues
+ - Added config to tell all players where the latest grave to the player who just logged of is located
+ - Changed `putXpInGrave` config to `xpStorage`, allowing XP to be stored past death
+ - Merged `trySoft` config and `trySoftApproach` config into one `trySoft` config
 
 ### Fixes
  - Fixed some issues with item-loss config not working properly, and sometimes crashing
+ - Fixed issue with `/yigd grave [user]` command bringing up a GUI for the player in question, not the one using the command
 
 ---
 

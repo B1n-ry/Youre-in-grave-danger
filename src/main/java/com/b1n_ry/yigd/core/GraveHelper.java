@@ -304,6 +304,11 @@ public class GraveHelper {
             xpPoints = (int) ((graveConfig.xpDropPercent / 100f) * (float) totalExperience);
         }
 
+        if (graveConfig.xpStorage == XpStorageConfig.KEEP_XP) {
+            DeadPlayerData.Soulbound.setSoulboundXp(playerId, xpPoints);
+            xpPoints = 0;
+        }
+
         DeadPlayerData.Soulbound.setSoulboundInventories(playerId, soulboundInventory); // Stores the soulbound items
 
         inventory.clear(); // Make sure no items are accidentally dropped, and will render gone from your inventory
@@ -346,7 +351,7 @@ public class GraveHelper {
             ItemScatterer.spawn(playerWorld, new BlockPos(pos), items);
             ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
             return;
-        } else if (!graveConfig.putXpInGrave) {
+        } else if (graveConfig.xpStorage == XpStorageConfig.OUTSIDE_GRAVE) {
             ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
             xpPoints = 0;
         }
@@ -538,8 +543,8 @@ public class GraveHelper {
             }
         }
 
-        if (!foundViableGrave && config.graveSettings.trySoft) { // Trying soft
-            TrySoftConfig trySoftApproach = config.graveSettings.trySoftApproach;
+        if (!foundViableGrave && config.graveSettings.trySoft != TrySoftConfig.DISABLED) { // Trying soft
+            TrySoftConfig trySoftApproach = config.graveSettings.trySoft;
             switch (trySoftApproach) {
                 case RADIUS -> {
                     for (BlockPos gravePos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {

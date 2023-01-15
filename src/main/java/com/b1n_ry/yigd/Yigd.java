@@ -10,10 +10,7 @@ import com.b1n_ry.yigd.compat.*;
 import com.b1n_ry.yigd.config.PriorityInventoryConfig;
 import com.b1n_ry.yigd.config.ScrollTypeConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.core.DeathInfoManager;
-import com.b1n_ry.yigd.core.GraveAreaOverride;
-import com.b1n_ry.yigd.core.ServerPacketReceivers;
-import com.b1n_ry.yigd.core.YigdCommand;
+import com.b1n_ry.yigd.core.*;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
 import com.b1n_ry.yigd.item.KeyItem;
@@ -46,9 +43,11 @@ import net.minecraft.registry.Registry;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -266,6 +265,24 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
                     handler.player.sendMessage(Text.translatable("text.yigd.message.robbed.offline"), false);
                 }
                 notNotifiedRobberies.remove(playerId);
+            }
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            if (!YigdConfig.getConfig().graveSettings.betrayOfflinePeople) return;
+
+            UUID playerId = handler.player.getUuid();
+            if (DeathInfoManager.INSTANCE.data.containsKey(playerId)) {
+                List<DeadPlayerData> data = DeathInfoManager.INSTANCE.data.get(playerId);
+                if (data.size() <= 0) return;
+
+                DeadPlayerData grave = data.get(data.size() - 1);
+
+                if (grave.availability != 1) return;
+
+                BlockPos gravePos = grave.gravePos;
+                for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                    player.sendMessage(Text.translatable("text.yigd.message.rob_player_broadcast", gravePos.getY(), gravePos.getY(), gravePos.getZ(), grave.dimensionName));
+                }
             }
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {

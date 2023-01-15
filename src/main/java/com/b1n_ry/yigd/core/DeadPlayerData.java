@@ -203,6 +203,7 @@ public class DeadPlayerData {
     public static class Soulbound {
         private static final Map<UUID, DefaultedList<ItemStack>> soulboundInventories = new HashMap<>();
         private static final Map<UUID, Map<String, Object>> moddedSoulbound = new HashMap<>();
+        private static final Map<UUID, Integer> soulboundXp = new HashMap<>();
 
         public static DefaultedList<ItemStack> getSoulboundInventory(UUID userId) {
             return soulboundInventories.get(userId);
@@ -222,6 +223,11 @@ public class DeadPlayerData {
             moddedSoulbound.get(userId).put(modName, modInventory);
             DeathInfoManager.INSTANCE.markDirty();
         }
+        public static void setSoulboundXp(UUID userId, int amount) {
+            dropSoulboundXp(userId);
+            soulboundXp.put(userId, amount);
+            DeathInfoManager.INSTANCE.markDirty();
+        }
 
         public static void dropSoulbound(UUID userId) {
             soulboundInventories.remove(userId);
@@ -229,6 +235,10 @@ public class DeadPlayerData {
         }
         public static void dropModdedSoulbound(UUID userId) {
             moddedSoulbound.remove(userId);
+            DeathInfoManager.INSTANCE.markDirty();
+        }
+        public static void dropSoulboundXp(UUID userId) {
+            soulboundXp.remove(userId);
             DeathInfoManager.INSTANCE.markDirty();
         }
 
@@ -258,9 +268,16 @@ public class DeadPlayerData {
 
                 modList.add(playerNbt);
             });
+            NbtList xpList = new NbtList();
+            soulboundXp.forEach((uuid, integer) -> {
+                NbtCompound c = new NbtCompound();
+                c.putInt("xp", integer);
+                c.putUuid("user", uuid);
+            });
 
             nbt.put("vanilla", vanillaList);
             nbt.put("mods", modList);
+            nbt.put("xp", xpList);
 
             return nbt;
         }
@@ -268,9 +285,11 @@ public class DeadPlayerData {
         public static void fromNbt(NbtCompound nbt) {
             soulboundInventories.clear();
             moddedSoulbound.clear();
+            soulboundXp.clear();
 
             NbtList vanillaList = nbt.getList("vanilla", NbtElement.COMPOUND_TYPE);
             NbtList modList = nbt.getList("mods", NbtElement.COMPOUND_TYPE);
+            NbtList xpList = nbt.getList("xp", NbtElement.COMPOUND_TYPE);
 
             for (NbtElement e : vanillaList) {
                 if (!(e instanceof NbtCompound cVanilla)) continue;
@@ -294,6 +313,14 @@ public class DeadPlayerData {
 
                     addModdedSoulbound(userId, modInventory, modName);
                 }
+            }
+            for (NbtElement e : xpList) {
+                if (!(e instanceof NbtCompound cXp)) continue;
+
+                int xpAmount = cXp.getInt("xp");
+                UUID userId = cXp.getUuid("user");
+
+                soulboundXp.put(userId, xpAmount);
             }
         }
     }

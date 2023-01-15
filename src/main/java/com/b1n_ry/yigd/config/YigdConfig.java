@@ -102,10 +102,8 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public boolean useLastGroundPos = false;
 
-        @ConfigEntry.Gui.Tooltip
-        public boolean trySoft = false;
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
-        public TrySoftConfig trySoftApproach = TrySoftConfig.RADIUS;
+        public TrySoftConfig trySoft = TrySoftConfig.RADIUS;
         @ConfigEntry.Gui.Tooltip
         public boolean tryStrict = true;
 
@@ -133,7 +131,8 @@ public class YigdConfig implements ConfigData {
         public LastResortConfig lastResort = LastResortConfig.DROP_ITEMS;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean putXpInGrave = true;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public XpStorageConfig xpStorage = XpStorageConfig.IN_GRAVE;
 
         @ConfigEntry.Gui.Tooltip
         public boolean defaultXpDrop = false;
@@ -148,6 +147,9 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean tellDeathPos = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean betrayOfflinePeople = false;
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.Gui.CollapsibleObject
