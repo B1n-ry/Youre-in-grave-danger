@@ -352,7 +352,7 @@ public class YigdCommand {
                 buf.writeByte(data.availability);
             }
 
-            ServerPlayNetworking.send((ServerPlayerEntity) player, PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
+            ServerPlayNetworking.send((ServerPlayerEntity) commandUser, PacketIdentifiers.PLAYER_GRAVES_GUI, buf);
         } else {
             commandUser.sendMessage(new TranslatableText("text.yigd.message.view_command.fail", player.getDisplayName().asString()).styled(style -> style.withColor(0xFF0000)), false);
             return 0;

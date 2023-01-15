@@ -8,6 +8,7 @@
 - Fixed item loss feature from only deleting air, to actual items
 - Fixed issue with travelers backpack trinket integration causing backpack to disappear
 - Game will no longer crash when twilight bosses try to destroy graves
+- Fixed issue with `/yigd grave [user]` showing the GUI for the wrong user
 
 ---
 
