@@ -16,7 +16,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -126,15 +126,13 @@ public class GraveBlockEntity extends BlockEntity {
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
 
-        if (this.world == null) return;
-
         this.storedInventory = DefaultedList.ofSize(tag.getInt("ItemCount"), ItemStack.EMPTY);
 
         Inventories.readNbt(tag.getCompound("Items"), this.storedInventory);
 
         this.storedXp = tag.getInt("StoredXp");
-        this.creationTime = tag.contains("creationTime") ? tag.getLong("creationTime") : world != null ? world.getTime() : 0;
-        this.previousState = NbtHelper.toBlockState(this.world.createCommandRegistryWrapper(RegistryKeys.BLOCK), tag.getCompound("replaceState"));
+        this.creationTime = tag.contains("creationTime") ? tag.getLong("creationTime") : 0;
+        this.previousState = NbtHelper.toBlockState(Registries.BLOCK.getReadOnlyWrapper(), tag.getCompound("replaceState"));
         this.claimed = tag.contains("claimed") && tag.getBoolean("claimed");
         this.graveId = tag.getUuid("graveId");
 
@@ -185,6 +183,7 @@ public class GraveBlockEntity extends BlockEntity {
         YigdConfig.GraveDeletion deletion = savedConfig.graveSettings.graveDeletion;
         if (!deletion.canDelete || grave.claimed) return;
 
+        if (grave.creationTime == 0) grave.creationTime = world.getTime();
         boolean timeHasPassed = grave.creationTime + (long) deletion.afterTime * deletion.timeType.tickFactor() <= world.getTime();
 
         if (!timeHasPassed) return;
