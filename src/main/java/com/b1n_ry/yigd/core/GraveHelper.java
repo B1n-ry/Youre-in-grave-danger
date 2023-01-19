@@ -17,6 +17,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
@@ -154,6 +155,9 @@ public class GraveHelper {
         List<String> soulboundEnchantments = graveConfig.soulboundEnchantments; // Get a string array with all soulbound enchantment names
         List<String> removeEnchantments = graveConfig.deleteEnchantments; // List with enchantments to delete
 
+        // Amethyst Imbuement soulbound compat
+        StatusEffect soulboundEffect = Registries.STATUS_EFFECT.get(new Identifier("amethyst_imbuement", "soulbinding"));
+
         YigdConfig.ItemLoss itemLoss = graveConfig.itemLoss;
         if (itemLoss.enableLoss) {
             boolean handleAsStacks = itemLoss.affectStacks;
@@ -186,6 +190,7 @@ public class GraveHelper {
                                 hasEnchantments(soulboundEnchantments, itemStack)
                                 || itemStack.isIn(ModTags.SOULBOUND_ITEM)
                                 || GraveHelper.hasBotaniaKeepIvy(itemStack, false)
+                                || (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect))
                         ))
                         || itemStack.isIn(ModTags.RANDOM_DELETE_BLACKLIST)
                 );
@@ -207,7 +212,8 @@ public class GraveHelper {
             ItemStack stack = items.get(i);
 
             if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) ||
-                    GraveHelper.hasBotaniaKeepIvy(stack, true) /* ||
+                    GraveHelper.hasBotaniaKeepIvy(stack, true) ||
+                    (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect)) /*||
                     (Yigd.miscCompatMods.contains("apoli")&& OriginsCompat.shouldSaveSlot(player, i))*/)
                 soulboundInventory.set(i, stack);
         }
