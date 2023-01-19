@@ -1,3 +1,10 @@
+# You're in Grave Danger 1.4.8
+
+### Change
+- Amethyst imbuement soulbound totem compat
+
+---
+
 # You're in Grave Danger 1.4.7
 
 ### Changes
