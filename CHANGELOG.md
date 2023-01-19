@@ -1,3 +1,13 @@
+# You're in Grave Danger 1.5.1
+
+### Change
+ - Amethyst imbuement soulbound totem compat
+
+### Fix
+ - Fixed graves from emptying when reloading/rejoining the world/dimension
+
+---
+
 # You're in Grave Danger 1.5.0
 
 ### Changes
