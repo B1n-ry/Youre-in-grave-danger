@@ -56,6 +56,7 @@ repositories {
 	}
 	maven { url "https://maven.nucleoid.xyz/" }
 	maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+	maven { url 'https://maven.wispforest.io' }
 	mavenCentral()
 }
 
@@ -96,6 +97,7 @@ dependencies {
 	modImplementation("mods.compat:inventorio-${project.inventorio_version}")
 	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
 	modImplementation("com.github.Apace100:apoli:${project.apoli_version}") { transitive = false } // Origins inventories
+	modImplementation "mods.compat:numismatic-overhaul-${project.numismatic_version}"
 
 	// Compile only mods
 	modImplementation "dev.architectury:architectury:${project.architectury_version}"
@@ -103,6 +105,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 	modImplementation "dev.ftb.mods:ftb-teams-fabric:${project.ftb_teams_version}"
 	modImplementation "software.bernie.geckolib:geckolib-fabric-1.18:${project.geckolib_version_fabric}"
+	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
 }
 
 processResources {

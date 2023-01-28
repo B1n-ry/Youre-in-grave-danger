@@ -577,11 +577,15 @@ public class GraveHelper {
                 }
             }
             if (!isPlaced) {
+                Vec3d dropPos = new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ());
                 for (YigdApi yigdApi : Yigd.apiMods) {
-                    invItems.addAll(yigdApi.toStackList(player));
+                    int index = Yigd.apiMods.indexOf(yigdApi);
+                    Object o = modInventories.get(index);
+                    invItems.addAll(yigdApi.toStackList(o));
+                    yigdApi.dropOnGround(o, (ServerWorld) world, dropPos);
                 }
                 ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
-                ExperienceOrbEntity.spawn((ServerWorld) world, new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()), xpPoints);
+                ExperienceOrbEntity.spawn((ServerWorld) world, dropPos, xpPoints);
                 Yigd.LOGGER.info("Dropped items as a last resort");
             }
         }

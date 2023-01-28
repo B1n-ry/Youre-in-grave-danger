@@ -1,3 +1,13 @@
+# You're in Grave Danger 1.3.15
+
+### Changes
+ - Added compatibility with numismatic overhaul coins
+
+### Fixes
+ - Fixed issue where if a grave could not generate, and would drop all the players items, mod inventory items would disappear
+
+---
+
 # You're in Grave Danger 1.3.14
 
 ### Change
