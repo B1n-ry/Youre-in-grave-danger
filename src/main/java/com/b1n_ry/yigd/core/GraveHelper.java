@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.compat.OriginsCompat;
 import com.b1n_ry.yigd.compat.TheGraveyardCompat;
 import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
@@ -213,8 +214,8 @@ public class GraveHelper {
 
             if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) ||
                     GraveHelper.hasBotaniaKeepIvy(stack, true) ||
-                    (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect)) /*||
-                    (Yigd.miscCompatMods.contains("apoli")&& OriginsCompat.shouldSaveSlot(player, i))*/)
+                    (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect)) ||
+                    (Yigd.miscCompatMods.contains("apoli") && OriginsCompat.shouldSaveSlot(player, i)))
                 soulboundInventory.set(i, stack);
         }
 
@@ -629,11 +630,14 @@ public class GraveHelper {
                 }
             }
             if (!isPlaced) {
+                Vec3d dropPos = new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ());
                 for (YigdApi yigdApi : Yigd.apiMods) {
-                    invItems.addAll(yigdApi.toStackList(player));
+                    Object o = modInventories.get(yigdApi.getModName());
+                    invItems.addAll(yigdApi.toStackList(o));
+                    yigdApi.dropOnGround(o, (ServerWorld) world, dropPos);
                 }
                 ItemScatterer.spawn(world, blockPos, invItems); // Scatter items at death pos
-                ExperienceOrbEntity.spawn((ServerWorld) world, new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()), xpPoints);
+                ExperienceOrbEntity.spawn((ServerWorld) world, dropPos, xpPoints);
                 Yigd.LOGGER.info("Dropped items as a last resort");
             }
         }
