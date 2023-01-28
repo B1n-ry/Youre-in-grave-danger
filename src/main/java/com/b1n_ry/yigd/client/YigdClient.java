@@ -13,6 +13,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.network.PacketByteBuf;
 
 import static com.b1n_ry.yigd.Yigd.GRAVE_BLOCK_ENTITY;
@@ -23,7 +24,7 @@ public class YigdClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        BlockEntityRendererRegistry.register(GRAVE_BLOCK_ENTITY, GraveBlockEntityRenderer::new);
+        BlockEntityRendererFactories.register(GRAVE_BLOCK_ENTITY, GraveBlockEntityRenderer::new);
 
         ClientPacketReceivers.register();
 
