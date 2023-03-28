@@ -37,7 +37,7 @@ public class ServerPacketReceivers {
 
             ServerPlayerEntity graveOwner = server.getPlayerManager().getPlayer(graveOwnerId);
             if (graveOwner != null) {
-                YigdCommand.restoreGrave(graveOwner, player, graveId);
+                server.execute(() -> YigdCommand.restoreGrave(graveOwner, player, graveId));
             } else {
                 player.sendMessage(Text.translatable("text.yigd.message.backup.restore.fail").styled(style -> style.withColor(0xFF0000)), false);
             }
