@@ -25,6 +25,8 @@ public class ClientPacketReceivers {
             boolean unlocked = buf.readBoolean();
             boolean showGraveRobber = buf.readBoolean();
 
+            if (nbtData == null) return;
+
             DeadPlayerData data = DeadPlayerData.fromNbt(nbtData);
 
             client.execute(() -> {

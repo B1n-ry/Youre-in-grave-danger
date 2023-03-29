@@ -273,8 +273,7 @@ public class GraveViewScreen extends Screen {
             }
         }
 
-        String string = "death.attack." + data.deathSource.name;
-        Text deathMsg = Text.translatable(string, data.graveOwner.getName());
+        Text deathMsg = data.deathMessageInfo.getMessage();
 
         super.render(matrices, mouseX, mouseY, delta);
 
@@ -331,7 +330,7 @@ public class GraveViewScreen extends Screen {
                 renderedEntity = client.player;
             }
             int playerY = originY - screenHeight / 2 + 51;
-            InventoryScreen.drawEntity(playerX, playerY + 30, 30, (float) playerX - mouseX, (float) (playerY - 20) - mouseY, renderedEntity);
+            InventoryScreen.drawEntity(matrices, playerX, playerY + 30, 30, (float) playerX - mouseX, (float) (playerY - 20) - mouseY, renderedEntity);
         }
     }
 
@@ -365,8 +364,8 @@ public class GraveViewScreen extends Screen {
             this.hoveredStack = stack.copy();
         }
 
-        itemRenderer.renderGuiItemIcon(stack, x, y);
-        itemRenderer.renderGuiItemOverlay(textRenderer, stack, x, y);
+        itemRenderer.renderGuiItemIcon(matrices, stack, x, y);
+        itemRenderer.renderGuiItemOverlay(matrices, textRenderer, stack, x, y);
     }
 
     public static class Permissions {

@@ -5,7 +5,6 @@ import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.compat.OriginsCompat;
-import com.b1n_ry.yigd.compat.TheGraveyardCompat;
 import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -229,7 +228,7 @@ public class GraveHelper {
         DimensionType playerDimension = playerWorld.getDimension();
         Registry<DimensionType> dimManager = playerWorld.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE);
 
-        BlockPos blockPos = new BlockPos(pos);
+        BlockPos blockPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
 
         DeathEffectConfig areaDropType = GraveAreaOverride.canGenerateOnPos(blockPos, dimManager.getId(playerDimension), graveConfig.generateGraves);
         if (areaDropType == DeathEffectConfig.KEEP_ITEMS) {
@@ -348,14 +347,14 @@ public class GraveHelper {
         }
 
         Identifier dimId = dimManager.getId(playerDimension);
-        if (dimId != null && graveConfig.blacklistDimensions.contains(dimId.toString()) || graveConfig.ignoreDeathTypes.contains(source.name) || !canGenerate) {
+        if (dimId != null && graveConfig.blacklistDimensions.contains(dimId.toString()) || graveConfig.ignoreDeathTypes.contains(source.getName()) || !canGenerate) {
             for (YigdApi yigdApi : Yigd.apiMods) {
                 Object o = modInventories.get(yigdApi.getModName());
                 items.addAll(yigdApi.toStackList(o));
                 yigdApi.dropOnGround(o, serverWorld, pos);
             }
 
-            ItemScatterer.spawn(playerWorld, new BlockPos(pos), items);
+            ItemScatterer.spawn(playerWorld, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z), items);
             ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
             return;
         } else if (graveConfig.xpStorage == XpStorageConfig.OUTSIDE_GRAVE) {
@@ -404,7 +403,7 @@ public class GraveHelper {
         double yPos = pos.y - 1D;
         if ((int) yPos != (int) (yPos + 0.5D) && (player.isOnGround() || config.graveSettings.useLastGroundPos)) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
 
-        BlockPos blockPos = new BlockPos(pos.x, (int) yPos, pos.z);
+        BlockPos blockPos = new BlockPos((int) pos.x, (int) yPos, (int) pos.z);
 
         if (blockPos.getY() <= bottomY) {
             blockPos = new BlockPos(blockPos.getX(), bottomY + config.graveSettings.graveSpawnHeight, blockPos.getZ());
@@ -417,14 +416,14 @@ public class GraveHelper {
         double boundSouth = world.getWorldBorder().getBoundSouth();
         double boundNorth = world.getWorldBorder().getBoundNorth();
         if (blockPos.getX() >= boundEast) {
-            blockPos = new BlockPos(boundEast - 1, blockPos.getY(), blockPos.getZ());
+            blockPos = new BlockPos((int) boundEast - 1, blockPos.getY(), blockPos.getZ());
         } else if (blockPos.getX() <= boundWest) {
-            blockPos = new BlockPos(boundWest + 1, blockPos.getY(), blockPos.getZ());
+            blockPos = new BlockPos((int) boundWest + 1, blockPos.getY(), blockPos.getZ());
         }
         if (blockPos.getZ() >= boundSouth) {
-            blockPos = new BlockPos(blockPos.getX(), blockPos.getY(), boundSouth - 1);
+            blockPos = new BlockPos(blockPos.getX(), blockPos.getY(), (int) boundSouth - 1);
         } else if (blockPos.getZ() <= boundNorth) {
-            blockPos = new BlockPos(blockPos.getX(), blockPos.getY(), boundNorth + 1);
+            blockPos = new BlockPos(blockPos.getX(), blockPos.getY(), (int) boundNorth + 1);
         }
 
         boolean foundViableGrave = false;
@@ -540,15 +539,15 @@ public class GraveHelper {
             }
         }
 
-        if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
-            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
-            BlockPos gravePos = gravePosDir.getLeft();
-            Direction dir = gravePosDir.getRight();
-            if (dir == null) dir = player.getHorizontalFacing();
-            if (!blockPos.equals(gravePos)) {
-                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
-            }
-        }
+//        if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
+//            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
+//            BlockPos gravePos = gravePosDir.getLeft();
+//            Direction dir = gravePosDir.getRight();
+//            if (dir == null) dir = player.getHorizontalFacing();
+//            if (!blockPos.equals(gravePos)) {
+//                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
+//            }
+//        }
 
         if (!foundViableGrave && config.graveSettings.trySoft != TrySoftConfig.DISABLED) { // Trying soft
             TrySoftConfig trySoftApproach = config.graveSettings.trySoft;
@@ -788,6 +787,7 @@ public class GraveHelper {
             } else {
                 killerId = null;
             }
+            DeathMessageInfo deathMessage = DeathMessageInfo.of(source, player);
 
             placedGraveEntity.setInventory(invItems);
             placedGraveEntity.setGraveOwner(playerProfile);
@@ -801,7 +801,7 @@ public class GraveHelper {
 
             placedGraveEntity.markDirty(); // Trying to sync to world better
 
-            DeadPlayerData deadData = DeadPlayerData.create(invItems, modInventories, gravePos, player.getGameProfile(), xpPoints, world, source, placedGraveEntity.getGraveId());
+            DeadPlayerData deadData = DeadPlayerData.create(invItems, modInventories, gravePos, player.getGameProfile(), xpPoints, world, deathMessage, placedGraveEntity.getGraveId());
 
             UUID userId = player.getUuid();
             if (!DeathInfoManager.INSTANCE.data.containsKey(userId)) {

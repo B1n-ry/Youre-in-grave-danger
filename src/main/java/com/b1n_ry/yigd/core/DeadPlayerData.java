@@ -3,10 +3,6 @@ package com.b1n_ry.yigd.core;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.EntityDamageSource;
-import net.minecraft.entity.damage.ProjectileDamageSource;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -14,16 +10,12 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-
-import static net.minecraft.entity.damage.DamageSource.GENERIC;
 
 public class DeadPlayerData {
     public DefaultedList<ItemStack> inventory;
@@ -33,26 +25,26 @@ public class DeadPlayerData {
     public int xp;
     public Identifier worldId;
     public String dimensionName;
-    public DamageSource deathSource;
+    public DeathMessageInfo deathMessageInfo;
     public long deathTime;
 
     public UUID id;
     public byte availability; // 0 = retrieved, 1 = available, -1 = broken/missing
     public GameProfile claimedBy;
 
-    public static DeadPlayerData create(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DamageSource deathSource, UUID id) {
+    public static DeadPlayerData create(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner , int xp, World world, DeathMessageInfo deathSource, UUID id) {
         Identifier dimId = world.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE).getId(world.getDimension());
         String dimName = dimId != null ? dimId.toString() : "void";
         return new DeadPlayerData(inventory, modInventories, gravePos, graveOwner, xp, world.getRegistryKey().getValue(), dimName, deathSource, world.getTimeOfDay(), (byte) 1, null, id);
     }
-    public DeadPlayerData(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner, int xp, Identifier worldId, String dimensionName, DamageSource deathSource, long deathTime, byte availability, GameProfile claimedBy, UUID id) {
+    public DeadPlayerData(DefaultedList<ItemStack> inventory, Map<String, Object> modInventories, BlockPos gravePos, GameProfile graveOwner, int xp, Identifier worldId, String dimensionName, DeathMessageInfo deathSource, long deathTime, byte availability, GameProfile claimedBy, UUID id) {
         this.inventory = inventory;
         this.modInventories = modInventories;
         this.gravePos = gravePos;
         this.graveOwner = graveOwner;
         this.xp = xp;
         this.worldId = worldId;
-        this.deathSource = deathSource;
+        this.deathMessageInfo = deathSource;
         this.deathTime = deathTime;
         this.dimensionName = dimensionName;
         this.availability = availability;
@@ -77,14 +69,7 @@ public class DeadPlayerData {
 
         String worldId = this.worldId.toString();
 
-        NbtCompound dsNbt = new NbtCompound();
-        dsNbt.putString("name", this.deathSource.name);
-        if (this.deathSource.getSource() != null) {
-            dsNbt.putUuid("sourceUuid", deathSource.getSource().getUuid());
-        }
-        if (deathSource.getAttacker() != null) {
-            dsNbt.putUuid("attackerUuid", deathSource.getAttacker().getUuid());
-        }
+        NbtCompound deathMessageNbt = this.deathMessageInfo.toNbt();
 
         nbt.put("inventory", invNbt);
         nbt.putInt("inventorySize", this.inventory.size());
@@ -94,7 +79,7 @@ public class DeadPlayerData {
         nbt.putInt("xp", this.xp);
         nbt.putString("world", worldId);
         nbt.putString("dimension", this.dimensionName);
-        nbt.put("causeOfDeath", dsNbt);
+        nbt.put("causeOfDeath", deathMessageNbt);
         nbt.putLong("deathTime", this.deathTime);
         nbt.putByte("availability", this.availability);
         if (this.claimedBy != null) nbt.put("claimedBy", NbtHelper.writeGameProfile(new NbtCompound(), this.claimedBy));
@@ -105,9 +90,6 @@ public class DeadPlayerData {
 
     // Create a new DeadPlayerData instance from NBT
     public static DeadPlayerData fromNbt(NbtCompound nbt) {
-        return fromNbt(nbt, null);
-    }
-    public static DeadPlayerData fromNbt(NbtCompound nbt, @Nullable ServerWorld world) {
         NbtElement itemNbt = nbt.get("inventory");
         int invSize = nbt.getInt("inventorySize");
         DefaultedList<ItemStack> items = DefaultedList.ofSize(invSize, ItemStack.EMPTY);
@@ -150,54 +132,10 @@ public class DeadPlayerData {
         GameProfile claimedBy = nbt.get("claimedBy") instanceof NbtCompound claimedByNbt ? NbtHelper.toGameProfile(claimedByNbt) : null;
         UUID id = nbt.contains("id") ? nbt.getUuid("id") : UUID.randomUUID();
 
-        NbtElement damageSourceNbt = nbt.get("causeOfDeath");
-        DamageSource deathSource;
-        if (damageSourceNbt instanceof NbtCompound dsNbt) {
-            String sourceName = dsNbt.getString("name");
-            Entity source, attacker;
-            if (world != null) {
-                source = world.getEntity(dsNbt.getUuid("sourceUuid"));
-                attacker = world.getEntity(dsNbt.getUuid("attackerUuid"));
-            } else {
-                source = null;
-                attacker = null;
-            }
-            if (source != null) {
-                if (source.equals(attacker)) { // Entity attacker and source
-                    deathSource = new EntityDamageSource(sourceName, source);
-                } else { // Projectile source and entity attacker
-                    deathSource = new ProjectileDamageSource(sourceName, source, attacker);
-                }
-            } else {
-                switch (sourceName) {
-                    case "inFire" -> deathSource = DamageSource.IN_FIRE;
-                    case "lightningBolt" -> deathSource = DamageSource.LIGHTNING_BOLT;
-                    case "onFire" -> deathSource = DamageSource.ON_FIRE;
-                    case "lava" -> deathSource = DamageSource.LAVA;
-                    case "hotFloor" -> deathSource = DamageSource.HOT_FLOOR;
-                    case "inWall" -> deathSource = DamageSource.IN_WALL;
-                    case "cramming" -> deathSource = DamageSource.CRAMMING;
-                    case "drown" -> deathSource = DamageSource.DROWN;
-                    case "starve" -> deathSource = DamageSource.STARVE;
-                    case "cactus" -> deathSource = DamageSource.CACTUS;
-                    case "fall" -> deathSource = DamageSource.FALL;
-                    case "flyIntoWall" -> deathSource = DamageSource.FLY_INTO_WALL;
-                    case "outOfWorld" -> deathSource = DamageSource.OUT_OF_WORLD;
-                    case "magic" -> deathSource = DamageSource.MAGIC;
-                    case "wither" -> deathSource = DamageSource.WITHER;
-                    case "dragonBreath" -> deathSource = DamageSource.DRAGON_BREATH;
-                    case "dryout" -> deathSource = DamageSource.DRYOUT;
-                    case "sweetBerryBush" -> deathSource = DamageSource.SWEET_BERRY_BUSH;
-                    case "freeze" -> deathSource = DamageSource.FREEZE;
-                    case "stalagmite" -> deathSource = DamageSource.STALAGMITE;
-                    default -> deathSource = GENERIC;
-                }
-            }
-        } else {
-            deathSource = null;
-        }
+        NbtCompound deathMessageInfoNbt = nbt.getCompound("deathMessage");
+        DeathMessageInfo deathMessageInfo = DeathMessageInfo.fromNbt(deathMessageInfoNbt);
 
-        return new DeadPlayerData(items, modInventories, pos, graveOwner, xp, worldIdentifier, dimName, deathSource, deathTime, availability, claimedBy, id);
+        return new DeadPlayerData(items, modInventories, pos, graveOwner, xp, worldIdentifier, dimName, deathMessageInfo, deathTime, availability, claimedBy, id);
     }
 
     public static class Soulbound {

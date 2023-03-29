@@ -195,7 +195,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 for (DeadPlayerData data : graves) {
                     if (!graveId.equals(data.id)) continue;
 
-                    player.sendMessage(data.deathSource.getDeathMessage(player), false);
+                    player.sendMessage(data.deathMessageInfo.getMessage(), false);
                     player.sendMessage(Text.translatable("text.yigd.word.day", (int) (data.deathTime / 24000L)), false);
 
                     return ActionResult.SUCCESS;
@@ -337,7 +337,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public BlockState getPlacementState(ItemPlacementContext context) {
         BlockPos blockPos = context.getBlockPos();
         FluidState fluidState = context.getWorld().getFluidState(blockPos);
-        return this.getDefaultState().with(Properties.HORIZONTAL_FACING, context.getPlayerFacing().getOpposite()).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
+        return this.getDefaultState().with(Properties.HORIZONTAL_FACING, context.getPlayerLookDirection().getOpposite()).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
     }
 
     @Override
