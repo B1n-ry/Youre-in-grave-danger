@@ -65,7 +65,7 @@ public class ServerPacketReceivers {
             UUID graveId = buf.readUuid();
 
             GameProfile gameProfile = new GameProfile(ownerId, ownerName);
-            YigdCommand.robGrave(gameProfile, player, graveId);
+            server.execute(() -> YigdCommand.robGrave(gameProfile, player, graveId));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GIVE_KEY_ITEM, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;

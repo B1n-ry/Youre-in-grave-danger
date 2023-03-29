@@ -58,13 +58,13 @@ public class GraveHelper {
         return openSlots;
     }
 
-    public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, Predicate<ItemStack> predicate) {
+    public static void deleteItemFromList(DefaultedList<ItemStack> itemList, boolean asStack, Predicate<ItemStack> canRemoveItem) {
         // Create a list from which picking a random item
         List<Integer> itemSlots = new ArrayList<>();
         for (int i = 0; i < itemList.size(); i++) {
             ItemStack stack = itemList.get(i);
             if (stack.isEmpty()) continue;
-            if (!predicate.test(stack)) continue;
+            if (!canRemoveItem.test(stack)) continue;
 
             itemSlots.add(i);
         }
@@ -156,13 +156,13 @@ public class GraveHelper {
                 if (Math.random() * 100 > (double) itemLoss.percentChanceOfLoss) continue;
 
                 GraveHelper.deleteItemFromList(items, handleAsStacks, itemStack -> (!itemLoss.ignoreSoulboundItems
-                        && (
-                                hasEnchantments(soulboundEnchantments, itemStack)
-                                || itemStack.isIn(ModTags.SOULBOUND_ITEM)
-                                || GraveHelper.hasBotaniaKeepIvy(itemStack, false)
-                                || (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect))
+                        || (
+                                !hasEnchantments(soulboundEnchantments, itemStack)
+                                && !itemStack.isIn(ModTags.SOULBOUND_ITEM)
+                                && !GraveHelper.hasBotaniaKeepIvy(itemStack, false)
+                                && !(soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect))
                         ))
-                        || itemStack.isIn(ModTags.RANDOM_DELETE_BLACKLIST)
+                        && !itemStack.isIn(ModTags.RANDOM_DELETE_BLACKLIST)
                 );
             }
         }
