@@ -38,7 +38,7 @@ public class ServerPacketReceivers {
 
             ServerPlayerEntity graveOwner = server.getPlayerManager().getPlayer(graveOwnerId);
             if (graveOwner != null) {
-                YigdCommand.restoreGrave(graveOwner, player, graveId);
+                server.execute(() -> YigdCommand.restoreGrave(graveOwner, player, graveId));
             } else {
                 player.sendMessage(new TranslatableText("text.yigd.message.backup.restore.fail").styled(style -> style.withColor(0xFF0000)), false);
             }
@@ -66,7 +66,7 @@ public class ServerPacketReceivers {
             UUID graveId = buf.readUuid();
 
             GameProfile gameProfile = new GameProfile(ownerId, ownerName);
-            YigdCommand.robGrave(gameProfile, player, graveId);
+            server.execute(() -> YigdCommand.robGrave(gameProfile, player, graveId));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GIVE_KEY_ITEM, (server, player, handler, buf, responseSender) -> {
             if (player == null) return;
@@ -108,6 +108,7 @@ public class ServerPacketReceivers {
                     if (!stack.isEmpty()) itemCount++;
                 }
                 for (int i = 0; i < Yigd.apiMods.size(); i++) {
+                    if (i >= grave.modInventories.size()) break;
                     YigdApi yigdApi = Yigd.apiMods.get(i);
 
                     itemCount += yigdApi.getInventorySize(grave.modInventories.get(i));

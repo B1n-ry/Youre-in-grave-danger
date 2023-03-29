@@ -694,9 +694,13 @@ public class GraveHelper {
         if (placed instanceof GraveBlockEntity placedGraveEntity) {
             placedGraveEntity.creationTime = world.getTime();
 
-            GameProfile playerProfile = player.getGameProfile();
+            GameProfile playerProfile = null;
             if (Yigd.miscCompatMods.contains("requiem") && RequiemCompat.isPlayerShellEntity(player)) {
                 playerProfile = RequiemCompat.getDisplayProfile(player);
+            }
+
+            if (playerProfile == null) {
+                playerProfile = player.getGameProfile();
             }
 
             Map<String, Object> moddedInvStacks = new HashMap<>();
