@@ -101,7 +101,7 @@ dependencies {
 	modImplementation "mods.compat:numismatic-overhaul-${project.numismatic_version}"
 
 	// Compile only mods
-	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
 	modImplementation "dev.architectury:architectury:${project.architectury_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 	modImplementation "dev.ftb.mods:ftb-teams-fabric:${project.ftb_teams_version}"
