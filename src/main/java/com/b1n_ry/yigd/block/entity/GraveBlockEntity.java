@@ -98,6 +98,12 @@ public class GraveBlockEntity extends BlockEntity {
                 DeadPlayerData data = DeathInfoManager.findUserGrave(this.graveOwner.getId(), this.graveId);
                 if (data != null && data.availability == 1) data.availability = -1;
                 DeathInfoManager.INSTANCE.markDirty();
+
+                Yigd.NEXT_TICK.add(() -> {
+                    if (!this.claimed) {
+                        ItemScatterer.spawn(this.world, this.pos, this.storedInventory);
+                    }
+                });
             } else if (this.graveSkull != null) {
                 dropCosmeticSkull();
             }

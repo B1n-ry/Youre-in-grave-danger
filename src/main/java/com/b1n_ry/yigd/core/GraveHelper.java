@@ -187,13 +187,13 @@ public class GraveHelper {
                 if (Math.random() * 100 > (double) itemLoss.percentChanceOfLoss) continue;
 
                 GraveHelper.deleteItemFromList(items, handleAsStacks, itemStack -> (!itemLoss.ignoreSoulboundItems
-                        && (
-                                hasEnchantments(soulboundEnchantments, itemStack)
-                                || itemStack.isIn(ModTags.SOULBOUND_ITEM)
-                                || GraveHelper.hasBotaniaKeepIvy(itemStack, false)
-                                || (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect))
+                        || (
+                                !hasEnchantments(soulboundEnchantments, itemStack)
+                                && !itemStack.isIn(ModTags.SOULBOUND_ITEM)
+                                && !GraveHelper.hasBotaniaKeepIvy(itemStack, false)
+                                && !(soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect))
                         ))
-                        || itemStack.isIn(ModTags.RANDOM_DELETE_BLACKLIST)
+                        && !itemStack.isIn(ModTags.RANDOM_DELETE_BLACKLIST)
                 );
             }
         }
