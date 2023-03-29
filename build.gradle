@@ -102,17 +102,17 @@ dependencies {
 //	modImplementation("mods.compat:inventorio-${project.inventorio_version}")
 	modImplementation "mods.compat:numismatic-overhaul-${project.numismatic_version}"
 //	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
-	modImplementation "com.github.apace100:apoli:${project.apoli_version}" // Origins inventories
+//	modImplementation "com.github.apace100:apoli:${project.apoli_version}" // Origins inventories
 
 	// Required for some mod compatibility to work
 //	modImplementation "software.bernie.geckolib:geckolib-fabric-${project.minecraft_version}:${project.geckolib_version_fabric}"
 //	modImplementation("net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}")
 //	modImplementation("com.github.Draylar.omega-config:omega-config-base:${project.omega_config_version}")
-//	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
+	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
 //	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
 //	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}")
 	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
-	modImplementation("com.jamieswhiteshirt:reach-entity-attributes:${project.reach_attributes_version}")
+//	modImplementation("com.jamieswhiteshirt:reach-entity-attributes:${project.reach_attributes_version}")
 //	modImplementation "io.github.cottonmc:LibGui:${project.lib_gui_version}" // Required to work with levelz
 }
 

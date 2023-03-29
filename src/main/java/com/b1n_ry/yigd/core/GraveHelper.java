@@ -4,7 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
-import com.b1n_ry.yigd.compat.OriginsCompat;
+//import com.b1n_ry.yigd.compat.OriginsCompat;
 import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -213,8 +213,8 @@ public class GraveHelper {
 
             if (stack.isIn(ModTags.SOULBOUND_ITEM) || graveConfig.soulboundSlots.contains(i) ||
                     GraveHelper.hasBotaniaKeepIvy(stack, true) ||
-                    (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect)) ||
-                    (Yigd.miscCompatMods.contains("apoli") && OriginsCompat.shouldSaveSlot(player, i)))
+                    (soulboundEffect != null && player.getActiveStatusEffects().containsKey(soulboundEffect)) /*||
+                    (Yigd.miscCompatMods.contains("apoli") && OriginsCompat.shouldSaveSlot(player, i))*/)
                 soulboundInventory.set(i, stack);
         }
 

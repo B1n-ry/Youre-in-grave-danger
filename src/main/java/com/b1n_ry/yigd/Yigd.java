@@ -225,10 +225,10 @@ public class Yigd implements ModInitializer, DedicatedServerModInitializer {
 //        if (FabricLoader.getInstance().isModLoaded("travelersbackpack") && !TravelersBackpackCompat.isTrinketIntegrationOn()) {
 //            apiMods.add(new TravelersBackpackCompat());
 //        }
-        if (FabricLoader.getInstance().isModLoaded("apoli")) {
-            apiMods.add(new OriginsCompat());
-            miscCompatMods.add("apoli");
-        }
+//        if (FabricLoader.getInstance().isModLoaded("apoli")) {
+//            apiMods.add(new OriginsCompat());
+//            miscCompatMods.add("apoli");
+//        }
         if (FabricLoader.getInstance().isModLoaded("numismatic-overhaul")) {
             apiMods.add(new NumismaticOverhaulCompat());
         }

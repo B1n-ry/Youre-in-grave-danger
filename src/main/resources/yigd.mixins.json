@@ -6,7 +6,6 @@
   "mixins": [
     "LivingEntityMixin",
     "MinecraftDedicatedServerMixin",
-    "OriginKeepInventoryPowerAccessor",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
     "ShapedRecipeMixin",
