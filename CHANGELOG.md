@@ -1,3 +1,15 @@
+# You're in Grave Danger 1.6.0
+
+### Changes
+ - Added numismatic overhaul compat
+ - Destroying graves without claiming them now drops the graves items
+
+### Fixes
+ - Will no longer crash with uwrad when restoring a "travelers backpack" backpack
+ - Fixed item loss behaving incorrectly
+
+---
+
 # You're in Grave Danger 1.5.1
 
 ### Change

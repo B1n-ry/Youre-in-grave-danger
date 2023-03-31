@@ -101,7 +101,7 @@ dependencies {
 //	modImplementation("mods.compat:levelz-${project.levelz_version}") { transitive = false }
 //	modImplementation("mods.compat:inventorio-${project.inventorio_version}")
 	modImplementation "mods.compat:numismatic-overhaul-${project.numismatic_version}"
-//	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
+	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
 //	modImplementation "com.github.apace100:apoli:${project.apoli_version}" // Origins inventories
 
 	// Required for some mod compatibility to work

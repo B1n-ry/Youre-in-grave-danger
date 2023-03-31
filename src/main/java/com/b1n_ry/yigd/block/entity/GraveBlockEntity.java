@@ -101,7 +101,15 @@ public class GraveBlockEntity extends BlockEntity {
 
                 Yigd.NEXT_TICK.add(() -> {
                     if (!this.claimed) {
-                        ItemScatterer.spawn(this.world, this.pos, this.storedInventory);
+                        DefaultedList<ItemStack> itemsToDrop = DefaultedList.of();
+
+                        itemsToDrop.addAll(this.storedInventory);
+
+                        for (YigdApi yigdApi : Yigd.apiMods) {
+                            Object inventory = this.moddedInventories.get(yigdApi.getModName());
+                            itemsToDrop.addAll(yigdApi.toStackList(inventory));
+                        }
+                        ItemScatterer.spawn(this.world, this.pos, itemsToDrop);
                     }
                 });
             } else if (this.graveSkull != null) {
