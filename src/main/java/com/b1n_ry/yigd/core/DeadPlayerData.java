@@ -132,7 +132,7 @@ public class DeadPlayerData {
         GameProfile claimedBy = nbt.get("claimedBy") instanceof NbtCompound claimedByNbt ? NbtHelper.toGameProfile(claimedByNbt) : null;
         UUID id = nbt.contains("id") ? nbt.getUuid("id") : UUID.randomUUID();
 
-        NbtCompound deathMessageInfoNbt = nbt.getCompound("deathMessage");
+        NbtCompound deathMessageInfoNbt = nbt.getCompound("causeOfDeath");
         DeathMessageInfo deathMessageInfo = DeathMessageInfo.fromNbt(deathMessageInfoNbt);
 
         return new DeadPlayerData(items, modInventories, pos, graveOwner, xp, worldIdentifier, dimName, deathMessageInfo, deathTime, availability, claimedBy, id);
