@@ -1,3 +1,15 @@
+# You're in Grave Danger 1.4.9
+
+### Changes
+ - Destroyed unclaimed graves will now drop all its contents on the ground
+ - Added numismatic overhaul compat
+
+### Fixes
+ - Will no longer crash with uwrad when restoring a "travelers backpack" backpack
+ - Fixed item loss behaving incorrectly
+
+---
+
 # You're in Grave Danger 1.4.8
 
 ### Change
