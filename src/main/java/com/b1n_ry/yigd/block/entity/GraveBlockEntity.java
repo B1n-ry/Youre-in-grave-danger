@@ -97,6 +97,20 @@ public class GraveBlockEntity extends BlockEntity {
                 DeadPlayerData data = DeathInfoManager.findUserGrave(this.graveOwner.getId(), this.graveId);
                 if (data != null && data.availability == 1) data.availability = -1;
                 DeathInfoManager.INSTANCE.markDirty();
+
+                Yigd.NEXT_TICK.add(() -> {
+                    if (!this.claimed) {
+                        DefaultedList<ItemStack> itemsToDrop = DefaultedList.of();
+
+                        itemsToDrop.addAll(this.storedInventory);
+
+                        for (YigdApi yigdApi : Yigd.apiMods) {
+                            Object inventory = this.moddedInventories.get(yigdApi.getModName());
+                            itemsToDrop.addAll(yigdApi.toStackList(inventory));
+                        }
+                        ItemScatterer.spawn(this.world, this.pos, itemsToDrop);
+                    }
+                });
             } else if (this.graveSkull != null) {
                 dropCosmeticSkull();
             }
