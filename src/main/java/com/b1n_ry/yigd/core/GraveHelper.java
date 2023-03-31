@@ -155,7 +155,7 @@ public class GraveHelper {
             for (int i = 0; i < amount; i++) {
                 if (Math.random() * 100 > (double) itemLoss.percentChanceOfLoss) continue;
 
-                GraveHelper.deleteItemFromList(items, handleAsStacks, itemStack -> (itemLoss.ignoreSoulboundItems
+                GraveHelper.deleteItemFromList(items, handleAsStacks, itemStack -> (!itemLoss.ignoreSoulboundItems
                         || (
                                 !hasEnchantments(soulboundEnchantments, itemStack)
                                 && !itemStack.isIn(ModTags.SOULBOUND_ITEM)
