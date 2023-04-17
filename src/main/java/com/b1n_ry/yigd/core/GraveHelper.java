@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.api.ClaimModsApi;
 import com.b1n_ry.yigd.api.YigdApi;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 //import com.b1n_ry.yigd.compat.OriginsCompat;
+import com.b1n_ry.yigd.compat.TheGraveyardCompat;
 import com.b1n_ry.yigd.config.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -539,15 +540,15 @@ public class GraveHelper {
             }
         }
 
-//        if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
-//            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
-//            BlockPos gravePos = gravePosDir.getLeft();
-//            Direction dir = gravePosDir.getRight();
-//            if (dir == null) dir = player.getHorizontalFacing();
-//            if (!blockPos.equals(gravePos)) {
-//                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
-//            }
-//        }
+        if (!foundViableGrave && config.graveSettings.graveCompatConfig.prioritiseTheGraveyardGraves && Yigd.miscCompatMods.contains("graveyard") && world instanceof ServerWorld serverWorld) {
+            Pair<BlockPos, Direction> gravePosDir = TheGraveyardCompat.getGraveyardGrave(serverWorld, blockPos, config.graveSettings.graveCompatConfig.graveyardSearchRadius);
+            BlockPos gravePos = gravePosDir.getLeft();
+            Direction dir = gravePosDir.getRight();
+            if (dir == null) dir = player.getHorizontalFacing();
+            if (!blockPos.equals(gravePos)) {
+                foundViableGrave = placeGraveBlock(player, world, gravePos, invItems, modInventories, xpPoints, source, dir);
+            }
+        }
 
         if (!foundViableGrave && config.graveSettings.trySoft != TrySoftConfig.DISABLED) { // Trying soft
             TrySoftConfig trySoftApproach = config.graveSettings.trySoft;

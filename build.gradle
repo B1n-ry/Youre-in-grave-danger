@@ -86,7 +86,7 @@ dependencies {
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modImplementation("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
-//	modImplementation("mods.compat:The_Graveyard_${project.graveyard_version}_(FABRIC)_for_${project.minecraft_version}")
+	modImplementation("mods.compat:The_Graveyard_${project.graveyard_version}_(FABRIC)_for_${project.minecraft_version}")
 
 	// Don't destroy grave compat
 //	modImplementation("com.github.Draylar:magna:${project.magna_version}")

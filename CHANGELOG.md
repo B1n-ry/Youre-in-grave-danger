@@ -3,10 +3,12 @@
 ### Changes
  - Added numismatic overhaul compat
  - Destroying graves without claiming them now drops the graves items
+ - Re-added the graveyard compat
 
 ### Fixes
  - Will no longer crash with uwrad when restoring a "travelers backpack" backpack
  - Fixed item loss behaving incorrectly
+- Fixed issue with moderate command
 
 ---
 
@@ -17,7 +19,6 @@
 
 ### Fix
  - Fixed graves from emptying when reloading/rejoining the world/dimension
- - Fixed issue with moderate command
 
 ---
 
