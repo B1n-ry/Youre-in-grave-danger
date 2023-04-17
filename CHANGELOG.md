@@ -17,6 +17,7 @@
 
 ### Fix
  - Fixed graves from emptying when reloading/rejoining the world/dimension
+ - Fixed issue with moderate command
 
 ---
 
