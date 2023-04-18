@@ -37,10 +37,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
@@ -229,7 +226,7 @@ public class GraveHelper {
         DimensionType playerDimension = playerWorld.getDimension();
         Registry<DimensionType> dimManager = playerWorld.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE);
 
-        BlockPos blockPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+        BlockPos blockPos = new BlockPos(MathHelper.floor(pos.x), MathHelper.floor(pos.y), MathHelper.floor(pos.z));
 
         DeathEffectConfig areaDropType = GraveAreaOverride.canGenerateOnPos(blockPos, dimManager.getId(playerDimension), graveConfig.generateGraves);
         if (areaDropType == DeathEffectConfig.KEEP_ITEMS) {
@@ -355,7 +352,7 @@ public class GraveHelper {
                 yigdApi.dropOnGround(o, serverWorld, pos);
             }
 
-            ItemScatterer.spawn(playerWorld, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z), items);
+            ItemScatterer.spawn(playerWorld, new BlockPos(MathHelper.floor(pos.x), MathHelper.floor(pos.y), MathHelper.floor(pos.z)), items);
             ExperienceOrbEntity.spawn((ServerWorld) playerWorld, pos, xpPoints);
             return;
         } else if (graveConfig.xpStorage == XpStorageConfig.OUTSIDE_GRAVE) {
@@ -404,7 +401,7 @@ public class GraveHelper {
         double yPos = pos.y - 1D;
         if ((int) yPos != (int) (yPos + 0.5D) && (player.isOnGround() || config.graveSettings.useLastGroundPos)) yPos++; // If player is standing on a slab or taller block, function should operate from the block above
 
-        BlockPos blockPos = new BlockPos((int) pos.x, (int) yPos, (int) pos.z);
+        BlockPos blockPos = new BlockPos(MathHelper.floor(pos.x), MathHelper.floor(yPos), MathHelper.floor(pos.z));
 
         if (blockPos.getY() <= bottomY) {
             blockPos = new BlockPos(blockPos.getX(), bottomY + config.graveSettings.graveSpawnHeight, blockPos.getZ());

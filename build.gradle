@@ -105,9 +105,9 @@ dependencies {
 //	modImplementation "com.github.apace100:apoli:${project.apoli_version}" // Origins inventories
 
 	// Required for some mod compatibility to work
-//	modImplementation "software.bernie.geckolib:geckolib-fabric-${project.minecraft_version}:${project.geckolib_version_fabric}"
+	modImplementation "software.bernie.geckolib:geckolib-fabric-${project.minecraft_version}:${project.geckolib_version_fabric}"
 //	modImplementation("net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}")
-//	modImplementation("com.github.Draylar.omega-config:omega-config-base:${project.omega_config_version}")
+	modImplementation("com.github.Draylar.omega-config:omega-config-base:${project.omega_config_version}")
 	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
 //	modImplementation("dev.ftb.mods:ftb-library-fabric:${project.ftb_lib_version}") { transitive = false } // Required to get a ftb chunk (to check if it's claimed)
 //	modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}")
