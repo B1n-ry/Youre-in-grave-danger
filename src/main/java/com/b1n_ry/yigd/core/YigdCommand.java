@@ -287,7 +287,7 @@ public class YigdCommand {
                 GameProfile profile;
                 List<DeadPlayerData> graveList = entry.getValue();
                 if (graveList.size() <= 0) {
-                    profile = new GameProfile(entry.getKey(), null);
+                    profile = new GameProfile(entry.getKey(), "Shrek");
                 } else {
                     profile = graveList.get(0).graveOwner;
                 }

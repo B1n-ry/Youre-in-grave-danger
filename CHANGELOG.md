@@ -7,6 +7,7 @@
 ### Fixes
 - Will no longer crash with uwrad when restoring a "travelers backpack" backpack
 - Fixed item loss behaving incorrectly
+- Fixed issue with moderate command
 
 ---
 

@@ -97,10 +97,11 @@ dependencies {
 	modImplementation("mods.compat:levelz-${project.levelz_version}")
 	modImplementation("mods.compat:inventorio-${project.inventorio_version}")
 	modImplementation "mods.compat:travelers-backpack-${project.travelers_backpack_version}"
-	modImplementation("com.github.apace100:apoli:${project.apoli_version}") // Origins inventories
+	modImplementation("com.github.apace100:apoli:${project.apoli_version}") { transitive = false } // Origins inventories
 	modImplementation "mods.compat:numismatic-overhaul-${project.numismatic_version}"
 
 	// Compile only mods
+	modImplementation "com.github.apace100:calio:${project.calio_version}"
 	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
 	modImplementation "dev.architectury:architectury:${project.architectury_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
