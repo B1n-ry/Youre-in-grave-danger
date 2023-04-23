@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.block.entity;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.api.YigdApi;
+import com.b1n_ry.yigd.config.OnDestroyedDrop;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.core.DeadPlayerData;
 import com.b1n_ry.yigd.core.DeathInfoManager;
@@ -99,16 +100,28 @@ public class GraveBlockEntity extends BlockEntity {
                 DeathInfoManager.INSTANCE.markDirty();
 
                 Yigd.NEXT_TICK.add(() -> {
-                    if (!this.claimed) {
-                        DefaultedList<ItemStack> itemsToDrop = DefaultedList.of();
+                    OnDestroyedDrop onDestroyedDrop = savedConfig.graveSettings.onDestroyedDrop;
+                    if (!this.claimed && onDestroyedDrop != OnDestroyedDrop.NONE) {
+                        if (onDestroyedDrop == OnDestroyedDrop.ITEM_CONTENTS) {
+                            DefaultedList<ItemStack> itemsToDrop = DefaultedList.of();
 
-                        itemsToDrop.addAll(this.storedInventory);
+                            itemsToDrop.addAll(this.storedInventory);
 
-                        for (YigdApi yigdApi : Yigd.apiMods) {
-                            Object inventory = this.moddedInventories.get(yigdApi.getModName());
-                            itemsToDrop.addAll(yigdApi.toStackList(inventory));
+                            for (YigdApi yigdApi : Yigd.apiMods) {
+                                Object inventory = this.moddedInventories.get(yigdApi.getModName());
+                                itemsToDrop.addAll(yigdApi.toStackList(inventory));
+                            }
+                            ItemScatterer.spawn(this.world, this.pos, itemsToDrop);
+                        } else if (onDestroyedDrop == OnDestroyedDrop.GRAVE_BLOCK) {
+                            ItemStack stack = Yigd.GRAVE_BLOCK.asItem().getDefaultStack();
+                            NbtCompound itemNbt = new NbtCompound();
+                            NbtCompound blockNbt = new NbtCompound();
+                            this.writeNbt(blockNbt);
+                            itemNbt.put("BlockEntityTag", blockNbt);
+                            stack.setNbt(itemNbt);
+
+                            ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), stack);
                         }
-                        ItemScatterer.spawn(this.world, this.pos, itemsToDrop);
                     }
                 });
             } else if (this.graveSkull != null) {

@@ -99,6 +99,8 @@
   "text.autoconfig.yigd.option.graveSettings.replaceWhenClaimed.@Tooltip": "Should the block replaced by the grave replace the grave as it's removed?",
   "text.autoconfig.yigd.option.graveSettings.persistGraves": "Persisting Graves",
   "text.autoconfig.yigd.option.graveSettings.persistGraves.@Tooltip": "With this config set to true, graves will not disappear when claiming them. Instead when clicking claimed\ngraves you can see which day and how a player died. You can also move these graves with silk touch after they've been claimed",
+  "text.autoconfig.yigd.option.graveSettings.onDestroyedDrop": "On Destroyed Drop",
+  "text.autoconfig.yigd.option.graveSettings.onDestroyedDrop.@Tooltip": "When a grave is destroyed (not claimed) should anything be dropped?",
   "text.autoconfig.yigd.option.graveSettings.blacklistDimensions": "Grave Dimension Blacklist",
   "text.autoconfig.yigd.option.graveSettings.blacklistDimensions.@Tooltip": "Dimensions with their ID in this list will not generate graves\n\nYou can see the dimension ID in the bottom of the top left F3 display (9th row from the top)",
   "text.autoconfig.yigd.option.graveSettings.graveInVoid": "Spawn Grave in Void",

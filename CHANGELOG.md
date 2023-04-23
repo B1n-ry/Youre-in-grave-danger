@@ -1,7 +1,8 @@
 # You're in Grave Danger 1.4.9
 
 ### Changes
- - Destroyed unclaimed graves will now drop all its contents on the ground
+ - Destroyed unclaimed graves will now drop all its contents,
+or the grave containing the items, on the ground (or nothing, configurable)
  - Added numismatic overhaul compat
 
 ### Fixes
