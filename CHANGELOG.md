@@ -2,7 +2,8 @@
 
 ### Changes
  - Added numismatic overhaul compat
- - Destroying graves without claiming them now drops the graves items
+ - Destroyed unclaimed graves will now drop all its contents,
+   or the grave containing the items, on the ground (or nothing, configurable)
  - Re-added the graveyard compat
 
 ### Fixes

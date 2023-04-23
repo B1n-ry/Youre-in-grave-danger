@@ -114,6 +114,10 @@ public class YigdConfig implements ConfigData {
         public boolean persistGraves = false;
 
         @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public OnDestroyedDrop onDestroyedDrop = OnDestroyedDrop.NONE;
+
+        @ConfigEntry.Gui.Tooltip
         public List<String> blacklistDimensions = new ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
