@@ -1,9 +1,11 @@
 package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.data.DeathInfoManager;
+import com.b1n_ry.yigd.data.TranslatableDeathMessage;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DeathMessageType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.registry.Registry;
@@ -21,18 +23,18 @@ public class GraveComponent {
     private final ExpComponent expComponent;
     private final ServerWorld serverWorld;
     private BlockPos pos;
-    private final DamageSource damageSource;
+    private final TranslatableDeathMessage deathMessage;
 
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld serverWorld, Vec3d pos, DamageSource damageSource) {
-        this(owner, inventoryComponent, expComponent, serverWorld, BlockPos.ofFloored(pos), damageSource);
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld serverWorld, Vec3d pos, TranslatableDeathMessage deathMessage) {
+        this(owner, inventoryComponent, expComponent, serverWorld, BlockPos.ofFloored(pos), deathMessage);
     }
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld serverWorld, BlockPos pos, DamageSource damageSource) {
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld serverWorld, BlockPos pos, TranslatableDeathMessage deathMessage) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
         this.serverWorld = serverWorld;
         this.pos = pos;
-        this.damageSource = damageSource;
+        this.deathMessage = deathMessage;
     }
 
     public InventoryComponent getInventoryComponent() {
@@ -51,8 +53,8 @@ public class GraveComponent {
         return this.pos;
     }
 
-    public DamageSource getDamageSource() {
-        return this.damageSource;
+    public TranslatableDeathMessage getDamageSource() {
+        return this.deathMessage;
     }
 
     /**
@@ -86,6 +88,7 @@ public class GraveComponent {
 
         nbt.put("world", this.getWorldRegistryKeyNbt(this.serverWorld));
         nbt.put("pos", NbtHelper.fromBlockPos(this.pos));
+        nbt.put("deathMessage", this.deathMessage.toNbt());
 
         return nbt;
     }
@@ -97,10 +100,9 @@ public class GraveComponent {
         RegistryKey<World> worldKey = getRegistryKeyFromNbt(nbt.getCompound("world"));
         ServerWorld world = server.getWorld(worldKey);
         BlockPos pos = NbtHelper.toBlockPos(nbt.getCompound("pos"));
+        TranslatableDeathMessage deathMessage = TranslatableDeathMessage.fromNbt(nbt.getCompound("deathMessage"));
 
-
-
-        return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, null);
+        return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage);
     }
 
     private NbtCompound getWorldRegistryKeyNbt(World world) {

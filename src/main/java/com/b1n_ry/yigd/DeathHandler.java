@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.TranslatableDeathMessage;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
@@ -36,7 +37,8 @@ public class DeathHandler {
             inventoryComponent.applyLoss();
         }
 
-        GraveComponent graveComponent = new GraveComponent(player.getGameProfile(), inventoryComponent, expComponent, world, pos, deathSource);  // Will keep track of player grave (if enabled)
+        GraveComponent graveComponent = new GraveComponent(player.getGameProfile(), inventoryComponent, expComponent,
+                world, pos, new TranslatableDeathMessage(deathSource, player));  // Will keep track of player grave (if enabled)
 
         GameProfile profile = player.getGameProfile();
         graveComponent.backUp(profile);
