@@ -9,6 +9,7 @@ group = project.maven_group
 repositories {
 	maven { url "https://maven.shedaniel.me/" }
 	maven { url "https://maven.terraformersmc.com/" }
+	maven { url = "https://ladysnake.jfrog.io/artifactory/mods"	}
 }
 
 dependencies {
@@ -25,6 +26,12 @@ dependencies {
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+	// Inventory Mods
+	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
+
+	// Dev dependencies
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
 }
 
 base {

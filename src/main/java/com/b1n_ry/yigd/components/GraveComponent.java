@@ -1,18 +1,24 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.config.ClaimPriority;
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.TranslatableDeathMessage;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DeathMessageType;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -78,6 +84,24 @@ public class GraveComponent {
 
     public void backUp(GameProfile profile) {
         DeathInfoManager.INSTANCE.addBackup(profile, this);
+    }
+
+    public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState graveBlock, BlockPos pos, ItemStack tool) {
+        YigdConfig config = YigdConfig.getConfig();
+
+        InventoryComponent currentPlayerInv = new InventoryComponent(player);
+        InventoryComponent.clearPlayer(player);
+
+        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        if (config.graveConfig.claimPriority == ClaimPriority.GRAVE) {
+            extraItems.addAll(this.inventoryComponent.merge(currentPlayerInv, true));
+            this.inventoryComponent.applyToPlayer(player);
+        } else {
+            extraItems.addAll(currentPlayerInv.merge(this.inventoryComponent, false));
+            currentPlayerInv.applyToPlayer(player);
+        }
+
+        return ActionResult.FAIL;
     }
 
     public NbtCompound toNbt() {
