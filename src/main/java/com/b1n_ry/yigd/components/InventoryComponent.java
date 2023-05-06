@@ -1,5 +1,7 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.compat.CompatComponent;
+import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropItemEvent;
@@ -17,21 +19,28 @@ import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class InventoryComponent {
     private final DefaultedList<ItemStack> items;
+    private final Map<String, CompatComponent<?>> modInventoryItems;
     private final int mainSize;
     private final int armorSize;
     private final int offHandSize;
 
     public InventoryComponent(ServerPlayerEntity player) {
         this.items = this.getInventoryItems(player);
+        this.modInventoryItems = this.getModInventoryItems(player);
+
         PlayerInventory inventory = player.getInventory();
         this.mainSize = inventory.main.size();
         this.armorSize = inventory.armor.size();
         this.offHandSize = inventory.offHand.size();
     }
-    private InventoryComponent(DefaultedList<ItemStack> items, int mainSize, int armorSize, int offHandSize) {
+    private InventoryComponent(DefaultedList<ItemStack> items, Map<String, CompatComponent<?>> modInventoryItems, int mainSize, int armorSize, int offHandSize) {
         this.items = items;
+        this.modInventoryItems = modInventoryItems;
         this.mainSize = mainSize;
         this.armorSize = armorSize;
         this.offHandSize = offHandSize;
@@ -48,6 +57,15 @@ public class InventoryComponent {
         }
 
         return items;
+    }
+    private Map<String, CompatComponent<?>> getModInventoryItems(ServerPlayerEntity player) {
+        Map<String, CompatComponent<?>> modInventories = new HashMap<>();
+
+        for (Map.Entry<String, InvModCompat<?>> compatMod : InvModCompat.invCompatMods.entrySet()) {
+            modInventories.put(compatMod.getKey(), compatMod.getValue().getNewComponent(player));
+        }
+
+        return modInventories;
     }
 
     public void onDeath(RespawnComponent respawnComponent, DeathContext context) {
@@ -243,7 +261,15 @@ public class InventoryComponent {
         vanillaInventoryNbt.putInt("armorSize", this.armorSize);
         vanillaInventoryNbt.putInt("offHandSize", this.offHandSize);
 
+        NbtCompound modInventoriesNbt = new NbtCompound();
+        for (Map.Entry<String, InvModCompat<?>> compatMod : InvModCompat.invCompatMods.entrySet()) {
+            String modName = compatMod.getKey();
+            CompatComponent<?> compatInv = this.modInventoryItems.get(modName);
+            modInventoriesNbt.put(modName, compatInv.writeNbt());
+        }
+
         nbt.put("vanilla", vanillaInventoryNbt);
+        nbt.put("mods", modInventoriesNbt);
 
         return nbt;
     }
@@ -258,7 +284,15 @@ public class InventoryComponent {
         int armorSize = vanillaInvNbt.getInt("armorSize");
         int offHandSize = vanillaInvNbt.getInt("offHandSize");
 
-        return new InventoryComponent(items, mainSize, armorSize, offHandSize);
+        NbtCompound modInventoriesNbt = nbt.getCompound("mods");
+        Map<String, CompatComponent<?>> compatComponents = new HashMap<>();
+        for (Map.Entry<String, InvModCompat<?>> compatMod : InvModCompat.invCompatMods.entrySet()) {
+            String modName = compatMod.getKey();
+            NbtCompound modNbt = modInventoriesNbt.getCompound(modName);
+            compatComponents.put(modName, compatMod.getValue().readNbt(modNbt));
+        }
+
+        return new InventoryComponent(items, compatComponents, mainSize, armorSize, offHandSize);
     }
 
     public static void clearPlayer(ServerPlayerEntity player) {
