@@ -3,6 +3,7 @@ package com.b1n_ry.yigd;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.compat.InvModCompat;
+import com.b1n_ry.yigd.events.ServerEventHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -12,11 +13,15 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Yigd implements ModInitializer {
     public static final String MOD_ID = "yigd";
 
-    public static GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.of().strength(0.8f, 3600000.0f));
+    public static Logger LOGGER = LoggerFactory.getLogger("YIGD");
+
+    public static GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.create().strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
     @Override
@@ -27,5 +32,7 @@ public class Yigd implements ModInitializer {
         Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings()));
 
         InvModCompat.initModCompat();
+
+        ServerEventHandler.registerEvents();
     }
 }

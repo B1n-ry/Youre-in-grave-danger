@@ -21,13 +21,14 @@ public abstract class CompatComponent<T> {
     }
 
     public abstract T getInventory(ServerPlayerEntity player);
+    public abstract DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent);
     public abstract DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player);
     public abstract CompatComponent<T> handleDropRules(DeathContext context);
     public abstract DefaultedList<ItemStack> getAsStackList();
     public void dropItems(ServerWorld world, Vec3d pos) {
         DefaultedList<ItemStack> items = this.getAsStackList();
         for (ItemStack stack : items) {
-            if (DropItemEvent.DROP_ITEM_EVENT.invoker().shouldDropItem(stack, pos.x, pos.y, pos.z, world))
+            if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, pos.x, pos.y, pos.z, world))
                 ItemScatterer.spawn(world, pos.x, pos.y, pos.z, stack);
         }
     }

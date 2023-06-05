@@ -3,13 +3,13 @@ package com.b1n_ry.yigd.compat;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface InvModCompat<T> {
-    Map<String, InvModCompat<?>> invCompatMods = new HashMap<>();
+    List<InvModCompat<?>> invCompatMods = new ArrayList<>();
     static void initModCompat() {
-        invCompatMods.put("trinkets", new TrinketsCompat());
+        invCompatMods.add(new TrinketsCompat());
     }
 
     String getModName();

@@ -2,17 +2,21 @@ package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.config.ExpDropBehaviour;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.data.DeathContext;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 
 public class ExpComponent {
-    private final int xpToDrop;
+    private int storedXp;
 
     public ExpComponent(ServerPlayerEntity player) {
-        this.xpToDrop = this.getXpDropAmount(player);
+        this.storedXp = this.getXpDropAmount(player);
     }
-    private ExpComponent(int xpToDrop) {
-        this.xpToDrop = xpToDrop;
+    private ExpComponent(int storedXp) {
+        this.storedXp = storedXp;
     }
 
     public int getXpDropAmount(ServerPlayerEntity player) {
@@ -38,14 +42,44 @@ public class ExpComponent {
         return 0;
     }
 
+    public void onDeath(RespawnComponent respawnComponent, DeathContext ignoredContext) {
+        ExpComponent keepExp = this.getSoulboundExp();
+        respawnComponent.setSoulboundExp(keepExp);
+    }
+
+    private ExpComponent getSoulboundExp() {
+        YigdConfig config = YigdConfig.getConfig();
+        float soulboundFactor = config.expConfig.keepPercentage / 100f;
+        int keepXp = (int) (this.storedXp * soulboundFactor);
+        this.storedXp -= keepXp;
+
+        if (this.storedXp < 0) this.storedXp = 0;
+
+        return new ExpComponent(keepXp);
+    }
+
+    public void dropAll(ServerWorld world, Vec3d pos) {
+        ExperienceOrbEntity.spawn(world, pos, this.storedXp);
+    }
+
+    public void applyToPlayer(ServerPlayerEntity player) {
+        player.addExperience(this.storedXp);
+    }
+
     public NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
-        nbt.putInt("value", this.xpToDrop);
+        nbt.putInt("value", this.storedXp);
         return nbt;
     }
 
     public static ExpComponent fromNbt(NbtCompound nbt) {
         int xpToDrop = nbt.getInt("value");
         return new ExpComponent(xpToDrop);
+    }
+
+    public static void clearXp(ServerPlayerEntity player) {
+        player.totalExperience = 0;
+        player.experienceLevel = 0;
+        player.experienceProgress = 0;
     }
 }

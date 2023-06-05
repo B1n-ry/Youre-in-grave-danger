@@ -54,7 +54,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         YigdConfig config = YigdConfig.getConfig();
         if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave && config.graveConfig.retrieveMethods.contains(RetrieveMethod.ON_CLICK)) {
             // If it's not on the client side, player and world should safely be able to be cast into their serverside counterpart classes
-            return grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, state, pos, player.getStackInHand(hand));
+            return grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
         }
         return ActionResult.FAIL;
     }
@@ -63,7 +63,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
         YigdConfig config = YigdConfig.getConfig();
         if (!world.isClient && blockEntity instanceof GraveBlockEntity grave && config.graveConfig.retrieveMethods.contains(RetrieveMethod.ON_BREAK)) {
-            grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, state, pos, tool);
+            grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, tool);
             return;
         }
         super.afterBreak(world, player, pos, state, blockEntity, tool);

@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 public interface DropItemEvent {
-    Event<DropItemEvent> DROP_ITEM_EVENT = EventFactory.createArrayBacked(DropItemEvent.class, dropItemEvents -> (stack, x, y, z, world) -> {
+    Event<DropItemEvent> EVENT = EventFactory.createArrayBacked(DropItemEvent.class, dropItemEvents -> (stack, x, y, z, world) -> {
         for (DropItemEvent event : dropItemEvents) {
             if (!event.shouldDropItem(stack, x, y, z, world)) {
                 return false;

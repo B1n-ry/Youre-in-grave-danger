@@ -13,12 +13,14 @@ import net.minecraft.world.PersistentState;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class DeathInfoManager extends PersistentState {
     public static DeathInfoManager INSTANCE = new DeathInfoManager(null);
 
     private final Map<GameProfile, RespawnComponent> respawnEffects = new HashMap<>();
     private final Map<GameProfile, List<GraveComponent>> graveBackups = new HashMap<>();
+    private final Map<UUID, GraveComponent> graveMap = new HashMap<>();
 
     private MinecraftServer server;
 
@@ -31,8 +33,9 @@ public class DeathInfoManager extends PersistentState {
     }
 
     public void clear() {
-        INSTANCE.respawnEffects.clear();
-        INSTANCE.graveBackups.clear();
+        this.respawnEffects.clear();
+        this.graveBackups.clear();
+        this.graveMap.clear();
     }
 
     public void addRespawnComponent(GameProfile profile, RespawnComponent component) {
@@ -42,11 +45,19 @@ public class DeathInfoManager extends PersistentState {
         return this.respawnEffects.get(profile);
     }
 
+    public void removeRespawnComponent(GameProfile profile) {
+        this.respawnEffects.remove(profile);
+    }
+
     public void addBackup(GameProfile profile, GraveComponent component) {
         this.graveBackups.get(profile).add(component);
+        this.graveMap.put(component.getGraveId(), component);
     }
     public List<GraveComponent> getBackupData(GameProfile profile) {
         return this.graveBackups.get(profile);
+    }
+    public GraveComponent getComponent(UUID uuid) {
+        return this.graveMap.get(uuid);
     }
 
     @Override

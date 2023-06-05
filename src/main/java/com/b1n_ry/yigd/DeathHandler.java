@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd;
 
+import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.ExpComponent;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
@@ -31,32 +32,49 @@ public class DeathHandler {
         inventoryComponent.onDeath(respawnComponent, context);
 
         ExpComponent expComponent = new ExpComponent(player);  // Will keep track of XP
-
+        ExpComponent.clearXp(player);  // No use for actual exp when exp component is created
+        expComponent.onDeath(respawnComponent, context);
 
         if (config.inventoryConfig.itemLoss.enabled) {
-            inventoryComponent.applyLoss();
+            inventoryComponent.applyLoss(context);
         }
 
         GraveComponent graveComponent = new GraveComponent(player.getGameProfile(), inventoryComponent, expComponent,
                 world, pos, new TranslatableDeathMessage(deathSource, player));  // Will keep track of player grave (if enabled)
 
         GameProfile profile = player.getGameProfile();
-        graveComponent.backUp(profile);
+        graveComponent.backUp();
         respawnComponent.primeForRespawn(profile);
 
 
         if (!config.graveConfig.enabled) {
             inventoryComponent.dropAll(world, pos);
+            expComponent.dropAll(world, pos);
         } else {
             BlockPos gravePos = graveComponent.findGravePos();
 
             Direction direction = player.getHorizontalFacing();
-            boolean waterlogged = world.getBlockState(gravePos).equals(Fluids.WATER.getDefaultState().getBlockState());
+            boolean waterlogged = world.getFluidState(gravePos).equals(Fluids.WATER.getDefaultState());  // Grave generated in full water block (submerged)
             BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState()
                     .with(Properties.HORIZONTAL_FACING, direction)
                     .with(Properties.WATERLOGGED, waterlogged);
 
+            BlockState previousState = world.getBlockState(gravePos);
+
             boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
+
+            if (!placed) {
+                Yigd.LOGGER.error("Failed to generate grave at X: %s, Y: %s, Z: %s, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), world.getRegistryKey().getValue()));
+                Yigd.LOGGER.info("Dropping items on ground instead of in grave");
+                graveComponent.getInventoryComponent().dropAll(world, Vec3d.of(gravePos));
+                graveComponent.getExpComponent().dropAll(world, Vec3d.of(gravePos));
+                return;
+            }
+
+            GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(gravePos);
+            if (be == null) return;
+            be.setPreviousState(previousState);
+            be.setComponent(graveComponent);
         }
     }
 }

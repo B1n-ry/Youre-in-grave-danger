@@ -19,8 +19,7 @@ import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class InventoryComponent {
     private final DefaultedList<ItemStack> items;
@@ -61,51 +60,121 @@ public class InventoryComponent {
     private Map<String, CompatComponent<?>> getModInventoryItems(ServerPlayerEntity player) {
         Map<String, CompatComponent<?>> modInventories = new HashMap<>();
 
-        for (Map.Entry<String, InvModCompat<?>> compatMod : InvModCompat.invCompatMods.entrySet()) {
-            modInventories.put(compatMod.getKey(), compatMod.getValue().getNewComponent(player));
+        for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
+            modInventories.put(compatMod.getModName(), compatMod.getNewComponent(player));
         }
 
         return modInventories;
     }
 
     public void onDeath(RespawnComponent respawnComponent, DeathContext context) {
-        DefaultedList<ItemStack> soulboundItems = this.handleDropRules(this.items, context);
+        InventoryComponent soulboundInventory = this.handleDropRules(context);
 
-        respawnComponent.setSoulboundItems(soulboundItems);
+        respawnComponent.setSoulboundInventory(soulboundInventory);
     }
 
     /**
-     * Handles the drop rule for each item in the list
-     * @param items all items that should be filtered
-     * @return new list with all items that should be kept
+     * Handles the drop rule for each item in the component
+     * @param context extra info about the death
+     * @return new inventory component with all items that should be kept
      */
-    private DefaultedList<ItemStack> handleDropRules(DefaultedList<ItemStack> items, DeathContext context) {
-        DefaultedList<ItemStack> soulboundList = DefaultedList.ofSize(items.size(), ItemStack.EMPTY);
+    private InventoryComponent handleDropRules(DeathContext context) {
+        InventoryComponent soulboundInventory = new InventoryComponent(DefaultedList.ofSize(this.items.size(), ItemStack.EMPTY), new HashMap<>(), this.mainSize, this.armorSize, this.offHandSize);
 
-        for (int i = 0; i < items.size(); i++) {
-            ItemStack item = items.get(i);
-            DropRule dropRule = DropRuleEvent.DESTROY_ITEM_EVENT.invoker().getDropRule(item, i, context);
+        // Handle drop rules for vanilla inventory
+        for (int i = 0; i < this.items.size(); i++) {
+            ItemStack item = this.items.get(i);
+            DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context);
             switch (dropRule) {
-                case DESTROY -> items.set(i, ItemStack.EMPTY);
+                case DESTROY -> this.items.set(i, ItemStack.EMPTY);
                 case KEEP -> {
-                    items.set(i, ItemStack.EMPTY);
-                    soulboundList.set(i, item);
+                    this.items.set(i, ItemStack.EMPTY);
+                    soulboundInventory.items.set(i, item);
                 }
             }
         }
 
-        return soulboundList;
+        // Handle drop rules for mod compat inventories
+        for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
+            String modName = compatMod.getModName();
+            CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
+            CompatComponent<?> soulboundComponent = compatComponent.handleDropRules(context);
+
+            soulboundInventory.modInventoryItems.put(modName, soulboundComponent);
+        }
+
+        return soulboundInventory;
     }
 
-    public void applyLoss() {
+    public void applyLoss(DeathContext context) {
+        YigdConfig config = YigdConfig.getConfig();
+        YigdConfig.InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
 
+        int from, to;
+        if (itemLoss.usePercentRange) {
+            DefaultedList<ItemStack> vanillaStacks = DefaultedList.of();
+            vanillaStacks.addAll(this.items);
+            vanillaStacks.removeIf(ItemStack::isEmpty);
+
+            int itemCount = vanillaStacks.size();
+            if (!itemLoss.affectStacks) {
+                itemCount = 0;
+                for (ItemStack stack : vanillaStacks) {
+                    itemCount += stack.getCount();
+                }
+            }
+
+            from = (int) (itemCount * itemLoss.lossRangeFrom / 100f);
+            to = (int) (itemCount * itemLoss.lossRangeTo / 100f);
+        } else {
+            from = itemLoss.lossRangeFrom;
+            to = itemLoss.lossRangeTo;
+        }
+        int amount = from < to ? new Random().nextInt(from, to + 1) : from;
+
+        for (int i = 0; i < amount; i++) {
+            if (Math.random() > itemLoss.percentChanceOfLoss / 100D) continue;
+
+            this.loseRandomItem(context);
+        }
+    }
+    private void loseRandomItem(DeathContext context) {
+        YigdConfig config = YigdConfig.getConfig();
+        YigdConfig.InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
+
+        List<Integer> itemSlots = new ArrayList<>();
+        for (int i = 0; i < this.items.size(); i++) {
+            ItemStack stack = this.items.get(i);
+            if (stack.isEmpty()) continue;
+            if (DropRuleEvent.EVENT.invoker().getDropRule(stack, i, context) == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
+            // TODO: if stack is of tag LOSS_IMMUNE then continue
+
+            itemSlots.add(i);
+        }
+
+        if (itemSlots.isEmpty()) return;
+
+        int random = new Random().nextInt(itemSlots.size());
+
+        if (itemLoss.affectStacks) {
+            this.items.set(random, ItemStack.EMPTY);
+        } else {
+            int slot = itemSlots.get(random);
+            ItemStack stack = this.items.get(slot);
+
+            stack.decrement(1);
+        }
     }
 
     public void dropAll(ServerWorld world, Vec3d pos) {
         for (ItemStack stack : this.items) {
             if (stack.isEmpty()) continue;
-            if (DropItemEvent.DROP_ITEM_EVENT.invoker().shouldDropItem(stack, pos.x, pos.y, pos.z, world))
+            if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, pos.x, pos.y, pos.z, world))
                 ItemScatterer.spawn(world, pos.x, pos.y, pos.z, stack);
+        }
+
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            compatComponent.dropItems(world, pos);
         }
     }
 
@@ -166,6 +235,14 @@ public class InventoryComponent {
                     extraItems.add(mergingStack);
                 }
             }
+        }
+
+        for (InvModCompat<?> modCompat : InvModCompat.invCompatMods) {
+            String modName = modCompat.getModName();
+            CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
+            CompatComponent<?> mergingCompatComponent = mergingComponent.modInventoryItems.get(modName);
+            DefaultedList<ItemStack> extraModItems = compatComponent.merge(mergingCompatComponent);
+            extraItems.addAll(extraModItems);
         }
 
         this.addStacksToMain(extraItems);
@@ -249,8 +326,47 @@ public class InventoryComponent {
     }
 
 
-    public void applyToPlayer(ServerPlayerEntity player) {
+    public DefaultedList<ItemStack> applyToPlayer(ServerPlayerEntity player) {
+        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        PlayerInventory inventory = player.getInventory();
 
+        // Set vanilla inventory
+        int invMainSize = inventory.main.size();
+        int invArmorSize = inventory.armor.size();
+        int invOffHandSize = inventory.offHand.size();
+        for (int i = 0; i < this.items.size(); i++) {
+            int groupIndex;
+            int playerInvIndex;
+            if (i < this.mainSize) {
+                groupIndex = i;
+                playerInvIndex = groupIndex < invMainSize ? groupIndex : -1;
+            } else if (i < this.mainSize + this.armorSize) {
+                groupIndex = i - this.mainSize;
+                playerInvIndex = groupIndex < invArmorSize ? groupIndex + invMainSize : -1;
+            } else if (i < this.mainSize + this.armorSize + this.offHandSize) {
+                groupIndex = i - (this.mainSize + this.armorSize);
+                playerInvIndex = groupIndex < invOffHandSize ? groupIndex + invMainSize + invOffHandSize : -1;
+            } else {  // Should never be reached unless some mod adds to the inventory in some weird way
+                groupIndex = i - (this.mainSize + this.armorSize + this.offHandSize);
+                playerInvIndex = groupIndex + invMainSize + invOffHandSize + invOffHandSize;
+            }
+
+            ItemStack stack = this.items.get(i);
+
+            if (playerInvIndex >= inventory.size() || playerInvIndex == -1) {
+                extraItems.add(stack);
+            } else {
+                inventory.setStack(playerInvIndex, stack);
+            }
+        }
+
+        // Set mod inventories
+        for (InvModCompat<?> modCompat : InvModCompat.invCompatMods) {
+            DefaultedList<ItemStack> extraModItems = this.modInventoryItems.get(modCompat.getModName()).storeToPlayer(player);
+            extraItems.addAll(extraModItems);
+        }
+
+        return extraItems;
     }
 
     public NbtCompound toNbt() {
@@ -262,8 +378,8 @@ public class InventoryComponent {
         vanillaInventoryNbt.putInt("offHandSize", this.offHandSize);
 
         NbtCompound modInventoriesNbt = new NbtCompound();
-        for (Map.Entry<String, InvModCompat<?>> compatMod : InvModCompat.invCompatMods.entrySet()) {
-            String modName = compatMod.getKey();
+        for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
+            String modName = compatMod.getModName();
             CompatComponent<?> compatInv = this.modInventoryItems.get(modName);
             modInventoriesNbt.put(modName, compatInv.writeNbt());
         }
@@ -286,10 +402,10 @@ public class InventoryComponent {
 
         NbtCompound modInventoriesNbt = nbt.getCompound("mods");
         Map<String, CompatComponent<?>> compatComponents = new HashMap<>();
-        for (Map.Entry<String, InvModCompat<?>> compatMod : InvModCompat.invCompatMods.entrySet()) {
-            String modName = compatMod.getKey();
+        for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
+            String modName = compatMod.getModName();
             NbtCompound modNbt = modInventoriesNbt.getCompound(modName);
-            compatComponents.put(modName, compatMod.getValue().readNbt(modNbt));
+            compatComponents.put(modName, compatMod.readNbt(modNbt));
         }
 
         return new InventoryComponent(items, compatComponents, mainSize, armorSize, offHandSize);
@@ -297,5 +413,9 @@ public class InventoryComponent {
 
     public static void clearPlayer(ServerPlayerEntity player) {
         player.getInventory().clear();
+
+        for (InvModCompat<?> invModCompat : InvModCompat.invCompatMods) {
+            invModCompat.clear(player);
+        }
     }
 }

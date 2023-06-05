@@ -1,13 +1,16 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
+import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.data.TranslatableDeathMessage;
+import com.b1n_ry.yigd.events.DropItemEvent;
+import com.b1n_ry.yigd.events.GraveClaimEvent;
+import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DeathMessageType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
@@ -18,29 +21,52 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class GraveComponent {
     private final GameProfile owner;
     private final InventoryComponent inventoryComponent;
     private final ExpComponent expComponent;
-    private final ServerWorld serverWorld;
+    @Nullable
+    private final ServerWorld world;
+    private final RegistryKey<World> worldRegistryKey;
     private BlockPos pos;
     private final TranslatableDeathMessage deathMessage;
+    private final UUID graveId;
+    private GraveStatus status;
 
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld serverWorld, Vec3d pos, TranslatableDeathMessage deathMessage) {
-        this(owner, inventoryComponent, expComponent, serverWorld, BlockPos.ofFloored(pos), deathMessage);
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage) {
+        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED);
     }
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld serverWorld, BlockPos pos, TranslatableDeathMessage deathMessage) {
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
-        this.serverWorld = serverWorld;
+        this.world = world;
+        this.worldRegistryKey = world.getRegistryKey();
         this.pos = pos;
         this.deathMessage = deathMessage;
+        this.graveId = graveId;
+        this.status = status;
+    }
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, RegistryKey<World> worldKey, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status) {
+        this.owner = owner;
+        this.inventoryComponent = inventoryComponent;
+        this.expComponent = expComponent;
+        this.world = null;
+        this.worldRegistryKey = worldKey;
+        this.pos = pos;
+        this.deathMessage = deathMessage;
+        this.graveId = graveId;
+        this.status = status;
     }
 
     public InventoryComponent getInventoryComponent() {
@@ -51,57 +77,97 @@ public class GraveComponent {
         return this.expComponent;
     }
 
-    public ServerWorld getServerWorld() {
-        return this.serverWorld;
+    public @Nullable ServerWorld getWorld() {
+        return this.world;
     }
 
     public BlockPos getPos() {
         return this.pos;
     }
 
-    public TranslatableDeathMessage getDamageSource() {
+    public TranslatableDeathMessage getDeathMessage() {
         return this.deathMessage;
     }
 
-    /**
-     * Will filter through filters and stuff
-     * @return where a grave can be placed based on config
-     */
-    public BlockPos findGravePos() {
-        return null;
+    public UUID getGraveId() {
+        return this.graveId;
+    }
+
+    public GraveStatus getStatus() {
+        return this.status;
     }
 
     /**
-     * Called to place down a grave block
+     * Will filter through filters and stuff. Should only be called from server
+     * @return where a grave can be placed based on config
+     */
+    public BlockPos findGravePos() {
+        if (this.world == null) {
+            Yigd.LOGGER.error("GraveComponent's associated world is null. Failed to find suitable position");
+            return this.pos;
+        }
+
+        YigdConfig config = YigdConfig.getConfig();
+        Vec3i generationMaxDistance = config.graveConfig.generationMaxDistance;
+        for (BlockPos iPos : BlockPos.iterateOutwards(this.pos, generationMaxDistance.getX(), generationMaxDistance.getY(), generationMaxDistance.getZ())) {
+            if (GraveGenerationEvent.EVENT.invoker().canGenerateAt(this.world, iPos)) {
+                this.pos = iPos;
+                return iPos;
+            }
+        }
+        return this.pos;
+    }
+
+    /**
+     * Called to place down a grave block. Should only be called from server
      * @param newPos Where the grave should try to be placed
      * @param state Which block should be placed
      * @return Weather or not the grave was placed
      */
     public boolean tryPlaceGraveAt(BlockPos newPos, BlockState state) {
         this.pos = newPos;
-        return this.serverWorld.setBlockState(newPos, state);
+        if (this.world == null) {
+            Yigd.LOGGER.error("GraveComponent tried to place grave without knowing the ServerWorld");
+            return false;
+        }
+        return this.world.setBlockState(newPos, state);
     }
 
-    public void backUp(GameProfile profile) {
-        DeathInfoManager.INSTANCE.addBackup(profile, this);
+    public void backUp() {
+        DeathInfoManager.INSTANCE.addBackup(this.owner, this);
     }
 
-    public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState graveBlock, BlockPos pos, ItemStack tool) {
+    public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState previousState, BlockPos pos, ItemStack tool) {
         YigdConfig config = YigdConfig.getConfig();
 
         InventoryComponent currentPlayerInv = new InventoryComponent(player);
         InventoryComponent.clearPlayer(player);
 
+        if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
+
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
         if (config.graveConfig.claimPriority == ClaimPriority.GRAVE) {
             extraItems.addAll(this.inventoryComponent.merge(currentPlayerInv, true));
-            this.inventoryComponent.applyToPlayer(player);
+            extraItems.addAll(this.inventoryComponent.applyToPlayer(player));
         } else {
             extraItems.addAll(currentPlayerInv.merge(this.inventoryComponent, false));
-            currentPlayerInv.applyToPlayer(player);
+            extraItems.addAll(currentPlayerInv.applyToPlayer(player));
         }
 
-        return ActionResult.FAIL;
+        for (ItemStack stack : extraItems) {
+            int x = pos.getX();
+            int y = pos.getY();
+            int z = pos.getZ();
+            if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
+                ItemScatterer.spawn(world, x, y, z, stack);
+        }
+
+        if (config.graveConfig.replaceOldWhenClaimed) {
+            world.setBlockState(pos, previousState);
+        }
+
+        this.status = GraveStatus.CLAIMED;
+        return ActionResult.SUCCESS;
     }
 
     public NbtCompound toNbt() {
@@ -110,32 +176,42 @@ public class GraveComponent {
         nbt.put("inventory", this.inventoryComponent.toNbt());
         nbt.put("exp", this.expComponent.toNbt());
 
-        nbt.put("world", this.getWorldRegistryKeyNbt(this.serverWorld));
+        nbt.put("world", this.getWorldRegistryKeyNbt(this.worldRegistryKey));
         nbt.put("pos", NbtHelper.fromBlockPos(this.pos));
         nbt.put("deathMessage", this.deathMessage.toNbt());
+        nbt.putUuid("graveId", this.graveId);
+        nbt.putString("status", this.status.toString());
+
 
         return nbt;
     }
-
-    public static GraveComponent fromNbt(NbtCompound nbt, MinecraftServer server) {
-        GameProfile owner = NbtHelper.toGameProfile(nbt.getCompound("owner"));
-        InventoryComponent inventoryComponent = InventoryComponent.fromNbt(nbt.getCompound("inventory"));
-        ExpComponent expComponent = ExpComponent.fromNbt(nbt.getCompound("exp"));
-        RegistryKey<World> worldKey = getRegistryKeyFromNbt(nbt.getCompound("world"));
-        ServerWorld world = server.getWorld(worldKey);
-        BlockPos pos = NbtHelper.toBlockPos(nbt.getCompound("pos"));
-        TranslatableDeathMessage deathMessage = TranslatableDeathMessage.fromNbt(nbt.getCompound("deathMessage"));
-
-        return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage);
-    }
-
-    private NbtCompound getWorldRegistryKeyNbt(World world) {
-        RegistryKey<World> key = world.getRegistryKey();
+    private NbtCompound getWorldRegistryKeyNbt(RegistryKey<?> key) {
         NbtCompound nbt = new NbtCompound();
         nbt.putString("registry", key.getRegistry().toString());
         nbt.putString("value", key.getValue().toString());
 
         return nbt;
+    }
+
+    public static GraveComponent fromNbt(NbtCompound nbt, @Nullable MinecraftServer server) {
+        GameProfile owner = NbtHelper.toGameProfile(nbt.getCompound("owner"));
+        InventoryComponent inventoryComponent = InventoryComponent.fromNbt(nbt.getCompound("inventory"));
+        ExpComponent expComponent = ExpComponent.fromNbt(nbt.getCompound("exp"));
+        RegistryKey<World> worldKey = getRegistryKeyFromNbt(nbt.getCompound("world"));
+        BlockPos pos = NbtHelper.toBlockPos(nbt.getCompound("pos"));
+        TranslatableDeathMessage deathMessage = TranslatableDeathMessage.fromNbt(nbt.getCompound("deathMessage"));
+        UUID graveId = nbt.getUuid("graveId");
+        GraveStatus status = GraveStatus.valueOf(nbt.getString("status"));
+
+        if (server != null) {
+            ServerWorld world = server.getWorld(worldKey);
+            if (world == null) {
+                Yigd.LOGGER.error("World " + worldKey.toString() + " not recognized. Loading grave component without world");
+            } else {
+                return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status);
+            }
+        }
+        return new GraveComponent(owner, inventoryComponent, expComponent, worldKey, pos, deathMessage, graveId, status);
     }
     private static RegistryKey<World> getRegistryKeyFromNbt(NbtCompound nbt) {
         String registry = nbt.getString("registry");

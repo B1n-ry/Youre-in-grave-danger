@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.config;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import net.minecraft.util.math.Vec3i;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,13 @@ public class YigdConfig implements ConfigData {
 
         public static class ItemLossConfig {
             public boolean enabled = false;
+            public boolean affectStacks = false;
+            public boolean usePercentRange = true;
+            public int lossRangeFrom = 0;
+            public int lossRangeTo = 100;
+
+            public int percentChanceOfLoss = 50;
+            public boolean canLoseSoulbound = false;
         }
     }
 
@@ -48,6 +56,9 @@ public class YigdConfig implements ConfigData {
 
         @ConfigEntry.BoundedDiscrete(max = 100)
         public int dropPercentage = 50;
+
+        @ConfigEntry.BoundedDiscrete(max = 100)
+        public int keepPercentage = 0;
     }
 
     public static class GraveConfig {
@@ -92,6 +103,8 @@ public class YigdConfig implements ConfigData {
         public RandomSpawn randomSpawn = new RandomSpawn();
         // use last ground position
         public boolean generateOnLastGroundPos = false;
+        // How far in X, Y, and Z the grave can generate from where you died
+        public Vec3i generationMaxDistance = new Vec3i(5, 5, 5);
         // block replacement blacklist/whitelist settings
         public boolean useSoftBlockWhitelist = false;
         public boolean useStrictBlockBlacklist = true;

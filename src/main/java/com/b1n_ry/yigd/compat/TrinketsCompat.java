@@ -11,6 +11,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,6 +98,46 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
+        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent) {
+            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+
+            @SuppressWarnings("unchecked")
+            Map<String, Map<String, DefaultedList<ItemStack>>> mergingInventory = (Map<String, Map<String, DefaultedList<ItemStack>>>) mergingComponent.inventory;
+            for (Map.Entry<String, Map<String, DefaultedList<ItemStack>>> groupEntry : mergingInventory.entrySet()) {
+                String groupName = groupEntry.getKey();
+                Map<String, DefaultedList<ItemStack>> slotMap = this.inventory.get(groupName);
+                if (slotMap == null) {
+                    for (DefaultedList<ItemStack> items : groupEntry.getValue().values()) {
+                        extraItems.addAll(items);
+                    }
+                    continue;
+                }
+                for (Map.Entry<String, DefaultedList<ItemStack>> slotEntry : groupEntry.getValue().entrySet()) {
+                    String slotName = slotEntry.getKey();
+                    DefaultedList<ItemStack> stacks = slotMap.get(slotName);
+                    if (stacks == null) {
+                        extraItems.addAll(slotEntry.getValue());
+                        continue;
+                    }
+
+                    DefaultedList<ItemStack> mergingItems = slotEntry.getValue();
+                    for (int i = 0; i < mergingItems.size(); i++) {
+                        ItemStack mergingStack = mergingItems.get(i);
+                        if (stacks.size() <= i || !stacks.get(i).isEmpty()) {
+                            extraItems.add(mergingStack);
+                            continue;
+                        }
+
+                        stacks.set(i, mergingStack);
+                    }
+                }
+            }
+
+            extraItems.removeIf(ItemStack::isEmpty);
+            return extraItems;
+        }
+
+        @Override
         public DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player) {
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
@@ -125,7 +166,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         // Traverse through item stacks
                         for (int i = 0; i < slotItems.size(); i++) {
                             ItemStack item = slotItems.get(i);
-                            if (i >= trinketInventory.size() || !trinketInventory.getStack(i).isEmpty()) {
+                            if (i >= trinketInventory.size()) {
                                 extraItems.add(item);
                                 continue;
                             }
@@ -135,6 +176,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                 }
             });
 
+            extraItems.removeIf(ItemStack::isEmpty);
             return extraItems;
         }
 
@@ -156,7 +198,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     for (int i = 0; i < slotItems.size(); i++) {
                         ItemStack item = slotItems.get(i);
 
-                        DropRule dropRule = DropRuleEvent.DESTROY_ITEM_EVENT.invoker().getDropRule(item, -1, context);
+                        DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context);
                         switch (dropRule) {
                             case DESTROY -> slotItems.set(i, ItemStack.EMPTY);
                             case KEEP -> {
@@ -190,9 +232,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         public void clear() {
             for (Map<String, DefaultedList<ItemStack>> slotMap : this.inventory.values()) {
                 for (DefaultedList<ItemStack> items : slotMap.values()) {
-                    for (int i = 0; i < items.size(); i++) {
-                        items.set(i, ItemStack.EMPTY);
-                    }
+                    Collections.fill(items, ItemStack.EMPTY);
                 }
             }
         }

@@ -7,9 +7,10 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-	maven { url "https://maven.shedaniel.me/" }
-	maven { url "https://maven.terraformersmc.com/" }
-	maven { url = "https://ladysnake.jfrog.io/artifactory/mods"	}
+	maven { url "https://maven.shedaniel.me/" }  // cloth_config
+	maven { url "https://maven.terraformersmc.com/" }  // mod_menu, trinkets
+	maven { url = "https://ladysnake.jfrog.io/artifactory/mods"	}  // cardinal_components
+	maven { url = "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
 }
 
 dependencies {
@@ -17,6 +18,9 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Bundled
+	modImplementation include("io.github.cottonmc:LibGui:${project.lib_gui_version}")
 
 	// Required dependencies
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
