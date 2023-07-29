@@ -33,5 +33,6 @@ public abstract class CompatComponent<T> {
         }
     }
     public abstract void clear();
+    public abstract boolean isEmpty();
     public abstract NbtCompound writeNbt();
 }

@@ -11,6 +11,7 @@ repositories {
 	maven { url "https://maven.terraformersmc.com/" }  // mod_menu, trinkets
 	maven { url = "https://ladysnake.jfrog.io/artifactory/mods"	}  // cardinal_components
 	maven { url = "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
+	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }  // Permission API
 }
 
 dependencies {
@@ -21,6 +22,7 @@ dependencies {
 
 	// Bundled
 	modImplementation include("io.github.cottonmc:LibGui:${project.lib_gui_version}")
+	modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_version}")
 
 	// Required dependencies
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"

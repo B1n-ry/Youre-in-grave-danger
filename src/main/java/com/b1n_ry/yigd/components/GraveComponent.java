@@ -11,6 +11,7 @@ import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
@@ -42,11 +43,12 @@ public class GraveComponent {
     private final TranslatableDeathMessage deathMessage;
     private final UUID graveId;
     private GraveStatus status;
+    private boolean locked;
 
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage) {
-        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED);
+        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true);
     }
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status) {
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
@@ -56,8 +58,9 @@ public class GraveComponent {
         this.deathMessage = deathMessage;
         this.graveId = graveId;
         this.status = status;
+        this.locked = locked;
     }
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, RegistryKey<World> worldKey, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status) {
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, RegistryKey<World> worldKey, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
@@ -67,6 +70,11 @@ public class GraveComponent {
         this.deathMessage = deathMessage;
         this.graveId = graveId;
         this.status = status;
+        this.locked = locked;
+    }
+
+    public GameProfile getOwner() {
+        return this.owner;
     }
 
     public InventoryComponent getInventoryComponent() {
@@ -79,6 +87,9 @@ public class GraveComponent {
 
     public @Nullable ServerWorld getWorld() {
         return this.world;
+    }
+    public RegistryKey<World> getWorldRegistryKey() {
+        return this.worldRegistryKey;
     }
 
     public BlockPos getPos() {
@@ -95,6 +106,38 @@ public class GraveComponent {
 
     public GraveStatus getStatus() {
         return this.status;
+    }
+    public boolean isLocked() {
+        return this.locked;
+    }
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    public boolean isEmpty() {
+        return this.inventoryComponent.isEmpty() && this.expComponent.isEmpty();
+    }
+
+    /**
+     * Determines weather or not the grave should generate based on conditions when
+     * player has just died. Filters are not yet applied here.
+     * @param config Config that method should take into consideration
+     * @param deathSource How the player died. Used to filter out some death causes if
+     *                    mod is configured to.
+     * @return Weather or not the grave should generate. If false, grave contents are
+     * instead dropped.
+     */
+    public boolean shouldGenerate(YigdConfig config, DamageSource deathSource) {
+        YigdConfig.GraveConfig graveConfig = config.graveConfig;
+        if (!graveConfig.enabled) return false;
+
+        if (!graveConfig.generateEmptyGraves && this.isEmpty()) return false;
+
+        if (graveConfig.dimensionBlacklist.contains(this.worldRegistryKey.getValue().toString())) return false;
+
+        if (!graveConfig.generateGraveInVoid && this.pos.getY() < 0) return false;
+
+        return !graveConfig.ignoredDeathTypes.contains(deathSource.getName());
     }
 
     /**
@@ -135,18 +178,34 @@ public class GraveComponent {
 
     public void backUp() {
         DeathInfoManager.INSTANCE.addBackup(this.owner, this);
+        DeathInfoManager.INSTANCE.markDirty();
     }
 
     public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState previousState, BlockPos pos, ItemStack tool) {
         YigdConfig config = YigdConfig.getConfig();
 
+        if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
+
+        this.applyToPlayer(player, world, pos, player.getUuid() == this.owner.getId());
+
+        if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
+            world.setBlockState(pos, previousState);
+        }
+
+        this.status = GraveStatus.CLAIMED;
+        return ActionResult.SUCCESS;
+    }
+
+    public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, BlockPos pos, boolean isGraveOwner) {
+        YigdConfig config = YigdConfig.getConfig();
+
         InventoryComponent currentPlayerInv = new InventoryComponent(player);
         InventoryComponent.clearPlayer(player);
 
-        if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
-
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
-        if (config.graveConfig.claimPriority == ClaimPriority.GRAVE) {
+        ClaimPriority priority = isGraveOwner ? config.graveConfig.claimPriority : config.graveConfig.graveRobbing.robPriority;
+
+        if (priority == ClaimPriority.GRAVE) {
             extraItems.addAll(this.inventoryComponent.merge(currentPlayerInv, true));
             extraItems.addAll(this.inventoryComponent.applyToPlayer(player));
         } else {
@@ -161,13 +220,6 @@ public class GraveComponent {
             if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
                 ItemScatterer.spawn(world, x, y, z, stack);
         }
-
-        if (config.graveConfig.replaceOldWhenClaimed) {
-            world.setBlockState(pos, previousState);
-        }
-
-        this.status = GraveStatus.CLAIMED;
-        return ActionResult.SUCCESS;
     }
 
     public NbtCompound toNbt() {
@@ -202,16 +254,17 @@ public class GraveComponent {
         TranslatableDeathMessage deathMessage = TranslatableDeathMessage.fromNbt(nbt.getCompound("deathMessage"));
         UUID graveId = nbt.getUuid("graveId");
         GraveStatus status = GraveStatus.valueOf(nbt.getString("status"));
+        boolean locked = nbt.getBoolean("locked");
 
         if (server != null) {
             ServerWorld world = server.getWorld(worldKey);
             if (world == null) {
                 Yigd.LOGGER.error("World " + worldKey.toString() + " not recognized. Loading grave component without world");
             } else {
-                return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status);
+                return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status, locked);
             }
         }
-        return new GraveComponent(owner, inventoryComponent, expComponent, worldKey, pos, deathMessage, graveId, status);
+        return new GraveComponent(owner, inventoryComponent, expComponent, worldKey, pos, deathMessage, graveId, status, locked);
     }
     private static RegistryKey<World> getRegistryKeyFromNbt(NbtCompound nbt) {
         String registry = nbt.getString("registry");

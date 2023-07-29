@@ -2,12 +2,14 @@ package com.b1n_ry.yigd.block.entity;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
-import com.b1n_ry.yigd.data.DeathInfoManager;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.UUID;
@@ -36,9 +38,6 @@ public class GraveBlockEntity extends BlockEntity {
     public BlockState getPreviousState() {
         return this.previousState;
     }
-    public UUID getGraveId() {
-        return this.graveId;
-    }
 
     @Override
     protected void writeNbt(NbtCompound nbt) {
@@ -49,12 +48,11 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     public void readNbt(NbtCompound nbt) {
-        if (this.world == null || this.world.getServer() == null) return;
         this.graveId = nbt.getUuid("graveId");
 
-        this.component = DeathInfoManager.INSTANCE.getComponent(this.graveId);
-
-        if (nbt.contains("previousState"))
-            this.previousState = NbtHelper.toBlockState(this.world.createCommandRegistryWrapper(RegistryKeys.BLOCK), nbt.getCompound("previousState"));
+        if (nbt.contains("previousState")) {
+            RegistryWrapper<Block> registryEntryLookup = this.world != null ? this.world.createCommandRegistryWrapper(RegistryKeys.BLOCK) : Registries.BLOCK.getReadOnlyWrapper();
+            this.previousState = NbtHelper.toBlockState(registryEntryLookup, nbt.getCompound("previousState"));
+        }
     }
 }

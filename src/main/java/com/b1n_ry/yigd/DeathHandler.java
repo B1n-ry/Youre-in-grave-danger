@@ -47,7 +47,7 @@ public class DeathHandler {
         respawnComponent.primeForRespawn(profile);
 
 
-        if (!config.graveConfig.enabled) {
+        if (!graveComponent.shouldGenerate(config, deathSource)) {
             inventoryComponent.dropAll(world, pos);
             expComponent.dropAll(world, pos);
         } else {

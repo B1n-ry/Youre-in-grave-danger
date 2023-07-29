@@ -3,7 +3,12 @@ package com.b1n_ry.yigd;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.compat.InvModCompat;
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.ServerEventHandler;
+import com.b1n_ry.yigd.other.Commands;
+import com.b1n_ry.yigd.packets.ServerPacketHandler;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -26,6 +31,8 @@ public class Yigd implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        AutoConfig.register(YigdConfig.class, JanksonConfigSerializer::new);
+
         GRAVE_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, new Identifier(MOD_ID, "grave_block_entity"), FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build());
 
         Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "grave"), GRAVE_BLOCK);
@@ -34,5 +41,8 @@ public class Yigd implements ModInitializer {
         InvModCompat.initModCompat();
 
         ServerEventHandler.registerEvents();
+        ServerPacketHandler.registerReceivers();
+
+        Commands.register();
     }
 }

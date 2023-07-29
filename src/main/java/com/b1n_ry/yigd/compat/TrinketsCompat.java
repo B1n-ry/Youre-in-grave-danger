@@ -238,6 +238,11 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
+        public boolean isEmpty() {
+            return this.getAsStackList().isEmpty();
+        }
+
+        @Override
         public NbtCompound writeNbt() {
             NbtCompound nbt = new NbtCompound();
 

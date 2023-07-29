@@ -24,6 +24,7 @@ public class RespawnComponent {
 
     public void primeForRespawn(GameProfile profile) {
         DeathInfoManager.INSTANCE.addRespawnComponent(profile, this);
+        DeathInfoManager.INSTANCE.markDirty();
     }
 
     public void apply(ServerPlayerEntity player) {
@@ -35,6 +36,7 @@ public class RespawnComponent {
 
         // If there is an issue, items don't get duped
         DeathInfoManager.INSTANCE.removeRespawnComponent(player.getGameProfile());
+        DeathInfoManager.INSTANCE.markDirty();
     }
 
     public NbtCompound toNbt() {

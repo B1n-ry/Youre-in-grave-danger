@@ -36,6 +36,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         builder.add(Properties.HORIZONTAL_FACING, WATERLOGGED);
     }
 
+    @Override
+    public BlockRenderType getRenderType(BlockState state) {
+        return BlockRenderType.MODEL;
+    }
+
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {

@@ -42,9 +42,30 @@ public class ExpComponent {
         return 0;
     }
 
+    public int getXpLevel() {
+        int totalXp = this.storedXp;
+
+        int i;
+        for (i = 0; totalXp >= 0; i++) {
+            if (i < 16) {
+                totalXp -= (2 * i) + 7;
+            } else if(i < 31) {
+                totalXp -= (5 * i) - 38;
+            } else {
+                totalXp -= (9 * i) - 158;
+            }
+        }
+
+        return i - 1;
+    }
+
     public void onDeath(RespawnComponent respawnComponent, DeathContext ignoredContext) {
         ExpComponent keepExp = this.getSoulboundExp();
         respawnComponent.setSoulboundExp(keepExp);
+    }
+
+    public boolean isEmpty() {
+        return this.storedXp == 0;
     }
 
     private ExpComponent getSoulboundExp() {

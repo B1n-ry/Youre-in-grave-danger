@@ -22,6 +22,9 @@
   "entrypoints": {
     "main": [
       "com.b1n_ry.yigd.Yigd"
+    ],
+    "client": [
+      "com.b1n_ry.yigd.client.YigdClient"
     ]
   },
   "mixins": [

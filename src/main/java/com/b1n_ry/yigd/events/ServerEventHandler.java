@@ -9,6 +9,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
+import java.util.Optional;
+
 public class ServerEventHandler {
     public static void registerEvents() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -17,6 +19,7 @@ public class ServerEventHandler {
 
             ServerWorld overworld = server.getOverworld();
             DeathInfoManager.INSTANCE = (DeathInfoManager) overworld.getPersistentStateManager().getOrCreate(nbt -> DeathInfoManager.fromNbt(nbt, server), () -> new DeathInfoManager(server), "yigd_data");
+            DeathInfoManager.INSTANCE.markDirty();
         });
 
         ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, ignoredAmount) -> {
@@ -30,8 +33,8 @@ public class ServerEventHandler {
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             if (alive) return;
 
-            RespawnComponent respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newPlayer.getGameProfile());
-            respawnComponent.apply(newPlayer);
+            Optional<RespawnComponent> respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newPlayer.getGameProfile());
+            respawnComponent.ifPresent(component -> component.apply(newPlayer));
         });
     }
 }

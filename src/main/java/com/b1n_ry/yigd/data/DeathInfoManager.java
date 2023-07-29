@@ -1,19 +1,21 @@
 package com.b1n_ry.yigd.data;
 
+import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class DeathInfoManager extends PersistentState {
     public static DeathInfoManager INSTANCE = new DeathInfoManager(null);
@@ -38,11 +40,41 @@ public class DeathInfoManager extends PersistentState {
         this.graveMap.clear();
     }
 
+    /**
+     * Tries to delete a grave based on its grave ID
+     * @param graveId the ID of the grave
+     * @return FAIL if nothing were deleted. PASS if it wasn't completely deleted. SUCCESS if it was 100% deleted
+     */
+    public ActionResult delete(UUID graveId) {
+        GraveComponent component = this.graveMap.get(graveId);
+        if (component == null) return ActionResult.FAIL;
+
+        GameProfile profile = component.getOwner();
+
+        this.graveMap.remove(graveId);
+
+        // Probably unnecessary, but if it would turn out it's required, people won't crash now
+        if (!this.graveBackups.containsKey(profile)) return ActionResult.PASS;  // No more of the grave was found
+        this.graveBackups.get(profile).remove(component);
+
+        if (component.getStatus() != GraveStatus.UNCLAIMED) return ActionResult.SUCCESS;
+
+        BlockPos pos = component.getPos();
+        ServerWorld world = component.getWorld();
+        if (world == null) return ActionResult.PASS;
+        BlockEntity be = world.getBlockEntity(pos);
+
+        if (!(be instanceof GraveBlockEntity grave)) return ActionResult.PASS;
+        world.setBlockState(pos, grave.getPreviousState());
+
+        return ActionResult.SUCCESS;
+    }
+
     public void addRespawnComponent(GameProfile profile, RespawnComponent component) {
         this.respawnEffects.put(profile, component);
     }
-    public RespawnComponent getRespawnComponent(GameProfile profile) {
-        return this.respawnEffects.get(profile);
+    public Optional<RespawnComponent> getRespawnComponent(GameProfile profile) {
+        return Optional.ofNullable(this.respawnEffects.get(profile));
     }
 
     public void removeRespawnComponent(GameProfile profile) {
@@ -50,14 +82,17 @@ public class DeathInfoManager extends PersistentState {
     }
 
     public void addBackup(GameProfile profile, GraveComponent component) {
+        if (!this.graveBackups.containsKey(profile)) {
+            this.graveBackups.put(profile, new ArrayList<>());
+        }
         this.graveBackups.get(profile).add(component);
         this.graveMap.put(component.getGraveId(), component);
     }
     public List<GraveComponent> getBackupData(GameProfile profile) {
-        return this.graveBackups.get(profile);
+        return this.graveBackups.computeIfAbsent(profile, k -> new ArrayList<>());
     }
-    public GraveComponent getComponent(UUID uuid) {
-        return this.graveMap.get(uuid);
+    public Optional<GraveComponent> getGrave(UUID graveId) {
+        return Optional.ofNullable(this.graveMap.get(graveId));
     }
 
     @Override
@@ -107,7 +142,13 @@ public class DeathInfoManager extends PersistentState {
             GameProfile user = NbtHelper.toGameProfile(graveCompound.getCompound("user"));
             NbtList gravesList = graveCompound.getList("graves", NbtElement.COMPOUND_TYPE);
             for (NbtElement grave : gravesList) {
-                INSTANCE.addBackup(user, GraveComponent.fromNbt((NbtCompound) grave, server));
+                GraveComponent component = GraveComponent.fromNbt((NbtCompound) grave, server);
+                INSTANCE.addBackup(user, component);
+
+                ServerWorld world = component.getWorld();
+                if (component.getStatus() == GraveStatus.UNCLAIMED && world != null && world.getBlockEntity(component.getPos()) instanceof GraveBlockEntity be) {
+                    be.setComponent(component);
+                }
             }
         }
 

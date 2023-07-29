@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "yigd:block/grave", "y":  0 },
+    "facing=east":  { "model": "yigd:block/grave", "y":  90 },
+    "facing=south": { "model": "yigd:block/grave", "y": 180 },
+    "facing=west":  { "model": "yigd:block/grave", "y": 270 }
+  }
+}

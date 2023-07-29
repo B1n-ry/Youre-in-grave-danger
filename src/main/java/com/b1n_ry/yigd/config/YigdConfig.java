@@ -1,7 +1,9 @@
 package com.b1n_ry.yigd.config;
 
+import com.b1n_ry.yigd.Yigd;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
+import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import net.minecraft.util.math.Vec3i;
 
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@Config(name = Yigd.MOD_ID)
 public class YigdConfig implements ConfigData {
     public static YigdConfig getConfig() {
         return AutoConfig.getConfigHolder(YigdConfig.class).getConfig();
@@ -23,6 +26,9 @@ public class YigdConfig implements ConfigData {
 
     @ConfigEntry.Gui.CollapsibleObject
     public GraveConfig graveConfig = new GraveConfig();
+
+    @ConfigEntry.Gui.CollapsibleObject
+    public CommandConfig commandConfig = new CommandConfig();
 
 
     public static class InventoryConfig {
@@ -161,7 +167,11 @@ public class YigdConfig implements ConfigData {
         }
     }
 
-    public static class CompatConfigs {
+    public static class CompatConfig {
 
+    }
+
+    public static class CommandConfig {
+        public String mainCommand = "yigd";
     }
 }

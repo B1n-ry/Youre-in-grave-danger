@@ -11,10 +11,10 @@ import net.minecraft.util.math.BlockPos;
 public interface GraveClaimEvent {
     Event<GraveClaimEvent> EVENT = EventFactory.createArrayBacked(GraveClaimEvent.class, graveClaimEvents -> (player, world, pos, grave, tool) -> {
         for (GraveClaimEvent claimEvent : graveClaimEvents) {
-            if (!claimEvent.canClaim(player, world, pos, grave, tool))
-                return false;
+            if (claimEvent.canClaim(player, world, pos, grave, tool))
+                return true;
         }
-        return true;
+        return false;
     });
 
     boolean canClaim(ServerPlayerEntity player, ServerWorld world, BlockPos pos, GraveComponent grave, ItemStack tool);

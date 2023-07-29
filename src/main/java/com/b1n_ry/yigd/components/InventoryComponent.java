@@ -10,7 +10,6 @@ import com.b1n_ry.yigd.util.DropRule;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,9 +23,9 @@ import java.util.*;
 public class InventoryComponent {
     private final DefaultedList<ItemStack> items;
     private final Map<String, CompatComponent<?>> modInventoryItems;
-    private final int mainSize;
-    private final int armorSize;
-    private final int offHandSize;
+    public final int mainSize;
+    public final int armorSize;
+    public final int offHandSize;
 
     public InventoryComponent(ServerPlayerEntity player) {
         this.items = this.getInventoryItems(player);
@@ -45,10 +44,26 @@ public class InventoryComponent {
         this.offHandSize = offHandSize;
     }
 
-    private DefaultedList<ItemStack> getInventoryItems(ServerPlayerEntity player) {
-        Inventory inventory = player.getInventory();
+    public DefaultedList<ItemStack> getItems() {
+        return this.items;
+    }
+    public DefaultedList<ItemStack> getAllExtraItems(boolean withoutEmpty) {
+        DefaultedList<ItemStack> stacks = DefaultedList.of();
 
-        DefaultedList<ItemStack> items = DefaultedList.ofSize(inventory.size());
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            stacks.addAll(compatComponent.getAsStackList());
+        }
+
+        if (withoutEmpty) {
+            stacks.removeIf(ItemStack::isEmpty);
+        }
+
+        return stacks;
+    }
+    private DefaultedList<ItemStack> getInventoryItems(ServerPlayerEntity player) {
+        PlayerInventory inventory = player.getInventory();
+
+        DefaultedList<ItemStack> items = DefaultedList.ofSize(inventory.size(), ItemStack.EMPTY);
 
         // Save all items in vanilla inventory
         for (int i = 0; i < inventory.size(); i++) {
@@ -325,6 +340,16 @@ public class InventoryComponent {
         return -1;
     }
 
+    public boolean isEmpty() {
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            if (!compatComponent.isEmpty()) return false;
+        }
+
+        List<ItemStack> allItems = new ArrayList<>(this.items);
+        allItems.removeIf(ItemStack::isEmpty);
+
+        return allItems.isEmpty();
+    }
 
     public DefaultedList<ItemStack> applyToPlayer(ServerPlayerEntity player) {
         DefaultedList<ItemStack> extraItems = DefaultedList.of();

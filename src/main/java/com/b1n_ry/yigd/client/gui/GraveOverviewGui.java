@@ -1,34 +1,174 @@
 package com.b1n_ry.yigd.client.gui;
 
+import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.client.gui.widget.WHoverButton;
+import com.b1n_ry.yigd.client.gui.widget.WHoverToggleButton;
+import com.b1n_ry.yigd.client.gui.widget.WItemStack;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.components.InventoryComponent;
+import com.b1n_ry.yigd.packets.ClientPacketHandler;
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
-import io.github.cottonmc.cotton.gui.widget.WButton;
-import io.github.cottonmc.cotton.gui.widget.WGridPanel;
-import io.github.cottonmc.cotton.gui.widget.WLabel;
-import io.github.cottonmc.cotton.gui.widget.WSprite;
+import io.github.cottonmc.cotton.gui.widget.*;
 import io.github.cottonmc.cotton.gui.widget.data.Insets;
-import net.minecraft.client.MinecraftClient;
+import io.github.cottonmc.cotton.gui.widget.icon.TextureIcon;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+
+import java.awt.*;
+import java.util.UUID;
+import java.util.function.Function;
 
 public class GraveOverviewGui extends LightweightGuiDescription {
+    private final GraveComponent graveComponent;
+    private final Screen previousScreen;
+
+    private static final int SLOT_SIZE = 18;
+    private static final int SLOTS_PER_LINE = 9;
     public GraveOverviewGui(GraveComponent graveComponent, Screen previousScreen) {
-        WGridPanel root = new WGridPanel();
+        this.graveComponent = graveComponent;
+        this.previousScreen = previousScreen;
+
+        WPlainPanel root = new WPlainPanel();
         this.setRootPanel(root);
-        root.setSize(256, 240);
         root.setInsets(Insets.ROOT_PANEL);
 
-        WSprite icon = new WSprite(new Identifier("minecraft:textures/item/redstone.png"));
-        root.add(icon, 0, 2, 1, 1);
+        int slightlyLeft = (int) (1.1 * SLOT_SIZE);
 
-        WButton button = new WButton(Text.of("Fuck, go back"));
-        button.setOnClick(() -> MinecraftClient.getInstance().setScreen(previousScreen));
-        root.add(button, 0, 3, 4, 1);
+        WLabel title = new WLabel(this.graveComponent.getDeathMessage().getDeathMessage());
+        root.add(title, slightlyLeft, 0);
 
-        WLabel label = new WLabel(Text.literal("Test"), 0xFFFFFF);
-        root.add(label, 0, 4, 2, 1);
+        this.addItemSlots(root);
+        this.addCoordinates(root, slightlyLeft, SLOT_SIZE);
+        this.addDimension(root, slightlyLeft, 2 * SLOT_SIZE);
+        this.addXpInfo(root, slightlyLeft, 3 * SLOT_SIZE);
+
+
 
         root.validate(this);
+    }
+
+    private void addItemSlots(WPlainPanel root) {
+        InventoryComponent inventoryComponent = this.graveComponent.getInventoryComponent();
+        DefaultedList<ItemStack> items = DefaultedList.of();
+        items.addAll(inventoryComponent.getItems());
+
+        items.addAll(inventoryComponent.getAllExtraItems(true));
+
+        int generateArmorAndOffhandFrom = Math.max(inventoryComponent.armorSize, inventoryComponent.offHandSize) - 1;
+
+        // Armor slots
+        this.addItemSlot(root, inventoryComponent.mainSize, inventoryComponent.armorSize,
+                items, i -> new Point(0, (generateArmorAndOffhandFrom - i) * SLOT_SIZE));
+
+        // Offhand slot(s?)
+        this.addItemSlot(root, inventoryComponent.mainSize + inventoryComponent.armorSize,
+                inventoryComponent.offHandSize, items,
+                i -> new Point((SLOTS_PER_LINE - 1) * SLOT_SIZE, (generateArmorAndOffhandFrom - i) * SLOT_SIZE));
+
+        int mainInvHeight = inventoryComponent.mainSize / SLOTS_PER_LINE;
+
+        // Hot-bar slots
+        this.addItemSlot(root, 0, SLOTS_PER_LINE, items,
+                i -> new Point(i * SLOT_SIZE, (mainInvHeight + generateArmorAndOffhandFrom + 1) * SLOT_SIZE));
+
+        // Main slots
+        this.addItemSlot(root, SLOTS_PER_LINE, inventoryComponent.mainSize - SLOTS_PER_LINE, items,
+                i -> new Point((i % SLOTS_PER_LINE) * SLOT_SIZE,
+                        (int) ((generateArmorAndOffhandFrom + 1.5 + (i / SLOTS_PER_LINE)) * SLOT_SIZE)));
+
+        int collectiveSize = inventoryComponent.mainSize + inventoryComponent.armorSize + inventoryComponent.offHandSize;
+        int sizeDiff = items.size() - collectiveSize;
+        if (sizeDiff > 0) {
+            WPlainPanel extraItemsPanel = new WPlainPanel();
+            extraItemsPanel.setInsets(new Insets(6));
+
+            Insets panelInsets = root.getInsets();
+            int slotsHigh = (root.getHeight() - (panelInsets.bottom() + panelInsets.top())) / SLOT_SIZE;
+
+            // If any extra, those slots go here (included modded inventories, non-empty slots)
+            this.addItemSlot(extraItemsPanel, collectiveSize, sizeDiff, items, i -> new Point((i / slotsHigh) * SLOT_SIZE, i * SLOT_SIZE));
+
+            root.add(extraItemsPanel, -(1 + extraItemsPanel.getWidth()) * SLOT_SIZE, 0);
+        }
+
+        this.addButtons(root, SLOT_SIZE * SLOTS_PER_LINE, 0);
+    }
+
+    private void addCoordinates(WPlainPanel root, int x, int y) {
+        BlockPos pos = this.graveComponent.getPos();
+        WText coordinates = new WText(Text.of("X: %d / Y: %d / Z: %d".formatted(pos.getX(), pos.getY(), pos.getZ())));
+
+        root.add(coordinates, x, y, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
+    }
+
+    private void addDimension(WPlainPanel root, int x, int y) {
+        RegistryKey<World> key = this.graveComponent.getWorldRegistryKey();
+        String dimId = key.getValue().toString();
+        WText dimension = new WText(Text.translatableWithFallback("yigd.dimension.name." + dimId, dimId));
+
+        root.add(dimension, x, y, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
+    }
+
+    private void addXpInfo(WPlainPanel root, int x, int y) {
+        WSprite xpIcon = new WSprite(new Identifier(Yigd.MOD_ID, "textures/gui/exp_orb.png"));
+        int spriteSize = (int) (SLOT_SIZE * 0.7);
+        root.add(xpIcon, x, y, spriteSize, spriteSize);
+
+        int level = this.graveComponent.getExpComponent().getXpLevel();
+        Text text = Text.of(String.valueOf(level));
+
+        // Create outline 1 pixel to each side
+        WText bgTextUp = new WText(text, 0x000000);
+        WText bgTextDown = new WText(text, 0x000000);
+        WText bgTextLeft = new WText(text, 0x000000);
+        WText bgTextRight = new WText(text, 0x000000);
+
+        // Text/number itself
+        WText wText = new WText(text, 0x80FF20);
+
+        int textX = x + spriteSize;
+        int textY = y + spriteSize / 2;
+        root.add(bgTextRight, textX + 1, textY);
+        root.add(bgTextLeft, textX - 1, textY);
+        root.add(bgTextUp, textX, textY + 1);
+        root.add(bgTextDown, textX, textY - 1);
+        root.add(wText, textX, textY);
+    }
+
+    private void addItemSlot(WPlainPanel root, int fromIndex, int amount, DefaultedList<ItemStack> items, Function<Integer, Point> posCalculation) {
+        for (int i = 0; i < amount; i++) {
+            Point pos = posCalculation.apply(i);
+
+            WItemStack wItemStack = new WItemStack(items.get(fromIndex + i), SLOT_SIZE);
+
+            root.add(wItemStack, pos.x, pos.y);
+        }
+    }
+
+    private void addButtons(WPlainPanel root, int x, int y) {
+        WHoverButton restoreButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/restore_btn.png")), Text.translatable("yigd.gui.button.restore"));
+        WHoverButton robButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/rob_btn.png")), Text.translatable("yigd.gui.button.rob"));
+        WHoverButton deleteButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/delete_btn.png")), Text.translatable("yigd.gui.button.delete"));
+
+        WToggleButton lockingButton = new WHoverToggleButton(new Identifier(Yigd.MOD_ID, "textures/gui/locked_btn.png"), Text.translatable("yigd.gui.button.locked"), new Identifier(Yigd.MOD_ID, "textures/gui/unlocked_btn.png"), Text.translatable("yigd.gui.button.unlocked"));
+        lockingButton.setToggle(this.graveComponent.isLocked());
+
+        UUID graveId = this.graveComponent.getGraveId();
+
+        restoreButton.setOnClick(() -> ClientPacketHandler.sendRestoreGraveRequestPacket(graveId));
+        robButton.setOnClick(() -> ClientPacketHandler.sendRobGraveRequestPacket(graveId));
+        deleteButton.setOnClick(() -> ClientPacketHandler.sendDeleteGraveRequestPacket(graveId));
+        lockingButton.setOnToggle(aBoolean -> ClientPacketHandler.sendGraveLockRequestPacket(graveId, aBoolean));
+
+        root.add(restoreButton, x, y);
+        root.add(robButton, x, y + 24);
+        root.add(lockingButton, x, y + 48);
+        root.add(deleteButton, x, y + 72);
     }
 }
