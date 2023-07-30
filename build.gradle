@@ -9,7 +9,7 @@ group = project.maven_group
 repositories {
 	maven { url "https://maven.shedaniel.me/" }  // cloth_config
 	maven { url "https://maven.terraformersmc.com/" }  // mod_menu, trinkets
-	maven { url = "https://ladysnake.jfrog.io/artifactory/mods"	}  // cardinal_components
+	maven { url = "https://maven.ladysnake.org/releases"	}  // cardinal_components
 	maven { url = "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }  // Permission API
 }
