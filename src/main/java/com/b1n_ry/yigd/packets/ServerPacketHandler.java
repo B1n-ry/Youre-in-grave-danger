@@ -18,7 +18,7 @@ import java.util.UUID;
 public class ServerPacketHandler {
     public static void registerReceivers() {
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_RESTORE_C2S, (server, player, handler, buf, responseSender) -> {
-            if (!Permissions.check(player, "yigd.command.restore")) {
+            if (!Permissions.check(player, "yigd.command.restore", 2)) {
                 player.sendMessage(Text.translatable("yigd.command.permission_fail"));
                 return;
             }
@@ -39,7 +39,7 @@ public class ServerPacketHandler {
             }, () -> player.sendMessage(Text.translatable("yigd.command.restore.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_ROBBING_C2S, (server, player, handler, buf, responseSender) -> {
-            if (!Permissions.check(player, "yigd.command.rob")) {
+            if (!Permissions.check(player, "yigd.command.rob", 2)) {
                 player.sendMessage(Text.translatable("yigd.command.permission_fail"));
                 return;
             }
@@ -53,7 +53,7 @@ public class ServerPacketHandler {
             }, () -> player.sendMessage(Text.translatable("yigd.command.rob.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_DELETE_C2S, (server, player, handler, buf, responseSender) -> {
-            if (!Permissions.check(player, "yigd.command.delete")) {
+            if (!Permissions.check(player, "yigd.command.delete", 3)) {
                 player.sendMessage(Text.translatable("yigd.command.permission_fail"));
                 return;
             }
@@ -71,7 +71,7 @@ public class ServerPacketHandler {
             player.sendMessage(Text.translatable(translatable));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_LOCKING_C2S, (server, player, handler, buf, responseSender) -> {
-            if (!Permissions.check(player, "yigd.command.lock")) {
+            if (!Permissions.check(player, "yigd.command.lock", 0)) {
                 player.sendMessage(Text.translatable("yigd.command.permission_fail"));
                 return;
             }
@@ -83,11 +83,26 @@ public class ServerPacketHandler {
             component.ifPresentOrElse(grave -> grave.setLocked(lockState),
                     () -> player.sendMessage(Text.translatable("yigd.command.lock.fail")));
         });
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_OVERVIEW_REQUEST_C2S, (server, player, handler, buf, responseSender) -> {
+            if (!Permissions.check(player, "yigd.command.view_self", 0)) {
+                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                return;
+            }
+
+            UUID graveId = buf.readUuid();
+            Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
+            component.ifPresentOrElse(grave -> sendGraveOverviewPacket(player, grave),
+                    () -> player.sendMessage(Text.translatable("yigd.command.view_self.fail")));
+        });
     }
 
     public static void sendGraveOverviewPacket(ServerPlayerEntity player, GraveComponent component) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeNbt(component.toNbt());
+        buf.writeBoolean(Permissions.check(player, "yigd.command.restore", 2));
+        buf.writeBoolean(Permissions.check(player, "yigd.command.rob", 2));
+        buf.writeBoolean(Permissions.check(player, "yigd.command.delete", 3));
+        buf.writeBoolean(Permissions.check(player, "yigd.command.locking", 0));
 
         ServerPlayNetworking.send(player, PacketIdentifiers.GRAVE_OVERVIEW_S2C, buf);
     }

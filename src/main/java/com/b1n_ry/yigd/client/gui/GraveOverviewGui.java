@@ -11,7 +11,10 @@ import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
 import io.github.cottonmc.cotton.gui.widget.*;
 import io.github.cottonmc.cotton.gui.widget.data.Insets;
 import io.github.cottonmc.cotton.gui.widget.icon.TextureIcon;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
@@ -30,7 +33,8 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
     private static final int SLOT_SIZE = 18;
     private static final int SLOTS_PER_LINE = 9;
-    public GraveOverviewGui(GraveComponent graveComponent, Screen previousScreen) {
+    public GraveOverviewGui(GraveComponent graveComponent, Screen previousScreen, boolean canRestore, boolean canRob,
+                            boolean canDelete, boolean canUnlock) {
         this.graveComponent = graveComponent;
         this.previousScreen = previousScreen;
 
@@ -48,9 +52,13 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         this.addDimension(root, slightlyLeft, 2 * SLOT_SIZE);
         this.addXpInfo(root, slightlyLeft, 3 * SLOT_SIZE);
 
-
+        this.addButtons(root, SLOT_SIZE * SLOTS_PER_LINE, 0, canRestore, canRob, canDelete, canUnlock);
 
         root.validate(this);
+    }
+
+    public Screen getPreviousScreen() {
+        return this.previousScreen;
     }
 
     private void addItemSlots(WPlainPanel root) {
@@ -96,8 +104,6 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
             root.add(extraItemsPanel, -(1 + extraItemsPanel.getWidth()) * SLOT_SIZE, 0);
         }
-
-        this.addButtons(root, SLOT_SIZE * SLOTS_PER_LINE, 0);
     }
 
     private void addCoordinates(WPlainPanel root, int x, int y) {
@@ -151,12 +157,14 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         }
     }
 
-    private void addButtons(WPlainPanel root, int x, int y) {
+    private void addButtons(WPlainPanel root, int x, int y, boolean restoreBtn, boolean robBtn, boolean deleteBtn, boolean lockingBtn) {
         WHoverButton restoreButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/restore_btn.png")), Text.translatable("yigd.gui.button.restore"));
         WHoverButton robButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/rob_btn.png")), Text.translatable("yigd.gui.button.rob"));
         WHoverButton deleteButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/delete_btn.png")), Text.translatable("yigd.gui.button.delete"));
 
-        WToggleButton lockingButton = new WHoverToggleButton(new Identifier(Yigd.MOD_ID, "textures/gui/locked_btn.png"), Text.translatable("yigd.gui.button.locked"), new Identifier(Yigd.MOD_ID, "textures/gui/unlocked_btn.png"), Text.translatable("yigd.gui.button.unlocked"));
+        TextureIcon lockingIconOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/locked_btn.png"));
+        TextureIcon lockingIconOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unlocked_btn.png"));
+        WHoverToggleButton lockingButton = new WHoverToggleButton(lockingIconOn, Text.translatable("yigd.gui.button.locked"), lockingIconOff, Text.translatable("yigd.gui.button.unlocked"));
         lockingButton.setToggle(this.graveComponent.isLocked());
 
         UUID graveId = this.graveComponent.getGraveId();
@@ -166,9 +174,21 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         deleteButton.setOnClick(() -> ClientPacketHandler.sendDeleteGraveRequestPacket(graveId));
         lockingButton.setOnToggle(aBoolean -> ClientPacketHandler.sendGraveLockRequestPacket(graveId, aBoolean));
 
-        root.add(restoreButton, x, y);
-        root.add(robButton, x, y + 24);
-        root.add(lockingButton, x, y + 48);
-        root.add(deleteButton, x, y + 72);
+        int i = 0;
+        if (restoreBtn) {
+            root.add(restoreButton, x, y);
+            i += 24;
+        }
+        if (robBtn) {
+            root.add(robButton, x, y + i);
+            i += 24;
+        }
+        if (lockingBtn) {
+            root.add(lockingButton, x, y + i);
+            i += 24;
+        }
+        if (deleteBtn) {
+            root.add(deleteButton, x, y + i);
+        }
     }
 }

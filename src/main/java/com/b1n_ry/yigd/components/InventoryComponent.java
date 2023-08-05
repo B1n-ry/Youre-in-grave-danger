@@ -350,6 +350,17 @@ public class InventoryComponent {
 
         return allItems.isEmpty();
     }
+    public int size() {
+        List<ItemStack> allItems = new ArrayList<>(this.items);
+
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            allItems.addAll(compatComponent.getAsStackList());
+        }
+
+        allItems.removeIf(ItemStack::isEmpty);
+
+        return allItems.size();
+    }
 
     public DefaultedList<ItemStack> applyToPlayer(ServerPlayerEntity player) {
         DefaultedList<ItemStack> extraItems = DefaultedList.of();

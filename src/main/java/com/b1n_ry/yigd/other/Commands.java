@@ -4,7 +4,9 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.b1n_ry.yigd.packets.LightGraveData;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -15,6 +17,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static net.minecraft.server.command.CommandManager.literal;
@@ -29,17 +32,20 @@ public class Commands {
                         .requires(Permissions.require("yigd.command.base_permission", true))
                         .executes(Commands::baseCommand)
                         .then(literal("latest")
-                                .requires(Permissions.require("yigd.command.view_latest", 3))
+                                .requires(Permissions.require("yigd.command.view_latest", 0))
                                 .executes(Commands::viewLatest))
                         .then(literal("grave")
-                                .requires(Permissions.require("yigd.command.view_self", 3))
+                                .requires(Permissions.require("yigd.command.view_self", 0))
                                 .executes(Commands::viewSelf)
                                 .then(CommandManager.argument("player", GameProfileArgumentType.gameProfile())
-                                        .requires(Permissions.require("yigd.command.view_user", 3))
-                                        .executes(Commands::viewUser)))
+                                        .requires(Permissions.require("yigd.command.view_user", 2))
+                                        .executes(context -> viewUser(context, GameProfileArgumentType.getProfileArgument(context, "player")))))
                         .then(literal("moderate")
-                                .requires(Permissions.require("yigd.command.view_all", 3))
+                                .requires(Permissions.require("yigd.command.view_all", 2))
                                 .executes(Commands::viewAll))
+                        .then(literal("restore")
+                                .requires(Permissions.require("yigd.command.restore", 2))
+                                .executes(Commands::restore))  // Change to require parameters when implementing the restore command
         ));
     }
 
@@ -63,12 +69,34 @@ public class Commands {
         return 1;
     }
     private static int viewSelf(CommandContext<ServerCommandSource> context) {
-        return 0;
+        ServerPlayerEntity player = context.getSource().getPlayer();
+        if (player == null) return -1;
+
+        return viewUser(context, List.of(player.getGameProfile()));
     }
-    private static int viewUser(CommandContext<ServerCommandSource> context) {
-        return 0;
+    private static int viewUser(CommandContext<ServerCommandSource> context, Collection<GameProfile> profiles) {
+        ServerPlayerEntity player = context.getSource().getPlayer();
+        if (player == null) return -1;
+
+        if (profiles.size() == 0) {
+            return -1;
+        }
+        GameProfile profile = (GameProfile) profiles.toArray()[0];
+
+        List<GraveComponent> components = DeathInfoManager.INSTANCE.getBackupData(profile);
+
+        List<LightGraveData> lightGraveData = new ArrayList<>();
+        for (GraveComponent component : components) {
+            lightGraveData.add(component.toLightData());
+        }
+
+        ServerPacketHandler.sendGraveSelectionPacket(player, lightGraveData);
+        return 1;
     }
     private static int viewAll(CommandContext<ServerCommandSource> context) {
+        return 0;
+    }
+    private static int restore(CommandContext<ServerCommandSource> context) {
         return 0;
     }
 }

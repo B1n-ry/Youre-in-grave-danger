@@ -12,6 +12,16 @@ import net.minecraft.world.World;
 
 import java.util.UUID;
 
+/**
+ * This class is used to carry a representation from an overhaul of what's in a grave, not a detailed description
+ * @param itemCount Amount of items in total on the player
+ * @param pos {@link BlockPos} where the player died
+ * @param xpPoints How much XP the player had
+ * @param registryKey {@link RegistryKey<World>} of the world player died in
+ * @param deathMessage {@link TranslatableDeathMessage} of the player's death message
+ * @param id The grave {@link UUID}
+ * @param status The availability status of the grave
+ */
 public record LightGraveData(int itemCount, BlockPos pos, int xpPoints, RegistryKey<World> registryKey,
                              TranslatableDeathMessage deathMessage, UUID id, GraveStatus status) {
 
@@ -21,7 +31,7 @@ public record LightGraveData(int itemCount, BlockPos pos, int xpPoints, Registry
         int xpPoints = nbt.getInt("xpPoints");
         RegistryKey<World> registryKey = getRegistryKeyFromNbt(nbt.getCompound("worldKey"));
         TranslatableDeathMessage deathMessage = TranslatableDeathMessage.fromNbt(nbt.getCompound("deathMessage"));
-        UUID id = NbtHelper.toUuid(nbt.getCompound("id"));
+        UUID id = nbt.getUuid("id");
         GraveStatus status = GraveStatus.valueOf(nbt.getString("status"));
 
         return new LightGraveData(itemCount, pos, xpPoints, registryKey, deathMessage, id, status);

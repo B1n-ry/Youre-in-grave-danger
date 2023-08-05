@@ -16,4 +16,8 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         this.page = page;
         this.previousScreen = previousScreen;
     }
+
+    public Screen getPreviousScreen() {
+        return this.previousScreen;
+    }
 }

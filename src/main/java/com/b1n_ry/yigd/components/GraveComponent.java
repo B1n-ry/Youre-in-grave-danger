@@ -9,6 +9,7 @@ import com.b1n_ry.yigd.data.TranslatableDeathMessage;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
+import com.b1n_ry.yigd.packets.LightGraveData;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
@@ -186,7 +187,7 @@ public class GraveComponent {
 
         if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
 
-        this.applyToPlayer(player, world, pos, player.getUuid() == this.owner.getId());
+        this.applyToPlayer(player, world, pos, player.getUuid().equals(this.owner.getId()));
 
         if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
             world.setBlockState(pos, previousState);
@@ -220,6 +221,11 @@ public class GraveComponent {
             if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
                 ItemScatterer.spawn(world, x, y, z, stack);
         }
+    }
+
+    public LightGraveData toLightData() {
+        return new LightGraveData(this.inventoryComponent.size(), this.pos,
+                this.expComponent.getStoredXp(), this.worldRegistryKey, this.deathMessage, this.graveId, this.status);
     }
 
     public NbtCompound toNbt() {

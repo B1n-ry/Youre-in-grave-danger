@@ -14,6 +14,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -88,7 +89,7 @@ public class DeathInfoManager extends PersistentState {
         this.graveBackups.get(profile).add(component);
         this.graveMap.put(component.getGraveId(), component);
     }
-    public List<GraveComponent> getBackupData(GameProfile profile) {
+    public @NotNull List<GraveComponent> getBackupData(GameProfile profile) {
         return this.graveBackups.computeIfAbsent(profile, k -> new ArrayList<>());
     }
     public Optional<GraveComponent> getGrave(UUID graveId) {

@@ -19,6 +19,10 @@ public class ExpComponent {
         this.storedXp = storedXp;
     }
 
+    public int getStoredXp() {
+        return this.storedXp;
+    }
+
     public int getXpDropAmount(ServerPlayerEntity player) {
         YigdConfig config = YigdConfig.getConfig();
 
