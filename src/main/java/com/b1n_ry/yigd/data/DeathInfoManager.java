@@ -150,7 +150,9 @@ public class DeathInfoManager extends PersistentState {
                 INSTANCE.addBackup(user, component);
 
                 ServerWorld world = component.getWorld();
-                if (component.getStatus() == GraveStatus.UNCLAIMED && world != null && world.getBlockEntity(component.getPos()) instanceof GraveBlockEntity be) {
+                if (component.getStatus() == GraveStatus.UNCLAIMED && world != null
+                        && world.getBlockEntity(component.getPos()) instanceof GraveBlockEntity be
+                        && be.getGraveId().equals(component.getGraveId())) {
                     be.setComponent(component);
                 }
             }

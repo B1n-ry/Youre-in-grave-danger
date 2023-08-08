@@ -114,6 +114,9 @@ public class GraveComponent {
     public void setLocked(boolean locked) {
         this.locked = locked;
     }
+    public void setStatus(GraveStatus status) {
+        this.status = status;
+    }
 
     public boolean isEmpty() {
         return this.inventoryComponent.isEmpty() && this.expComponent.isEmpty();

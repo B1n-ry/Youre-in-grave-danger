@@ -2,6 +2,8 @@ package com.b1n_ry.yigd.block.entity;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.data.DeathInfoManager;
+import com.b1n_ry.yigd.data.GraveStatus;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -12,6 +14,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class GraveBlockEntity extends BlockEntity {
@@ -32,11 +35,25 @@ public class GraveBlockEntity extends BlockEntity {
         this.previousState = previousState;
     }
 
+    public UUID getGraveId() {
+        return this.graveId;
+    }
     public GraveComponent getComponent() {
         return this.component;
     }
     public BlockState getPreviousState() {
         return this.previousState;
+    }
+
+    public void onBroken() {
+        if (this.world == null || this.world.isClient) return;
+
+        Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(this.graveId);
+        component.ifPresent(grave -> {
+            if (grave.getStatus() == GraveStatus.UNCLAIMED)
+                grave.setStatus(GraveStatus.DESTROYED);
+        });
+        DeathInfoManager.INSTANCE.markDirty();
     }
 
     @Override
