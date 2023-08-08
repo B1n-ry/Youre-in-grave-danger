@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.packets.LightGraveData;
+import com.b1n_ry.yigd.packets.LightPlayerData;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
@@ -19,6 +20,7 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -90,11 +92,31 @@ public class Commands {
             lightGraveData.add(component.toLightData());
         }
 
-        ServerPacketHandler.sendGraveSelectionPacket(player, lightGraveData);
+        ServerPacketHandler.sendGraveSelectionPacket(player, profile, lightGraveData);
         return 1;
     }
     private static int viewAll(CommandContext<ServerCommandSource> context) {
-        return 0;
+        ServerPlayerEntity player = context.getSource().getPlayer();
+
+        Map<GameProfile, List<GraveComponent>> players = DeathInfoManager.INSTANCE.getPlayerGraves();
+
+        List<LightPlayerData> lightPlayerData = new ArrayList<>();
+        players.forEach((profile, components) -> {
+            int unclaimed = 0;
+            int destroyed = 0;
+            for (GraveComponent component : components) {
+                switch (component.getStatus()) {
+                    case UNCLAIMED -> unclaimed++;
+                    case DESTROYED -> destroyed++;
+                }
+            }
+            LightPlayerData lightData = new LightPlayerData(components.size(), unclaimed, destroyed, profile);
+            lightPlayerData.add(lightData);
+        });
+
+        ServerPacketHandler.sendPlayerSelectionPacket(player, lightPlayerData);
+
+        return 1;
     }
     private static int restore(CommandContext<ServerCommandSource> context) {
         return 0;

@@ -52,7 +52,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         this.addDimension(root, slightlyLeft, 2 * SLOT_SIZE);
         this.addXpInfo(root, slightlyLeft, 3 * SLOT_SIZE);
 
-        this.addButtons(root, SLOT_SIZE * SLOTS_PER_LINE, 0, canRestore, canRob, canDelete, canUnlock);
+        this.addButtons(root, SLOT_SIZE * SLOTS_PER_LINE + 5, 0, canRestore, canRob, canDelete, canUnlock);
 
         root.validate(this);
     }

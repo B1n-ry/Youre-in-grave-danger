@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -94,6 +95,22 @@ public class ServerPacketHandler {
             component.ifPresentOrElse(grave -> sendGraveOverviewPacket(player, grave),
                     () -> player.sendMessage(Text.translatable("yigd.command.view_self.fail")));
         });
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_SELECT_REQUEST_C2S, (server, player, handler, buf, responseSender) -> {
+            if (!Permissions.check(player, "yigd.command.view_user", 2)) {
+                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                return;
+            }
+
+            GameProfile profile = buf.readGameProfile();
+            List<GraveComponent> components = DeathInfoManager.INSTANCE.getBackupData(profile);
+
+            List<LightGraveData> lightGraveData = new ArrayList<>();
+            for (GraveComponent component : components) {
+                lightGraveData.add(component.toLightData());
+            }
+
+            sendGraveSelectionPacket(player, profile, lightGraveData);
+        });
     }
 
     public static void sendGraveOverviewPacket(ServerPlayerEntity player, GraveComponent component) {
@@ -107,13 +124,14 @@ public class ServerPacketHandler {
         ServerPlayNetworking.send(player, PacketIdentifiers.GRAVE_OVERVIEW_S2C, buf);
     }
 
-    public static void sendGraveSelectionPacket(ServerPlayerEntity player, List<LightGraveData> data) {
+    public static void sendGraveSelectionPacket(ServerPlayerEntity player, GameProfile ofUser, List<LightGraveData> data) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeInt(data.size());
 
         for (LightGraveData grave : data) {
             buf.writeNbt(grave.toNbt());
         }
+        buf.writeGameProfile(ofUser);
 
         ServerPlayNetworking.send(player, PacketIdentifiers.GRAVE_SELECTION_S2C, buf);
     }

@@ -77,6 +77,9 @@ public class DeathInfoManager extends PersistentState {
     public Optional<RespawnComponent> getRespawnComponent(GameProfile profile) {
         return Optional.ofNullable(this.respawnEffects.get(profile));
     }
+    public Map<GameProfile, List<GraveComponent>> getPlayerGraves() {
+        return this.graveBackups;
+    }
 
     public void removeRespawnComponent(GameProfile profile) {
         this.respawnEffects.remove(profile);

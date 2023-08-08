@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.client.gui.screens.GraveOverviewScreen;
 import com.b1n_ry.yigd.client.gui.screens.GraveSelectionScreen;
 import com.b1n_ry.yigd.client.gui.screens.PlayerSelectionScreen;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.nbt.NbtCompound;
@@ -44,7 +45,9 @@ public class ClientPacketHandler {
                 data.add(LightGraveData.fromNbt(nbtData));
             }
 
-            client.execute(() -> client.setScreen(new GraveSelectionScreen(new GraveSelectionGui(data, 0, client.currentScreen))));
+            GameProfile profile = buf.readGameProfile();
+
+            client.execute(() -> client.setScreen(new GraveSelectionScreen(new GraveSelectionGui(data, profile, client.currentScreen))));
         });
 
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.PLAYER_SELECTION_S2C, (client, handler, buf, responseSender) -> {
@@ -57,7 +60,7 @@ public class ClientPacketHandler {
                 data.add(LightPlayerData.fromNbt(nbtData));
             }
 
-            client.execute(() -> client.setScreen(new PlayerSelectionScreen(new PlayerSelectionGui(data, 0, client.currentScreen))));
+            client.execute(() -> client.setScreen(new PlayerSelectionScreen(new PlayerSelectionGui(data, client.currentScreen))));
         });
     }
 
@@ -86,5 +89,10 @@ public class ClientPacketHandler {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeUuid(graveId);
         ClientPlayNetworking.send(PacketIdentifiers.GRAVE_OVERVIEW_REQUEST_C2S, buf);
+    }
+    public static void sendGraveSelectionRequest(GameProfile profile) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeGameProfile(profile);
+        ClientPlayNetworking.send(PacketIdentifiers.GRAVE_SELECT_REQUEST_C2S, buf);
     }
 }

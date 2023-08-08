@@ -12,7 +12,7 @@ public class PlayerSelectionScreen extends CottonClientScreen {
 
     @Override
     public boolean keyPressed(int ch, int keyCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_BACKSPACE && this.description instanceof PlayerSelectionGui gui && this.client != null) {
+        if (ch == GLFW.GLFW_KEY_BACKSPACE && this.description instanceof PlayerSelectionGui gui && this.client != null) {
             this.client.setScreen(gui.getPreviousScreen());
             return true;
         }

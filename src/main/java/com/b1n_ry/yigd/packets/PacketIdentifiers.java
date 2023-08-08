@@ -13,6 +13,7 @@ public interface PacketIdentifiers {
     Identifier GRAVE_ROBBING_C2S = idFor("grave_robbing_c2s");
     Identifier GRAVE_DELETE_C2S = idFor("grave_delete_c2s");
     Identifier GRAVE_OVERVIEW_REQUEST_C2S = idFor("grave_overview_request_c2s");
+    Identifier GRAVE_SELECT_REQUEST_C2S = idFor("grave_select_request_c2s");
 
     static Identifier idFor(String path) {
         return new Identifier(Yigd.MOD_ID, path);

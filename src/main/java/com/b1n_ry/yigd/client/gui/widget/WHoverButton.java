@@ -14,6 +14,18 @@ public class WHoverButton extends WButton {
         super(icon);
 
         this.text = text;
+
+        this.width = 20;
+    }
+
+    @Override
+    public boolean canResize() {
+        return false;
+    }
+
+    @Override
+    public void setSize(int x, int y) {
+        super.setSize(20, 20);
     }
 
     @Override
