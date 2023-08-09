@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.client.gui.widget.WItemStack;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.packets.ClientPacketHandler;
+import io.github.cottonmc.cotton.gui.client.BackgroundPainter;
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
 import io.github.cottonmc.cotton.gui.widget.*;
 import io.github.cottonmc.cotton.gui.widget.data.Insets;
@@ -95,6 +96,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         if (sizeDiff > 0) {
             WPlainPanel extraItemsPanel = new WPlainPanel();
             extraItemsPanel.setInsets(new Insets(6));
+            extraItemsPanel.setBackgroundPainter(BackgroundPainter.VANILLA);
 
             Insets panelInsets = root.getInsets();
             int slotsHigh = (root.getHeight() - (panelInsets.bottom() + panelInsets.top())) / SLOT_SIZE;
@@ -102,7 +104,10 @@ public class GraveOverviewGui extends LightweightGuiDescription {
             // If any extra, those slots go here (included modded inventories, non-empty slots)
             this.addItemSlot(extraItemsPanel, collectiveSize, sizeDiff, items, i -> new Point((i / slotsHigh) * SLOT_SIZE, i * SLOT_SIZE));
 
-            root.add(extraItemsPanel, -(1 + extraItemsPanel.getWidth()) * SLOT_SIZE, 0);
+            int width = extraItemsPanel.getWidth();
+            int height = extraItemsPanel.getHeight();
+            root.add(extraItemsPanel, -(panelInsets.left() + extraItemsPanel.getWidth()), -extraItemsPanel.getInsets().top());
+            extraItemsPanel.setSize(width, height);  // WPlainPanel#add automatically makes added elements 18x18 pixels
         }
     }
 

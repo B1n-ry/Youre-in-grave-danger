@@ -11,7 +11,9 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ItemScatterer;
@@ -28,7 +30,10 @@ public class InventoryComponent {
     public final int offHandSize;
 
     public InventoryComponent(ServerPlayerEntity player) {
-        this.items = this.getInventoryItems(player);
+        // Avoiding list being immutable in case items should be added on death
+        this.items = DefaultedList.of();
+        this.items.addAll(this.getInventoryItems(player));
+
         this.modInventoryItems = this.getModInventoryItems(player);
 
         PlayerInventory inventory = player.getInventory();
@@ -37,7 +42,10 @@ public class InventoryComponent {
         this.offHandSize = inventory.offHand.size();
     }
     private InventoryComponent(DefaultedList<ItemStack> items, Map<String, CompatComponent<?>> modInventoryItems, int mainSize, int armorSize, int offHandSize) {
-        this.items = items;
+        // Avoiding list being immutable in case items should be added on death
+        this.items = DefaultedList.of();
+        this.items.addAll(items);
+
         this.modInventoryItems = modInventoryItems;
         this.mainSize = mainSize;
         this.armorSize = armorSize;
@@ -83,6 +91,14 @@ public class InventoryComponent {
     }
 
     public void onDeath(RespawnComponent respawnComponent, DeathContext context) {
+        YigdConfig config = YigdConfig.getConfig();
+        if (config.inventoryConfig.dropPlayerHead) {
+            ItemStack playerHead = new ItemStack(Items.PLAYER_HEAD);
+            NbtCompound profileNbt = NbtHelper.writeGameProfile(new NbtCompound(), context.getPlayer().getGameProfile());
+            playerHead.setSubNbt("SkullOwner", profileNbt);
+            this.items.add(playerHead);
+        }
+
         InventoryComponent soulboundInventory = this.handleDropRules(context);
 
         respawnComponent.setSoulboundInventory(soulboundInventory);
@@ -204,10 +220,12 @@ public class InventoryComponent {
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
         // Move curse of binding items from equipped in grave, so they can't get stuck to the player even after death
-        if (isGraveInventory) {
-            extraItems.addAll(this.pullBindingCurseItems());
-        } else {
-            extraItems.addAll(mergingComponent.pullBindingCurseItems());
+        if (config.graveConfig.treatBindingCurse) {
+            if (isGraveInventory) {
+                extraItems.addAll(this.pullBindingCurseItems());
+            } else {
+                extraItems.addAll(mergingComponent.pullBindingCurseItems());
+            }
         }
 
         for (int i = 0; i < mergingComponent.items.size(); i++) {
@@ -224,10 +242,10 @@ public class InventoryComponent {
                 currentComponentIndex = groupIndex < this.armorSize ? groupIndex + this.mainSize : this.mainSize;
             } else if (i < mergingComponent.mainSize + mergingComponent.armorSize + mergingComponent.offHandSize) {
                 groupIndex = i - (mergingComponent.mainSize + mergingComponent.armorSize);
-                currentComponentIndex = groupIndex < this.offHandSize ? groupIndex + this.mainSize + this.offHandSize : this.mainSize + this.armorSize;
-            } else {  // Should never be reached unless some mod adds to the inventory in some weird way
+                currentComponentIndex = groupIndex < this.offHandSize ? groupIndex + this.mainSize + this.armorSize : this.mainSize + this.armorSize;
+            } else {  // Can be reached if initial inventory size is increased
                 groupIndex = i - (mergingComponent.mainSize + mergingComponent.armorSize + mergingComponent.offHandSize);
-                currentComponentIndex = groupIndex + this.mainSize + this.offHandSize + this.offHandSize;
+                currentComponentIndex = groupIndex + this.mainSize + this.armorSize + this.offHandSize;
             }
 
             ItemStack mergingStack = mergingComponent.items.get(i);
@@ -381,10 +399,10 @@ public class InventoryComponent {
                 playerInvIndex = groupIndex < invArmorSize ? groupIndex + invMainSize : -1;
             } else if (i < this.mainSize + this.armorSize + this.offHandSize) {
                 groupIndex = i - (this.mainSize + this.armorSize);
-                playerInvIndex = groupIndex < invOffHandSize ? groupIndex + invMainSize + invOffHandSize : -1;
-            } else {  // Should never be reached unless some mod adds to the inventory in some weird way
+                playerInvIndex = groupIndex < invOffHandSize ? groupIndex + invMainSize + invArmorSize : -1;
+            } else {  // Should is only reached if the inventory size is increased without any sub-inventory increasing
                 groupIndex = i - (this.mainSize + this.armorSize + this.offHandSize);
-                playerInvIndex = groupIndex + invMainSize + invOffHandSize + invOffHandSize;
+                playerInvIndex = groupIndex + invMainSize + invArmorSize + invOffHandSize;
             }
 
             ItemStack stack = this.items.get(i);
