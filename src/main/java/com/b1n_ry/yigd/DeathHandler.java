@@ -8,6 +8,7 @@ import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.data.TranslatableDeathMessage;
+import com.b1n_ry.yigd.events.AllowGraveGenerationEvent;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
@@ -46,11 +47,19 @@ public class DeathHandler {
         graveComponent.backUp();
         respawnComponent.primeForRespawn(profile);
 
-
-        if (!graveComponent.shouldGenerate(config, deathSource)) {
+        if (AllowGraveGenerationEvent.EVENT.invoker().denyGeneration(config, context, graveComponent)) {
             inventoryComponent.dropAll(world, pos);
             expComponent.dropAll(world, pos);
         } else {
+            if (!config.graveConfig.storeItems) {
+                inventoryComponent.dropAll(world, pos);
+                graveComponent.getInventoryComponent().clear();
+            }
+            if (!config.graveConfig.storeXp) {
+                expComponent.dropAll(world, pos);
+                graveComponent.getExpComponent().clear();
+            }
+
             BlockPos gravePos = graveComponent.findGravePos();
 
             Direction direction = player.getHorizontalFacing();

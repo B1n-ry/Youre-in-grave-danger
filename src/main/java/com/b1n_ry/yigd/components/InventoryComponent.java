@@ -10,17 +10,21 @@ import com.b1n_ry.yigd.util.DropRule;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class InventoryComponent {
     private final DefaultedList<ItemStack> items;
@@ -67,6 +71,22 @@ public class InventoryComponent {
         }
 
         return stacks;
+    }
+    public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
+        predicate = predicate.and(stack -> stack.getCount() >= itemCount);
+
+        for (ItemStack stack : this.items) {
+            if (predicate.test(stack)) {
+                stack.decrement(itemCount);
+                return true;
+            }
+        }
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            if (compatComponent.removeItem(predicate, itemCount))
+                return true;
+        }
+
+        return false;
     }
     private DefaultedList<ItemStack> getInventoryItems(ServerPlayerEntity player) {
         PlayerInventory inventory = player.getInventory();
@@ -421,6 +441,12 @@ public class InventoryComponent {
         }
 
         return extraItems;
+    }
+    public void clear() {
+        Collections.fill(this.items, ItemStack.EMPTY);
+        for (CompatComponent<?> component : this.modInventoryItems.values()) {
+            component.clear();
+        }
     }
 
     public NbtCompound toNbt() {

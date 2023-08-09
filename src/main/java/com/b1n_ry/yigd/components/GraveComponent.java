@@ -123,28 +123,6 @@ public class GraveComponent {
     }
 
     /**
-     * Determines weather or not the grave should generate based on conditions when
-     * player has just died. Filters are not yet applied here.
-     * @param config Config that method should take into consideration
-     * @param deathSource How the player died. Used to filter out some death causes if
-     *                    mod is configured to.
-     * @return Weather or not the grave should generate. If false, grave contents are
-     * instead dropped.
-     */
-    public boolean shouldGenerate(YigdConfig config, DamageSource deathSource) {
-        YigdConfig.GraveConfig graveConfig = config.graveConfig;
-        if (!graveConfig.enabled) return false;
-
-        if (!graveConfig.generateEmptyGraves && this.isEmpty()) return false;
-
-        if (graveConfig.dimensionBlacklist.contains(this.worldRegistryKey.getValue().toString())) return false;
-
-        if (!graveConfig.generateGraveInVoid && this.pos.getY() < 0) return false;
-
-        return !graveConfig.ignoredDeathTypes.contains(deathSource.getName());
-    }
-
-    /**
      * Will filter through filters and stuff. Should only be called from server
      * @return where a grave can be placed based on config
      */

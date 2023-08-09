@@ -91,6 +91,10 @@ public class ExpComponent {
         player.addExperience(this.storedXp);
     }
 
+    public void clear() {
+        this.storedXp = 0;
+    }
+
     public NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
         nbt.putInt("value", this.storedXp);

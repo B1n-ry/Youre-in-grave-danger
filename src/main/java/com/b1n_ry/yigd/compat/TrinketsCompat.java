@@ -13,7 +13,9 @@ import net.minecraft.util.collection.DefaultedList;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class TrinketsCompat implements InvModCompat<Map<String, Map<String, DefaultedList<ItemStack>>>> {
     @Override
@@ -226,6 +228,20 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
             }
 
             return allItems;
+        }
+
+        @Override
+        public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
+            for (Map<String, DefaultedList<ItemStack>> group : this.inventory.values()) {
+                for (DefaultedList<ItemStack> slot : group.values()) {
+                    for (ItemStack stack : slot) {
+                        if (predicate.test(stack)) {
+                            stack.decrement(itemCount);
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         @Override
