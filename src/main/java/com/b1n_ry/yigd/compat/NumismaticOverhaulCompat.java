@@ -53,7 +53,7 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
         @Override
         public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent) {
-            this.inventory += (int) mergingComponent.inventory;
+            this.inventory += (long) mergingComponent.inventory;
             return DefaultedList.of();
         }
 

@@ -32,7 +32,7 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         root.setInsets(Insets.ROOT_PANEL);
         root.setGaps(2, 5);
 
-        WLabel title = new WLabel(Text.translatable("Graves of %s", profile.getName()));
+        WLabel title = new WLabel(Text.translatable("yigd.text.graves_of", profile.getName()));
         root.add(title, 0, 0);
 
         WFilterableListPanel<LightGraveData, WCardButton> listPanel = this.addGraveList(root);
@@ -50,10 +50,10 @@ public class GraveSelectionGui extends LightweightGuiDescription {
 
             BlockPos gravePos = lightGraveData.pos();
             wCardButton.setTooltipText(List.of(
-                    Text.translatable("X: %d / Y: %d / Z: %d".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ())),
-                    Text.translatable("%s".formatted(lightGraveData.registryKey().getValue().toString())),
-                    Text.translatable("%d items".formatted(lightGraveData.itemCount())),
-                    Text.translatable("%d levels".formatted(lightGraveData.xpPoints()))
+                    Text.translatable("yigd.gui.text.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ()),
+                    Text.translatable("yigd.gui.text.grave_dim", lightGraveData.registryKey().getValue()),
+                    Text.translatable("yigd.gui.text.item_count", lightGraveData.itemCount()),
+                    Text.translatable("yigd.gui.text.level_count", lightGraveData.xpPoints())
             ));
             wCardButton.setOnClick(() -> ClientPacketHandler.sendGraveOverviewRequest(lightGraveData.id()));
         });
@@ -67,30 +67,30 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         TextureIcon viewClaimedOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave_cross.png"));
         WHoverToggleButton viewClaimed = new WHoverToggleButton(
                 viewClaimedOn,
-                Text.translatable("Viewing claimed graves"),
+                Text.translatable("yigd.gui.text.btn.viewing_claimed"),
                 viewClaimedOff,
-                Text.translatable("Hiding claimed graves"));
+                Text.translatable("yigd.gui.text.btn.hiding_claimed"));
         TextureIcon viewUnclaimedOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"));
         TextureIcon viewUnclaimedOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png"));
         WHoverToggleButton viewUnclaimed = new WHoverToggleButton(
                 viewUnclaimedOn,
-                Text.translatable("Viewing unclaimed graves"),
+                Text.translatable("yigd.gui.text.btn.viewing_unclaimed"),
                 viewUnclaimedOff,
-                Text.translatable("Hiding unclaimed graves"));
+                Text.translatable("yigd.gui.text.btn.hiding_unclaimed"));
         TextureIcon viewDestroyedOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"));
         TextureIcon viewDestroyedOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave_cross.png"));
         WHoverToggleButton viewDestroyed = new WHoverToggleButton(
                 viewDestroyedOn,
-                Text.translatable("Viewing destroyed graves"),
+                Text.translatable("yigd.gui.text.btn.viewing_destroyed"),
                 viewDestroyedOff,
-                Text.translatable("Hiding destroyed graves"));
+                Text.translatable("yigd.gui.text.btn.hiding_destroyed"));
         TextureIcon showStatusOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/show_status.png"));
         TextureIcon showStatusOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/hide_status.png"));
         WHoverToggleButton showStatus = new WHoverToggleButton(
                 showStatusOn,
-                Text.translatable("Showing grave statuses"),
+                Text.translatable("yigd.gui.text.btn.showing_status"),
                 showStatusOff,
-                Text.translatable("Hiding grave statuses"));
+                Text.translatable("yigd.gui.text.btn.hiding_status"));
 
         // a == b && bool <=> a == b if bool, else a != b
         viewClaimed.setOnToggle(aBoolean -> {

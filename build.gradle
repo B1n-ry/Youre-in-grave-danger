@@ -13,7 +13,8 @@ repositories {
 	maven { url "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }  // Permission API
 	maven { url "https://jitpack.io" }  // Apoli
-	maven {  // Inventorio, travelers backpack, numismatic overhaul (curseforge maven)
+	maven { url 'https://maven.wispforest.io' }  // owo
+	maven {  // Inventorio, travelers backpack, numismatic overhaul, levelz, libz (curseforge maven)
 		url "https://cursemaven.com"
 		content { includeGroup "curse.maven" }
 	}
@@ -49,6 +50,9 @@ dependencies {
 	// Dev dependencies
 	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
 	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}"
+	modImplementation "curse.maven:libz-${project.libz_version}"
+	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
 }
 
 base {

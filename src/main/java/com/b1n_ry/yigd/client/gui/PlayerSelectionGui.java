@@ -38,7 +38,7 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         root.setInsets(Insets.ROOT_PANEL);
         root.setGaps(5, 5);
 
-        WLabel label = new WLabel(Text.translatable("Players on the server"));
+        WLabel label = new WLabel(Text.translatable("yigd.gui.text.players_on_server"));
         root.add(label, 0, 0);
 
         WFilterableListPanel<LightPlayerData, WCardButton> listPanel = this.addFilterList(root);
@@ -66,11 +66,11 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
 
             ItemIcon icon = new ItemIcon(skull);
             wCardButton.setIcon(icon);
-            wCardButton.setCardText(Text.translatable(profile.getName()));
+            wCardButton.setCardText(Text.translatable("yigd.gui.text.player_name", profile.getName()));
             wCardButton.setTooltipText(List.of(
-                    Text.translatable("%d unclaimed graves".formatted(playerData.unclaimedCount())),
-                    Text.translatable("%d destroyed graves".formatted(playerData.destroyedCount())),
-                    Text.translatable("%d total graves".formatted(playerData.graveCount()))
+                    Text.translatable("yigd.gui.text.unclaimed_count", playerData.unclaimedCount()),
+                    Text.translatable("yigd.gui.text.destroyed_count", playerData.destroyedCount()),
+                    Text.translatable("yigd.gui.text.total_count", playerData.graveCount())
             ));
 
             wCardButton.setOnClick(() -> ClientPacketHandler.sendGraveSelectionRequest(profile));
@@ -87,10 +87,10 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         TextureIcon destroyedIcon = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"));
 
         WCardPanel cardPanel = new WCardPanel();
-        WHoverButton showAllButton = new WHoverButton(allIcon, Text.translatable("Showing players with stored grave data"));
-        WHoverButton showClaimedButton = new WHoverButton(claimedIcon, Text.translatable("Showing players with claimed graves"));
-        WHoverButton showUnclaimedButton = new WHoverButton(unclaimedIcon, Text.translatable("Showing players with unclaimed graves"));
-        WHoverButton showDestroyedButton = new WHoverButton(destroyedIcon, Text.translatable("Showing players with destroyed graves"));
+        WHoverButton showAllButton = new WHoverButton(allIcon, Text.translatable("yigd.gui.button.showing_with_data"));
+        WHoverButton showClaimedButton = new WHoverButton(claimedIcon, Text.translatable("yigd.gui.button.showing_with_claimed"));
+        WHoverButton showUnclaimedButton = new WHoverButton(unclaimedIcon, Text.translatable("yigd.gui.button.showing_with_unclaimed"));
+        WHoverButton showDestroyedButton = new WHoverButton(destroyedIcon, Text.translatable("yigd.gui.button.showing_with_destroyed"));
 
         cardPanel.add(showAllButton);
         cardPanel.add(showClaimedButton);

@@ -46,7 +46,8 @@ public class TravelersBackpackCompat implements InvModCompat<ItemStack> {
 
         @Override
         public ItemStack getInventory(ServerPlayerEntity player) {
-            return ComponentUtils.getComponent(player).getWearable();
+            ItemStack stack = ComponentUtils.getComponent(player).getWearable();
+            return stack == null ? ItemStack.EMPTY : stack;
         }
 
         @Override

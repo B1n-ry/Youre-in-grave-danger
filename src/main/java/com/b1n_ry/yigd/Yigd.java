@@ -12,10 +12,12 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -47,6 +49,8 @@ public class Yigd implements ModInitializer {
 
         Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "grave"), GRAVE_BLOCK);
         Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings()));
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(entries -> entries.add(GRAVE_BLOCK.asItem()));
 
         InvModCompat.initModCompat();
 
