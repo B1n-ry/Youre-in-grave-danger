@@ -4,14 +4,16 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
 public class DeathContext {
     private final PlayerEntity player;
+    @NotNull
     private final World world;
     private final Vec3d deathPos;
     private final DamageSource deathSource;
 
-    public DeathContext(PlayerEntity player, World world, Vec3d deathPos, DamageSource deathSource) {
+    public DeathContext(PlayerEntity player, @NotNull World world, Vec3d deathPos, DamageSource deathSource) {
         this.player = player;
         this.deathSource = deathSource;
         this.world = world;
@@ -21,7 +23,7 @@ public class DeathContext {
     public PlayerEntity getPlayer() {
         return this.player;
     }
-    public World getWorld() {
+    public @NotNull World getWorld() {
         return this.world;
     }
     public Vec3d getDeathPos() {

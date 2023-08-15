@@ -10,15 +10,12 @@ import com.b1n_ry.yigd.util.DropRule;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
@@ -294,6 +291,7 @@ public class InventoryComponent {
             String modName = modCompat.getModName();
             CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
             CompatComponent<?> mergingCompatComponent = mergingComponent.modInventoryItems.get(modName);
+
             DefaultedList<ItemStack> extraModItems = compatComponent.merge(mergingCompatComponent);
             extraItems.addAll(extraModItems);
         }

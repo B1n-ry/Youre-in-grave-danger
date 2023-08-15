@@ -68,22 +68,24 @@ public class DeathHandler {
                     .with(Properties.HORIZONTAL_FACING, direction)
                     .with(Properties.WATERLOGGED, waterlogged);
 
-            BlockState previousState = world.getBlockState(gravePos);
+            Yigd.END_OF_TICK.add(() -> {
+                BlockState previousState = world.getBlockState(gravePos);
 
-            boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
+                boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
 
-            if (!placed) {
-                Yigd.LOGGER.error("Failed to generate grave at X: %s, Y: %s, Z: %s, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), world.getRegistryKey().getValue()));
-                Yigd.LOGGER.info("Dropping items on ground instead of in grave");
-                graveComponent.getInventoryComponent().dropAll(world, Vec3d.of(gravePos));
-                graveComponent.getExpComponent().dropAll(world, Vec3d.of(gravePos));
-                return;
-            }
+                if (!placed) {
+                    Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), world.getRegistryKey().getValue()));
+                    Yigd.LOGGER.info("Dropping items on ground instead of in grave");
+                    graveComponent.getInventoryComponent().dropAll(world, Vec3d.of(gravePos));
+                    graveComponent.getExpComponent().dropAll(world, Vec3d.of(gravePos));
+                    return;
+                }
 
-            GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(gravePos);
-            if (be == null) return;
-            be.setPreviousState(previousState);
-            be.setComponent(graveComponent);
+                GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(gravePos);
+                if (be == null) return;
+                be.setPreviousState(previousState);
+                be.setComponent(graveComponent);
+            });
         }
     }
 }

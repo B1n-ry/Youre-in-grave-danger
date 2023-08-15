@@ -13,7 +13,6 @@ import net.minecraft.util.collection.DefaultedList;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -202,11 +201,10 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
                         DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context);
                         switch (dropRule) {
-                            case DESTROY -> slotItems.set(i, ItemStack.EMPTY);
-                            case KEEP -> {
-                                slotItems.set(i, ItemStack.EMPTY);
+                            case KEEP:
                                 soulboundItems.set(i, item);
-                            }
+                            case DESTROY:
+                                slotItems.set(i, ItemStack.EMPTY);
                         }
                     }
 
@@ -255,7 +253,11 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
         @Override
         public boolean isEmpty() {
-            return this.getAsStackList().isEmpty();
+            DefaultedList<ItemStack> items = DefaultedList.of();
+            items.addAll(this.getAsStackList());
+
+            items.removeIf(ItemStack::isEmpty);
+            return items.isEmpty();
         }
 
         @Override

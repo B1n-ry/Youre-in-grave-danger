@@ -2,10 +2,12 @@ package com.b1n_ry.yigd.block.entity;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
@@ -13,6 +15,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -21,6 +24,8 @@ public class GraveBlockEntity extends BlockEntity {
     private GraveComponent component = null;
     private UUID graveId = null;
     private BlockState previousState = null;
+
+    private static YigdConfig cachedConfig = YigdConfig.getConfig();
 
     public GraveBlockEntity(BlockPos pos, BlockState state) {
         super(Yigd.GRAVE_BLOCK_ENTITY, pos, state);
@@ -53,7 +58,6 @@ public class GraveBlockEntity extends BlockEntity {
             if (grave.getStatus() == GraveStatus.UNCLAIMED)
                 grave.setStatus(GraveStatus.DESTROYED);
         });
-        DeathInfoManager.INSTANCE.markDirty();
     }
 
     @Override
@@ -70,6 +74,30 @@ public class GraveBlockEntity extends BlockEntity {
         if (nbt.contains("previousState")) {
             RegistryWrapper<Block> registryEntryLookup = this.world != null ? this.world.createCommandRegistryWrapper(RegistryKeys.BLOCK) : Registries.BLOCK.getReadOnlyWrapper();
             this.previousState = NbtHelper.toBlockState(registryEntryLookup, nbt.getCompound("previousState"));
+        }
+    }
+
+    public static void tick(World world, BlockPos blockPos, BlockState ignoredState, GraveBlockEntity be) {
+        if (world.isClient) return;
+
+        if (world.getTime() % 2400 == 0) cachedConfig = YigdConfig.getConfig();
+
+        YigdConfig.GraveConfig.GraveTimeout timeoutConfig = cachedConfig.graveConfig.graveTimeout;
+
+        if (!timeoutConfig.enabled || be.component.getStatus() != GraveStatus.UNCLAIMED) return;
+
+        long timePassed = world.getTime() - be.component.getCreationTime();
+        final int ticksPerSecond = 20;
+        if (timeoutConfig.timeUnit.toSeconds(timeoutConfig.afterTime) * ticksPerSecond <= timePassed) {
+            BlockState newState = Blocks.AIR.getDefaultState();
+            if (cachedConfig.graveConfig.replaceOldWhenClaimed) {
+                newState = be.previousState;
+            }
+            world.setBlockState(blockPos, newState);
+
+            if (timeoutConfig.dropContentsOnTimeout) {
+                be.component.dropAll();
+            }
         }
     }
 }

@@ -3,11 +3,17 @@ package com.b1n_ry.yigd.events;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
 
 public class YigdEventHandler {
     public static void registerEventCallbacks() {
-        GraveClaimEvent.EVENT.register((player, world, pos, grave, tool) -> player.getUuid().equals(grave.getOwner().getId()));
+        GraveClaimEvent.EVENT.register((player, world, pos, grave, tool) -> {
+            YigdConfig config = YigdConfig.getConfig();
+            if (config.graveConfig.requireShovelToLoot && !tool.isIn(ItemTags.SHOVELS)) return false;
+
+            return player.getUuid().equals(grave.getOwner().getId());
+        });
 
         AllowGraveGenerationEvent.EVENT.register((config, context, grave) -> {
             YigdConfig.GraveConfig graveConfig = config.graveConfig;

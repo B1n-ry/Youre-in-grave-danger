@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.block;
 
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.config.RetrieveMethod;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -50,7 +51,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return super.getTicker(world, state, type);
+        return checkType(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
     }
 
     @SuppressWarnings("deprecation")

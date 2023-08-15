@@ -9,9 +9,14 @@ group = project.maven_group
 repositories {
 	maven { url "https://maven.shedaniel.me/" }  // cloth_config
 	maven { url "https://maven.terraformersmc.com/" }  // mod_menu, trinkets
-	maven { url = "https://maven.ladysnake.org/releases"	}  // cardinal_components
-	maven { url = "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
-	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }  // Permission API
+	maven { url "https://maven.ladysnake.org/releases"	}  // cardinal_components
+	maven { url "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
+	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }  // Permission API
+	maven { url "https://jitpack.io" }  // Apoli
+	maven {  // Inventorio, travelers backpack, numismatic overhaul (curseforge maven)
+		url "https://cursemaven.com"
+		content { includeGroup "curse.maven" }
+	}
 }
 
 dependencies {
@@ -35,9 +40,15 @@ dependencies {
 
 	// Inventory Mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
+	modImplementation "curse.maven:inventorio-${project.inventorio_version}"
+	modImplementation "curse.maven:travelersbackpack-${project.travelers_backpack_version}"
+	modImplementation "curse.maven:numismaticoverhaul-${project.numismatic_version}"
+	modImplementation "com.github.apace100:apoli:${project.apoli_version}"
+	modImplementation "curse.maven:levelz-${project.levelz_version}"
 
 	// Dev dependencies
 	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}"
 }
 
 base {

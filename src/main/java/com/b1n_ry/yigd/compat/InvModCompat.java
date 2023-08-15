@@ -9,7 +9,12 @@ import java.util.List;
 public interface InvModCompat<T> {
     List<InvModCompat<?>> invCompatMods = new ArrayList<>();
     static void initModCompat() {
-        // invCompatMods.add(new TrinketsCompat());
+        invCompatMods.add(new TrinketsCompat());
+        invCompatMods.add(new InventorioCompat());
+        invCompatMods.add(new TravelersBackpackCompat());
+        invCompatMods.add(new LevelzCompat());
+        invCompatMods.add(new NumismaticOverhaulCompat());
+        invCompatMods.add(new OriginsCompat());
     }
 
     String getModName();

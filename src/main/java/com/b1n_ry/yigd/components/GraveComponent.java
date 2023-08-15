@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.ClaimPriority;
+import com.b1n_ry.yigd.config.DropType;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
@@ -12,7 +13,6 @@ import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.b1n_ry.yigd.packets.LightGraveData;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
@@ -45,6 +45,7 @@ public class GraveComponent {
     private final UUID graveId;
     private GraveStatus status;
     private boolean locked;
+    private long creationTime;
 
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage) {
         this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true);
@@ -60,6 +61,7 @@ public class GraveComponent {
         this.graveId = graveId;
         this.status = status;
         this.locked = locked;
+        this.creationTime = world.getTime();
     }
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, RegistryKey<World> worldKey, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked) {
         this.owner = owner;
@@ -111,11 +113,16 @@ public class GraveComponent {
     public boolean isLocked() {
         return this.locked;
     }
+    public long getCreationTime() {
+        return this.creationTime;
+    }
     public void setLocked(boolean locked) {
         this.locked = locked;
+        DeathInfoManager.INSTANCE.markDirty();
     }
     public void setStatus(GraveStatus status) {
         this.status = status;
+        DeathInfoManager.INSTANCE.markDirty();
     }
 
     public boolean isEmpty() {
@@ -137,6 +144,7 @@ public class GraveComponent {
         for (BlockPos iPos : BlockPos.iterateOutwards(this.pos, generationMaxDistance.getX(), generationMaxDistance.getY(), generationMaxDistance.getZ())) {
             if (GraveGenerationEvent.EVENT.invoker().canGenerateAt(this.world, iPos)) {
                 this.pos = iPos;
+                DeathInfoManager.INSTANCE.markDirty();
                 return iPos;
             }
         }
@@ -151,6 +159,7 @@ public class GraveComponent {
      */
     public boolean tryPlaceGraveAt(BlockPos newPos, BlockState state) {
         this.pos = newPos;
+        DeathInfoManager.INSTANCE.markDirty();
         if (this.world == null) {
             Yigd.LOGGER.error("GraveComponent tried to place grave without knowing the ServerWorld");
             return false;
@@ -168,13 +177,27 @@ public class GraveComponent {
 
         if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
 
-        this.applyToPlayer(player, world, pos, player.getUuid().equals(this.owner.getId()));
+        ItemStack graveItem = new ItemStack(Yigd.GRAVE_BLOCK.asItem());
+        boolean addGraveItem = config.graveConfig.dropGraveBlock;
+        if (config.graveConfig.dropOnRetrieve == DropType.IN_INVENTORY) {
+            this.applyToPlayer(player, world, pos, player.getUuid().equals(this.owner.getId()));
+
+            if (addGraveItem)
+                player.giveItemStack(graveItem);
+        } else if (config.graveConfig.dropOnRetrieve == DropType.ON_GROUND) {
+            this.dropAll();
+
+            if (this.world != null && addGraveItem)
+                ItemScatterer.spawn(this.world, this.pos.getX(), this.pos.getY(), this.pos.getZ(), graveItem);
+        }
 
         if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
             world.setBlockState(pos, previousState);
         }
 
         this.status = GraveStatus.CLAIMED;
+        DeathInfoManager.INSTANCE.markDirty();
+
         return ActionResult.SUCCESS;
     }
 
@@ -202,6 +225,11 @@ public class GraveComponent {
             if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
                 ItemScatterer.spawn(world, x, y, z, stack);
         }
+    }
+
+    public void dropAll() {
+        this.inventoryComponent.dropAll(this.world, this.pos.toCenterPos());
+        this.expComponent.dropAll(this.world, this.pos.toCenterPos());
     }
 
     public LightGraveData toLightData() {

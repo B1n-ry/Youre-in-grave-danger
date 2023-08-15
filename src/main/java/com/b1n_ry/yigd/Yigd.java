@@ -22,6 +22,9 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Yigd implements ModInitializer {
     public static final String MOD_ID = "yigd";
 
@@ -29,6 +32,12 @@ public class Yigd implements ModInitializer {
 
     public static GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.create().strength(0.8f, 3600000.0f));
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
+
+    /**
+     * Any runnable added to this list will be executed on the end of the current server tick.
+     * Use if runnable is required to run before some other event that would have otherwise ran before.
+     */
+    public static List<Runnable> END_OF_TICK = new ArrayList<>();
 
     @Override
     public void onInitialize() {
