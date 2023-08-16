@@ -41,7 +41,7 @@ public class DeathHandler {
         }
 
         GraveComponent graveComponent = new GraveComponent(player.getGameProfile(), inventoryComponent, expComponent,
-                world, pos, new TranslatableDeathMessage(deathSource, player));  // Will keep track of player grave (if enabled)
+                world, pos.add(0D, .5D, 0D), new TranslatableDeathMessage(deathSource, player));  // Will keep track of player grave (if enabled)
 
         GameProfile profile = player.getGameProfile();
         graveComponent.backUp();

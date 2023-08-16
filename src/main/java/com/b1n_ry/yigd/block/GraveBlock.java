@@ -15,7 +15,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
     private static final BooleanProperty WATERLOGGED;
-    private static final DirectionProperty FACING;
 
     public GraveBlock(Settings settings) {
         super(settings);
@@ -76,7 +74,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
 
     static {
-        FACING = HorizontalFacingBlock.FACING;
         WATERLOGGED = Properties.WATERLOGGED;
     }
 }

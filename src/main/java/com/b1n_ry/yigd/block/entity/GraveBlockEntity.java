@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class GraveBlockEntity extends BlockEntity {
     private GraveComponent component = null;
     private UUID graveId = null;
+    private GameProfile graveOwner = null;
     private BlockState previousState = null;
 
     private static YigdConfig cachedConfig = YigdConfig.getConfig();
@@ -33,6 +35,7 @@ public class GraveBlockEntity extends BlockEntity {
 
     public void setComponent(GraveComponent component) {
         this.component = component;
+        this.graveOwner = component.getOwner();
         this.graveId = component.getGraveId();
         this.markDirty();
     }
@@ -42,6 +45,9 @@ public class GraveBlockEntity extends BlockEntity {
 
     public UUID getGraveId() {
         return this.graveId;
+    }
+    public GameProfile getGraveOwner() {
+        return this.graveOwner;
     }
     public GraveComponent getComponent() {
         return this.component;
@@ -61,6 +67,14 @@ public class GraveBlockEntity extends BlockEntity {
     }
 
     @Override
+    public NbtCompound toInitialChunkDataNbt() {
+        if (this.component == null) return super.toInitialChunkDataNbt();
+        NbtCompound nbt = this.createNbt();
+        nbt.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.component.getOwner()));
+        return nbt;
+    }
+
+    @Override
     protected void writeNbt(NbtCompound nbt) {
         if (this.component == null) return;
         nbt.putUuid("graveId", this.graveId);
@@ -69,7 +83,15 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     public void readNbt(NbtCompound nbt) {
+        if (nbt.contains("owner"))  // Only on the client
+            this.graveOwner = NbtHelper.toGameProfile(nbt.getCompound("owner"));
+
+        if (this.world != null && this.world.isClient) return;
+
         this.graveId = nbt.getUuid("graveId");
+        if (this.component == null && this.graveId != null) {
+            DeathInfoManager.INSTANCE.getGrave(this.graveId).ifPresent(this::setComponent);
+        }
 
         if (nbt.contains("previousState")) {
             RegistryWrapper<Block> registryEntryLookup = this.world != null ? this.world.createCommandRegistryWrapper(RegistryKeys.BLOCK) : Registries.BLOCK.getReadOnlyWrapper();
