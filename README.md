@@ -20,7 +20,7 @@ If you play multiplayer you'll have no trouble finding which grave is yours, as 
 
 ## Features
 
-The mod is available for 1.16.5, 1.17.1, and 1.18!
+The mod is available for 1.16.5, 1.17, 1.18 and 1.19!
 
 1.16.5 and 1.17.1 versions are no longer actively maintained. If there would however be any problem with any of them I would try my best to fix them.
 
