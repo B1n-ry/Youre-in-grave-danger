@@ -10,7 +10,7 @@ Get it?
 ## About
 
 You're in Grave Danger is highly customizable grave mod for the fabric mod loader.
-This mod will add graves to your game, which will spawn at your death location with all your items. You can then go back and retrieve your lost items. The mod will remember your inventory layout and put everything back to where it was before you died. The mod is highly configurable. In fact, if you think a config is missing that has anything to do with what happens when you die, it's not refered to as a missing feature, but a bug. (Not really but that's how serious I am about everything being configurable).
+This mod will add graves to your game, which will spawn at your death location with all your items. You can then go back and retrieve your lost items. The mod will remember your inventory layout and put everything back to where it was before you died. The mod is highly configurable. If you find ANYTHING that is not, that you would like to be configurable, please let me know so I can add a config for it.
 
 
 
@@ -22,9 +22,9 @@ If you play multiplayer you'll have no trouble finding which grave is yours, as 
 
 The mod is available for 1.16.5, 1.17, 1.18 and 1.19!
 
-1.16.5 and 1.17.1 versions are no longer actively maintained. If there would however be any problem with any of them I would try my best to fix them.
+1.16.5, 1.17, and 1.18 versions are no longer actively maintained. I might go back on rare occations and packport the newer versions however, but this rarely happens. I can fix issues, but only if they are game-breaking. Do let me know of them however, and I will decide how serious they are.
 
-The mod has compatibility for trinkets and inventorio. More compatibilities are coming to the 1.18 version as more mods are releasing. Right now most of them are for 1.17 though.
+The mod has compatibility for trinkets, inventorio, and a wide variety of other inventory mods. If there are any inventory mods that YiGD does not work with, let me know and I'll implement compat on my end.
 The mod is technically compatible with every soulbound enchantment, since you can configure which enchantments should not be dropped on death in your grave, and which you should as well keep in your inventory when you respawn.
 
 Graves can be waterlogged, and renders can be adapted to the block the grave is standing on
