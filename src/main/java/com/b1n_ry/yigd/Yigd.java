@@ -6,7 +6,7 @@ import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.ServerEventHandler;
 import com.b1n_ry.yigd.events.YigdEventHandler;
-import com.b1n_ry.yigd.other.Commands;
+import com.b1n_ry.yigd.util.Commands;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;

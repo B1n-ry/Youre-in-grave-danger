@@ -12,10 +12,14 @@ import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.b1n_ry.yigd.packets.LightGraveData;
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
@@ -29,9 +33,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import net.minecraft.world.border.WorldBorder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GraveComponent {
     private final GameProfile owner;
@@ -141,30 +148,61 @@ public class GraveComponent {
 
         YigdConfig config = YigdConfig.getConfig();
         Vec3i generationMaxDistance = config.graveConfig.generationMaxDistance;
-        for (BlockPos iPos : BlockPos.iterateOutwards(this.pos, generationMaxDistance.getX(), generationMaxDistance.getY(), generationMaxDistance.getZ())) {
-            if (GraveGenerationEvent.EVENT.invoker().canGenerateAt(this.world, iPos)) {
-                this.pos = iPos;
-                DeathInfoManager.INSTANCE.markDirty();
-                return iPos;
+
+        // Loop should ABSOLUTELY NOT loop 50 times, but in case some stupid ass person (maybe me lol) doesn't return true by default
+        // in canGenerate when i reaches some value (maybe 4) there is a cap at least, so the loop won't continue forever and freeze the game
+        for (int i = 0; i < 50; i++) {
+            for (BlockPos iPos : BlockPos.iterateOutwards(this.pos, generationMaxDistance.getX(), generationMaxDistance.getY(), generationMaxDistance.getZ())) {
+                if (GraveGenerationEvent.EVENT.invoker().canGenerateAt(this.world, iPos, i)) {
+                    this.pos = iPos;
+                    DeathInfoManager.INSTANCE.markDirty();
+                    return iPos;
+                }
             }
+            i++;
         }
         return this.pos;
     }
 
     /**
      * Called to place down a grave block. Should only be called from server
-     * @param newPos Where the grave should try to be placed
+     * @param attemptedPos Where the grave should try to be placed
      * @param state Which block should be placed
      * @return Weather or not the grave was placed
      */
-    public boolean tryPlaceGraveAt(BlockPos newPos, BlockState state) {
-        this.pos = newPos;
-        DeathInfoManager.INSTANCE.markDirty();
+    public boolean tryPlaceGraveAt(BlockPos attemptedPos, BlockState state) {
         if (this.world == null) {
             Yigd.LOGGER.error("GraveComponent tried to place grave without knowing the ServerWorld");
             return false;
         }
-        return this.world.setBlockState(newPos, state);
+
+        YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
+        int y = attemptedPos.getY();
+        int lowerAcceptableY = config.lowestGraveY + this.world.getBottomY();
+        if (config.generateGraveInVoid && attemptedPos.getY() <= lowerAcceptableY) {
+            y = lowerAcceptableY;
+        }
+        int topY = this.world.getTopY();
+        if (y > topY) {
+            y = topY;
+        }
+
+        int x = attemptedPos.getX();
+        int z = attemptedPos.getZ();
+        if (config.generateOnlyWithinBorder) {
+            WorldBorder border = this.world.getWorldBorder();
+            if (!border.contains(x, z)) {
+                x = (int) Math.max(x, border.getBoundEast());
+                x = (int) Math.min(x, border.getBoundWest());
+
+                z = (int) Math.max(z, border.getBoundSouth());
+                z = (int) Math.min(z, border.getBoundNorth());
+            }
+        }
+
+        this.pos = new BlockPos(x, y, z);
+        DeathInfoManager.INSTANCE.markDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
+        return this.world.setBlockState(attemptedPos, state);
     }
 
     public void backUp() {
@@ -176,6 +214,8 @@ public class GraveComponent {
         YigdConfig config = YigdConfig.getConfig();
 
         if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
+
+        this.handleRandomSpawn(config.graveConfig.randomSpawn, world, player.getGameProfile());
 
         ItemStack graveItem = new ItemStack(Yigd.GRAVE_BLOCK.asItem());
         boolean addGraveItem = config.graveConfig.dropGraveBlock;
@@ -199,6 +239,62 @@ public class GraveComponent {
         DeathInfoManager.INSTANCE.markDirty();
 
         return ActionResult.SUCCESS;
+    }
+
+    private void handleRandomSpawn(YigdConfig.GraveConfig.RandomSpawn config, ServerWorld world, GameProfile looter) {
+        if (config.percentSpawnChance <= world.random.nextInt(100)) return;  // Using world's random (from world seed)
+        String summonNbt = config.spawnNbt
+                .replaceAll("\\$\\{owner\\.name}", this.owner.getName())
+                .replaceAll("\\$\\{owner\\.uuid}", this.owner.getId().toString())
+                .replaceAll("\\$\\{looter\\.name}", looter.getName())
+                .replaceAll("\\$\\{looter\\.uuid}", looter.getId().toString());
+
+        // While the nbt string has an item to add (text contains "${item[i]}")
+        Matcher nbtMatcher;
+        DefaultedList<ItemStack> items = this.inventoryComponent.getItems();
+        do {
+            // Find if there are any instances an item should be placed in the nbt
+            Pattern nbtPattern = Pattern.compile("\\$\\{!?item\\[[0-9]+]}");
+            nbtMatcher = nbtPattern.matcher(summonNbt);
+            if (!nbtMatcher.find()) break;  // The next instance was not found
+
+            // Get the integer of the item to replace with
+            Pattern pattern = Pattern.compile("(?<=\\$\\{!?item\\[)[0-9]+(?=]})");
+            Matcher matcher = pattern.matcher(summonNbt);
+            if (!matcher.find()) break;  // No instance of item was found
+
+            String res = matcher.group();
+            // Following line is not really necessary, but used as a precaution in case I'm not as good at regex as I think I am
+            if (!res.matches("[0-9]+")) break; // The string is not an integer -> break loop before error happens
+            int itemNumber = Integer.parseInt(res);
+
+            // Package item as NBT, and put inside NBT summon string
+            ItemStack item = items.get(itemNumber);
+            NbtCompound itemNbt = item.getNbt();
+            NbtCompound newNbt = new NbtCompound();
+            newNbt.put("tag", itemNbt);
+            newNbt.putString("id", Registries.ITEM.getId(item.getItem()).toString());
+            newNbt.putInt("Count", item.getCount());
+
+            boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
+
+            summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", newNbt.asString());
+
+            if (removeItem) items.set(itemNumber, ItemStack.EMPTY); // Make sure item gets "used"
+        } while (nbtMatcher.find());  // Loop until no more items should be inserted in NBT
+
+        try {
+            NbtCompound nbt = NbtHelper.fromNbtProviderString(summonNbt);
+            nbt.putString("id", config.spawnEntity);
+            Entity entity = EntityType.loadEntityWithPassengers(nbt, world, e -> {
+                e.refreshPositionAndAngles(this.pos, e.getYaw(), e.getPitch());  // Make sure the entity is in the right place
+                return e;
+            });
+
+            world.spawnEntity(entity);
+        } catch (CommandSyntaxException e) {
+            Yigd.LOGGER.error("Failed spawning entity on grave", e);
+        }
     }
 
     public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, BlockPos pos, boolean isGraveOwner) {

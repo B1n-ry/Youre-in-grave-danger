@@ -101,6 +101,8 @@ public class YigdConfig implements ConfigData {
         // generate grave in the void? (which y level then)
         public boolean generateGraveInVoid = true;
         public int lowestGraveY = 3;
+        // Weather or not the grave can generate outside the world border
+        public boolean generateOnlyWithinBorder = true;
         // ignore death types
         public List<String> ignoredDeathTypes = new ArrayList<>();
         // unlockable

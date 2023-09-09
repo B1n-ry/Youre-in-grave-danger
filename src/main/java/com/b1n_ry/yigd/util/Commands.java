@@ -1,4 +1,4 @@
-package com.b1n_ry.yigd.other;
+package com.b1n_ry.yigd.util;
 
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;

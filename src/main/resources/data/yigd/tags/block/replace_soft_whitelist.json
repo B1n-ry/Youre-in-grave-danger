@@ -1,0 +1,10 @@
+{
+  "values": [
+    "minecraft:air",
+    "minecraft:water",
+    "minecraft:grass",
+    "minecraft:tall_grass",
+    "minecraft:dead_bush",
+    "minecraft:snow"
+  ]
+}
