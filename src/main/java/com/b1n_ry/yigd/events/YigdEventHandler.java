@@ -1,7 +1,7 @@
 package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.util.Tags;
+import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.block.BlockState;
@@ -18,7 +18,16 @@ public class YigdEventHandler {
             YigdConfig config = YigdConfig.getConfig();
             if (config.graveConfig.requireShovelToLoot && !tool.isIn(ItemTags.SHOVELS)) return false;
 
-            return player.getUuid().equals(grave.getOwner().getId());
+            if (player.getUuid().equals(grave.getOwner().getId())) return true;
+            if (!grave.isLocked()) return true;
+
+            YigdConfig.GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
+            if (!robConfig.enabled) return false;
+
+            final int tps = 20;  // ticks per second
+            if (!grave.hasExistedMs(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) return false;
+
+            return robConfig.onlyMurderer && player.getUuid().equals(grave.getKillerId());
         });
 
         AllowGraveGenerationEvent.EVENT.register((config, context, grave) -> {
@@ -47,11 +56,11 @@ public class YigdEventHandler {
             switch (nthTry) {
                 case 0 -> {
                     if (!config.useSoftBlockWhitelist) return false;
-                    if (!state.isIn(Tags.REPLACE_SOFT_WHITELIST)) return false;
+                    if (!state.isIn(YigdTags.REPLACE_SOFT_WHITELIST)) return false;
                 }
                 case 1 -> {
                     if (!config.useStrictBlockBlacklist) return false;
-                    if (state.isIn(Tags.KEEP_STRICT_BLACKLIST)) return false;
+                    if (state.isIn(YigdTags.KEEP_STRICT_BLACKLIST)) return false;
                 }
             }
             return true;

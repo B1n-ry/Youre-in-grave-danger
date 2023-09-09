@@ -24,8 +24,7 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Yigd implements ModInitializer {
     public static final String MOD_ID = "yigd";
@@ -40,6 +39,8 @@ public class Yigd implements ModInitializer {
      * Use if runnable is required to run before some other event that would have otherwise ran before.
      */
     public static List<Runnable> END_OF_TICK = new ArrayList<>();
+
+    public static Map<UUID, List<String>> NOT_NOTIFIED_ROBBERIES = new HashMap<>();
 
     @Override
     public void onInitialize() {

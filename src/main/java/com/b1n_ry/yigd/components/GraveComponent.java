@@ -13,6 +13,7 @@ import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.b1n_ry.yigd.packets.LightGraveData;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -25,6 +26,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
@@ -36,6 +38,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,12 +55,14 @@ public class GraveComponent {
     private final UUID graveId;
     private GraveStatus status;
     private boolean locked;
-    private long creationTime;
+    private final long creationTime;
+    private final UUID killerId;
 
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage) {
-        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true);
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage, UUID killerId) {
+        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true, world.getTime(), killerId);
     }
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked) {
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world,
+                          BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked, long creationTime, UUID killerId) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
@@ -68,9 +73,11 @@ public class GraveComponent {
         this.graveId = graveId;
         this.status = status;
         this.locked = locked;
-        this.creationTime = world.getTime();
+        this.creationTime = creationTime;
+        this.killerId = killerId;
     }
-    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, RegistryKey<World> worldKey, BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked) {
+    public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, RegistryKey<World> worldKey,
+                          BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked, long creationTime, UUID killerId) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
@@ -81,6 +88,8 @@ public class GraveComponent {
         this.graveId = graveId;
         this.status = status;
         this.locked = locked;
+        this.creationTime = creationTime;
+        this.killerId = killerId;
     }
 
     public GameProfile getOwner() {
@@ -122,6 +131,9 @@ public class GraveComponent {
     }
     public long getCreationTime() {
         return this.creationTime;
+    }
+    public UUID getKillerId() {
+        return this.killerId;
     }
     public void setLocked(boolean locked) {
         this.locked = locked;
@@ -202,12 +214,46 @@ public class GraveComponent {
 
         this.pos = new BlockPos(x, y, z);
         DeathInfoManager.INSTANCE.markDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
+
+        this.placeBlockUnder();
         return this.world.setBlockState(attemptedPos, state);
+    }
+
+    void placeBlockUnder() {
+        if (this.world == null) {
+            Yigd.LOGGER.error("Tried to place block under a grave but world was null");
+            return;
+        }
+        YigdConfig.GraveConfig.BlockUnderGrave config = YigdConfig.getConfig().graveConfig.blockUnderGrave;
+        if (!config.enabled) return;
+
+        String dimName = this.worldRegistryKey.getValue().toString();
+        if (!config.blockInDimensions.containsKey(dimName)) dimName = "misc";
+
+        String blockName = config.blockInDimensions.get(dimName);
+        if (blockName == null) {
+            Yigd.LOGGER.warn("Didn't place supporting block under grave in %s, at %d, %d, %d. Couldn't find dimension key in config"
+                    .formatted(this.worldRegistryKey.getValue().toString(), this.pos.getX(), this.pos.getY(), this.pos.getZ()));
+            return;
+        }
+
+        Block blockUnder = Registries.BLOCK.get(new Identifier(blockName));
+        boolean placed = this.world.setBlockState(this.pos.down(), blockUnder.getDefaultState());
+        if (!placed) {
+            Yigd.LOGGER.warn("Didn't place supporting block under grave in %s, at %d, %d, %d. Couldn't find dimension key in config"
+                    .formatted(this.worldRegistryKey.getValue().toString(), this.pos.getX(), this.pos.getY(), this.pos.getZ()));
+        }
     }
 
     public void backUp() {
         DeathInfoManager.INSTANCE.addBackup(this.owner, this);
         DeathInfoManager.INSTANCE.markDirty();
+    }
+
+    public boolean hasExistedMs(long time) {
+        if (this.world == null) return false;
+
+        return this.world.getTime() - this.creationTime < time;
     }
 
     public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState previousState, BlockPos pos, ItemStack tool) {
@@ -217,10 +263,12 @@ public class GraveComponent {
 
         this.handleRandomSpawn(config.graveConfig.randomSpawn, world, player.getGameProfile());
 
+        boolean thisIsARobbery = player.getUuid().equals(this.owner.getId());
+
         ItemStack graveItem = new ItemStack(Yigd.GRAVE_BLOCK.asItem());
         boolean addGraveItem = config.graveConfig.dropGraveBlock;
         if (config.graveConfig.dropOnRetrieve == DropType.IN_INVENTORY) {
-            this.applyToPlayer(player, world, pos, player.getUuid().equals(this.owner.getId()));
+            this.applyToPlayer(player, world, pos, thisIsARobbery);
 
             if (addGraveItem)
                 player.giveItemStack(graveItem);
@@ -237,6 +285,21 @@ public class GraveComponent {
 
         this.status = GraveStatus.CLAIMED;
         DeathInfoManager.INSTANCE.markDirty();
+
+        if (thisIsARobbery && config.graveConfig.graveRobbing.notifyWhenRobbed) {
+            MinecraftServer server = world.getServer();
+            String robberName = player.getGameProfile().getName();
+            ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(this.owner.getId());
+            if (robbedPlayer != null) {  // They are not offline. They are online
+                if (config.graveConfig.graveRobbing.tellWhoRobbed) {
+                    robbedPlayer.sendMessage(Text.translatable("yigd.message.inform_robbery.with_details", player.getGameProfile().getName()));
+                } else {
+                    robbedPlayer.sendMessage(Text.translatable("yigd.message.inform_robbery"));
+                }
+            } else {
+                Yigd.NOT_NOTIFIED_ROBBERIES.computeIfAbsent(this.owner.getId(), uuid -> new ArrayList<>()).add(robberName);
+            }
+        }
 
         return ActionResult.SUCCESS;
     }
@@ -344,6 +407,8 @@ public class GraveComponent {
         nbt.put("deathMessage", this.deathMessage.toNbt());
         nbt.putUuid("graveId", this.graveId);
         nbt.putString("status", this.status.toString());
+        nbt.putLong("creationTime", this.creationTime);
+        nbt.putUuid("killerId", this.killerId);
 
 
         return nbt;
@@ -366,16 +431,18 @@ public class GraveComponent {
         UUID graveId = nbt.getUuid("graveId");
         GraveStatus status = GraveStatus.valueOf(nbt.getString("status"));
         boolean locked = nbt.getBoolean("locked");
+        long creationTime = nbt.getLong("creationTime");
+        UUID killerId = nbt.getUuid("killerId");
 
         if (server != null) {
             ServerWorld world = server.getWorld(worldKey);
             if (world == null) {
                 Yigd.LOGGER.error("World " + worldKey.toString() + " not recognized. Loading grave component without world");
             } else {
-                return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status, locked);
+                return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status, locked, creationTime, killerId);
             }
         }
-        return new GraveComponent(owner, inventoryComponent, expComponent, worldKey, pos, deathMessage, graveId, status, locked);
+        return new GraveComponent(owner, inventoryComponent, expComponent, worldKey, pos, deathMessage, graveId, status, locked, creationTime, killerId);
     }
     private static RegistryKey<World> getRegistryKeyFromNbt(NbtCompound nbt) {
         String registry = nbt.getString("registry");

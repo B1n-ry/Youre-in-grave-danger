@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.data;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -86,11 +87,20 @@ public class DeathInfoManager extends PersistentState {
     }
 
     public void addBackup(GameProfile profile, GraveComponent component) {
+        YigdConfig config = YigdConfig.getConfig();
+
         if (!this.graveBackups.containsKey(profile)) {
             this.graveBackups.put(profile, new ArrayList<>());
         }
-        this.graveBackups.get(profile).add(component);
+        List<GraveComponent> playerGraves = this.graveBackups.get(profile);
+        playerGraves.add(component);
         this.graveMap.put(component.getGraveId(), component);
+
+        // If player have too many backed up graves
+        if (playerGraves.size() > config.graveConfig.maxBackupsPerPerson) {
+            GraveComponent toBeRemoved = playerGraves.get(0);
+            this.delete(toBeRemoved.getGraveId());
+        }
     }
     public @NotNull List<GraveComponent> getBackupData(GameProfile profile) {
         return this.graveBackups.computeIfAbsent(profile, k -> new ArrayList<>());

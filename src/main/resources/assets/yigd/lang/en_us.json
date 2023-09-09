@@ -39,5 +39,8 @@
   "yigd.command.delete.pass": "Partially deleted some grave data, but not all",
   "yigd.command.delete.fail": "Couldn't delete grave because the grave could not be found",
   "yigd.command.lock.fail": "Failed to lock grave. Grave not found",
-  "yigd.command.view_self.fail": "Failed to view grave. Couldn't find grave"
+  "yigd.command.view_self.fail": "Failed to view grave. Couldn't find grave",
+  "yigd.message.sellout_player": "%s logged off, and they have a grave at X: %d / Y: %d / Z: %d / %s",
+  "yigd.message.inform_robbery": "One of your graves has been robbed",
+  "yigd.message.inform_robbery.with_details": "%s has robbed one of your graves"
 }
