@@ -7,9 +7,7 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import net.minecraft.util.math.Vec3i;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Config(name = Yigd.MOD_ID)
@@ -30,15 +28,24 @@ public class YigdConfig implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     public CommandConfig commandConfig = new CommandConfig();
 
+    // rendering
+    @ConfigEntry.Gui.CollapsibleObject
+    public GraveRendering graveRendering = new GraveRendering();
+
 
     public static class InventoryConfig {
         public boolean dropPlayerHead = false;
         public ItemLossConfig itemLoss = new ItemLossConfig();
         // delete enchantments
+        public List<String> vanishingEnchantments = List.of("minecraft:vanishing_curse");
         // soulbinding enchantments
+        public List<String> soulboundEnchantments = List.of("yigd:soulbound");
         // loose soulbound level
+        public boolean loseSoulboundLevelOnDeath = false;
         // void slots
+        public List<Integer> vanishingSlots = new ArrayList<>();
         // keep slots
+        public List<Integer> soulboundSlots = new ArrayList<>();
 
         public static class ItemLossConfig {
             public boolean enabled = false;
@@ -53,7 +60,12 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class RespawnConfig {
-
+        public Map<String, Integer> respawnEffects = new HashMap<>();
+        public int respawnHealth = 20;
+        public boolean resetHunger = true;
+        public int respawnHunger = 20;
+        public boolean resetSaturation = true;
+        public int respawnSaturation = 20;
     }
 
     public static class ExpConfig {
@@ -126,8 +138,6 @@ public class YigdConfig implements ConfigData {
         public  BlockUnderGrave blockUnderGrave = new BlockUnderGrave();
         // tell people where someone's grave is when they logg off
         public boolean sellOutOfflinePeople = false;
-        // rendering
-        public GraveRendering graveRendering = new GraveRendering();
         // max backups
         public int maxBackupsPerPerson = 50;
 
@@ -163,10 +173,6 @@ public class YigdConfig implements ConfigData {
                     "misc", "minecraft:dirt");
             public boolean generateOnProtectedLand = false;
         }
-
-        public static class GraveRendering {
-
-        }
     }
 
     public static class CompatConfig {
@@ -175,5 +181,9 @@ public class YigdConfig implements ConfigData {
 
     public static class CommandConfig {
         public String mainCommand = "yigd";
+    }
+
+    public static class GraveRendering {
+
     }
 }

@@ -21,9 +21,18 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.UUID;
+
 public class DeathHandler {
     public void onPlayerDeath(ServerPlayerEntity player, ServerWorld world, Vec3d pos, DamageSource deathSource) {
         YigdConfig config = YigdConfig.getConfig();
+
+        UUID killerId;
+        if (deathSource.getAttacker() instanceof ServerPlayerEntity killer) {
+            killerId = killer.getUuid();
+        } else {
+            killerId = null;
+        }
 
         DeathContext context = new DeathContext(player, world, pos, deathSource);
 
@@ -43,7 +52,7 @@ public class DeathHandler {
 
         Vec3d graveGenerationPos = !config.graveConfig.generateOnLastGroundPos ? pos : ((ServerPlayerEntityImpl) player).youre_in_grave_danger$getLastGroundPos();
         GraveComponent graveComponent = new GraveComponent(player.getGameProfile(), inventoryComponent, expComponent,
-                world, graveGenerationPos.add(0D, .5D, 0D), new TranslatableDeathMessage(deathSource, player));  // Will keep track of player grave (if enabled)
+                world, graveGenerationPos.add(0D, .5D, 0D), new TranslatableDeathMessage(deathSource, player), killerId);  // Will keep track of player grave (if enabled)
 
         GameProfile profile = player.getGameProfile();
         graveComponent.backUp();

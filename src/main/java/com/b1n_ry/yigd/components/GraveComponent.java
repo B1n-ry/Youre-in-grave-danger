@@ -363,6 +363,8 @@ public class GraveComponent {
     public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, BlockPos pos, boolean isGraveOwner) {
         YigdConfig config = YigdConfig.getConfig();
 
+        this.expComponent.applyToPlayer(player);
+
         InventoryComponent currentPlayerInv = new InventoryComponent(player);
         InventoryComponent.clearPlayer(player);
 

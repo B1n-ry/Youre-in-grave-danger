@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
+import com.b1n_ry.yigd.util.YigdTags;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -195,7 +196,7 @@ public class InventoryComponent {
             ItemStack stack = this.items.get(i);
             if (stack.isEmpty()) continue;
             if (DropRuleEvent.EVENT.invoker().getDropRule(stack, i, context) == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
-            // TODO: if stack is of tag LOSS_IMMUNE then continue
+            if (stack.isIn(YigdTags.LOSS_IMMUNE)) continue;
 
             itemSlots.add(i);
         }

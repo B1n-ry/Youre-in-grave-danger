@@ -30,7 +30,7 @@ public class ServerEventHandler {
             DeathInfoManager.INSTANCE.clear();
 
             ServerWorld overworld = server.getOverworld();
-            DeathInfoManager.INSTANCE = (DeathInfoManager) overworld.getPersistentStateManager().getOrCreate(nbt -> DeathInfoManager.fromNbt(nbt, server), () -> new DeathInfoManager(server), "yigd_data");
+            DeathInfoManager.INSTANCE = (DeathInfoManager) overworld.getPersistentStateManager().getOrCreate(nbt -> DeathInfoManager.fromNbt(nbt, server), DeathInfoManager::new, "yigd_data");
             DeathInfoManager.INSTANCE.markDirty();
         });
 

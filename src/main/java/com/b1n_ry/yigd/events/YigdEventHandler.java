@@ -1,18 +1,66 @@
 package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class YigdEventHandler {
     public static void registerEventCallbacks() {
         registerPermissionEvents();
+
+        DropRuleEvent.EVENT.register((item, slot, context) -> {
+            YigdConfig config = YigdConfig.getConfig();
+
+            if (config.inventoryConfig.soulboundSlots.contains(slot)) return DropRule.KEEP;
+            if (config.inventoryConfig.vanishingSlots.contains(slot)) return DropRule.DESTROY;
+
+            if (item.isIn(YigdTags.NATURAL_SOULBOUND)) return DropRule.KEEP;
+            if (item.isIn(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
+
+            DropRule dropRule = DropRule.DROP;
+
+            // Get drop rule from enchantment. This is set up so that the first drop rule related enchantment will take effect, no matter what more enchantments there are
+            NbtList enchantmentsNbt = item.getEnchantments();
+            Set<NbtCompound> removeEnchantment = new HashSet<>();
+            for (NbtElement enchantmentElement : enchantmentsNbt) {
+                if (!(enchantmentElement instanceof NbtCompound enchantNbt)) continue;
+
+                String id = enchantNbt.getString("id");
+                if (config.inventoryConfig.vanishingEnchantments.contains(id)) {
+                    return DropRule.DESTROY;
+                }
+                if (!config.inventoryConfig.soulboundEnchantments.contains(id)) continue;
+
+                int level = enchantNbt.getInt("lvl");
+                if (config.inventoryConfig.loseSoulboundLevelOnDeath) {
+                    if (level == 1) {
+                        removeEnchantment.add(enchantNbt);
+                    }
+                    else {
+                        enchantNbt.putInt("lvl", level - 1);
+                    }
+                }
+                dropRule = DropRule.KEEP;  // Do not return value, since enchantment might have to be deleted if it was level 1 and should be deleted
+                break; // Break the loop. This way if 2 soulbound enchantments are on the item, only one is "consumed"
+            }
+
+            enchantmentsNbt.removeAll(removeEnchantment);
+
+            return dropRule;
+        });
 
         GraveClaimEvent.EVENT.register((player, world, pos, grave, tool) -> {
             YigdConfig config = YigdConfig.getConfig();

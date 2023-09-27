@@ -20,21 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class DeathInfoManager extends PersistentState {
-    public static DeathInfoManager INSTANCE = new DeathInfoManager(null);
+    public static DeathInfoManager INSTANCE = new DeathInfoManager();
 
     private final Map<GameProfile, RespawnComponent> respawnEffects = new HashMap<>();
     private final Map<GameProfile, List<GraveComponent>> graveBackups = new HashMap<>();
     private final Map<UUID, GraveComponent> graveMap = new HashMap<>();
-
-    private MinecraftServer server;
-
-    public DeathInfoManager(MinecraftServer server) {
-        this.server = server;
-    }
-
-    public void setServer(MinecraftServer server) {
-        this.server = server;
-    }
 
     public void clear() {
         this.respawnEffects.clear();
@@ -143,7 +133,6 @@ public class DeathInfoManager extends PersistentState {
 
     public static PersistentState fromNbt(NbtCompound nbt, MinecraftServer server) {
         INSTANCE.clear();
-        INSTANCE.setServer(server);
 
         NbtList respawnNbt = nbt.getList("respawns", NbtElement.COMPOUND_TYPE);
         NbtList graveNbt = nbt.getList("graves", NbtElement.COMPOUND_TYPE);
