@@ -36,7 +36,7 @@ public class DeathHandler {
 
         DeathContext context = new DeathContext(player, world, pos, deathSource);
 
-        RespawnComponent respawnComponent = new RespawnComponent();  // Will keep track of data used on respawn
+        RespawnComponent respawnComponent = new RespawnComponent(player);  // Will keep track of data used on respawn
 
         InventoryComponent inventoryComponent = new InventoryComponent(player);  // Will keep track of all items
         InventoryComponent.clearPlayer(player);  // No use for actual inventory when inventory component is created

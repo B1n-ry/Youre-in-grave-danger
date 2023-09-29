@@ -26,6 +26,9 @@ public class YigdConfig implements ConfigData {
     public GraveConfig graveConfig = new GraveConfig();
 
     @ConfigEntry.Gui.CollapsibleObject
+    public RespawnConfig respawnConfig = new RespawnConfig();
+
+    @ConfigEntry.Gui.CollapsibleObject
     public CommandConfig commandConfig = new CommandConfig();
 
     // rendering
@@ -60,12 +63,14 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class RespawnConfig {
-        public Map<String, Integer> respawnEffects = new HashMap<>();
+        public List<EffectConfig> respawnEffects = new ArrayList<>();
         public int respawnHealth = 20;
         public boolean resetHunger = true;
         public int respawnHunger = 20;
         public boolean resetSaturation = true;
-        public int respawnSaturation = 20;
+        public float respawnSaturation = 20f;
+
+        public record EffectConfig(String effectName, int effectLevel, int effectTime, boolean showBubbles) { }
     }
 
     public static class ExpConfig {
