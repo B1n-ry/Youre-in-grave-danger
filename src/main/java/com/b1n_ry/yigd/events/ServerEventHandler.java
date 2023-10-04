@@ -30,15 +30,19 @@ public class ServerEventHandler {
             DeathInfoManager.INSTANCE.clear();
 
             ServerWorld overworld = server.getOverworld();
-            DeathInfoManager.INSTANCE = overworld.getPersistentStateManager().getOrCreate(DeathInfoManager.getPersistentStateType(server), "yigd_data");
+            DeathInfoManager.INSTANCE = (DeathInfoManager) overworld.getPersistentStateManager().getOrCreate(nbt -> DeathInfoManager.fromNbt(nbt, server), DeathInfoManager::new, "yigd_data");
             DeathInfoManager.INSTANCE.markDirty();
         });
 
         ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, ignoredAmount) -> {
-            if (entity instanceof ServerPlayerEntity player) {
-                DeathHandler deathHandler = new DeathHandler();
-                deathHandler.onPlayerDeath(player, player.getServerWorld(), player.getPos(), damageSource);
-            }
+            Yigd.END_OF_TICK.add(() -> { // TODO: Check if this works or if mixin into LivingEntity#onDeath is required
+                if (!entity.isDead()) return;  // In case some mod made you alive again
+
+                if (entity instanceof ServerPlayerEntity player) {
+                    DeathHandler deathHandler = new DeathHandler();
+                    deathHandler.onPlayerDeath(player, player.getServerWorld(), player.getPos(), damageSource);
+                }
+            });
             return true;
         });
 

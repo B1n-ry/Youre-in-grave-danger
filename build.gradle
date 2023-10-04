@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.2-SNAPSHOT'
+	id 'fabric-loom' version '1.4-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -13,6 +13,7 @@ repositories {
 	maven { url "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }  // Permission API
 	maven { url "https://jitpack.io" }  // Apoli
+	maven { url "https://maven.nucleoid.xyz/" }  // Common Protection API
 	maven { url 'https://maven.wispforest.io' }  // owo
 	maven {  // Inventorio, travelers backpack, numismatic overhaul, levelz, libz (curseforge maven)
 		url "https://cursemaven.com"
@@ -38,6 +39,7 @@ dependencies {
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modImplementation "eu.pb4:common-protection-api:${project.protection_api_version}"
 
 	// Inventory Mods
 	modImplementation "dev.emi:trinkets:${project.trinkets_version}"

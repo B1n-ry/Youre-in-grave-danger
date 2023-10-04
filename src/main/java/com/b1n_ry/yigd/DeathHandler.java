@@ -20,6 +20,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameRules;
 
 import java.util.UUID;
 
@@ -40,11 +41,19 @@ public class DeathHandler {
 
         InventoryComponent inventoryComponent = new InventoryComponent(player);  // Will keep track of all items
         InventoryComponent.clearPlayer(player);  // No use for actual inventory when inventory component is created
-        inventoryComponent.onDeath(respawnComponent, context);
 
         ExpComponent expComponent = new ExpComponent(player);  // Will keep track of XP
         ExpComponent.clearXp(player);  // No use for actual exp when exp component is created
-        expComponent.onDeath(respawnComponent, context);
+
+        // TODO: Replace this with an event for other things to possibly check as well
+        if (world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) {
+            respawnComponent.setSoulboundInventory(inventoryComponent);
+            respawnComponent.setSoulboundExp(expComponent);
+        } else {
+            inventoryComponent.onDeath(respawnComponent, context);
+            expComponent.onDeath(respawnComponent, context);
+        }
+
 
         if (config.inventoryConfig.itemLoss.enabled) {
             inventoryComponent.applyLoss(context);
@@ -68,7 +77,7 @@ public class DeathHandler {
             graveComponent.getExpComponent().clear();
         }
 
-        if (AllowGraveGenerationEvent.EVENT.invoker().denyGeneration(config, context, graveComponent)) {
+        if (!AllowGraveGenerationEvent.EVENT.invoker().allowGeneration(context, graveComponent)) {
             inventoryComponent.dropAll(world, pos);
             expComponent.dropAll(world, pos);
         } else {
@@ -80,24 +89,24 @@ public class DeathHandler {
                     .with(Properties.HORIZONTAL_FACING, direction)
                     .with(Properties.WATERLOGGED, waterlogged);
 
-            Yigd.END_OF_TICK.add(() -> {
-                BlockState previousState = world.getBlockState(gravePos);
 
-                boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
+            // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
+            BlockState previousState = world.getBlockState(gravePos);
 
-                if (!placed) {
-                    Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), world.getRegistryKey().getValue()));
-                    Yigd.LOGGER.info("Dropping items on ground instead of in grave");
-                    graveComponent.getInventoryComponent().dropAll(world, Vec3d.of(gravePos));
-                    graveComponent.getExpComponent().dropAll(world, Vec3d.of(gravePos));
-                    return;
-                }
+            boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
 
-                GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(gravePos);
-                if (be == null) return;
-                be.setPreviousState(previousState);
-                be.setComponent(graveComponent);
-            });
+            if (!placed) {
+                Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), world.getRegistryKey().getValue()));
+                Yigd.LOGGER.info("Dropping items on ground instead of in grave");
+                graveComponent.getInventoryComponent().dropAll(world, Vec3d.of(gravePos));
+                graveComponent.getExpComponent().dropAll(world, Vec3d.of(gravePos));
+                return;
+            }
+
+            GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(gravePos);
+            if (be == null) return;
+            be.setPreviousState(previousState);
+            be.setComponent(graveComponent);
         }
     }
 }

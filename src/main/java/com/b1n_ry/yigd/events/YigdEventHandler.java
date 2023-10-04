@@ -78,8 +78,8 @@ public class YigdEventHandler {
             return robConfig.onlyMurderer && player.getUuid().equals(grave.getKillerId());
         });
 
-        AllowGraveGenerationEvent.EVENT.register((config, context, grave) -> {
-            YigdConfig.GraveConfig graveConfig = config.graveConfig;
+        AllowGraveGenerationEvent.EVENT.register((context, grave) -> {
+            YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
             if (!graveConfig.enabled) return false;
 
             if (!graveConfig.generateEmptyGraves && grave.isEmpty()) return false;

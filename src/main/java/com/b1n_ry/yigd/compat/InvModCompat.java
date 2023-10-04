@@ -18,6 +18,10 @@ public interface InvModCompat<T> {
         if (loader.isModLoaded("levelz")) invCompatMods.add(new LevelzCompat());
         if (loader.isModLoaded("numismatic-overhaul")) invCompatMods.add(new NumismaticOverhaulCompat());
         if (loader.isModLoaded("apoli")) invCompatMods.add(new OriginsCompat());
+
+        if (loader.isModLoaded("common-protection-api")) {
+            CommonProtectionApiCompat.init();
+        }
     }
 
     String getModName();

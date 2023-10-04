@@ -6,7 +6,6 @@ import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -26,10 +25,6 @@ public class DeathInfoManager extends PersistentState {
     private final Map<GameProfile, RespawnComponent> respawnEffects = new HashMap<>();
     private final Map<GameProfile, List<GraveComponent>> graveBackups = new HashMap<>();
     private final Map<UUID, GraveComponent> graveMap = new HashMap<>();
-
-    public static PersistentState.Type<DeathInfoManager> getPersistentStateType(MinecraftServer server) {
-        return new PersistentState.Type<>(DeathInfoManager::new, nbt -> (DeathInfoManager) DeathInfoManager.fromNbt(nbt, server), DataFixTypes.SAVED_DATA_RAIDS);
-    }
 
     public void clear() {
         this.respawnEffects.clear();

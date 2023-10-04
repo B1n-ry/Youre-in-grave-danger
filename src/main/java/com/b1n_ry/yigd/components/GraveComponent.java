@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.data.TranslatableDeathMessage;
+import com.b1n_ry.yigd.events.AllowBlockUnderGraveGenerationEvent;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
@@ -225,7 +226,8 @@ public class GraveComponent {
             return;
         }
         YigdConfig.GraveConfig.BlockUnderGrave config = YigdConfig.getConfig().graveConfig.blockUnderGrave;
-        if (!config.enabled) return;
+        if (!config.enabled) return;  // Not in an event because idk. I don't want to put this in an event I guess
+        if (!AllowBlockUnderGraveGenerationEvent.EVENT.invoker().allowBlockGeneration(this)) return;
 
         String dimName = this.worldRegistryKey.getValue().toString();
         if (!config.blockInDimensions.containsKey(dimName)) dimName = "misc";
@@ -240,7 +242,7 @@ public class GraveComponent {
         Block blockUnder = Registries.BLOCK.get(new Identifier(blockName));
         boolean placed = this.world.setBlockState(this.pos.down(), blockUnder.getDefaultState());
         if (!placed) {
-            Yigd.LOGGER.warn("Didn't place supporting block under grave in %s, at %d, %d, %d. Couldn't find dimension key in config"
+            Yigd.LOGGER.warn("Didn't place supporting block under grave in %s, at %d, %d, %d. Block placement failed"
                     .formatted(this.worldRegistryKey.getValue().toString(), this.pos.getX(), this.pos.getY(), this.pos.getZ()));
         }
     }
