@@ -34,18 +34,6 @@ public class ServerEventHandler {
             DeathInfoManager.INSTANCE.markDirty();
         });
 
-        ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, ignoredAmount) -> {
-            Yigd.END_OF_TICK.add(() -> { // TODO: Check if this works or if mixin into LivingEntity#onDeath is required
-                if (!entity.isDead()) return;  // In case some mod made you alive again
-
-                if (entity instanceof ServerPlayerEntity player) {
-                    DeathHandler deathHandler = new DeathHandler();
-                    deathHandler.onPlayerDeath(player, player.getServerWorld(), player.getPos(), damageSource);
-                }
-            });
-            return true;
-        });
-
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             if (alive) return;
 

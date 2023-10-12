@@ -25,7 +25,9 @@ public class EffectComponent {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.RespawnConfig rConfig = config.respawnConfig;
 
+        this.effects = new ArrayList<>();
         this.loadEffectsFromConfig(rConfig);
+
         this.resetHp = rConfig.respawnHealth;
 
         HungerManager hungerManager = player.getHungerManager();

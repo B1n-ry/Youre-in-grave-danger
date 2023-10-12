@@ -227,7 +227,9 @@ public class GraveComponent {
         }
         YigdConfig.GraveConfig.BlockUnderGrave config = YigdConfig.getConfig().graveConfig.blockUnderGrave;
         if (!config.enabled) return;  // Not in an event because idk. I don't want to put this in an event I guess
-        if (!AllowBlockUnderGraveGenerationEvent.EVENT.invoker().allowBlockGeneration(this)) return;
+
+        BlockState currentUnder = this.world.getBlockState(this.pos.down());
+        if (!AllowBlockUnderGraveGenerationEvent.EVENT.invoker().allowBlockGeneration(this, currentUnder)) return;
 
         String dimName = this.worldRegistryKey.getValue().toString();
         if (!config.blockInDimensions.containsKey(dimName)) dimName = "misc";
@@ -265,7 +267,7 @@ public class GraveComponent {
 
         this.handleRandomSpawn(config.graveConfig.randomSpawn, world, player.getGameProfile());
 
-        boolean thisIsARobbery = player.getUuid().equals(this.owner.getId());
+        boolean thisIsARobbery = !player.getUuid().equals(this.owner.getId());
 
         ItemStack graveItem = new ItemStack(Yigd.GRAVE_BLOCK.asItem());
         boolean addGraveItem = config.graveConfig.dropGraveBlock;
@@ -303,6 +305,8 @@ public class GraveComponent {
             }
         }
 
+        Yigd.LOGGER.info("%s claimed a grave belonging to %s at %d, %d, %d, %s"
+                .formatted(player.getGameProfile().getName(), this.owner.getName(), this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.worldRegistryKey.getValue()));
         return ActionResult.SUCCESS;
     }
 
@@ -412,7 +416,7 @@ public class GraveComponent {
         nbt.putUuid("graveId", this.graveId);
         nbt.putString("status", this.status.toString());
         nbt.putLong("creationTime", this.creationTime);
-        nbt.putUuid("killerId", this.killerId);
+        if (this.killerId != null) nbt.putUuid("killerId", this.killerId);
 
 
         return nbt;
@@ -436,7 +440,7 @@ public class GraveComponent {
         GraveStatus status = GraveStatus.valueOf(nbt.getString("status"));
         boolean locked = nbt.getBoolean("locked");
         long creationTime = nbt.getLong("creationTime");
-        UUID killerId = nbt.getUuid("killerId");
+        UUID killerId = nbt.contains("killerId") ? nbt.getUuid("killerId") : null;
 
         if (server != null) {
             ServerWorld world = server.getWorld(worldKey);
