@@ -1,9 +1,14 @@
 package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.data.DeathInfoManager;
+import com.b1n_ry.yigd.events.DropItemEvent;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,8 +41,18 @@ public class RespawnComponent {
     }
 
     public void apply(ServerPlayerEntity player) {
-        if (this.soulboundInventory != null)
-            this.soulboundInventory.applyToPlayer(player);
+        if (this.soulboundInventory != null) {
+            DefaultedList<ItemStack> extraItems = this.soulboundInventory.applyToPlayer(player);
+
+            for (ItemStack stack : extraItems) {
+                double x = player.getX();
+                double y = player.getY();
+                double z = player.getZ();
+                ServerWorld world = player.getServerWorld();
+                if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
+                    ItemScatterer.spawn(world, x, y, z, stack);
+            }
+        }
 
         if (this.soulboundExp != null)
             this.soulboundExp.applyToPlayer(player);
