@@ -97,7 +97,8 @@ public class YigdEventHandler {
 
             return !graveConfig.ignoredDeathTypes.contains(context.getDeathSource().getName());
         });
-        AllowBlockUnderGraveGenerationEvent.EVENT.register((grave, currentUnder) -> currentUnder.isIn(YigdTags.REPLACE_SOFT_WHITELIST));
+        AllowBlockUnderGraveGenerationEvent.EVENT.register(
+                (grave, currentUnder) -> YigdConfig.getConfig().graveConfig.blockUnderGrave.enabled && currentUnder.isIn(YigdTags.REPLACE_SOFT_WHITELIST));
 
         GraveGenerationEvent.EVENT.register((world, pos, nthTry) -> {
             BlockState state = world.getBlockState(pos);

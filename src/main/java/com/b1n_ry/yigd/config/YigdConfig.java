@@ -5,7 +5,6 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
-import net.minecraft.util.math.Vec3i;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +37,7 @@ public class YigdConfig implements ConfigData {
 
     public static class InventoryConfig {
         public boolean dropPlayerHead = false;
+        @ConfigEntry.Gui.CollapsibleObject
         public ItemLossConfig itemLoss = new ItemLossConfig();
         // delete enchantments
         public List<String> vanishingEnchantments = List.of("minecraft:vanishing_curse");
@@ -70,7 +70,12 @@ public class YigdConfig implements ConfigData {
         public boolean resetSaturation = true;
         public float respawnSaturation = 20f;
 
-        public record EffectConfig(String effectName, int effectLevel, int effectTime, boolean showBubbles) { }
+        public record EffectConfig(String effectName, int effectLevel, int effectTime, boolean showBubbles) {
+            // Constructor required for the config gui to work
+            public EffectConfig() {
+                this("", 0, 0, false);
+            }
+        }
     }
 
     public static class ExpConfig {
@@ -95,7 +100,8 @@ public class YigdConfig implements ConfigData {
         // require shovel to open
         public boolean requireShovelToLoot = false;
         // retrieve method (list with enums)
-        public List<RetrieveMethod> retrieveMethods = List.of(RetrieveMethod.ON_CLICK);
+        @ConfigEntry.Gui.CollapsibleObject
+        public RetrieveMethods retrieveMethods = new RetrieveMethods();
         // merge existing with claimed stacks for player
         public boolean mergeStacksOnRetrieve = true;
         // drop in inventory or on ground
@@ -110,8 +116,10 @@ public class YigdConfig implements ConfigData {
         // inventory priority
         public ClaimPriority claimPriority = ClaimPriority.GRAVE;
         // robbing
+        @ConfigEntry.Gui.CollapsibleObject
         public GraveRobbing graveRobbing = new GraveRobbing();
         // timeout/deletion/despawn timer
+        @ConfigEntry.Gui.CollapsibleObject
         public GraveTimeout graveTimeout = new GraveTimeout();
         // curse of binding compat
         public boolean treatBindingCurse = true;
@@ -125,11 +133,13 @@ public class YigdConfig implements ConfigData {
         // unlockable
         public boolean unlockable = true;
         // spawn something when opened?
+        @ConfigEntry.Gui.CollapsibleObject
         public RandomSpawn randomSpawn = new RandomSpawn();
         // use last ground position
         public boolean generateOnLastGroundPos = false;
         // How far in X, Y, and Z the grave can generate from where you died
-        public Vec3i generationMaxDistance = new Vec3i(5, 5, 5);
+        @ConfigEntry.Gui.CollapsibleObject
+        public Range generationMaxDistance = new Range();
         // block replacement blacklist/whitelist settings
         public boolean useSoftBlockWhitelist = false;
         public boolean useStrictBlockBlacklist = true;
@@ -140,11 +150,19 @@ public class YigdConfig implements ConfigData {
         // grave generation dimension blacklist
         public List<String> dimensionBlacklist = new ArrayList<>();
         // block under grave?
+        @ConfigEntry.Gui.CollapsibleObject
         public  BlockUnderGrave blockUnderGrave = new BlockUnderGrave();
         // tell people where someone's grave is when they logg off
         public boolean sellOutOfflinePeople = false;
         // max backups
         public int maxBackupsPerPerson = 50;
+
+        public static class RetrieveMethods {
+            public boolean onClick = true;
+            public boolean onBreak = false;
+            public boolean onSneak = false;
+            public boolean onStand = false;
+        }
 
         public static class GraveRobbing {
             public boolean enabled = true;
@@ -169,13 +187,20 @@ public class YigdConfig implements ConfigData {
             public String spawnNbt = "{ArmorItems:[{},{},{},{id:\"minecraft:player_head\",tag:{SkullOwner:{Name:\"${name}\",Id:\"${uuid}\"}},Count:1b}]}";
         }
 
+        public static class Range {
+            public int x = 5;
+            public int y = 5;
+            public int z = 5;
+        }
+
         public static class BlockUnderGrave {
             public boolean enabled = true;
-            public Map<String, String> blockInDimensions = Map.of(
-                    "minecraft:overworld", "minecraft:cobblestone",
-                    "miencraft:nether", "minecraft:soul_soil",
-                    "minecraft:end", "minecraft:end_stone",
-                    "misc", "minecraft:dirt");
+            public List<MapEntry> blockInDimensions = new ArrayList<>() {{
+                add(new MapEntry("minecraft:overworld", "minecraft:cobblestone"));
+                add(new MapEntry("minecraft:nether", "minecraft:soul_soil"));
+                add(new MapEntry("minecraft:end", "minecraft:end_stone"));
+                add(new MapEntry("misc", "minecraft:dirt"));
+            }};
             public boolean generateOnProtectedLand = false;
         }
     }
@@ -190,5 +215,19 @@ public class YigdConfig implements ConfigData {
 
     public static class GraveRendering {
 
+    }
+
+    public static class MapEntry {
+        public String key;
+        public String value;
+
+        public MapEntry() {  // Required for cloth config GUI to work
+            this.key = "";
+            this.value = "";
+        }
+        public MapEntry(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
     }
 }

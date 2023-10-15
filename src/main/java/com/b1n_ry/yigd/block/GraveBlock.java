@@ -4,14 +4,15 @@ package com.b1n_ry.yigd.block;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.GraveComponent;
-import com.b1n_ry.yigd.config.RetrieveMethod;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
+import com.b1n_ry.yigd.data.GraveStatus;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -43,6 +44,14 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(Properties.HORIZONTAL_FACING, Properties.WATERLOGGED);
+    }
+
+    @Nullable
+    @Override
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        Direction dir = ctx.getHorizontalPlayerFacing().getOpposite();  // Have the grave face you, not away from you
+        BlockState state = this.getDefaultState();
+        return state.with(Properties.HORIZONTAL_FACING, dir);
     }
 
     @Override
@@ -79,9 +88,17 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         YigdConfig config = YigdConfig.getConfig();
-        if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave && config.graveConfig.retrieveMethods.contains(RetrieveMethod.ON_CLICK)) {
+        if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave && config.graveConfig.retrieveMethods.onClick) {
+            GraveComponent graveComponent = grave.getComponent();
+            if (graveComponent == null) return ActionResult.PASS;
+
+            if (config.graveConfig.persistentGraves &&graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
+                player.sendMessage(graveComponent.getDeathMessage().getDeathMessage().copy().append(" : Day " + graveComponent.getCreationTime() / 24000));
+                return ActionResult.SUCCESS;
+            }
+
             // If it's not on the client side, player and world should safely be able to be cast into their serverside counterpart classes
-            return grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
+            return graveComponent.claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
         }
         return ActionResult.FAIL;
     }
@@ -89,18 +106,22 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
         YigdConfig config = YigdConfig.getConfig();
-        if (!world.isClient && blockEntity instanceof GraveBlockEntity grave) {
-            if (config.graveConfig.retrieveMethods.contains(RetrieveMethod.ON_BREAK)) {
+        if (!world.isClient && blockEntity instanceof GraveBlockEntity grave && grave.getComponent() != null && grave.getComponent().getStatus() != GraveStatus.CLAIMED) {
+            if (config.graveConfig.retrieveMethods.onBreak) {
                 grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, tool);
                 return;
             } else {
                 world.setBlockState(pos, state);
                 Optional<GraveBlockEntity> be = world.getBlockEntity(pos, Yigd.GRAVE_BLOCK_ENTITY);
-                be.ifPresent(graveBlockEntity -> {
+                if (be.isPresent()) {
+                    GraveBlockEntity graveBlockEntity = be.get();
+
                     graveBlockEntity.setPreviousState(grave.getPreviousState());
                     Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(grave.getGraveId());
                     component.ifPresent(graveBlockEntity::setComponent);
-                });
+
+                    return;
+                }
             }
         }
         super.afterBreak(world, player, pos, state, blockEntity, tool);

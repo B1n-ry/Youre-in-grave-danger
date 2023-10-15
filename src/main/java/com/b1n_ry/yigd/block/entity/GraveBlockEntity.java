@@ -12,19 +12,27 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
 
 public class GraveBlockEntity extends BlockEntity {
+    @Nullable
     private GraveComponent component = null;
+    @Nullable
     private UUID graveId = null;
+    @Nullable
     private GameProfile graveOwner = null;
+    @Nullable
     private BlockState previousState = null;
 
     private static YigdConfig cachedConfig = YigdConfig.getConfig();
@@ -39,20 +47,20 @@ public class GraveBlockEntity extends BlockEntity {
         this.graveId = component.getGraveId();
         this.markDirty();
     }
-    public void setPreviousState(BlockState previousState) {
+    public void setPreviousState(@Nullable BlockState previousState) {
         this.previousState = previousState;
     }
 
-    public UUID getGraveId() {
+    public @Nullable UUID getGraveId() {
         return this.graveId;
     }
-    public GameProfile getGraveOwner() {
+    public @Nullable GameProfile getGraveOwner() {
         return this.graveOwner;
     }
-    public GraveComponent getComponent() {
+    public @Nullable GraveComponent getComponent() {
         return this.component;
     }
-    public BlockState getPreviousState() {
+    public @Nullable BlockState getPreviousState() {
         return this.previousState;
     }
 
@@ -74,6 +82,12 @@ public class GraveBlockEntity extends BlockEntity {
         return nbt;
     }
 
+    @Nullable
+    @Override
+    public Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
+    }
+
     @Override
     protected void writeNbt(NbtCompound nbt) {
         if (this.component == null) return;
@@ -83,14 +97,16 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     public void readNbt(NbtCompound nbt) {
-        if (nbt.contains("owner"))  // Only on the client
+        if (nbt.contains("owner"))  // Only for the client
             this.graveOwner = NbtHelper.toGameProfile(nbt.getCompound("owner"));
 
         if (this.world != null && this.world.isClient) return;
 
-        this.graveId = nbt.getUuid("graveId");
-        if (this.component == null && this.graveId != null) {
-            DeathInfoManager.INSTANCE.getGrave(this.graveId).ifPresent(this::setComponent);
+        if (nbt.contains("graveId")) {
+            this.graveId = nbt.getUuid("graveId");
+            if (this.component == null) {
+                DeathInfoManager.INSTANCE.getGrave(this.graveId).ifPresent(this::setComponent);
+            }
         }
 
         if (nbt.contains("previousState")) {
@@ -102,7 +118,8 @@ public class GraveBlockEntity extends BlockEntity {
     public static void tick(World world, BlockPos blockPos, BlockState ignoredState, GraveBlockEntity be) {
         if (world.isClient) return;
 
-        if (world.getTime() % 2400 == 0) cachedConfig = YigdConfig.getConfig();
+        if (be.component == null) return;
+        if (world.getTime() % 2400 == 0) cachedConfig = YigdConfig.getConfig();  // Reloads the config every 60 seconds
 
         YigdConfig.GraveConfig.GraveTimeout timeoutConfig = cachedConfig.graveConfig.graveTimeout;
 

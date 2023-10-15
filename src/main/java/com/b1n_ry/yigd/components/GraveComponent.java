@@ -34,12 +34,13 @@ import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -160,12 +161,12 @@ public class GraveComponent {
         }
 
         YigdConfig config = YigdConfig.getConfig();
-        Vec3i generationMaxDistance = config.graveConfig.generationMaxDistance;
+        YigdConfig.GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
 
         // Loop should ABSOLUTELY NOT loop 50 times, but in case some stupid ass person (maybe me lol) doesn't return true by default
         // in canGenerate when i reaches some value (maybe 4) there is a cap at least, so the loop won't continue forever and freeze the game
         for (int i = 0; i < 50; i++) {
-            for (BlockPos iPos : BlockPos.iterateOutwards(this.pos, generationMaxDistance.getX(), generationMaxDistance.getY(), generationMaxDistance.getZ())) {
+            for (BlockPos iPos : BlockPos.iterateOutwards(this.pos, generationMaxDistance.x, generationMaxDistance.y, generationMaxDistance.z)) {
                 if (GraveGenerationEvent.EVENT.invoker().canGenerateAt(this.world, iPos, i)) {
                     this.pos = iPos;
                     DeathInfoManager.INSTANCE.markDirty();
@@ -231,10 +232,15 @@ public class GraveComponent {
         BlockState currentUnder = this.world.getBlockState(this.pos.down());
         if (!AllowBlockUnderGraveGenerationEvent.EVENT.invoker().allowBlockGeneration(this, currentUnder)) return;
 
-        String dimName = this.worldRegistryKey.getValue().toString();
-        if (!config.blockInDimensions.containsKey(dimName)) dimName = "misc";
+        Map<String, String> blockInDimMap = new HashMap<>();
+        for (YigdConfig.MapEntry pair : config.blockInDimensions) {
+            blockInDimMap.put(pair.key, pair.value);
+        }
 
-        String blockName = config.blockInDimensions.get(dimName);
+        String dimName = this.worldRegistryKey.getValue().toString();
+        if (!blockInDimMap.containsKey(dimName)) dimName = "misc";
+
+        String blockName = blockInDimMap.get(dimName);
         if (blockName == null) {
             Yigd.LOGGER.warn("Didn't place supporting block under grave in %s, at %d, %d, %d. Couldn't find dimension key in config"
                     .formatted(this.worldRegistryKey.getValue().toString(), this.pos.getX(), this.pos.getY(), this.pos.getZ()));
@@ -263,7 +269,8 @@ public class GraveComponent {
     public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState previousState, BlockPos pos, ItemStack tool) {
         YigdConfig config = YigdConfig.getConfig();
 
-        if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
+        if (this.status == GraveStatus.CLAIMED) return ActionResult.FAIL;  // Otherwise runs twice when persistent graves is enabled
+        if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.PASS;
 
         this.handleRandomSpawn(config.graveConfig.randomSpawn, world, player.getGameProfile());
 
@@ -283,8 +290,12 @@ public class GraveComponent {
                 ItemScatterer.spawn(this.world, this.pos.getX(), this.pos.getY(), this.pos.getZ(), graveItem);
         }
 
-        if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
-            world.setBlockState(pos, previousState);
+        if (!config.graveConfig.persistentGraves) {
+            if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
+                world.setBlockState(pos, previousState);
+            } else {
+                world.removeBlock(pos, false);
+            }
         }
 
         this.status = GraveStatus.CLAIMED;

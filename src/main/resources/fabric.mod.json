@@ -20,12 +20,9 @@
 
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "com.b1n_ry.yigd.Yigd"
-    ],
-    "client": [
-      "com.b1n_ry.yigd.client.YigdClient"
-    ]
+    "main": [ "com.b1n_ry.yigd.Yigd" ],
+    "client": [ "com.b1n_ry.yigd.client.YigdClient" ],
+    "modmenu": [ "com.b1n_ry.yigd.compat.YigdModMenu" ]
   },
   "mixins": [
     "yigd.mixins.json"
