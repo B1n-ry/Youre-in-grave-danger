@@ -11,6 +11,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
@@ -30,6 +31,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
     private static final VoxelShape SHAPE_EAST;
@@ -46,10 +48,19 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         builder.add(Properties.HORIZONTAL_FACING, Properties.WATERLOGGED);
     }
 
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && itemStack.hasCustomName()) {
+            if (grave.getGraveOwner() == null)
+                grave.setGraveText(itemStack.getName());
+        }
+        super.onPlaced(world, pos, state, placer, itemStack);
+    }
+
     @Nullable
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        Direction dir = ctx.getHorizontalPlayerFacing().getOpposite();  // Have the grave face you, not away from you
+        Direction dir = ctx.getHorizontalPlayerFacing().getOpposite();  // Have the grave facing you, not away from you
         BlockState state = this.getDefaultState();
         return state.with(Properties.HORIZONTAL_FACING, dir);
     }
@@ -90,9 +101,22 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         YigdConfig config = YigdConfig.getConfig();
         if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave && config.graveConfig.retrieveMethods.onClick) {
             GraveComponent graveComponent = grave.getComponent();
-            if (graveComponent == null) return ActionResult.PASS;
 
-            if (config.graveConfig.persistentGraves &&graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
+            if (graveComponent == null) {
+                // Check if it actually *is* not a personal grave, or if the component value is just missing
+                UUID graveId = grave.getGraveId();
+                if (graveId != null) {
+                    Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
+                    if (component.isPresent())
+                        graveComponent = component.get();
+                }
+
+                if (graveComponent == null)
+                    // It was indeed just a normal grave, belonging to no one whatsoever
+                    return ActionResult.PASS;
+            }
+
+            if (config.graveConfig.persistentGraves && graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
                 player.sendMessage(graveComponent.getDeathMessage().getDeathMessage().copy().append(" : Day " + graveComponent.getCreationTime() / 24000));
                 return ActionResult.SUCCESS;
             }

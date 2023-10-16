@@ -94,6 +94,8 @@ public class YigdConfig implements ConfigData {
         // what should it store? XP or items, none or both?
         public boolean storeItems = true;
         public boolean storeXp = true;
+        // Inform the player where the grave generated when respawning
+        public boolean informGraveLocation = true;
         // require some item (customizable. Default EMPTY, but could be grave)
         public boolean requireItem = false;
         public String requiredItem = "yigd:grave";

@@ -42,5 +42,6 @@
   "yigd.command.view_self.fail": "Failed to view grave. Couldn't find grave",
   "yigd.message.sellout_player": "%s logged off, and they have a grave at X: %d / Y: %d / Z: %d / %s",
   "yigd.message.inform_robbery": "One of your graves has been robbed",
-  "yigd.message.inform_robbery.with_details": "%s has robbed one of your graves"
+  "yigd.message.inform_robbery.with_details": "%s has robbed one of your graves",
+  "yigd.message.grave_location": "Your grave is located at X: %d / Y: %d / Z: %d / %s"
 }

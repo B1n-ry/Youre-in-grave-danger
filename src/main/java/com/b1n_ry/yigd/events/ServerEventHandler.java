@@ -37,8 +37,19 @@ public class ServerEventHandler {
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             if (alive) return;
 
-            Optional<RespawnComponent> respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newPlayer.getGameProfile());
+            GameProfile newProfile = newPlayer.getGameProfile();
+            Optional<RespawnComponent> respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newProfile);
             respawnComponent.ifPresent(component -> component.apply(newPlayer));
+
+            if (YigdConfig.getConfig().graveConfig.informGraveLocation) {
+                List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(newProfile));
+                graves.removeIf(grave -> grave.getStatus() != GraveStatus.UNCLAIMED);
+                if (graves.size() > 0) {
+                    GraveComponent latest = graves.get(graves.size() - 1);
+                    BlockPos gravePos = latest.getPos();
+                    newPlayer.sendMessage(Text.translatable("yigd.message.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ(), latest.getWorldRegistryKey().getValue()));
+                }
+            }
         });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {

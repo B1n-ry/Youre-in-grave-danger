@@ -18,6 +18,7 @@ import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +34,8 @@ public class GraveBlockEntity extends BlockEntity {
     @Nullable
     private GameProfile graveOwner = null;
     @Nullable
+    private Text graveText = null;
+    @Nullable
     private BlockState previousState = null;
 
     private static YigdConfig cachedConfig = YigdConfig.getConfig();
@@ -45,10 +48,15 @@ public class GraveBlockEntity extends BlockEntity {
         this.component = component;
         this.graveOwner = component.getOwner();
         this.graveId = component.getGraveId();
+        // noinspection ConstantConditions
+        this.graveText = Text.of(this.graveOwner.getName());
         this.markDirty();
     }
     public void setPreviousState(@Nullable BlockState previousState) {
         this.previousState = previousState;
+    }
+    public void setGraveText(@Nullable Text text) {
+        this.graveText = text;
     }
 
     public @Nullable UUID getGraveId() {
@@ -63,6 +71,9 @@ public class GraveBlockEntity extends BlockEntity {
     public @Nullable BlockState getPreviousState() {
         return this.previousState;
     }
+    public @Nullable Text getGraveText() {
+        return this.graveText;
+    }
 
     public void onBroken() {
         if (this.world == null || this.world.isClient) return;
@@ -76,9 +87,11 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     public NbtCompound toInitialChunkDataNbt() {
-        if (this.component == null) return super.toInitialChunkDataNbt();
         NbtCompound nbt = this.createNbt();
-        nbt.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.component.getOwner()));
+        if (this.component != null)
+            nbt.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.component.getOwner()));
+        if (this.graveText != null)
+            nbt.putString("text", this.graveText.getString());
         return nbt;
     }
 
@@ -90,9 +103,12 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     protected void writeNbt(NbtCompound nbt) {
-        if (this.component == null) return;
-        nbt.putUuid("graveId", this.graveId);
-        if (this.previousState != null) nbt.put("previousState", NbtHelper.fromBlockState(this.previousState));
+        if (this.graveText != null)
+            nbt.putString("text", this.graveText.getString());
+        if (this.component != null)
+            nbt.putUuid("graveId", this.graveId);
+        if (this.previousState != null)
+            nbt.put("previousState", NbtHelper.fromBlockState(this.previousState));
     }
 
     @Override
@@ -100,7 +116,8 @@ public class GraveBlockEntity extends BlockEntity {
         if (nbt.contains("owner"))  // Only for the client
             this.graveOwner = NbtHelper.toGameProfile(nbt.getCompound("owner"));
 
-        if (this.world != null && this.world.isClient) return;
+        if (nbt.contains("text"))
+            this.graveText = Text.literal(nbt.getString("text"));
 
         if (nbt.contains("graveId")) {
             this.graveId = nbt.getUuid("graveId");

@@ -16,6 +16,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
@@ -36,6 +37,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
+import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -215,10 +217,17 @@ public class GraveComponent {
         }
 
         this.pos = new BlockPos(x, y, z);
+
+        // Makes sure the grave is not broken/replaced by portal, or the dragon egg
+        if (this.world.getDimensionKey().equals(DimensionTypes.THE_END)) {
+            if (Math.abs(attemptedPos.getX()) + Math.abs(attemptedPos.getZ()) < 25 && this.world.getBlockState(attemptedPos.down()).isOf(Blocks.BEDROCK))
+                this.pos = this.pos.up();
+        }
+
         DeathInfoManager.INSTANCE.markDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
 
         this.placeBlockUnder();
-        return this.world.setBlockState(attemptedPos, state);
+        return this.world.setBlockState(this.pos, state);
     }
 
     void placeBlockUnder() {
@@ -270,7 +279,7 @@ public class GraveComponent {
         YigdConfig config = YigdConfig.getConfig();
 
         if (this.status == GraveStatus.CLAIMED) return ActionResult.FAIL;  // Otherwise runs twice when persistent graves is enabled
-        if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.PASS;
+        if (!GraveClaimEvent.EVENT.invoker().canClaim(player, world, pos, this, tool)) return ActionResult.FAIL;
 
         this.handleRandomSpawn(config.graveConfig.randomSpawn, world, player.getGameProfile());
 
