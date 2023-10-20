@@ -1,19 +1,25 @@
 package com.b1n_ry.yigd.client.render;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.model.*;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
 import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
+import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
 
@@ -22,6 +28,10 @@ import java.util.Map;
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private final Map<SkullBlock.SkullType, SkullBlockEntityModel> skullModels;
     private final TextRenderer textRenderer;
+
+    private static ModelPart GRAVE_MODEL;
+    private static Identifier TEXTURE_LOCATION;
+    private static SpriteIdentifier SPRITE_IDENTIFIER;
 
     public GraveBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.skullModels = SkullBlockEntityRenderer.getModels(context.getLayerRenderDispatcher());
@@ -45,6 +55,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         matrices.multiply(RotationAxis.POSITIVE_Y.rotation(rotation), .5f, .5f, .5f);
         this.renderOwnerSkull(entity, tickDelta, matrices, vertexConsumers, light, overlay);
         this.renderGraveText(entity, tickDelta, matrices, vertexConsumers, light, overlay);
+        this.renderGraveModel(entity, tickDelta, matrices, vertexConsumers, light, overlay);
+        this.renderGlowingOutline(entity, tickDelta, matrices, vertexConsumers, light, overlay);
 
         matrices.pop();
     }
@@ -84,5 +96,43 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         this.textRenderer.draw(graveText, 0f, 0f, 0xFFFFFF, false, matrices.peek().getPositionMatrix(), vertexConsumers, TextRenderer.TextLayerType.NORMAL, 0x0, light);
 
         matrices.pop();
+    }
+
+    private void renderGraveModel(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        VertexConsumer consumer = SPRITE_IDENTIFIER.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
+
+        GRAVE_MODEL.getChild("ground").render(matrices, consumer, light, overlay);
+        GRAVE_MODEL.getChild("base").render(matrices, consumer, light, overlay);
+        GRAVE_MODEL.getChild("bust").render(matrices, consumer, light, overlay);
+        GRAVE_MODEL.getChild("top").render(matrices, consumer, light, overlay);
+    }
+
+    private void renderGlowingOutline(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        VertexConsumer consumer = vertexConsumers.getBuffer(RenderLayer.getOutline(new Identifier(Yigd.MOD_ID, "textures/block/grave.png")));
+
+        GRAVE_MODEL.render(matrices, consumer, light, overlay);
+    }
+
+    private static ModelPart getGraveModel() {
+        ModelData modelData = new ModelData();
+        ModelPartData root = modelData.getRoot();
+        addChildPart(root, "ground", 0, 0, 0, 0, 0, 16, 1, 16);
+        addChildPart(root, "base", 0, 21, 2, 1, 10, 12, 2, 5);
+        addChildPart(root, "bust", 0, 28, 3, 3, 11, 10, 12, 3);
+        addChildPart(root, "top", 0, 17, 4, 15, 11, 8, 1, 3);
+
+        return TexturedModelData.of(modelData, 64, 64).createModel();
+    }
+    private static void addChildPart(ModelPartData root, String name, int uvX, int uvY, float minX, float minY, float minZ, float sizeX, float sizeY, float sizeZ) {
+        root.addChild(
+                name,
+                ModelPartBuilder.create().uv(uvX, uvY).cuboid(minX, minY, minZ, sizeX, sizeY, sizeZ),
+                ModelTransform.of(sizeX + minX * 2, sizeY + minY * 2, 0, 0, 0, (float) Math.PI));
+    }
+
+    static {
+        GRAVE_MODEL = getGraveModel();
+        TEXTURE_LOCATION = new Identifier(Yigd.MOD_ID, "block/grave");
+        SPRITE_IDENTIFIER = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, TEXTURE_LOCATION);
     }
 }

@@ -72,6 +72,7 @@ public class YigdConfig implements ConfigData {
 
         public record EffectConfig(String effectName, int effectLevel, int effectTime, boolean showBubbles) {
             // Constructor required for the config gui to work
+            @SuppressWarnings("unused")
             public EffectConfig() {
                 this("", 0, 0, false);
             }
@@ -223,6 +224,7 @@ public class YigdConfig implements ConfigData {
         public String key;
         public String value;
 
+        @SuppressWarnings("unused")
         public MapEntry() {  // Required for cloth config GUI to work
             this.key = "";
             this.value = "";

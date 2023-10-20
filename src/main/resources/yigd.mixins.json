@@ -8,6 +8,8 @@
     "WorldChunkMixin"
   ],
   "client": [
+    "WorldRendererMixin",
+    "accessors.PostEffectProcessorAccessor"
   ],
   "server": [
     "MinecraftDedicatedServerMixin"

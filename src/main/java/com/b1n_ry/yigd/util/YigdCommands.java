@@ -24,7 +24,7 @@ import java.util.Map;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
-public class Commands {
+public class YigdCommands {
     public static void register() {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.CommandConfig commandConfig = config.commandConfig;
@@ -32,22 +32,22 @@ public class Commands {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 literal(commandConfig.mainCommand)
                         .requires(Permissions.require("yigd.command.base_permission", true))
-                        .executes(Commands::baseCommand)
+                        .executes(YigdCommands::baseCommand)
                         .then(literal("latest")
                                 .requires(Permissions.require("yigd.command.view_latest", 0))
-                                .executes(Commands::viewLatest))
+                                .executes(YigdCommands::viewLatest))
                         .then(literal("grave")
                                 .requires(Permissions.require("yigd.command.view_self", 0))
-                                .executes(Commands::viewSelf)
+                                .executes(YigdCommands::viewSelf)
                                 .then(CommandManager.argument("player", GameProfileArgumentType.gameProfile())
                                         .requires(Permissions.require("yigd.command.view_user", 2))
                                         .executes(context -> viewUser(context, GameProfileArgumentType.getProfileArgument(context, "player")))))
                         .then(literal("moderate")
                                 .requires(Permissions.require("yigd.command.view_all", 2))
-                                .executes(Commands::viewAll))
+                                .executes(YigdCommands::viewAll))
                         .then(literal("restore")
                                 .requires(Permissions.require("yigd.command.restore", 2))
-                                .executes(Commands::restore))  // Change to require parameters when implementing the restore command
+                                .executes(YigdCommands::restore))  // Change to require parameters when implementing the restore command
         ));
     }
 
