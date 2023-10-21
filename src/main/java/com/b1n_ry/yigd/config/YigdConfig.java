@@ -217,7 +217,11 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class GraveRendering {
-
+        public boolean useCustomFeatureRenderer = true;
+        public boolean useSkullRenderer = true;
+        public boolean useTextRenderer = true;
+        public boolean useGlowingEffect = true;
+        public int glowingDistance = 15;
     }
 
     public static class MapEntry {

@@ -2,14 +2,16 @@ package com.b1n_ry.yigd.client.render;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.events.RenderGlowingGraveEvent;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
@@ -28,18 +30,25 @@ import java.util.Map;
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private final Map<SkullBlock.SkullType, SkullBlockEntityModel> skullModels;
     private final TextRenderer textRenderer;
+    private final MinecraftClient client;
 
     private static ModelPart GRAVE_MODEL;
     private static Identifier TEXTURE_LOCATION;
     private static SpriteIdentifier SPRITE_IDENTIFIER;
 
+    public static boolean renderOutlineShader = false;
+
     public GraveBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.skullModels = SkullBlockEntityRenderer.getModels(context.getLayerRenderDispatcher());
         this.textRenderer = context.getTextRenderer();
+        this.client = MinecraftClient.getInstance();
     }
 
     @Override
     public void render(GraveBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        YigdConfig.GraveRendering config = YigdConfig.getConfig().graveRendering;
+        if (!config.useCustomFeatureRenderer) return;
+
         BlockState state = entity.getCachedState();
         Direction direction = state.get(Properties.HORIZONTAL_FACING);
 
@@ -53,10 +62,15 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         matrices.push();
 
         matrices.multiply(RotationAxis.POSITIVE_Y.rotation(rotation), .5f, .5f, .5f);
-        this.renderOwnerSkull(entity, tickDelta, matrices, vertexConsumers, light, overlay);
-        this.renderGraveText(entity, tickDelta, matrices, vertexConsumers, light, overlay);
+
+        if (config.useGlowingEffect)
+            this.renderGlowingOutline(entity, tickDelta, matrices, vertexConsumers, light, overlay);
+
+        if (config.useSkullRenderer)
+            this.renderOwnerSkull(entity, tickDelta, matrices, vertexConsumers, light, overlay);
+        if (config.useTextRenderer)
+            this.renderGraveText(entity, tickDelta, matrices, vertexConsumers, light, overlay);
         this.renderGraveModel(entity, tickDelta, matrices, vertexConsumers, light, overlay);
-        this.renderGlowingOutline(entity, tickDelta, matrices, vertexConsumers, light, overlay);
 
         matrices.pop();
     }
@@ -107,8 +121,13 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         GRAVE_MODEL.getChild("top").render(matrices, consumer, light, overlay);
     }
 
-    private void renderGlowingOutline(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+    private void renderGlowingOutline(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        ClientPlayerEntity player = this.client.player;
+        if (!RenderGlowingGraveEvent.EVENT.invoker().canRenderOutline(entity, player)) return;
+
         VertexConsumer consumer = vertexConsumers.getBuffer(RenderLayer.getOutline(new Identifier(Yigd.MOD_ID, "textures/block/grave.png")));
+
+        renderOutlineShader = true;
 
         GRAVE_MODEL.render(matrices, consumer, light, overlay);
     }

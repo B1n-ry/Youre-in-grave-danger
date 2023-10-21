@@ -17,7 +17,7 @@ import net.minecraft.util.Identifier;
 import java.util.HashSet;
 import java.util.Set;
 
-public class YigdEventHandler {
+public class YigdServerEventHandler {
     public static void registerEventCallbacks() {
         registerPermissionEvents();
 

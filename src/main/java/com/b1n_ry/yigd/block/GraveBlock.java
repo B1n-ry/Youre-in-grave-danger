@@ -65,10 +65,11 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         return state.with(Properties.HORIZONTAL_FACING, dir);
     }
 
-//    @Override
-//    public BlockRenderType getRenderType(BlockState state) {
-//        return BlockRenderType.MODEL;
-//    }
+    @Override
+    public BlockRenderType getRenderType(BlockState state) {
+        YigdConfig.GraveRendering config = YigdConfig.getConfig().graveRendering;
+        return config.useCustomFeatureRenderer ? BlockRenderType.INVISIBLE : BlockRenderType.MODEL;
+    }
 
     @Nullable
     @Override
