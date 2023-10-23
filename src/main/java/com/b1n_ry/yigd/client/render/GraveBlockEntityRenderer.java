@@ -1,9 +1,12 @@
 package com.b1n_ry.yigd.client.render;
 
-import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.RenderGlowingGraveEvent;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
@@ -24,17 +27,26 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
+    private static final Gson GSON = new Gson();
+
     private final Map<SkullBlock.SkullType, SkullBlockEntityModel> skullModels;
     private final TextRenderer textRenderer;
     private final MinecraftClient client;
 
-    private static ModelPart GRAVE_MODEL;
-    private static Identifier TEXTURE_LOCATION;
-    private static SpriteIdentifier SPRITE_IDENTIFIER;
+    private static ModelPart graveModel;
+    @Nullable
+    private static TextRenderInfo textRenderInfo = null;
+    @Nullable
+    private static SkullRenderInfo skullRenderInfo = null;
+    private static final Map<String, SpriteIdentifier> CUBOID_SPRITES = new HashMap<>();
+    private static final RenderLayer OUTLINE_RENDER_LAYER;
 
     public static boolean renderOutlineShader = false;
 
@@ -75,19 +87,39 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         matrices.pop();
     }
 
-    private void renderOwnerSkull(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int ignoredOverlay) {
+    private void renderOwnerSkull(GraveBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
         GameProfile graveOwner = entity.getGraveOwner();
         if (graveOwner == null) return;
 
         SkullBlock.SkullType type = SkullBlock.Type.PLAYER;
-        SkullBlockEntityModel model = this.skullModels.get(type);
         RenderLayer renderLayer = SkullBlockEntityRenderer.getRenderLayer(type, graveOwner);
 
-        matrices.push();
+        this.renderSkull(entity, tickDelta, matrices, vertexConsumers, light, overlay, renderLayer);
+    }
+    /**
+     * Render the model with given RenderLayer. This way it can be rendered with both the skin texture and outline shader
+     */
+    int debug = 0;
+    private void renderSkull(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int ignoredOverlay, RenderLayer renderLayer) {
+        if (skullRenderInfo == null) return;
+        SkullBlock.SkullType type = SkullBlock.Type.PLAYER;
 
-        matrices.multiply(RotationAxis.POSITIVE_X.rotation((float) Math.PI / 2f), .5f, .25f, .5f);
-        matrices.translate(0D, -.1875D, .5);
-        matrices.scale(1f, 1f, .25f);
+        this.debug++;
+
+        SkullBlockEntityModel model = this.skullModels.get(type);
+
+        matrices.push();
+        matrices.translate(0.5f, 0.25f, 0.5f);  // Required for calculations of rotation and scale to not change position
+
+        int[] rotation = skullRenderInfo.rotation;
+
+        matrices.translate(0D, -(4 - skullRenderInfo.height) / 16D, -(8 - skullRenderInfo.depth) / 16D);
+
+        Quaternionf angle = new Quaternionf().rotateXYZ((float) Math.toRadians(rotation[0]), (float) Math.toRadians(rotation[1]), (float) Math.toRadians(rotation[2]));
+        matrices.multiply(angle);
+        matrices.scale(skullRenderInfo.scaleFace, skullRenderInfo.scaleFace, skullRenderInfo.scaleDepth);
+
+        matrices.translate(-0.5f, -0.25f, -0.5f);  // Move back to actual position. Calculations of scale and rotation are now done
 
         SkullBlockEntityRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, model, renderLayer);
         matrices.pop();
@@ -95,17 +127,20 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     private void renderGraveText(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int ignoredOverlay) {
         Text graveText = entity.getGraveText();
-        if (graveText == null) return;
+        if (graveText == null || textRenderInfo == null) return;
 
         matrices.push();
 
-        matrices.multiply(RotationAxis.NEGATIVE_Z.rotation((float) Math.PI));
+//        matrices.multiply(RotationAxis.NEGATIVE_Z.rotation((float) Math.PI));
 
-        matrices.translate(-12f / 16, -10.6f / 16, 11f / 16 - 0.0001f);
+        matrices.translate(.5, textRenderInfo.height / 16f, textRenderInfo.depth / 16f - 0.0001f);
+        matrices.scale(-1, -1, 0);
 
-        int textWidth = this.textRenderer.getWidth(entity.getGraveText().getString());
-        float scalar = 8f / (textWidth * 16);
-        matrices.scale(scalar, scalar, scalar);
+        int textWidth = this.textRenderer.getWidth(graveText.getString());
+        float scale = textRenderInfo.width / (textWidth * 16f);
+        matrices.scale(scale, scale, scale);
+
+        matrices.translate(-textWidth / 2.0, -4.5, 0);
 
         this.textRenderer.draw(graveText, 0f, 0f, 0xFFFFFF, false, matrices.peek().getPositionMatrix(), vertexConsumers, TextRenderer.TextLayerType.NORMAL, 0x0, light);
 
@@ -113,25 +148,103 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     }
 
     private void renderGraveModel(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        VertexConsumer consumer = SPRITE_IDENTIFIER.getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
+        for (Map.Entry<String, SpriteIdentifier> cuboid : CUBOID_SPRITES.entrySet()) {
+            ModelPart part = graveModel.getChild(cuboid.getKey());
+            VertexConsumer consumer = cuboid.getValue().getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
 
-        GRAVE_MODEL.getChild("ground").render(matrices, consumer, light, overlay);
-        GRAVE_MODEL.getChild("base").render(matrices, consumer, light, overlay);
-        GRAVE_MODEL.getChild("bust").render(matrices, consumer, light, overlay);
-        GRAVE_MODEL.getChild("top").render(matrices, consumer, light, overlay);
+            part.render(matrices, consumer, light, overlay);
+        }
     }
 
     private void renderGlowingOutline(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
         ClientPlayerEntity player = this.client.player;
         if (!RenderGlowingGraveEvent.EVENT.invoker().canRenderOutline(entity, player)) return;
 
-        VertexConsumer consumer = vertexConsumers.getBuffer(RenderLayer.getOutline(new Identifier(Yigd.MOD_ID, "textures/block/grave.png")));
+        VertexConsumer consumer = vertexConsumers.getBuffer(OUTLINE_RENDER_LAYER);
 
         renderOutlineShader = true;
 
-        GRAVE_MODEL.render(matrices, consumer, light, overlay);
+        graveModel.render(matrices, consumer, light, overlay);
+        if (YigdConfig.getConfig().graveRendering.useSkullRenderer)
+            this.renderSkull(entity, ignoredTickDelta, matrices, vertexConsumers, light, overlay, OUTLINE_RENDER_LAYER);
     }
 
+
+    public static void loadModelFromJson(JsonObject json) throws IllegalStateException {
+        CUBOID_SPRITES.clear();
+        ModelData modelData = new ModelData();
+        ModelPartData root = modelData.getRoot();
+
+        JsonArray textureSize = json.getAsJsonArray("texture_size");
+        JsonObject textures = json.getAsJsonObject("textures");
+        JsonArray elements = json.getAsJsonArray("elements");
+        JsonObject features = json.has("features") ? json.getAsJsonObject("features") : null;
+
+        int uvX = textureSize.get(0).getAsInt();
+        int uvY = textureSize.get(1).getAsInt();
+        Map<String, String> nameIds = new HashMap<>();
+        for (Map.Entry<String, JsonElement> e : textures.entrySet()) {
+            String key = e.getKey();
+            String value = e.getValue().getAsString();
+
+            nameIds.put(key, value);
+        }
+        int i = 0;
+        for (JsonElement e : elements) {
+            JsonObject o = e.getAsJsonObject();
+            String name = o.has("name") ? o.get("name").getAsString() : String.valueOf(i++);
+            JsonArray from = o.getAsJsonArray("from");
+            JsonArray to = o.getAsJsonArray("to");
+            JsonObject faces = o.getAsJsonObject("faces");
+
+            float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+            String textureName = "";
+            for (Map.Entry<String, JsonElement> face : faces.entrySet()) {
+                JsonObject value = face.getValue().getAsJsonObject();
+                JsonArray uv = value.getAsJsonArray("uv");
+                textureName = value.get("texture").getAsString();
+
+                minX = Math.min(minX, uv.get(0).getAsFloat());
+                minY = Math.min(minY, uv.get(1).getAsFloat());
+            }
+            minX *= uvX / 16f;
+            minY *= uvY / 16f;
+
+            textureName = textureName.replaceFirst("#", "");
+            if (nameIds.containsKey(textureName)) {
+                textureName = nameIds.get(textureName);
+            }
+            Identifier texture = new Identifier(textureName);
+            SpriteIdentifier sprite = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, texture);
+
+            CUBOID_SPRITES.put(name, sprite);
+
+            float fromX = from.get(0).getAsFloat();
+            float fromY = from.get(1).getAsFloat();
+            float fromZ = from.get(2).getAsFloat();
+            float toX = to.get(0).getAsFloat();
+            float toY = to.get(1).getAsFloat();
+            float toZ = to.get(2).getAsFloat();
+
+            // Min no longer have to be in from
+            float lowerX = Math.min(fromX, toX);
+            float lowerY = Math.min(fromY, toY);
+            float lowerZ = Math.min(fromZ, toZ);
+            float higherX = Math.max(fromX, toX);
+            float higherY = Math.max(fromY, toY);
+            float higherZ = Math.max(fromZ, toZ);
+            addChildPart(root, name, (int) minX, (int) minY, lowerX, lowerY, lowerZ, higherX - lowerX, higherY - lowerY, higherZ - lowerZ);
+        }
+        if (features != null) {
+            if (features.has("text")) {
+                textRenderInfo = GSON.fromJson(features.get("text"), TextRenderInfo.class);
+            }
+            if (features.has("skull")) {
+                skullRenderInfo = GSON.fromJson(features.get("skull"), SkullRenderInfo.class);
+            }
+        }
+        graveModel = TexturedModelData.of(modelData, uvX, uvY).createModel();
+    }
     private static ModelPart getGraveModel() {
         ModelData modelData = new ModelData();
         ModelPartData root = modelData.getRoot();
@@ -150,8 +263,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     }
 
     static {
-        GRAVE_MODEL = getGraveModel();
-        TEXTURE_LOCATION = new Identifier(Yigd.MOD_ID, "block/grave");
-        SPRITE_IDENTIFIER = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, TEXTURE_LOCATION);
+        graveModel = getGraveModel();
+        OUTLINE_RENDER_LAYER = RenderLayer.getOutline(new Identifier("textures/misc/white.png"));
     }
+
+    private record TextRenderInfo(float depth, float height, float width) { }
+    private record SkullRenderInfo(float depth, float height, int[] rotation, float scaleFace, float scaleDepth) { }
 }

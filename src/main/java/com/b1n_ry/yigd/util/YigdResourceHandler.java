@@ -26,20 +26,20 @@ public class YigdResourceHandler {
 
     @Environment(EnvType.CLIENT)
     private static class GraveResourceLoader implements SimpleSynchronousResourceReloadListener {
-
         @Override
         public Identifier getFabricId() {
-            return new Identifier(Yigd.MOD_ID, "models/block/grave");
+            return new Identifier(Yigd.MOD_ID, "custom_grave_model");
         }
 
         @Override
         public void reload(ResourceManager manager) {
-            List<Resource> resources = manager.getAllResources(this.getFabricId());
+            List<Resource> resources = manager.getAllResources(new Identifier(Yigd.MOD_ID, "models/block/grave.json"));
 
             for (Resource resource : resources) {
                 try (InputStream is = resource.getInputStream()) {
                     Yigd.LOGGER.info("Reloading grave model (client)");
                     JsonObject resourceJson = (JsonObject) JsonParser.parseReader(new InputStreamReader(is));
+                    GraveBlockEntityRenderer.loadModelFromJson(resourceJson);
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
                     Yigd.LOGGER.error("Could not load resource %s from resource pack `%s`".formatted(this.getFabricId(), resource.getResourcePackName()), e);
