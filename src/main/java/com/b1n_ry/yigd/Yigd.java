@@ -8,6 +8,7 @@ import com.b1n_ry.yigd.events.ServerEventHandler;
 import com.b1n_ry.yigd.events.YigdServerEventHandler;
 import com.b1n_ry.yigd.util.YigdCommands;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
+import com.b1n_ry.yigd.util.YigdResourceHandler;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
@@ -58,6 +59,7 @@ public class Yigd implements ModInitializer {
         YigdServerEventHandler.registerEventCallbacks();
         ServerEventHandler.registerEvents();
         ServerPacketHandler.registerReceivers();
+        YigdResourceHandler.init();
 
         YigdCommands.register();
     }

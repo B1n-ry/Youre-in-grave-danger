@@ -99,12 +99,9 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     /**
      * Render the model with given RenderLayer. This way it can be rendered with both the skin texture and outline shader
      */
-    int debug = 0;
     private void renderSkull(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int ignoredOverlay, RenderLayer renderLayer) {
         if (skullRenderInfo == null) return;
         SkullBlock.SkullType type = SkullBlock.Type.PLAYER;
-
-        this.debug++;
 
         SkullBlockEntityModel model = this.skullModels.get(type);
 
@@ -130,8 +127,6 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         if (graveText == null || textRenderInfo == null) return;
 
         matrices.push();
-
-//        matrices.multiply(RotationAxis.NEGATIVE_Z.rotation((float) Math.PI));
 
         matrices.translate(.5, textRenderInfo.height / 16f, textRenderInfo.depth / 16f - 0.0001f);
         matrices.scale(-1, -1, 0);
@@ -170,7 +165,12 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     }
 
 
-    public static void loadModelFromJson(JsonObject json) throws IllegalStateException {
+    /**
+     * Takes JSON and reloads current grave model to what the JSON describes
+     * @param json Model json (same the baked block model uses)
+     * @throws IllegalStateException if the model json is incomplete or wrong
+     */
+    public static void reloadModelFromJson(JsonObject json) throws IllegalStateException {
         CUBOID_SPRITES.clear();
         ModelData modelData = new ModelData();
         ModelPartData root = modelData.getRoot();

@@ -7,6 +7,9 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -30,14 +33,13 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
-    private static final VoxelShape SHAPE_EAST;
-    private static final VoxelShape SHAPE_WEST;
-    private static final VoxelShape SHAPE_SOUTH;
-    private static final VoxelShape SHAPE_NORTH;
+    private static VoxelShape SHAPE_EAST;
+    private static VoxelShape SHAPE_WEST;
+    private static VoxelShape SHAPE_SOUTH;
+    private static VoxelShape SHAPE_NORTH;
 
     public GraveBlock(Settings settings) {
         super(settings);
@@ -150,6 +152,42 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             }
         }
         super.afterBreak(world, player, pos, state, blockEntity, tool);
+    }
+
+    public static void reloadShapeFromJson(JsonObject json) throws IllegalStateException {
+        List<VoxelShape> voxelShapesNorth = new ArrayList<>();
+        List<VoxelShape> voxelShapesSouth = new ArrayList<>();
+        List<VoxelShape> voxelShapesEast = new ArrayList<>();
+        List<VoxelShape> voxelShapesWest = new ArrayList<>();
+
+        JsonArray elements = json.getAsJsonArray("elements");
+        for (JsonElement element : elements) {
+            JsonObject o = element.getAsJsonObject();
+            JsonArray from = o.getAsJsonArray("from");
+            JsonArray to = o.getAsJsonArray("to");
+
+            double x1 = from.get(0).getAsDouble() / 16D;
+            double y1 = from.get(1).getAsDouble() / 16D;
+            double z1 = from.get(2).getAsDouble() / 16D;
+            double x2 = to.get(0).getAsDouble() / 16D;
+            double y2 = to.get(1).getAsDouble() / 16D;
+            double z2 = to.get(2).getAsDouble() / 16D;
+
+            voxelShapesNorth.add(VoxelShapes.cuboid(x1, y1, z1, x2, y2, z2));
+            voxelShapesEast.add(VoxelShapes.cuboid(1 - z2, y1, x1, 1 - z1, y2, x2));
+            voxelShapesSouth.add(VoxelShapes.cuboid(1 - x2, y1, 1 - z2, 1 - x1, y2, 1 - z1));
+            voxelShapesWest.add(VoxelShapes.cuboid(z1, y1, 1 - x2, z2, y2, 1 - x1));
+        }
+
+        if (voxelShapesNorth.isEmpty()) return;  // This should never happen. If it does, we have a problem. Although here we just make the problem not happen
+        SHAPE_NORTH = voxelShapesNorth.remove(0);
+        SHAPE_EAST = voxelShapesEast.remove(0);
+        SHAPE_SOUTH = voxelShapesSouth.remove(0);
+        SHAPE_WEST = voxelShapesWest.remove(0);
+        voxelShapesNorth.forEach(shape -> SHAPE_NORTH = VoxelShapes.union(SHAPE_NORTH, shape));
+        voxelShapesEast.forEach(shape -> SHAPE_EAST = VoxelShapes.union(SHAPE_EAST, shape));
+        voxelShapesSouth.forEach(shape -> SHAPE_SOUTH = VoxelShapes.union(SHAPE_SOUTH, shape));
+        voxelShapesWest.forEach(shape -> SHAPE_WEST = VoxelShapes.union(SHAPE_WEST, shape));
     }
 
     static {
