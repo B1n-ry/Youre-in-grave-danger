@@ -39,7 +39,6 @@ public class ServerPacketHandler {
                 component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true);
                 component.setStatus(GraveStatus.CLAIMED);
 
-                DeathInfoManager.INSTANCE.markDirty();
                 player.sendMessage(Text.translatable("yigd.command.restore.success"));
             }, () -> player.sendMessage(Text.translatable("yigd.command.restore.fail")));
         });
@@ -56,7 +55,6 @@ public class ServerPacketHandler {
                 component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false);
                 component.setStatus(GraveStatus.CLAIMED);
 
-                DeathInfoManager.INSTANCE.markDirty();
                 player.sendMessage(Text.translatable("yigd.command.rob.success"));
             }, () -> player.sendMessage(Text.translatable("yigd.command.rob.fail")));
         });

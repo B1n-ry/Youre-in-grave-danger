@@ -63,7 +63,7 @@ public class GraveComponent {
     private final UUID killerId;
 
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage, UUID killerId) {
-        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true, world.getTime(), killerId);
+        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true, world.getTimeOfDay(), killerId);
     }
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world,
                           BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked, long creationTime, UUID killerId) {
@@ -272,7 +272,7 @@ public class GraveComponent {
     public boolean hasExistedMs(long time) {
         if (this.world == null) return false;
 
-        return this.world.getTime() - this.creationTime < time;
+        return this.world.getTimeOfDay() - this.creationTime < time;
     }
 
     public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState previousState, BlockPos pos, ItemStack tool) {

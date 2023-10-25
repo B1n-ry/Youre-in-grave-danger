@@ -14,6 +14,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
@@ -128,6 +129,37 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return graveComponent.claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
         }
         return ActionResult.FAIL;
+    }
+
+    @Override
+    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
+        if (!world.isClient && entity instanceof ServerPlayerEntity player) {
+            YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
+            if (graveConfig.retrieveMethods.onStand || (graveConfig.retrieveMethods.onSneak && player.isSneaking())) {
+                if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
+                    GraveComponent graveComponent = grave.getComponent();
+
+                    if (graveComponent == null) {
+                        // Check if it actually *is* not a personal grave, or if the component value is just missing
+                        UUID graveId = grave.getGraveId();
+                        if (graveId != null) {
+                            Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
+                            if (component.isPresent())
+                                graveComponent = component.get();
+                        }
+                    }
+
+                    if (graveComponent != null)  // Check needed again
+                        if (graveConfig.persistentGraves && graveComponent.getStatus() == GraveStatus.CLAIMED) {
+                            player.sendMessage(graveComponent.getDeathMessage().getDeathMessage().copy().append(" : Day " + graveComponent.getCreationTime() / 24000));
+                        } else {
+                            graveComponent.claim(player, (ServerWorld) world, grave.getPreviousState(), pos, player.getMainHandStack());
+                        }
+                }
+            }
+        }
+
+        super.onSteppedOn(world, pos, state, entity);
     }
 
     @Override

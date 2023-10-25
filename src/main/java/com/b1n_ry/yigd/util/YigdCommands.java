@@ -31,29 +31,32 @@ public class YigdCommands {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 literal(commandConfig.mainCommand)
-                        .requires(Permissions.require("yigd.command.base_permission", true))
+                        .requires(Permissions.require("yigd.command.base_permission", commandConfig.basePermissionLevel))
                         .executes(YigdCommands::baseCommand)
                         .then(literal("latest")
-                                .requires(Permissions.require("yigd.command.view_latest", 0))
+                                .requires(Permissions.require("yigd.command.view_latest", commandConfig.viewLatestPermissionLevel))
                                 .executes(YigdCommands::viewLatest))
                         .then(literal("grave")
-                                .requires(Permissions.require("yigd.command.view_self", 0))
+                                .requires(Permissions.require("yigd.command.view_self", commandConfig.viewSelfPermissionLevel))
                                 .executes(YigdCommands::viewSelf)
                                 .then(argument("player", EntityArgumentType.player())
-                                        .requires(Permissions.require("yigd.command.view_user", 2))
+                                        .requires(Permissions.require("yigd.command.view_user", commandConfig.viewUserPermissionLevel))
                                         .executes(context -> viewUser(context, EntityArgumentType.getPlayer(context, "player")))))
                         .then(literal("moderate")
-                                .requires(Permissions.require("yigd.command.view_all", 2))
+                                .requires(Permissions.require("yigd.command.view_all", commandConfig.viewAllPermissionLevel))
                                 .executes(YigdCommands::viewAll))
                         .then(literal("restore")
-                                .requires(Permissions.require("yigd.command.restore", 2))
+                                .requires(Permissions.require("yigd.command.restore", commandConfig.restorePermissionLevel))
                                 .executes(YigdCommands::restore)
                                 .then(argument("player", EntityArgumentType.player())
                                         .executes(context -> restore(context, EntityArgumentType.getPlayer(context, "player")))
                                         .then(argument("pos", BlockPosArgumentType.blockPos())
-                                                .executes(context -> restore(context, EntityArgumentType.getPlayer(context, "player"), BlockPosArgumentType.getBlockPos(context, "pos"))))))
+                                                .executes(context -> restore(
+                                                        context,
+                                                        EntityArgumentType.getPlayer(context, "player"),
+                                                        BlockPosArgumentType.getBlockPos(context, "pos"))))))
                         .then(literal("rob")
-                                .requires(Permissions.require("yigd.command.rob", 2))
+                                .requires(Permissions.require("yigd.command.rob", commandConfig.robPermissionLevel))
                                 .then(argument("victim", EntityArgumentType.player())
                                         .executes(context -> rob(context, EntityArgumentType.getPlayer(context, "victim"))))
                                 .then(argument("grave_id", UuidArgumentType.uuid())
@@ -160,8 +163,6 @@ public class YigdCommands {
         component.applyToPlayer(target, target.getServerWorld(), target.getBlockPos(), true);
         component.setStatus(GraveStatus.CLAIMED);
 
-        DeathInfoManager.INSTANCE.markDirty();
-
         player.sendMessage(Text.translatable("yigd.command.restore.success"));
         return 1;
     }
@@ -187,8 +188,6 @@ public class YigdCommands {
 
         component.applyToPlayer(player, context.getSource().getWorld(), player.getBlockPos(), false);
         component.setStatus(GraveStatus.CLAIMED);
-
-        DeathInfoManager.INSTANCE.markDirty();
 
         player.sendMessage(Text.translatable("yigd.command.rob.success"));
         return 1;
