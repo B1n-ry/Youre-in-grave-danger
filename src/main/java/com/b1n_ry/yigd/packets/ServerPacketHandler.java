@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.packets;
 
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.data.DeathInfoManager;
+import com.b1n_ry.yigd.data.GraveStatus;
 import com.mojang.authlib.GameProfile;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -36,6 +37,9 @@ public class ServerPacketHandler {
                 }
 
                 component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true);
+                component.setStatus(GraveStatus.CLAIMED);
+
+                DeathInfoManager.INSTANCE.markDirty();
                 player.sendMessage(Text.translatable("yigd.command.restore.success"));
             }, () -> player.sendMessage(Text.translatable("yigd.command.restore.fail")));
         });
@@ -50,6 +54,9 @@ public class ServerPacketHandler {
             Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
             maybeComponent.ifPresentOrElse(component -> {
                 component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false);
+                component.setStatus(GraveStatus.CLAIMED);
+
+                DeathInfoManager.INSTANCE.markDirty();
                 player.sendMessage(Text.translatable("yigd.command.rob.success"));
             }, () -> player.sendMessage(Text.translatable("yigd.command.rob.fail")));
         });
