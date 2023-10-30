@@ -44,7 +44,7 @@ public class GraveKeyItem extends Item {
         return super.use(world, user, hand);
     }
 
-    private boolean bindStackToLatestGrave(PlayerEntity player, ItemStack key) {
+    public boolean bindStackToLatestGrave(PlayerEntity player, ItemStack key) {
         GameProfile playerProfile = player.getGameProfile();
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(playerProfile));
         graves.removeIf(component -> component.getStatus() != GraveStatus.UNCLAIMED);

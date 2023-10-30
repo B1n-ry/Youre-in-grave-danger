@@ -60,7 +60,7 @@ public class DeathScrollItem extends Item {
         return super.use(world, user, hand);
     }
 
-    private boolean bindStackToLatestDeath(ServerPlayerEntity player, ItemStack scroll) {
+    public boolean bindStackToLatestDeath(ServerPlayerEntity player, ItemStack scroll) {
         GameProfile playerProfile = player.getGameProfile();
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(playerProfile));
         graves.removeIf(component -> component.getStatus() != GraveStatus.UNCLAIMED);

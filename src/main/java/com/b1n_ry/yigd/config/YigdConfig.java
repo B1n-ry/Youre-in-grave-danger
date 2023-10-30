@@ -255,6 +255,7 @@ public class YigdConfig implements ConfigData {
             public boolean enabled = false;
             public boolean rebindable = true;
             public boolean required = true;
+            public boolean receiveOnRespawn = true;
             public KeyTargeting targeting = KeyTargeting.PLAYER_GRAVE;
             public enum KeyTargeting {
                 ANY_GRAVE, PLAYER_GRAVE, SPECIFIC_GRAVE
@@ -263,6 +264,7 @@ public class YigdConfig implements ConfigData {
         public static class ScrollConfig {
             public boolean enabled = false;
             public boolean rebindable = false;
+            public boolean receiveOnRespawn = false;
             public ClickFunction clickFunction = ClickFunction.VIEW_CONTENTS;
             public enum ClickFunction {
                 RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION

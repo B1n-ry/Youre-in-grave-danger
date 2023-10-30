@@ -1,5 +1,7 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.mojang.authlib.GameProfile;
@@ -52,6 +54,20 @@ public class RespawnComponent {
                 if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
                     ItemScatterer.spawn(world, x, y, z, stack);
             }
+        }
+
+        YigdConfig.ExtraFeatures extraFeaturesConfig = YigdConfig.getConfig().extraFeatures;
+        if (extraFeaturesConfig.deathScroll.enabled && extraFeaturesConfig.deathScroll.receiveOnRespawn) {
+            ItemStack scroll = Yigd.DEATH_SCROLL_ITEM.getDefaultStack();
+            boolean turned = Yigd.DEATH_SCROLL_ITEM.bindStackToLatestDeath(player, scroll);
+            if (turned)
+                player.giveItemStack(scroll);
+        }
+        if (extraFeaturesConfig.graveKeys.enabled && extraFeaturesConfig.graveKeys.receiveOnRespawn) {
+            ItemStack key = Yigd.GRAVE_KEY_ITEM.getDefaultStack();
+            boolean turned = Yigd.GRAVE_KEY_ITEM.bindStackToLatestGrave(player, key);
+            if (turned)
+                player.giveItemStack(key);
         }
 
         if (this.soulboundExp != null)
