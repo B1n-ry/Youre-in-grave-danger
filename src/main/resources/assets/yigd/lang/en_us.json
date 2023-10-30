@@ -1,5 +1,7 @@
 {
   "block.yigd.grave": "Grave",
+  "item.yigd.death_scroll": "Death Scroll",
+  "item.yigd.grave_key": "Grave Key",
 
   "yigd.gui.button.restore": "Restore",
   "yigd.gui.button.rob": "Rob",

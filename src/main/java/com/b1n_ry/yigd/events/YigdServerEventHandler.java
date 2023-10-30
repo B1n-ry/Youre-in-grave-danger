@@ -1,6 +1,8 @@
 package com.b1n_ry.yigd.events;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveKeyConfig;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
@@ -9,12 +11,14 @@ import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class YigdServerEventHandler {
@@ -64,6 +68,35 @@ public class YigdServerEventHandler {
 
         GraveClaimEvent.EVENT.register((player, world, pos, grave, tool) -> {
             YigdConfig config = YigdConfig.getConfig();
+
+            if (config.extraFeatures.graveKeys.enabled) {
+                if (tool.isOf(Yigd.GRAVE_KEY_ITEM)) {
+                    NbtCompound nbt = tool.getOrCreateNbt();
+                    NbtCompound userNbt = nbt.getCompound("user");
+                    NbtElement uuidNbt = nbt.get("grave");
+                    GraveKeyConfig.KeyTargeting targeting = config.extraFeatures.graveKeys.targeting;
+                    switch (targeting) {
+                        case ANY_GRAVE -> {
+                            tool.decrement(1);
+                            return true;
+                        }
+                        case PLAYER_GRAVE -> {
+                            if (userNbt != null && Objects.equals(NbtHelper.toGameProfile(userNbt), grave.getOwner())) {
+                                tool.decrement(1);
+                                return true;
+                            }
+                        }
+                        case SPECIFIC_GRAVE -> {
+                            if (uuidNbt != null && Objects.equals(NbtHelper.toUuid(uuidNbt), grave.getGraveId())) {
+                                tool.decrement(1);
+                                return true;
+                            }
+                        }
+                    }
+                }
+                if (config.extraFeatures.graveKeys.required) return false;  // The grave key didn't work
+            }
+
             if (config.graveConfig.requireShovelToLoot && !tool.isIn(ItemTags.SHOVELS)) return false;
 
             if (player.getUuid().equals(grave.getOwner().getId())) return true;

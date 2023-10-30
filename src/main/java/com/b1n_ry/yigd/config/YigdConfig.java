@@ -34,6 +34,9 @@ public class YigdConfig implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     public GraveRendering graveRendering = new GraveRendering();
 
+    @ConfigEntry.Gui.CollapsibleObject
+    public ExtraFeatures extraFeatures = new ExtraFeatures();
+
 
     public static class InventoryConfig {
         public boolean dropPlayerHead = false;
@@ -229,6 +232,42 @@ public class YigdConfig implements ConfigData {
         public boolean useTextRenderer = true;
         public boolean useGlowingEffect = true;
         public int glowingDistance = 15;
+    }
+
+    public static class ExtraFeatures {
+        public boolean customSoulboundEnchant = true;
+        @ConfigEntry.Gui.CollapsibleObject
+        public DeathSightConfig deathSightEnchant = new DeathSightConfig();
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveKeyConfig graveKeys = new GraveKeyConfig();
+        @ConfigEntry.Gui.CollapsibleObject
+        public ScrollConfig deathScroll = new ScrollConfig();
+
+        public static class DeathSightConfig {
+            public boolean enabled = false;
+            public double range = 64;
+            public GraveTargets targets = GraveTargets.PLAYER_GRAVES;
+            public enum GraveTargets {
+                OWN_GRAVES, PLAYER_GRAVES, ALL_GRAVES
+            }
+        }
+        public static class GraveKeyConfig {
+            public boolean enabled = false;
+            public boolean rebindable = true;
+            public boolean required = true;
+            public KeyTargeting targeting = KeyTargeting.PLAYER_GRAVE;
+            public enum KeyTargeting {
+                ANY_GRAVE, PLAYER_GRAVE, SPECIFIC_GRAVE
+            }
+        }
+        public static class ScrollConfig {
+            public boolean enabled = false;
+            public boolean rebindable = false;
+            public ClickFunction clickFunction = ClickFunction.VIEW_CONTENTS;
+            public enum ClickFunction {
+                RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION
+            }
+        }
     }
 
     public static class MapEntry {
