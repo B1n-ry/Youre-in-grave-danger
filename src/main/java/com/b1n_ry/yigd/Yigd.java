@@ -3,6 +3,7 @@ package com.b1n_ry.yigd;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.compat.InvModCompat;
+import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
 import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
@@ -55,6 +56,8 @@ public class Yigd implements ModInitializer {
     public static List<Runnable> END_OF_TICK = new ArrayList<>();
 
     public static Map<UUID, List<String>> NOT_NOTIFIED_ROBBERIES = new HashMap<>();
+    public static Map<UUID, ClaimPriority> CLAIM_PRIORITIES = new HashMap<>();
+    public static Map<UUID, ClaimPriority> ROB_PRIORITIES = new HashMap<>();
 
     @Override
     public void onInitialize() {

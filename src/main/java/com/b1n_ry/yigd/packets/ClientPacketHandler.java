@@ -7,6 +7,8 @@ import com.b1n_ry.yigd.client.gui.screens.GraveOverviewScreen;
 import com.b1n_ry.yigd.client.gui.screens.GraveSelectionScreen;
 import com.b1n_ry.yigd.client.gui.screens.PlayerSelectionScreen;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.ClaimPriority;
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -94,5 +96,12 @@ public class ClientPacketHandler {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeGameProfile(profile);
         ClientPlayNetworking.send(PacketIdentifiers.GRAVE_SELECT_REQUEST_C2S, buf);
+    }
+    public static void sendConfigUpdate(YigdConfig config) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeEnumConstant(config.graveConfig.claimPriority);
+        buf.writeEnumConstant(config.graveConfig.graveRobbing.robPriority);
+
+        ClientPlayNetworking.send(PacketIdentifiers.CONFIG_UPDATE_C2S, buf);
     }
 }

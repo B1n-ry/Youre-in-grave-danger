@@ -395,7 +395,12 @@ public class GraveComponent {
         InventoryComponent.clearPlayer(player);
 
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
-        ClaimPriority priority = isGraveOwner ? config.graveConfig.claimPriority : config.graveConfig.graveRobbing.robPriority;
+
+        UUID playerId = player.getUuid();
+        ClaimPriority claimPriority = Yigd.CLAIM_PRIORITIES.containsKey(playerId) ? Yigd.CLAIM_PRIORITIES.get(playerId) : config.graveConfig.claimPriority;
+        ClaimPriority robPriority = Yigd.ROB_PRIORITIES.containsKey(playerId) ? Yigd.CLAIM_PRIORITIES.get(playerId) : config.graveConfig.graveRobbing.robPriority;
+
+        ClaimPriority priority = isGraveOwner ? claimPriority : robPriority;
 
         if (priority == ClaimPriority.GRAVE) {
             extraItems.addAll(this.inventoryComponent.merge(currentPlayerInv, true));

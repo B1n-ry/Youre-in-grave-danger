@@ -1,6 +1,8 @@
 package com.b1n_ry.yigd.packets;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.mojang.authlib.GameProfile;
@@ -115,6 +117,16 @@ public class ServerPacketHandler {
             }
 
             sendGraveSelectionPacket(player, profile, lightGraveData);
+        });
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.CONFIG_UPDATE_C2S, (server, player, handler, buf, responseSender) -> {
+            ClaimPriority claimPriority = buf.readEnumConstant(ClaimPriority.class);
+            ClaimPriority robPriority = buf.readEnumConstant(ClaimPriority.class);
+
+            UUID playerId = player.getUuid();
+            Yigd.CLAIM_PRIORITIES.put(playerId, claimPriority);
+            Yigd.ROB_PRIORITIES.put(playerId, robPriority);
+
+            Yigd.LOGGER.info("Priority overwritten for player %s. Claiming: %s / Robbing: %s".formatted(player.getGameProfile().getName(), claimPriority.name(), robPriority.name()));
         });
     }
 

@@ -8,6 +8,7 @@
     "WorldChunkMixin"
   ],
   "client": [
+    "AbstractConfigScreenMixin",
     "WorldRendererMixin"
   ],
   "server": [

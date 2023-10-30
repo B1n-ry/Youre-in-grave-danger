@@ -111,6 +111,7 @@ public class YigdConfig implements ConfigData {
         // merge existing with claimed stacks for player
         public boolean mergeStacksOnRetrieve = true;
         // drop in inventory or on ground
+        @ConfigEntry.Gui.EnumHandler
         public DropType dropOnRetrieve = DropType.IN_INVENTORY;
         // drop grave block?
         public boolean dropGraveBlock = false;
@@ -120,6 +121,7 @@ public class YigdConfig implements ConfigData {
         // spawn protection rule override?
         public boolean overrideSpawnProtection = true;
         // inventory priority
+        @ConfigEntry.Gui.EnumHandler
         public ClaimPriority claimPriority = ClaimPriority.GRAVE;
         // robbing
         @ConfigEntry.Gui.CollapsibleObject
@@ -174,7 +176,9 @@ public class YigdConfig implements ConfigData {
             public boolean enabled = true;
             public boolean onlyMurderer = false;
             public int afterTime = 1;
+            @ConfigEntry.Gui.EnumHandler
             public TimeUnit timeUnit = TimeUnit.HOURS;
+            @ConfigEntry.Gui.EnumHandler
             public ClaimPriority robPriority = ClaimPriority.INVENTORY;
             public boolean notifyWhenRobbed = true;
             public boolean tellWhoRobbed = true;
@@ -183,6 +187,7 @@ public class YigdConfig implements ConfigData {
         public static class GraveTimeout {
             public boolean enabled = false;
             public int afterTime = 5;
+            @ConfigEntry.Gui.EnumHandler
             public TimeUnit timeUnit = TimeUnit.HOURS;
             public boolean dropContentsOnTimeout = true;
         }
@@ -246,6 +251,7 @@ public class YigdConfig implements ConfigData {
         public static class DeathSightConfig {
             public boolean enabled = false;
             public double range = 64;
+            @ConfigEntry.Gui.EnumHandler
             public GraveTargets targets = GraveTargets.PLAYER_GRAVES;
             public enum GraveTargets {
                 OWN_GRAVES, PLAYER_GRAVES, ALL_GRAVES
@@ -256,6 +262,7 @@ public class YigdConfig implements ConfigData {
             public boolean rebindable = true;
             public boolean required = true;
             public boolean receiveOnRespawn = true;
+            @ConfigEntry.Gui.EnumHandler
             public KeyTargeting targeting = KeyTargeting.PLAYER_GRAVE;
             public enum KeyTargeting {
                 ANY_GRAVE, PLAYER_GRAVE, SPECIFIC_GRAVE
@@ -265,6 +272,7 @@ public class YigdConfig implements ConfigData {
             public boolean enabled = false;
             public boolean rebindable = false;
             public boolean receiveOnRespawn = false;
+            @ConfigEntry.Gui.EnumHandler
             public ClickFunction clickFunction = ClickFunction.VIEW_CONTENTS;
             public enum ClickFunction {
                 RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION
