@@ -30,7 +30,7 @@ public class DeathInfoManager extends PersistentState {
     private final Map<GameProfile, List<GraveComponent>> graveBackups = new HashMap<>();
     private final Map<UUID, GraveComponent> graveMap = new HashMap<>();
 
-    private ListMode graveListMode = ListMode.WHITELIST;
+    private ListMode graveListMode = ListMode.BLACKLIST;
     private final Set<GameProfile> affectedPlayers = new HashSet<>();
 
     public void clear() {
