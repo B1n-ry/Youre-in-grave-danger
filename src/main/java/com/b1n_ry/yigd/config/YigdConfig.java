@@ -236,6 +236,7 @@ public class YigdConfig implements ConfigData {
         public boolean enableInventorioCompat = true;
         public boolean enableLevelzCompat = true;
         public boolean enableNumismaticOverhaulCompat = true;
+        public DropRule numismaticDropRule = DropRule.PUT_IN_GRAVE;
         public boolean enableOriginsInventoryCompat = true;
         public boolean enableTravelersBackpackCompat = true;
         public boolean enableTrinketsCompat = true;

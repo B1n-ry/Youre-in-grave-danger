@@ -1,15 +1,21 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.glisco.numismaticoverhaul.ModComponents;
 import com.glisco.numismaticoverhaul.NumismaticOverhaul;
+import com.glisco.numismaticoverhaul.currency.Currency;
 import com.glisco.numismaticoverhaul.currency.CurrencyComponent;
 import com.glisco.numismaticoverhaul.currency.CurrencyConverter;
 import com.glisco.numismaticoverhaul.item.CoinItem;
+import com.glisco.numismaticoverhaul.item.NumismaticOverhaulItems;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.function.Predicate;
 
@@ -65,12 +71,23 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
         @Override
         public CompatComponent<Long> handleDropRules(DeathContext context) {
+            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+
             int dropRate = context.getWorld().getGameRules().get(NumismaticOverhaul.MONEY_DROP_PERCENTAGE).get();
             float dropFactor = dropRate * 0.01f;
             float keepFactor = Math.max(1 - dropFactor, 0);  // In case someone set the gamerule to like 10000, so negative numbers won't be reached
 
             long soulbound = (long) (this.inventory * keepFactor);
             this.inventory -= soulbound;
+
+            Vec3d deathPos = context.getDeathPos();
+            for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.inventory)) {
+                switch (compatConfig.numismaticDropRule) {
+                    case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, stack);
+                    case DESTROY -> this.inventory = 0L;
+                    case KEEP -> soulbound += this.inventory;
+                }
+            }
 
             return new NumismaticCompatComponent(soulbound);
         }
