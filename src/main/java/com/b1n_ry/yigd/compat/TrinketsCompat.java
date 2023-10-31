@@ -9,8 +9,10 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -224,17 +226,20 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         Pair<TrinketEnums.DropRule, ItemStack> pair = slotItems.get(i);
                         ItemStack item = pair.getRight();
 
+                        Vec3d deathPos = context.getDeathPos();
+
                         DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context);
                         switch (pair.getLeft()) {  // Translate trinket drop rules
                             case DESTROY -> dropRule = DropRule.DESTROY;
                             case KEEP ->  dropRule = DropRule.KEEP;
                         }
                         switch (dropRule) {
-                            case KEEP:
-                                soulboundItems.set(i, new Pair<>(TrinketEnums.DropRule.DEFAULT, item));
-                            case DESTROY:
-                                slotItems.set(i, EMPTY_PAIR);
+                            case KEEP -> soulboundItems.set(i, new Pair<>(TrinketEnums.DropRule.DEFAULT, item));
+                            case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);
                         }
+
+                        if (dropRule != DropRule.PUT_IN_GRAVE)
+                            slotItems.set(i, EMPTY_PAIR);
                     }
 
                     soulboundGroup.put(slot.getKey(), soulboundItems);

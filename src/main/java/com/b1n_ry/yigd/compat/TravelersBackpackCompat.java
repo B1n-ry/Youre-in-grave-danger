@@ -8,7 +8,9 @@ import com.tiviacz.travelersbackpack.component.ITravelersBackpackComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.function.Predicate;
 
@@ -83,9 +85,13 @@ public class TravelersBackpackCompat implements InvModCompat<ItemStack> {
             DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(this.inventory, -1, context);
             TBCompatComponent soulboundComponent = new TBCompatComponent(dropRule == DropRule.KEEP ? this.inventory : ItemStack.EMPTY);
 
-            if (dropRule != DropRule.DROP) {
+            Vec3d deathPos = context.getDeathPos();
+            if (dropRule == DropRule.DROP)
+                ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, this.inventory);
+
+            if (dropRule != DropRule.PUT_IN_GRAVE)
                 this.inventory = ItemStack.EMPTY;
-            }
+
             return soulboundComponent;
         }
 

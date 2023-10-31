@@ -36,11 +36,11 @@ public class YigdServerEventHandler {
             if (item.isIn(YigdTags.NATURAL_SOULBOUND)) return DropRule.KEEP;
             if (item.isIn(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
 
-            DropRule dropRule = DropRule.DROP;
+            DropRule dropRule = DropRule.PUT_IN_GRAVE;
 
             // Get drop rule from enchantment. This is set up so that the first drop rule related enchantment will take effect, no matter what more enchantments there are
             NbtList enchantmentsNbt = item.getEnchantments();
-            Set<NbtCompound> removeEnchantment = new HashSet<>();
+            Set<NbtCompound> removeEnchantment = new HashSet<>();  // Here all enchantments to be deleted are put
             for (NbtElement enchantmentElement : enchantmentsNbt) {
                 if (!(enchantmentElement instanceof NbtCompound enchantNbt)) continue;
 
@@ -53,7 +53,7 @@ public class YigdServerEventHandler {
                 int level = enchantNbt.getInt("lvl");
                 if (config.inventoryConfig.loseSoulboundLevelOnDeath) {
                     if (level == 1) {
-                        removeEnchantment.add(enchantNbt);
+                        removeEnchantment.add(enchantNbt);  // Prime level 1 enchant for deletion
                     }
                     else {
                         enchantNbt.putInt("lvl", level - 1);
@@ -63,7 +63,7 @@ public class YigdServerEventHandler {
                 break; // Break the loop. This way if 2 soulbound enchantments are on the item, only one is "consumed"
             }
 
-            enchantmentsNbt.removeAll(removeEnchantment);
+            enchantmentsNbt.removeAll(removeEnchantment);  // Delete enchantments at level 1
 
             return dropRule;
         });

@@ -9,7 +9,9 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Collections;
 import java.util.function.Predicate;
@@ -112,12 +114,13 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
                 ItemStack stack = this.inventory.get(i);
 
                 DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context);
+                Vec3d deathPos = context.getDeathPos();
                 switch (dropRule) {
-                    case KEEP:
-                        soulboundItems.set(i, stack);
-                    case DESTROY:
-                        this.inventory.set(i, ItemStack.EMPTY);
+                    case KEEP -> soulboundItems.set(i, stack);
+                    case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, stack);
                 }
+                if (dropRule != DropRule.PUT_IN_GRAVE)
+                    this.inventory.set(i, ItemStack.EMPTY);
             }
             return new InventorioCompatComponent(soulboundItems);
         }

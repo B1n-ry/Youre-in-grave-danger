@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.config;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.util.DropRule;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
@@ -26,6 +27,9 @@ public class YigdConfig implements ConfigData {
 
     @ConfigEntry.Gui.CollapsibleObject
     public RespawnConfig respawnConfig = new RespawnConfig();
+
+    @ConfigEntry.Gui.CollapsibleObject
+    public CompatConfig compatConfig = new CompatConfig();
 
     @ConfigEntry.Gui.CollapsibleObject
     public CommandConfig commandConfig = new CommandConfig();
@@ -217,7 +221,12 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class CompatConfig {
+        @ConfigEntry.Gui.CollapsibleObject
+        public CommonProtectionApi commonProtectionApi = new CommonProtectionApi();
 
+        public static class CommonProtectionApi {
+            public DropRule standardInClaim = DropRule.PUT_IN_GRAVE;
+        }
     }
 
     public static class CommandConfig {

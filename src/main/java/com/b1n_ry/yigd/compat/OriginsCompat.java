@@ -10,7 +10,9 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -153,13 +155,14 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
 
                 for (int i = 0; i < items.size(); i++) {
                     ItemStack item = items.get(i);
+                    Vec3d deathPos = context.getDeathPos();
                     DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context);
                     switch (dropRule) {
-                        case KEEP:
-                            soulboundStacks.set(i, item);
-                        case DESTROY:
-                            items.set(i, ItemStack.EMPTY);
+                        case KEEP -> soulboundStacks.set(i, item);
+                        case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);
                     }
+                    if (dropRule != DropRule.PUT_IN_GRAVE)
+                        items.set(i, ItemStack.EMPTY);
                 }
 
                 soulbound.put(key, soulboundStacks);

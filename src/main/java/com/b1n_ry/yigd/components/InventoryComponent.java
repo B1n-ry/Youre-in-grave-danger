@@ -133,14 +133,17 @@ public class InventoryComponent {
         // Handle drop rules for vanilla inventory
         for (int i = 0; i < this.items.size(); i++) {
             ItemStack item = this.items.get(i);
+
+            Vec3d deathPos = context.getDeathPos();
+
             DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context);
             switch (dropRule) {
-                case DESTROY -> this.items.set(i, ItemStack.EMPTY);
-                case KEEP -> {
-                    this.items.set(i, ItemStack.EMPTY);
-                    soulboundInventory.items.set(i, item);
-                }
+                case KEEP -> soulboundInventory.items.set(i, item);
+                case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);
             }
+
+            if (dropRule != DropRule.PUT_IN_GRAVE)
+                this.items.set(i, ItemStack.EMPTY);
         }
 
         // Handle drop rules for mod compat inventories
