@@ -61,6 +61,20 @@ public class YigdCommands {
                                         .executes(context -> rob(context, EntityArgumentType.getPlayer(context, "victim"))))
                                 .then(argument("grave_id", UuidArgumentType.uuid())
                                         .executes(context -> rob(context, UuidArgumentType.getUuid(context, "grave_id")))))
+                        .then(literal("whitelist")
+                                .requires(Permissions.require("yigd.command.whitelist", commandConfig.whitelistPermissionLevel))
+                                .executes(YigdCommands::showListType)
+                                .then(literal("add")
+                                        .then(argument("target", EntityArgumentType.players())
+                                                .executes(context -> addToList(context, EntityArgumentType.getPlayers(context, "target")))))
+                                .then(literal("remove")
+                                        .then(argument("target", EntityArgumentType.players())
+                                                .executes(context -> removeFromList(context, EntityArgumentType.getPlayers(context, "target")))))
+                                .then(literal("toggle")
+                                        .executes(YigdCommands::toggleListType))
+                                .then(literal("set")
+                                        .then(argument("mode", ListModeArgumentType.listMode())
+                                                .executes(context -> setListType(context, ListModeArgumentType.getListMode(context, "mode"))))))
         ));
     }
 
@@ -157,13 +171,10 @@ public class YigdCommands {
         return -1;
     }
     private static int restore(CommandContext<ServerCommandSource> context, ServerPlayerEntity target, GraveComponent component) {
-        ServerPlayerEntity player = context.getSource().getPlayer();
-        if (player == null) return -1;
-
         component.applyToPlayer(target, target.getServerWorld(), target.getBlockPos(), true);
         component.setStatus(GraveStatus.CLAIMED);
 
-        player.sendMessage(Text.translatable("yigd.command.restore.success"));
+        context.getSource().sendMessage(Text.translatable("yigd.command.restore.success"));
         return 1;
     }
 
@@ -190,6 +201,45 @@ public class YigdCommands {
         component.setStatus(GraveStatus.CLAIMED);
 
         player.sendMessage(Text.translatable("yigd.command.rob.success"));
+        return 1;
+    }
+
+    private static int showListType(CommandContext<ServerCommandSource> context) {
+        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.show_current", DeathInfoManager.INSTANCE.getGraveListMode().name()));
+        return 1;
+    }
+    private static int addToList(CommandContext<ServerCommandSource> context, Collection<ServerPlayerEntity> players) {
+        int i = 0;
+        for (ServerPlayerEntity player : players) {
+            DeathInfoManager.INSTANCE.addToList(player.getGameProfile());
+            ++i;
+        }
+
+        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.added_players", i, DeathInfoManager.INSTANCE.getGraveListMode().name()));
+        return i > 0 ? 1 : 0;
+    }
+    private static int removeFromList(CommandContext<ServerCommandSource> context, Collection<ServerPlayerEntity> players) {
+        int i = 0;
+        for (ServerPlayerEntity player : players) {
+            if (DeathInfoManager.INSTANCE.removeFromList(player.getGameProfile()))
+                ++i;
+        }
+
+        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.removed_players", i, DeathInfoManager.INSTANCE.getGraveListMode().name()));
+        return i > 0 ? 1 : 0;
+    }
+    private static int toggleListType(CommandContext<ServerCommandSource> context) {
+        ListMode listMode = DeathInfoManager.INSTANCE.getGraveListMode();
+        ListMode newMode = listMode == ListMode.WHITELIST ? ListMode.BLACKLIST : ListMode.WHITELIST;
+        DeathInfoManager.INSTANCE.setGraveListMode(newMode);
+        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.toggle", newMode.name()));
+
+        return 1;
+    }
+    private static int setListType(CommandContext<ServerCommandSource> context, ListMode mode) {
+        DeathInfoManager.INSTANCE.setGraveListMode(mode);
+
+        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.set_mode", mode.name()));
         return 1;
     }
 }

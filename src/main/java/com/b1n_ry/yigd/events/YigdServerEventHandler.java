@@ -3,7 +3,9 @@ package com.b1n_ry.yigd.events;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveKeyConfig;
+import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.util.DropRule;
+import com.b1n_ry.yigd.util.ListMode;
 import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
@@ -114,6 +116,9 @@ public class YigdServerEventHandler {
         AllowGraveGenerationEvent.EVENT.register((context, grave) -> {
             YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
             if (!graveConfig.enabled) return false;
+
+            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.getPlayer().getGameProfile())) return false;
+            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST && DeathInfoManager.INSTANCE.isInList(context.getPlayer().getGameProfile())) return false;
 
             if (!graveConfig.generateEmptyGraves && grave.isEmpty()) return false;
 

@@ -229,6 +229,7 @@ public class YigdConfig implements ConfigData {
         public int viewAllPermissionLevel = 2;
         public int restorePermissionLevel = 2;
         public int robPermissionLevel = 2;
+        public int whitelistPermissionLevel = 3;
     }
 
     public static class GraveRendering {

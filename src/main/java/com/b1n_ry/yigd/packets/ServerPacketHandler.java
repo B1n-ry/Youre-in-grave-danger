@@ -61,7 +61,7 @@ public class ServerPacketHandler {
             }, () -> player.sendMessage(Text.translatable("yigd.command.rob.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_DELETE_C2S, (server, player, handler, buf, responseSender) -> {
-            if (!Permissions.check(player, "yigd.command.delete", 3)) {
+            if (!Permissions.check(player, "yigd.command.delete", 3)) {  // TODO: Add config for level?
                 player.sendMessage(Text.translatable("yigd.command.permission_fail"));
                 return;
             }
@@ -79,7 +79,7 @@ public class ServerPacketHandler {
             player.sendMessage(Text.translatable(translatable));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_LOCKING_C2S, (server, player, handler, buf, responseSender) -> {
-            if (!Permissions.check(player, "yigd.command.lock", 0)) {
+            if (!Permissions.check(player, "yigd.command.lock", 0)) {  // TODO: Add config for level?
                 player.sendMessage(Text.translatable("yigd.command.permission_fail"));
                 return;
             }
