@@ -56,6 +56,7 @@ public class YigdConfig implements ConfigData {
         public List<Integer> vanishingSlots = new ArrayList<>();
         // keep slots
         public List<Integer> soulboundSlots = new ArrayList<>();
+        public List<Integer> dropOnGroundSlots = new ArrayList<>();
 
         public static class ItemLossConfig {
             public boolean enabled = false;
@@ -229,12 +230,15 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class CompatConfig {
-        @ConfigEntry.Gui.CollapsibleObject
-        public CommonProtectionApi commonProtectionApi = new CommonProtectionApi();
+        @ConfigEntry.Gui.EnumHandler
+        public DropRule standardDropRuleInClaim = DropRule.PUT_IN_GRAVE;
 
-        public static class CommonProtectionApi {
-            public DropRule standardInClaim = DropRule.PUT_IN_GRAVE;
-        }
+        public boolean enableInventorioCompat = true;
+        public boolean enableLevelzCompat = true;
+        public boolean enableNumismaticOverhaulCompat = true;
+        public boolean enableOriginsInventoryCompat = true;
+        public boolean enableTravelersBackpackCompat = true;
+        public boolean enableTrinketsCompat = true;
     }
 
     public static class CommandConfig {

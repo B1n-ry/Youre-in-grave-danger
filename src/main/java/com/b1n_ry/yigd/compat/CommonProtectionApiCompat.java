@@ -15,7 +15,7 @@ public class CommonProtectionApiCompat {
 
         AllowGraveGenerationEvent.EVENT.register((context, grave) -> {
             if (ProtectionImpl.isProtected(context.getWorld(), grave.getPos()))
-                return YigdConfig.getConfig().compatConfig.commonProtectionApi.standardInClaim == DropRule.PUT_IN_GRAVE;
+                return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim == DropRule.PUT_IN_GRAVE;
 
             return true;
         });
@@ -24,7 +24,7 @@ public class CommonProtectionApiCompat {
             if (context == null) return DropRule.PUT_IN_GRAVE;
 
             if (ProtectionImpl.isProtected(context.getWorld(), BlockPos.ofFloored(context.getDeathPos())))
-                return YigdConfig.getConfig().compatConfig.commonProtectionApi.standardInClaim;
+                return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim;
 
             return DropRule.PUT_IN_GRAVE;
         });

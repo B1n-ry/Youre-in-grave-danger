@@ -15,4 +15,5 @@ public interface YigdTags {
     TagKey<Item> NATURAL_SOULBOUND = TagKey.of(RegistryKeys.ITEM, new Identifier(Yigd.MOD_ID, "natural_soulbound"));
     TagKey<Item> NATURAL_VANISHING = TagKey.of(RegistryKeys.ITEM, new Identifier(Yigd.MOD_ID, "natural_vanishing"));
     TagKey<Item> LOSS_IMMUNE = TagKey.of(RegistryKeys.ITEM, new Identifier(Yigd.MOD_ID, "loss_immune"));
+    TagKey<Item> GRAVE_INCOMPATIBLE = TagKey.of(RegistryKeys.ITEM, new Identifier(Yigd.MOD_ID, "grave_incompatible"));  // For items that should be dropped instead of put into graves
 }

@@ -32,9 +32,11 @@ public class YigdServerEventHandler {
 
             if (config.inventoryConfig.soulboundSlots.contains(slot)) return DropRule.KEEP;
             if (config.inventoryConfig.vanishingSlots.contains(slot)) return DropRule.DESTROY;
+            if (config.inventoryConfig.dropOnGroundSlots.contains(slot)) return DropRule.DROP;
 
             if (item.isIn(YigdTags.NATURAL_SOULBOUND)) return DropRule.KEEP;
             if (item.isIn(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
+            if (item.isIn(YigdTags.GRAVE_INCOMPATIBLE)) return DropRule.DROP;
 
             DropRule dropRule = DropRule.PUT_IN_GRAVE;
 
