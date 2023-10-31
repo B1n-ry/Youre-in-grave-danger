@@ -10,6 +10,7 @@ import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -30,6 +31,8 @@ public class YigdServerEventHandler {
         DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
             YigdConfig config = YigdConfig.getConfig();
 
+            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(new Identifier("amethyst_imbuement", "soulbinding"));
+
             if (config.inventoryConfig.soulboundSlots.contains(slot)) return DropRule.KEEP;
             if (config.inventoryConfig.vanishingSlots.contains(slot)) return DropRule.DESTROY;
             if (config.inventoryConfig.dropOnGroundSlots.contains(slot)) return DropRule.DROP;
@@ -37,6 +40,9 @@ public class YigdServerEventHandler {
             if (item.isIn(YigdTags.NATURAL_SOULBOUND)) return DropRule.KEEP;
             if (item.isIn(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
             if (item.isIn(YigdTags.GRAVE_INCOMPATIBLE)) return DropRule.DROP;
+
+            if (statusEffect != null && context != null && context.getPlayer().getActiveStatusEffects().containsKey(statusEffect))
+                return DropRule.KEEP;
 
             if (!item.isEmpty() && item.hasNbt()) {
                 NbtCompound nbt = item.getNbt();
