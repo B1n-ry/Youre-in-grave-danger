@@ -76,12 +76,20 @@ public class YigdConfig implements ConfigData {
         public int respawnHunger = 20;
         public boolean resetSaturation = true;
         public float respawnSaturation = 20f;
+        public List<ExtraItemDrop> extraItemDrops = new ArrayList<>();
 
         public record EffectConfig(String effectName, int effectLevel, int effectTime, boolean showBubbles) {
             // Constructor required for the config gui to work
             @SuppressWarnings("unused")
             public EffectConfig() {
                 this("", 0, 0, false);
+            }
+        }
+        public record ExtraItemDrop(String itemId, int count, String itemNbt) {
+            // Constructor required for the config gui to work
+            @SuppressWarnings("unused")
+            public ExtraItemDrop() {
+                this("", 0, "");
             }
         }
     }

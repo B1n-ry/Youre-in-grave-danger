@@ -5,10 +5,15 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +61,8 @@ public class RespawnComponent {
             }
         }
 
-        YigdConfig.ExtraFeatures extraFeaturesConfig = YigdConfig.getConfig().extraFeatures;
+        YigdConfig config = YigdConfig.getConfig();
+        YigdConfig.ExtraFeatures extraFeaturesConfig = config.extraFeatures;
         if (extraFeaturesConfig.deathScroll.enabled && extraFeaturesConfig.deathScroll.receiveOnRespawn) {
             ItemStack scroll = Yigd.DEATH_SCROLL_ITEM.getDefaultStack();
             boolean turned = Yigd.DEATH_SCROLL_ITEM.bindStackToLatestDeath(player, scroll);
@@ -68,6 +74,19 @@ public class RespawnComponent {
             boolean turned = Yigd.GRAVE_KEY_ITEM.bindStackToLatestGrave(player, key);
             if (turned)
                 player.giveItemStack(key);
+        }
+
+        for (YigdConfig.RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {
+            Item item = Registries.ITEM.get(new Identifier(extraItemDrop.itemId()));
+            ItemStack stack = new ItemStack(item, extraItemDrop.count());
+            try {
+                stack.setNbt(NbtHelper.fromNbtProviderString(extraItemDrop.itemNbt()));
+
+                player.giveItemStack(stack);
+            }
+            catch (CommandSyntaxException e) {
+                Yigd.LOGGER.error("Could not give an item with NBT to player on respawn. Invalid NBT");
+            }
         }
 
         if (this.soulboundExp != null)
