@@ -27,7 +27,7 @@ public class YigdServerEventHandler {
     public static void registerEventCallbacks() {
         registerPermissionEvents();
 
-        DropRuleEvent.EVENT.register((item, slot, context) -> {
+        DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
             YigdConfig config = YigdConfig.getConfig();
 
             if (config.inventoryConfig.soulboundSlots.contains(slot)) return DropRule.KEEP;
@@ -37,6 +37,16 @@ public class YigdServerEventHandler {
             if (item.isIn(YigdTags.NATURAL_SOULBOUND)) return DropRule.KEEP;
             if (item.isIn(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
             if (item.isIn(YigdTags.GRAVE_INCOMPATIBLE)) return DropRule.DROP;
+
+            if (!item.isEmpty() && item.hasNbt()) {
+                NbtCompound nbt = item.getNbt();
+                if (nbt != null && nbt.contains("Botania_keepIvy") && nbt.getBoolean("Botania_keepIvy")) {
+                    if (modify)
+                        item.removeSubNbt("Botania_keepIvy");
+
+                    return DropRule.KEEP;
+                }
+            }
 
             DropRule dropRule = DropRule.PUT_IN_GRAVE;
 
@@ -53,7 +63,7 @@ public class YigdServerEventHandler {
                 if (!config.inventoryConfig.soulboundEnchantments.contains(id)) continue;
 
                 int level = enchantNbt.getInt("lvl");
-                if (config.inventoryConfig.loseSoulboundLevelOnDeath) {
+                if (config.inventoryConfig.loseSoulboundLevelOnDeath && modify) {
                     if (level == 1) {
                         removeEnchantment.add(enchantNbt);  // Prime level 1 enchant for deletion
                     }

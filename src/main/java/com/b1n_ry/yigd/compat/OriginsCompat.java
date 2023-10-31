@@ -156,7 +156,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
                 for (int i = 0; i < items.size(); i++) {
                     ItemStack item = items.get(i);
                     Vec3d deathPos = context.getDeathPos();
-                    DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context);
+                    DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
                     switch (dropRule) {
                         case KEEP -> soulboundStacks.set(i, item);
                         case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);

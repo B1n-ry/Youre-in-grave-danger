@@ -136,7 +136,7 @@ public class InventoryComponent {
 
             Vec3d deathPos = context.getDeathPos();
 
-            DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context);
+            DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context, true);
             switch (dropRule) {
                 case KEEP -> soulboundInventory.items.set(i, item);
                 case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);
@@ -198,7 +198,7 @@ public class InventoryComponent {
         for (int i = 0; i < this.items.size(); i++) {
             ItemStack stack = this.items.get(i);
             if (stack.isEmpty()) continue;
-            if (DropRuleEvent.EVENT.invoker().getDropRule(stack, i, context) == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
+            if (DropRuleEvent.EVENT.invoker().getDropRule(stack, i, context, false) == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
             if (stack.isIn(YigdTags.LOSS_IMMUNE)) continue;
 
             itemSlots.add(i);

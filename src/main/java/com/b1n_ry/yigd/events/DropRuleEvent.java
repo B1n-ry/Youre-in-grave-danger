@@ -8,9 +8,9 @@ import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public interface DropRuleEvent {
-    Event<DropRuleEvent> EVENT = EventFactory.createArrayBacked(DropRuleEvent.class, destroyItems -> (item, slot, context) -> {
+    Event<DropRuleEvent> EVENT = EventFactory.createArrayBacked(DropRuleEvent.class, destroyItems -> (item, slot, context, modify) -> {
         for (DropRuleEvent event : destroyItems) {
-            DropRule dropRule = event.getDropRule(item, slot, context);
+            DropRule dropRule = event.getDropRule(item, slot, context, modify);
             if (dropRule != DropRule.PUT_IN_GRAVE) {
                 return dropRule;
             }
@@ -18,5 +18,5 @@ public interface DropRuleEvent {
         return DropRule.PUT_IN_GRAVE;
     });
 
-    DropRule getDropRule(ItemStack item, int slot, @Nullable DeathContext deathContext);
+    DropRule getDropRule(ItemStack item, int slot, @Nullable DeathContext deathContext, boolean modify);
 }

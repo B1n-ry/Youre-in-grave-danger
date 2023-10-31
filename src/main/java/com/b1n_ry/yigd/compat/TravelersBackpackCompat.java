@@ -82,7 +82,7 @@ public class TravelersBackpackCompat implements InvModCompat<ItemStack> {
 
         @Override
         public CompatComponent<ItemStack> handleDropRules(DeathContext context) {
-            DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(this.inventory, -1, context);
+            DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(this.inventory, -1, context, true);
             TBCompatComponent soulboundComponent = new TBCompatComponent(dropRule == DropRule.KEEP ? this.inventory : ItemStack.EMPTY);
 
             Vec3d deathPos = context.getDeathPos();

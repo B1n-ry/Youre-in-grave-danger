@@ -228,7 +228,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
                         Vec3d deathPos = context.getDeathPos();
 
-                        DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context);
+                        DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
                         switch (pair.getLeft()) {  // Translate trinket drop rules
                             case DESTROY -> dropRule = DropRule.DESTROY;
                             case KEEP ->  dropRule = DropRule.KEEP;

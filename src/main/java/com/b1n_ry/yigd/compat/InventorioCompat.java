@@ -113,7 +113,7 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
             for (int i = 0; i < this.inventory.size(); i++) {
                 ItemStack stack = this.inventory.get(i);
 
-                DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context);
+                DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
                 Vec3d deathPos = context.getDeathPos();
                 switch (dropRule) {
                     case KEEP -> soulboundItems.set(i, stack);
