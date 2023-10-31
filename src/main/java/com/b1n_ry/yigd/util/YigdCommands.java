@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.b1n_ry.yigd.data.ListMode;
 import com.b1n_ry.yigd.packets.LightGraveData;
 import com.b1n_ry.yigd.packets.LightPlayerData;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
@@ -71,10 +72,7 @@ public class YigdCommands {
                                         .then(argument("target", EntityArgumentType.players())
                                                 .executes(context -> removeFromList(context, EntityArgumentType.getPlayers(context, "target")))))
                                 .then(literal("toggle")
-                                        .executes(YigdCommands::toggleListType))
-                                .then(literal("set")
-                                        .then(argument("mode", ListModeArgumentType.listMode())
-                                                .executes(context -> setListType(context, ListModeArgumentType.getListMode(context, "mode"))))))
+                                        .executes(YigdCommands::toggleListType)))
         ));
     }
 
@@ -234,12 +232,6 @@ public class YigdCommands {
         DeathInfoManager.INSTANCE.setGraveListMode(newMode);
         context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.toggle", newMode.name()));
 
-        return 1;
-    }
-    private static int setListType(CommandContext<ServerCommandSource> context, ListMode mode) {
-        DeathInfoManager.INSTANCE.setGraveListMode(mode);
-
-        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.set_mode", mode.name()));
         return 1;
     }
 }
