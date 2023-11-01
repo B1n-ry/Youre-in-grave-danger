@@ -212,6 +212,7 @@ public class YigdCommands {
             DeathInfoManager.INSTANCE.addToList(player.getGameProfile());
             ++i;
         }
+        DeathInfoManager.INSTANCE.markDirty();
 
         context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.added_players", i, DeathInfoManager.INSTANCE.getGraveListMode().name()));
         return i > 0 ? 1 : 0;
@@ -230,6 +231,7 @@ public class YigdCommands {
         ListMode listMode = DeathInfoManager.INSTANCE.getGraveListMode();
         ListMode newMode = listMode == ListMode.WHITELIST ? ListMode.BLACKLIST : ListMode.WHITELIST;
         DeathInfoManager.INSTANCE.setGraveListMode(newMode);
+        DeathInfoManager.INSTANCE.markDirty();
         context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.toggle", newMode.name()));
 
         return 1;

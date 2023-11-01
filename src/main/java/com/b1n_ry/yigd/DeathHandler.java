@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.DirectionalPos;
 import com.b1n_ry.yigd.data.TranslatableDeathMessage;
 import com.b1n_ry.yigd.events.AllowGraveGenerationEvent;
 import com.b1n_ry.yigd.impl.ServerPlayerEntityImpl;
@@ -81,10 +82,14 @@ public class DeathHandler {
             inventoryComponent.dropAll(world, pos);
             expComponent.dropAll(world, pos);
         } else {
-            BlockPos gravePos = graveComponent.findGravePos();
+            DirectionalPos dirGravePos = graveComponent.findGravePos(player.getHorizontalFacing());
+            BlockPos gravePos = dirGravePos.pos();
 
-            Direction direction = player.getHorizontalFacing();
-            boolean waterlogged = world.getFluidState(gravePos).equals(Fluids.WATER.getDefaultState());  // Grave generated in full water block (submerged)
+            ServerWorld graveWorld = graveComponent.getWorld();
+            assert graveWorld != null;  // Should never be able to be null on server
+
+            Direction direction = dirGravePos.dir();
+            boolean waterlogged = graveWorld.getFluidState(gravePos).equals(Fluids.WATER.getDefaultState());  // Grave generated in full water block (submerged)
             BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState()
                     .with(Properties.HORIZONTAL_FACING, direction)
                     .with(Properties.WATERLOGGED, waterlogged);
@@ -92,19 +97,19 @@ public class DeathHandler {
 
             // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
             Yigd.END_OF_TICK.add(() -> {
-                BlockState previousState = world.getBlockState(gravePos);
+                BlockState previousState = graveWorld.getBlockState(gravePos);
 
                 boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
 
                 if (!placed) {
-                    Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), world.getRegistryKey().getValue()));
+                    Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), graveWorld.getRegistryKey().getValue()));
                     Yigd.LOGGER.info("Dropping items on ground instead of in grave");
-                    graveComponent.getInventoryComponent().dropAll(world, Vec3d.of(gravePos));
-                    graveComponent.getExpComponent().dropAll(world, Vec3d.of(gravePos));
+                    graveComponent.getInventoryComponent().dropAll(graveWorld, Vec3d.of(gravePos));
+                    graveComponent.getExpComponent().dropAll(graveWorld, Vec3d.of(gravePos));
                     return;
                 }
 
-                GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(gravePos);
+                GraveBlockEntity be = (GraveBlockEntity) graveWorld.getBlockEntity(gravePos);
                 if (be == null) return;
                 be.setPreviousState(previousState);
                 be.setComponent(graveComponent);

@@ -69,6 +69,7 @@ public class ServerPacketHandler {
             UUID graveId = buf.readUuid();
 
             ActionResult deleted = DeathInfoManager.INSTANCE.delete(graveId);
+            DeathInfoManager.INSTANCE.markDirty();
 
             String translatable = switch (deleted) {
                 case SUCCESS -> "yigd.command.delete.success";

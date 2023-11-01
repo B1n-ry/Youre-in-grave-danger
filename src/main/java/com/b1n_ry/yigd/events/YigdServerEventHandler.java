@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveKeyConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.data.ListMode;
+import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
@@ -19,6 +20,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -54,7 +56,11 @@ public class YigdServerEventHandler {
                 }
             }
 
-            DropRule dropRule = DropRule.PUT_IN_GRAVE;
+            DropRule dropRule;
+            if (context != null)
+                dropRule = GraveOverrideAreas.INSTANCE.getDropRuleFromArea(BlockPos.ofFloored(context.getDeathPos()), context.getWorld());
+            else
+                dropRule = GraveOverrideAreas.INSTANCE.defaultDropRule;
 
             // Get drop rule from enchantment. This is set up so that the first drop rule related enchantment will take effect, no matter what more enchantments there are
             NbtList enchantmentsNbt = item.getEnchantments();
@@ -63,10 +69,11 @@ public class YigdServerEventHandler {
                 if (!(enchantmentElement instanceof NbtCompound enchantNbt)) continue;
 
                 String id = enchantNbt.getString("id");
-                if (config.inventoryConfig.vanishingEnchantments.contains(id)) {
+                if (config.inventoryConfig.vanishingEnchantments.contains(id))
                     return DropRule.DESTROY;
-                }
-                if (!config.inventoryConfig.soulboundEnchantments.contains(id)) continue;
+
+                if (!config.inventoryConfig.soulboundEnchantments.contains(id))
+                    continue;
 
                 int level = enchantNbt.getInt("lvl");
                 if (config.inventoryConfig.loseSoulboundLevelOnDeath && modify) {

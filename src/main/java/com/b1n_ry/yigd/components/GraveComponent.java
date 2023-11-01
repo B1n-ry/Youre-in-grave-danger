@@ -4,9 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.DropType;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.data.DeathInfoManager;
-import com.b1n_ry.yigd.data.GraveStatus;
-import com.b1n_ry.yigd.data.TranslatableDeathMessage;
+import com.b1n_ry.yigd.data.*;
 import com.b1n_ry.yigd.events.AllowBlockUnderGraveGenerationEvent;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.GraveClaimEvent;
@@ -25,6 +23,7 @@ import net.minecraft.nbt.NbtHelper;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -34,16 +33,14 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,8 +48,12 @@ public class GraveComponent {
     private final GameProfile owner;
     private final InventoryComponent inventoryComponent;
     private final ExpComponent expComponent;
+    /**
+     * world should never be null while on server, but only on client.
+     * If this is compromised, the mod might crash
+     */
     @Nullable
-    private final ServerWorld world;
+    private ServerWorld world;
     private final RegistryKey<World> worldRegistryKey;
     private BlockPos pos;
     private final TranslatableDeathMessage deathMessage;
@@ -61,6 +62,8 @@ public class GraveComponent {
     private boolean locked;
     private final long creationTime;
     private final UUID killerId;
+
+    public static GraveyardData graveyardData = null;
 
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage, UUID killerId) {
         this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true, world.getTimeOfDay(), killerId);
@@ -108,6 +111,10 @@ public class GraveComponent {
         return this.expComponent;
     }
 
+    /**
+     * While on server, this will never return null
+     * @return the world the component belongs to. Null if on client
+     */
     public @Nullable ServerWorld getWorld() {
         return this.world;
     }
@@ -156,11 +163,15 @@ public class GraveComponent {
      * Will filter through filters and stuff. Should only be called from server
      * @return where a grave can be placed based on config
      */
-    public BlockPos findGravePos() {
+    public DirectionalPos findGravePos(Direction defaultDirection) {
         if (this.world == null) {
             Yigd.LOGGER.error("GraveComponent's associated world is null. Failed to find suitable position");
-            return this.pos;
+            return new DirectionalPos(this.pos, defaultDirection);
         }
+
+        DirectionalPos graveyardPos = this.findPosInGraveyard(defaultDirection);
+        if (graveyardPos != null)
+            return graveyardPos;
 
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
@@ -172,12 +183,46 @@ public class GraveComponent {
                 if (GraveGenerationEvent.EVENT.invoker().canGenerateAt(this.world, iPos, i)) {
                     this.pos = iPos;
                     DeathInfoManager.INSTANCE.markDirty();
-                    return iPos;
+                    return new DirectionalPos(iPos, defaultDirection);
                 }
             }
             i++;
         }
-        return this.pos;
+        return new DirectionalPos(this.pos, defaultDirection);
+    }
+
+    private DirectionalPos findPosInGraveyard(Direction defaultDirection) {
+        if (this.world == null) return null;
+        if (graveyardData == null || graveyardData.graveLocations.isEmpty()) return null;
+
+        MinecraftServer server = this.world.getServer();
+        ServerWorld graveyardWorld = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, graveyardData.dimensionId));
+        if (graveyardWorld == null) {
+            graveyardWorld = server.getOverworld();
+        }
+        DirectionalPos closest = null;
+        for (GraveyardData.GraveLocation location : graveyardData.graveLocations) {
+            if (location.forPlayer != null && !location.forPlayer.equalsIgnoreCase(this.owner.getName()))
+                continue;
+
+            Direction direction = location.direction != null ? location.direction : defaultDirection;
+
+            DirectionalPos maybePos = new DirectionalPos(location.x, location.y, location.z, direction);
+            if (graveyardData.useClosest) {
+                if (closest == null || maybePos.getSquaredDistance(this.pos) < closest.getSquaredDistance(this.pos))
+                    closest = maybePos;
+            } else {
+                closest = maybePos;
+                break;
+            }
+        }
+        if (closest != null) {
+            this.world = graveyardWorld;
+            this.pos = closest.pos();
+            return closest;
+        }
+
+        return null;
     }
 
     /**
