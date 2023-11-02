@@ -32,7 +32,7 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         root.setInsets(Insets.ROOT_PANEL);
         root.setGaps(2, 5);
 
-        WLabel title = new WLabel(Text.translatable("yigd.text.graves_of", profile.getName()));
+        WLabel title = new WLabel(Text.translatable("yigd.gui.text.graves_of", profile.getName()));
         root.add(title, 0, 0);
 
         WFilterableListPanel<LightGraveData, WCardButton> listPanel = this.addGraveList(root);

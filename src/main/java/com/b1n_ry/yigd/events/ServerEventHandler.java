@@ -82,6 +82,7 @@ public class ServerEventHandler {
 
             if (!Yigd.NOT_NOTIFIED_ROBBERIES.containsKey(joiningId)) return;
 
+            // Check if notifying when robbed is not required, since it has to be set to true for players to be added to NOT_NOTIFIED_ROBBERIES
             if (robConfig.tellWhoRobbed) {
                 List<String> robbedBy = Yigd.NOT_NOTIFIED_ROBBERIES.remove(joiningId);
                 for (String robber : robbedBy) {

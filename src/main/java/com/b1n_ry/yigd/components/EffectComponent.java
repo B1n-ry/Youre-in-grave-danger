@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EffectComponent {
-    private List<StatusEffectInstance> effects;
+    private final List<StatusEffectInstance> effects;
     private final int resetHp;
     private final int resetHunger;
     private final float resetSaturation;
@@ -51,9 +51,14 @@ public class EffectComponent {
     }
 
     public void applyToPlayer(ServerPlayerEntity player) {
+        if (this.resetHp > 0)
+            player.setHealth(this.resetHp);
+
         HungerManager hungerManager = player.getHungerManager();
-        hungerManager.setFoodLevel(this.resetHunger);
-        hungerManager.setSaturationLevel(this.resetSaturation);
+        if (this.resetHunger >= 0)
+            hungerManager.setFoodLevel(this.resetHunger);
+        if (this.resetSaturation >= 0)
+            hungerManager.setSaturationLevel(this.resetSaturation);
 
         for (StatusEffectInstance effect : this.effects) {
             player.addStatusEffect(effect);

@@ -6,6 +6,9 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -34,10 +37,11 @@ public class YigdConfig implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     public CommandConfig commandConfig = new CommandConfig();
 
-    // rendering
+    @Comment("Client only config")
     @ConfigEntry.Gui.CollapsibleObject
     public GraveRendering graveRendering = new GraveRendering();
 
+    @Comment("Toggleable custom features (registries)")
     @ConfigEntry.Gui.CollapsibleObject
     public ExtraFeatures extraFeatures = new ExtraFeatures();
 
@@ -65,25 +69,34 @@ public class YigdConfig implements ConfigData {
             public int lossRangeFrom = 0;
             public int lossRangeTo = 100;
 
+            @Comment("Chance of losing an item (iterated over every item picked up by lossRange)")
             public int percentChanceOfLoss = 50;
+            @Comment("If true, you can lose soulbound items from the item loss feature")
             public boolean canLoseSoulbound = false;
         }
     }
 
     public static class RespawnConfig {
+        @Comment("On respawn, all players will receive these effects")
         public List<EffectConfig> respawnEffects = new ArrayList<>();
+        @Comment("HP given to player at respawn. If 0 or negative, default health will apply")
         public int respawnHealth = 20;
+        @Comment("If false, player will respawn with the same hunger level as when they died")
         public boolean resetHunger = true;
+        @Comment("Hunger given to player at respawn. If negative, default hunger will apply")
         public int respawnHunger = 20;
+        @Comment("If false, player will respawn with the same saturation level as when they died")
         public boolean resetSaturation = true;
+        @Comment("Saturation given to player at respawn. If negative, default saturation will apply")
         public float respawnSaturation = 20f;
+        @Comment("Extra items that will be given to player once respawned")
         public List<ExtraItemDrop> extraItemDrops = new ArrayList<>();
 
         public record EffectConfig(String effectName, int effectLevel, int effectTime, boolean showBubbles) {
             // Constructor required for the config gui to work
             @SuppressWarnings("unused")
             public EffectConfig() {
-                this("", 0, 0, false);
+                this("", 0, 0, true);
             }
         }
         public record ExtraItemDrop(String itemId, int count, String itemNbt) {
@@ -96,9 +109,10 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class ExpConfig {
-        @ConfigEntry.Gui.EnumHandler
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public ExpDropBehaviour dropBehaviour = ExpDropBehaviour.VANILLA;
 
+        @Comment("Requires dropBehaviour to be set to PERCENTAGE to work")
         @ConfigEntry.BoundedDiscrete(max = 100)
         public int dropPercentage = 50;
 
@@ -108,12 +122,11 @@ public class YigdConfig implements ConfigData {
 
     public static class GraveConfig {
         public boolean enabled = true;
-        // what should it store? XP or items, none or both?
         public boolean storeItems = true;
         public boolean storeXp = true;
-        // Inform the player where the grave generated when respawning
+        @Comment("Inform player where the grave generated when respawning")
         public boolean informGraveLocation = true;
-        // require some item (customizable. Default EMPTY, but could be grave)
+        @Comment("If true, you HAVE to have one of `requiredItem` for a grave to generate. One of that item will then be consumed")
         public boolean requireItem = false;
         public String requiredItem = "yigd:grave";
         // require shovel to open
@@ -124,7 +137,7 @@ public class YigdConfig implements ConfigData {
         // merge existing with claimed stacks for player
         public boolean mergeStacksOnRetrieve = true;
         // drop in inventory or on ground
-        @ConfigEntry.Gui.EnumHandler
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropType dropOnRetrieve = DropType.IN_INVENTORY;
         // drop grave block?
         public boolean dropGraveBlock = false;
@@ -132,9 +145,11 @@ public class YigdConfig implements ConfigData {
         // generate empty graves
         public boolean generateEmptyGraves = false;
         // spawn protection rule override?
+        @Comment("Allows everyone to bypass spawn protection for grave blocks")
         public boolean overrideSpawnProtection = true;
         // inventory priority
-        @ConfigEntry.Gui.EnumHandler
+        @Comment("Which of the layout in the grave or in your inventory should be prioritized")
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public ClaimPriority claimPriority = ClaimPriority.GRAVE;
         // robbing
         @ConfigEntry.Gui.CollapsibleObject
@@ -143,15 +158,18 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public GraveTimeout graveTimeout = new GraveTimeout();
         // curse of binding compat
+        @Comment("If false, layout prioritizing doesn't care if armor is cursed with binding")
         public boolean treatBindingCurse = true;
         // generate grave in the void? (which y level then)
         public boolean generateGraveInVoid = true;
+        @Comment("Minimum amount of blocks above void a grave can spawn")
         public int lowestGraveY = 3;
         // Weather or not the grave can generate outside the world border
         public boolean generateOnlyWithinBorder = true;
         // ignore death types
         public List<String> ignoredDeathTypes = new ArrayList<>();
         // unlockable
+        @Comment("Allow players to unlock their graves through GUI")
         public boolean unlockable = true;
         // spawn something when opened?
         @ConfigEntry.Gui.CollapsibleObject
@@ -167,6 +185,7 @@ public class YigdConfig implements ConfigData {
         // replace old block when claimed
         public boolean replaceOldWhenClaimed = true;
         // Keep grave after it's looted
+        @Comment("If true, graves will persist when claiming them, and right clicking on them after that will let you know when and how they died. Can also then be mined")
         public boolean persistentGraves = false;
         // grave generation dimension blacklist
         public List<String> dimensionBlacklist = new ArrayList<>();
@@ -174,8 +193,10 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public  BlockUnderGrave blockUnderGrave = new BlockUnderGrave();
         // tell people where someone's grave is when they logg off
+        @Comment("When people leave, should the game let everyone know where they have a grave?")
         public boolean sellOutOfflinePeople = false;
         // max backups
+        @Comment("Max amount of backed up graves")
         public int maxBackupsPerPerson = 50;
 
         public static class RetrieveMethods {
@@ -189,9 +210,9 @@ public class YigdConfig implements ConfigData {
             public boolean enabled = true;
             public boolean onlyMurderer = false;
             public int afterTime = 1;
-            @ConfigEntry.Gui.EnumHandler
+            @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public TimeUnit timeUnit = TimeUnit.HOURS;
-            @ConfigEntry.Gui.EnumHandler
+            @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public ClaimPriority robPriority = ClaimPriority.INVENTORY;
             public boolean notifyWhenRobbed = true;
             public boolean tellWhoRobbed = true;
@@ -200,7 +221,7 @@ public class YigdConfig implements ConfigData {
         public static class GraveTimeout {
             public boolean enabled = false;
             public int afterTime = 5;
-            @ConfigEntry.Gui.EnumHandler
+            @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public TimeUnit timeUnit = TimeUnit.HOURS;
             public boolean dropContentsOnTimeout = true;
         }
@@ -219,23 +240,23 @@ public class YigdConfig implements ConfigData {
 
         public static class BlockUnderGrave {
             public boolean enabled = true;
-            public List<MapEntry> blockInDimensions = new ArrayList<>() {{
-                add(new MapEntry("minecraft:overworld", "minecraft:cobblestone"));
-                add(new MapEntry("minecraft:nether", "minecraft:soul_soil"));
-                add(new MapEntry("minecraft:end", "minecraft:end_stone"));
-                add(new MapEntry("misc", "minecraft:dirt"));
-            }};
+            public List<MapEntry> blockInDimensions = List.of(
+                    new MapEntry("minecraft:overworld", "minecraft:cobblestone"),
+                    new MapEntry("minecraft:nether", "minecraft:soul_soil"),
+                    new MapEntry("minecraft:end", "minecraft:end_stone"),
+                    new MapEntry("misc", "minecraft:dirt"));
             public boolean generateOnProtectedLand = false;
         }
     }
 
     public static class CompatConfig {
-        @ConfigEntry.Gui.EnumHandler
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropRule standardDropRuleInClaim = DropRule.PUT_IN_GRAVE;
 
         public boolean enableInventorioCompat = true;
         public boolean enableLevelzCompat = true;
         public boolean enableNumismaticOverhaulCompat = true;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropRule numismaticDropRule = DropRule.PUT_IN_GRAVE;
         public boolean enableOriginsInventoryCompat = true;
         public boolean enableTravelersBackpackCompat = true;
@@ -252,6 +273,8 @@ public class YigdConfig implements ConfigData {
         public int restorePermissionLevel = 2;
         public int robPermissionLevel = 2;
         public int whitelistPermissionLevel = 3;
+        public int deletePermissionLevel = 3;
+        public int unlockPermissionLevel = 0;
     }
 
     public static class GraveRendering {
@@ -274,7 +297,7 @@ public class YigdConfig implements ConfigData {
         public static class DeathSightConfig {
             public boolean enabled = false;
             public double range = 64;
-            @ConfigEntry.Gui.EnumHandler
+            @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public GraveTargets targets = GraveTargets.PLAYER_GRAVES;
             public enum GraveTargets {
                 OWN_GRAVES, PLAYER_GRAVES, ALL_GRAVES
@@ -285,7 +308,7 @@ public class YigdConfig implements ConfigData {
             public boolean rebindable = true;
             public boolean required = true;
             public boolean receiveOnRespawn = true;
-            @ConfigEntry.Gui.EnumHandler
+            @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public KeyTargeting targeting = KeyTargeting.PLAYER_GRAVE;
             public enum KeyTargeting {
                 ANY_GRAVE, PLAYER_GRAVE, SPECIFIC_GRAVE
@@ -295,7 +318,7 @@ public class YigdConfig implements ConfigData {
             public boolean enabled = false;
             public boolean rebindable = false;
             public boolean receiveOnRespawn = false;
-            @ConfigEntry.Gui.EnumHandler
+            @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public ClickFunction clickFunction = ClickFunction.VIEW_CONTENTS;
             public enum ClickFunction {
                 RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION
