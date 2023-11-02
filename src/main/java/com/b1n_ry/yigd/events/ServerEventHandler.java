@@ -47,7 +47,7 @@ public class ServerEventHandler {
                 if (graves.size() > 0) {
                     GraveComponent latest = graves.get(graves.size() - 1);
                     BlockPos gravePos = latest.getPos();
-                    newPlayer.sendMessage(Text.translatable("yigd.message.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ(), latest.getWorldRegistryKey().getValue()));
+                    newPlayer.sendMessage(Text.translatable("text.yigd.message.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ(), latest.getWorldRegistryKey().getValue()));
                 }
             }
         });
@@ -71,7 +71,7 @@ public class ServerEventHandler {
             if (loggedOffUnclaimed.size() > 0) {
                 GraveComponent component = loggedOffUnclaimed.get(0);
                 BlockPos lastGravePos = component.getPos();
-                server.sendMessage(Text.translatable("yigd.message.sellout_player",
+                server.sendMessage(Text.translatable("text.yigd.message.sellout_player",
                         loggedOffProfile.getName(), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
                         component.getWorldRegistryKey().getValue()));
             }
@@ -86,11 +86,11 @@ public class ServerEventHandler {
             if (robConfig.tellWhoRobbed) {
                 List<String> robbedBy = Yigd.NOT_NOTIFIED_ROBBERIES.remove(joiningId);
                 for (String robber : robbedBy) {
-                    handler.player.sendMessage(Text.translatable("yigd.message.inform_robbery.with_details", robber));
+                    handler.player.sendMessage(Text.translatable("text.yigd.message.inform_robbery.with_details", robber));
                 }
             } else {
                 Yigd.NOT_NOTIFIED_ROBBERIES.remove(joiningId);
-                handler.player.sendMessage(Text.translatable("yigd.message.inform_robbery"));
+                handler.player.sendMessage(Text.translatable("text.yigd.message.inform_robbery"));
             }
         });
     }

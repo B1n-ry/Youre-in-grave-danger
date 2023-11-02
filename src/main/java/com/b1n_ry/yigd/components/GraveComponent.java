@@ -361,9 +361,9 @@ public class GraveComponent {
             ServerPlayerEntity robbedPlayer = server.getPlayerManager().getPlayer(this.owner.getId());
             if (robbedPlayer != null) {  // They are not offline. They are online
                 if (config.graveConfig.graveRobbing.tellWhoRobbed) {
-                    robbedPlayer.sendMessage(Text.translatable("yigd.message.inform_robbery.with_details", player.getGameProfile().getName()));
+                    robbedPlayer.sendMessage(Text.translatable("text.yigd.message.inform_robbery.with_details", player.getGameProfile().getName()));
                 } else {
-                    robbedPlayer.sendMessage(Text.translatable("yigd.message.inform_robbery"));
+                    robbedPlayer.sendMessage(Text.translatable("text.yigd.message.inform_robbery"));
                 }
             } else {
                 Yigd.NOT_NOTIFIED_ROBBERIES.computeIfAbsent(this.owner.getId(), uuid -> new ArrayList<>()).add(robberName);

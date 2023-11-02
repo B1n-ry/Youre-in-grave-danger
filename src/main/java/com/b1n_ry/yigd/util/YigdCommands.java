@@ -88,7 +88,7 @@ public class YigdCommands {
         List<GraveComponent> unClaimedGraves = new ArrayList<>(components);
         unClaimedGraves.removeIf(graveComponent -> graveComponent.getStatus() != GraveStatus.UNCLAIMED);
         if (unClaimedGraves.size() == 0) {
-            player.sendMessage(Text.translatable("yigd.command_callback.latest.fail"));
+            player.sendMessage(Text.translatable("text.yigd.command_callback.latest.fail"));
             return -1;
         }
 
@@ -172,7 +172,7 @@ public class YigdCommands {
         component.applyToPlayer(target, target.getServerWorld(), target.getBlockPos(), true);
         component.setStatus(GraveStatus.CLAIMED);
 
-        context.getSource().sendMessage(Text.translatable("yigd.command.restore.success"));
+        context.getSource().sendMessage(Text.translatable("text.yigd.command.restore.success"));
         return 1;
     }
 
@@ -198,12 +198,12 @@ public class YigdCommands {
         component.applyToPlayer(player, context.getSource().getWorld(), player.getBlockPos(), false);
         component.setStatus(GraveStatus.CLAIMED);
 
-        player.sendMessage(Text.translatable("yigd.command.rob.success"));
+        player.sendMessage(Text.translatable("text.yigd.command.rob.success"));
         return 1;
     }
 
     private static int showListType(CommandContext<ServerCommandSource> context) {
-        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.show_current", DeathInfoManager.INSTANCE.getGraveListMode().name()));
+        context.getSource().sendMessage(Text.translatable("text.yigd.command.whitelist.show_current", DeathInfoManager.INSTANCE.getGraveListMode().name()));
         return 1;
     }
     private static int addToList(CommandContext<ServerCommandSource> context, Collection<ServerPlayerEntity> players) {
@@ -214,7 +214,7 @@ public class YigdCommands {
         }
         DeathInfoManager.INSTANCE.markDirty();
 
-        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.added_players", i, DeathInfoManager.INSTANCE.getGraveListMode().name()));
+        context.getSource().sendMessage(Text.translatable("text.yigd.command.whitelist.added_players", i, DeathInfoManager.INSTANCE.getGraveListMode().name()));
         return i > 0 ? 1 : 0;
     }
     private static int removeFromList(CommandContext<ServerCommandSource> context, Collection<ServerPlayerEntity> players) {
@@ -224,7 +224,7 @@ public class YigdCommands {
                 ++i;
         }
 
-        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.removed_players", i, DeathInfoManager.INSTANCE.getGraveListMode().name()));
+        context.getSource().sendMessage(Text.translatable("text.yigd.command.whitelist.removed_players", i, DeathInfoManager.INSTANCE.getGraveListMode().name()));
         return i > 0 ? 1 : 0;
     }
     private static int toggleListType(CommandContext<ServerCommandSource> context) {
@@ -232,7 +232,7 @@ public class YigdCommands {
         ListMode newMode = listMode == ListMode.WHITELIST ? ListMode.BLACKLIST : ListMode.WHITELIST;
         DeathInfoManager.INSTANCE.setGraveListMode(newMode);
         DeathInfoManager.INSTANCE.markDirty();
-        context.getSource().sendMessage(Text.translatable("yigd.command.whitelist.toggle", newMode.name()));
+        context.getSource().sendMessage(Text.translatable("text.yigd.command.whitelist.toggle", newMode.name()));
 
         return 1;
     }

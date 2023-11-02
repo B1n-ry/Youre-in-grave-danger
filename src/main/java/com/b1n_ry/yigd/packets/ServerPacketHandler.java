@@ -25,7 +25,7 @@ public class ServerPacketHandler {
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_RESTORE_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
             if (!Permissions.check(player, "yigd.command.restore", config.commandConfig.restorePermissionLevel)) {
-                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -36,20 +36,20 @@ public class ServerPacketHandler {
                 GameProfile owner = component.getOwner();
                 ServerPlayerEntity restoringPlayer = server.getPlayerManager().getPlayer(owner.getId());
                 if (restoringPlayer == null) {
-                    player.sendMessage(Text.translatable("yigd.command.restore.fail.offline_player"));
+                    player.sendMessage(Text.translatable("text.yigd.command.restore.fail.offline_player"));
                     return;
                 }
 
                 component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true);
                 component.setStatus(GraveStatus.CLAIMED);
 
-                player.sendMessage(Text.translatable("yigd.command.restore.success"));
-            }, () -> player.sendMessage(Text.translatable("yigd.command.restore.fail")));
+                player.sendMessage(Text.translatable("text.yigd.command.restore.success"));
+            }, () -> player.sendMessage(Text.translatable("text.yigd.command.restore.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_ROBBING_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
             if (!Permissions.check(player, "yigd.command.rob", config.commandConfig.robPermissionLevel)) {
-                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -60,13 +60,13 @@ public class ServerPacketHandler {
                 component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false);
                 component.setStatus(GraveStatus.CLAIMED);
 
-                player.sendMessage(Text.translatable("yigd.command.rob.success"));
-            }, () -> player.sendMessage(Text.translatable("yigd.command.rob.fail")));
+                player.sendMessage(Text.translatable("text.yigd.command.rob.success"));
+            }, () -> player.sendMessage(Text.translatable("text.yigd.command.rob.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_DELETE_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
             if (!Permissions.check(player, "yigd.command.delete", config.commandConfig.deletePermissionLevel)) {
-                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -76,9 +76,9 @@ public class ServerPacketHandler {
             DeathInfoManager.INSTANCE.markDirty();
 
             String translatable = switch (deleted) {
-                case SUCCESS -> "yigd.command.delete.success";
-                case PASS -> "yigd.command.delete.pass";
-                case FAIL -> "yigd.command.delete.fail";
+                case SUCCESS -> "text.yigd.command.delete.success";
+                case PASS -> "text.yigd.command.delete.pass";
+                case FAIL -> "text.yigd.command.delete.fail";
                 default -> "If you see this, congratulations. You've broken YIGD";
             };
             player.sendMessage(Text.translatable(translatable));
@@ -86,7 +86,7 @@ public class ServerPacketHandler {
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_LOCKING_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
             if (!Permissions.check(player, "yigd.command.lock", config.commandConfig.unlockPermissionLevel)) {
-                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -95,24 +95,24 @@ public class ServerPacketHandler {
 
             Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
             component.ifPresentOrElse(grave -> grave.setLocked(lockState),
-                    () -> player.sendMessage(Text.translatable("yigd.command.lock.fail")));
+                    () -> player.sendMessage(Text.translatable("text.yigd.command.lock.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_OVERVIEW_REQUEST_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
             if (!Permissions.check(player, "yigd.command.view_self", config.commandConfig.viewSelfPermissionLevel)) {
-                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
             UUID graveId = buf.readUuid();
             Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
             component.ifPresentOrElse(grave -> sendGraveOverviewPacket(player, grave),
-                    () -> player.sendMessage(Text.translatable("yigd.command.view_self.fail")));
+                    () -> player.sendMessage(Text.translatable("text.yigd.command.view_self.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_SELECT_REQUEST_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
             if (!Permissions.check(player, "yigd.command.view_user", config.commandConfig.viewUserPermissionLevel)) {
-                player.sendMessage(Text.translatable("yigd.command.permission_fail"));
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 

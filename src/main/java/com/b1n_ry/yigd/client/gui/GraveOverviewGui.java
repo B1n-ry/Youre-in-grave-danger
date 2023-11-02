@@ -118,7 +118,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
     private void addDimension(WPlainPanel root, int x, int y) {
         RegistryKey<World> key = this.graveComponent.getWorldRegistryKey();
         String dimId = key.getValue().toString();
-        WText dimension = new WText(Text.translatableWithFallback("yigd.dimension.name." + dimId, dimId));
+        WText dimension = new WText(Text.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId));
 
         root.add(dimension, x, y, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
     }
@@ -160,13 +160,13 @@ public class GraveOverviewGui extends LightweightGuiDescription {
     }
 
     private void addButtons(WPlainPanel root, int x, int y, boolean restoreBtn, boolean robBtn, boolean deleteBtn, boolean lockingBtn) {
-        WHoverButton restoreButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/restore_btn.png")), Text.translatable("yigd.gui.button.restore"));
-        WHoverButton robButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/rob_btn.png")), Text.translatable("yigd.gui.button.rob"));
-        WHoverButton deleteButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/delete_btn.png")), Text.translatable("yigd.gui.button.delete"));
+        WHoverButton restoreButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/restore_btn.png")), Text.translatable("button.yigd.gui.restore"));
+        WHoverButton robButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/rob_btn.png")), Text.translatable("button.yigd.gui.rob"));
+        WHoverButton deleteButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/delete_btn.png")), Text.translatable("button.yigd.gui.delete"));
 
         TextureIcon lockingIconOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/locked_btn.png"));
         TextureIcon lockingIconOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unlocked_btn.png"));
-        WHoverToggleButton lockingButton = new WHoverToggleButton(lockingIconOn, Text.translatable("yigd.gui.button.locked"), lockingIconOff, Text.translatable("yigd.gui.button.unlocked"));
+        WHoverToggleButton lockingButton = new WHoverToggleButton(lockingIconOn, Text.translatable("button.yigd.gui.locked"), lockingIconOff, Text.translatable("button.yigd.gui.unlocked"));
         lockingButton.setToggle(this.graveComponent.isLocked());
 
         UUID graveId = this.graveComponent.getGraveId();
