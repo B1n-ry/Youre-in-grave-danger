@@ -154,7 +154,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         for (Map.Entry<String, SpriteIdentifier> cuboid : CUBOID_SPRITES.entrySet()) {
             String key = cuboid.getKey();
             ModelPart part = graveModel.getChild(key);
-            if (this.adaptRenderer && key.equals("Base_Layer")) {
+            if (this.adaptRenderer && key.equals("ground")) {
                 World world = entity.getWorld();
                 if (world != null) {
                     BlockPos underPos = entity.getPos().down();
@@ -167,7 +167,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
                         matrices.translate(cuboidPart.minX / 16f + .0005f, cuboidPart.maxY / 16f - 1f, cuboidPart.minZ / 16f + .0005f);
                         matrices.scale(.999f * (scaleX / 16f), 1, .999f * (scaleZ / 16f));
-                        client.getBlockRenderManager().renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, Random.create());
+                        this.client.getBlockRenderManager().renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, Random.create());
 
                         continue;
                     }

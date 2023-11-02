@@ -7,7 +7,7 @@
   },
   "elements": [
     {
-      "name": "Base_Layer",
+      "name": "ground",
       "from": [0, 0, 0],
       "to": [16, 1, 16],
       "faces": {
@@ -20,7 +20,7 @@
       }
     },
     {
-      "name": "Base_Grave",
+      "name": "base",
       "from": [2, 1, 10],
       "to": [14, 3, 15],
       "faces": {
@@ -33,7 +33,7 @@
       }
     },
     {
-      "name": "Grave_Core",
+      "name": "bust",
       "from": [3, 3, 11],
       "to": [13, 15, 14],
       "faces": {
@@ -46,7 +46,7 @@
       }
     },
     {
-      "name": "Grave_Top",
+      "name": "top",
       "from": [4, 15, 11],
       "to": [12, 16, 14],
       "faces": {
