@@ -12,10 +12,10 @@ import java.util.List;
 public class GraveOverrideAreas {
     public static GraveOverrideAreas INSTANCE = new GraveOverrideAreas();
 
-    @SerializedName("values")
-    public List<Area> values = new ArrayList<>();
     @SerializedName("default_drop_rule")
     public DropRule defaultDropRule = DropRule.PUT_IN_GRAVE;
+    @SerializedName("values")
+    public List<Area> values = new ArrayList<>();
 
     public DropRule getDropRuleFromArea(BlockPos pos, ServerWorld world) {
         Identifier worldId = world.getRegistryKey().getValue();
@@ -50,7 +50,7 @@ public class GraveOverrideAreas {
         @SerializedName("area_drop_rule")
         public DropRule areaDropRule;
         @SerializedName("y_dependent")
-        public boolean yDependent;
+        public boolean yDependent = false;
         @SerializedName("world_id")
         public Identifier worldId;
     }

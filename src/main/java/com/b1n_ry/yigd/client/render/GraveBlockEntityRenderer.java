@@ -161,13 +161,13 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                     BlockState blockUnder = entity.getWorld().getBlockState(underPos);
 
                     if (blockUnder != null && blockUnder.isOpaqueFullCube(world, underPos)) {
-                        ModelPart.Cuboid cuboidPart = part.getRandomCuboid(Random.create());
+                        ModelPart.Cuboid cuboidPart = part.getRandomCuboid(Random.create());  // Only contains 1 cuboid, so we'll get that one
                         float scaleX = cuboidPart.maxX - cuboidPart.minX;
                         float scaleZ = cuboidPart.maxZ - cuboidPart.minZ;
 
                         matrices.translate(cuboidPart.minX / 16f + .0005f, cuboidPart.maxY / 16f - 1f, cuboidPart.minZ / 16f + .0005f);
                         matrices.scale(.999f * (scaleX / 16f), 1, .999f * (scaleZ / 16f));
-                        this.client.getBlockRenderManager().renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, Random.create());
+                        this.client.getBlockRenderManager().renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, world.getRandom());
 
                         continue;
                     }

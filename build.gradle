@@ -25,17 +25,6 @@ repositories {
 	}
 }
 
-//loom {
-//	splitEnvironmentSourceSets()
-//
-//	mods {
-//		"modid" {
-//			sourceSet sourceSets.main
-//			sourceSet sourceSets.client
-//		}
-//	}
-//}
-
 dependencies {
 	// Important constants idk
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"

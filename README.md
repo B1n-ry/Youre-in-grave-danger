@@ -9,25 +9,45 @@ Get it?
 
 ## About
 
-You're in Grave Danger is highly customizable grave mod for the fabric mod loader.
-This mod will add graves to your game, which will spawn at your death location with all your items. You can then go back and retrieve your lost items. The mod will remember your inventory layout and put everything back to where it was before you died. The mod is highly configurable. In fact, if you think a config is missing that has anything to do with what happens when you die, it's not refered to as a missing feature, but a bug. (Not really but that's how serious I am about everything being configurable).
+You're in Grave Danger is the ultimate death handling mod. With this mod you can configure almost every aspect of
+when you die, from items you lose, to items you keep, to items you drop, to xp, to effects you get when respawning,
+to health and hunger values being set when respawning, and much more.
 
+A big part of this mod, although it is technically an optional feature, are the gravestones (feature enabled by default).
+These gravestones generate when you die, and stores your loot, until you reclaim it. 
+The graves are also highly configurable, to where they can and can't generate, to what will end up in your grave,
+how you retrieve your items, as well as many more configuration options.
 
+Graves will also remember the layout of your items, and replace this layout when grave is claimed. This is however
+configurable, and weather the grave layout or your current layout should be prioritized can be changed through the config.
 
-If you play multiplayer you'll have no trouble finding which grave is yours, as both your face and player name will render on it (if you've enabled it in the config of course)
-
-
+The graves are also equipped with rendering features, like rendering a head of the deceased player, and their name, that
+will help you keep track of whose grave is who's when playing with your friends.
+All rendering can be configured.
 
 ## Features
 
-The mod is available for 1.16.5, 1.17.1, and 1.18!
+The mod is available for 1.16.5 and all later versions!
 
-1.16.5 and 1.17.1 versions are no longer actively maintained. If there would however be any problem with any of them I would try my best to fix them.
+Since the release of the 1.20 release, no older versions will be maintained actively.
 
-The mod has compatibility for trinkets and inventorio. More compatibilities are coming to the 1.18 version as more mods are releasing. Right now most of them are for 1.17 though.
-The mod is technically compatible with every soulbound enchantment, since you can configure which enchantments should not be dropped on death in your grave, and which you should as well keep in your inventory when you respawn.
+You're in Grave Danger (YiGD for short) is compatible with all inventory mods known to me (developer of YiGD),
+with some examples including trinkets, travelers backpack, and inventorio.
 
-Graves can be waterlogged, and renders can be adapted to the block the grave is standing on
+The mod is also compatible with all soulbound enchantments, as long as they're added to the soulbound config.
+
+Graves can be waterlogged, and renders can be adapted to the block the grave is standing on.
+
+The mod also includes a large number of other features. If you're intrigued by what YiGD can do, check the configs.
+The mod includes components that can control various aspects of:
+* Player Inventory
+* Player experience points
+* Player Respawn event
+* Graves
+* Additional registries such as a few items and enchantments
+
+If you found ANYTHING there is not a config for, that you'd like to be configurable, let me know through discord, github,
+or similar, and I'll see about making this configurable
 
 
 ## Misc info
@@ -37,3 +57,4 @@ If you find any bug/missing config, or have a cool idea that would fit in the th
 The mod is under MIT license, so feel free to use this in your modpack!
 
 This mod is required both on client and server, as it will add custom blocks and renderers.
+It's intended for use in modpacks. If you're looking for a server side only grave mod, I'd recommend Universal Graves
