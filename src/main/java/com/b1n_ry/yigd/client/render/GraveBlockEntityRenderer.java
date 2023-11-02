@@ -14,7 +14,9 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.model.*;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
@@ -25,8 +27,11 @@ import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
@@ -39,6 +44,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     private final Map<SkullBlock.SkullType, SkullBlockEntityModel> skullModels;
     private final TextRenderer textRenderer;
     private final MinecraftClient client;
+    private final boolean adaptRenderer;
 
     private static ModelPart graveModel;
     @Nullable
@@ -54,6 +60,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         this.skullModels = SkullBlockEntityRenderer.getModels(context.getLayerRenderDispatcher());
         this.textRenderer = context.getTextRenderer();
         this.client = MinecraftClient.getInstance();
+
+        this.adaptRenderer = YigdConfig.getConfig().graveRendering.adaptRenderer;
     }
 
     @Override
@@ -142,9 +150,29 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         matrices.pop();
     }
 
-    private void renderGraveModel(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+    private void renderGraveModel(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
         for (Map.Entry<String, SpriteIdentifier> cuboid : CUBOID_SPRITES.entrySet()) {
-            ModelPart part = graveModel.getChild(cuboid.getKey());
+            String key = cuboid.getKey();
+            ModelPart part = graveModel.getChild(key);
+            if (this.adaptRenderer && key.equals("Base_Layer")) {
+                World world = entity.getWorld();
+                if (world != null) {
+                    BlockPos underPos = entity.getPos().down();
+                    BlockState blockUnder = entity.getWorld().getBlockState(underPos);
+
+                    if (blockUnder != null && blockUnder.isOpaqueFullCube(world, underPos)) {
+                        ModelPart.Cuboid cuboidPart = part.getRandomCuboid(Random.create());
+                        float scaleX = cuboidPart.maxX - cuboidPart.minX;
+                        float scaleZ = cuboidPart.maxZ - cuboidPart.minZ;
+
+                        matrices.translate(cuboidPart.minX / 16f + .0005f, cuboidPart.maxY / 16f - 1f, cuboidPart.minZ / 16f + .0005f);
+                        matrices.scale(.999f * (scaleX / 16f), 1, .999f * (scaleZ / 16f));
+                        client.getBlockRenderManager().renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, Random.create());
+
+                        continue;
+                    }
+                }
+            }
             VertexConsumer consumer = cuboid.getValue().getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
 
             part.render(matrices, consumer, light, overlay);

@@ -176,6 +176,7 @@
   "text.autoconfig.yigd.option.graveRendering.useCustomFeatureRenderer": "Use Block Entity Custom Renderer",
   "text.autoconfig.yigd.option.graveRendering.useSkullRenderer": "Render Grave Skulls",
   "text.autoconfig.yigd.option.graveRendering.useTextRenderer": "Render Grave Text",
+  "text.autoconfig.yigd.option.graveRendering.adaptRenderer": "Adapt to Block Under Grave",
   "text.autoconfig.yigd.option.graveRendering.useGlowingEffect": "Glowing Outline Enabled?",
   "text.autoconfig.yigd.option.graveRendering.glowingDistance": "Glowing Outline Distance",
   "text.autoconfig.yigd.option.extraFeatures": "Extra Features",

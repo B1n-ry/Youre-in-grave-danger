@@ -281,6 +281,8 @@ public class YigdConfig implements ConfigData {
         public boolean useCustomFeatureRenderer = true;
         public boolean useSkullRenderer = true;
         public boolean useTextRenderer = true;
+        @ConfigEntry.Gui.RequiresRestart
+        public boolean adaptRenderer = false;
         public boolean useGlowingEffect = true;
         public int glowingDistance = 15;
     }
