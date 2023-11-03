@@ -32,11 +32,13 @@ public class GraveBlockEntity extends BlockEntity {
     @Nullable
     private UUID graveId = null;
     @Nullable
-    private GameProfile graveOwner = null;
+    private GameProfile graveSkull = null;
     @Nullable
     private Text graveText = null;
     @Nullable
     private BlockState previousState = null;
+
+    private boolean claimed = false;
 
     private static YigdConfig cachedConfig = YigdConfig.getConfig();
 
@@ -46,10 +48,10 @@ public class GraveBlockEntity extends BlockEntity {
 
     public void setComponent(GraveComponent component) {
         this.component = component;
-        this.graveOwner = component.getOwner();
+        this.graveSkull = component.getOwner();
         this.graveId = component.getGraveId();
         // noinspection ConstantConditions
-        this.graveText = Text.of(this.graveOwner.getName());
+        this.graveText = Text.of(this.graveSkull.getName());  // graveSkull is never null in this case as it's not nullable in the grave component
         this.markDirty();
     }
     public void setPreviousState(@Nullable BlockState previousState) {
@@ -62,14 +64,20 @@ public class GraveBlockEntity extends BlockEntity {
     public @Nullable UUID getGraveId() {
         return this.graveId;
     }
-    public @Nullable GameProfile getGraveOwner() {
-        return this.graveOwner;
+    public @Nullable GameProfile getGraveSkull() {
+        return this.graveSkull;
     }
     public @Nullable GraveComponent getComponent() {
         return this.component;
     }
     public @Nullable BlockState getPreviousState() {
         return this.previousState;
+    }
+    public boolean isClaimed() {
+        return this.claimed;
+    }
+    public void setClaimed(boolean claimed) {
+        this.claimed = claimed;
     }
     public @Nullable Text getGraveText() {
         return this.graveText;
@@ -88,10 +96,12 @@ public class GraveBlockEntity extends BlockEntity {
     @Override
     public NbtCompound toInitialChunkDataNbt() {
         NbtCompound nbt = this.createNbt();
-        if (this.component != null)
-            nbt.put("owner", NbtHelper.writeGameProfile(new NbtCompound(), this.component.getOwner()));
+        if (this.graveSkull != null)
+            nbt.put("skull", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
         if (this.graveText != null)
             nbt.putString("text", this.graveText.getString());
+        nbt.putBoolean("claimed", this.claimed);
+
         return nbt;
     }
 
@@ -103,9 +113,10 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     protected void writeNbt(NbtCompound nbt) {
+        nbt.putBoolean("claimed", this.claimed);
         if (this.graveText != null)
             nbt.putString("text", this.graveText.getString());
-        if (this.component != null)
+        if (this.graveId != null)
             nbt.putUuid("graveId", this.graveId);
         if (this.previousState != null)
             nbt.put("previousState", NbtHelper.fromBlockState(this.previousState));
@@ -113,11 +124,13 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     public void readNbt(NbtCompound nbt) {
-        if (nbt.contains("owner"))  // Only for the client
-            this.graveOwner = NbtHelper.toGameProfile(nbt.getCompound("owner"));
+        if (nbt.contains("skull"))  // Only for the client
+            this.graveSkull = NbtHelper.toGameProfile(nbt.getCompound("skull"));
 
         if (nbt.contains("text"))
             this.graveText = Text.literal(nbt.getString("text"));
+
+        this.claimed = nbt.getBoolean("claimed");
 
         if (nbt.contains("graveId")) {
             this.graveId = nbt.getUuid("graveId");

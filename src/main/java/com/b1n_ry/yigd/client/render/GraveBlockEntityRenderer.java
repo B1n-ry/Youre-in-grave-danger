@@ -83,7 +83,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         matrices.multiply(RotationAxis.POSITIVE_Y.rotation(rotation), .5f, .5f, .5f);
 
-        if (config.useGlowingEffect)
+        if (config.useGlowingEffect && !entity.isClaimed())
             this.renderGlowingOutline(entity, tickDelta, matrices, vertexConsumers, light, overlay);
 
         if (config.useSkullRenderer)
@@ -96,11 +96,11 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     }
 
     private void renderOwnerSkull(GraveBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        GameProfile graveOwner = entity.getGraveOwner();
-        if (graveOwner == null) return;
+        GameProfile skullOwner = entity.getGraveSkull();
+        if (skullOwner == null) return;
 
         SkullBlock.SkullType type = SkullBlock.Type.PLAYER;
-        RenderLayer renderLayer = SkullBlockEntityRenderer.getRenderLayer(type, graveOwner);
+        RenderLayer renderLayer = SkullBlockEntityRenderer.getRenderLayer(type, skullOwner);
 
         this.renderSkull(entity, tickDelta, matrices, vertexConsumers, light, overlay, renderLayer);
     }

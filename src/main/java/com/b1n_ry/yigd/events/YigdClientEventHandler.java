@@ -13,7 +13,7 @@ public class YigdClientEventHandler {
         RenderGlowingGraveEvent.EVENT.register((be, player) -> {
             YigdConfig config = YigdConfig.getConfig();
 
-            GameProfile graveOwner = be.getGraveOwner();
+            GameProfile graveOwner = be.getGraveSkull();
 
             double distance = config.graveRendering.glowingDistance;
             boolean isOwner = graveOwner != null && graveOwner.equals(player.getGameProfile());

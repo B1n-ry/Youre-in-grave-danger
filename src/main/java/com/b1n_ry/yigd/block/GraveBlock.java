@@ -57,8 +57,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && itemStack.hasCustomName()) {
-            if (grave.getGraveOwner() == null)
+            if (grave.getComponent() == null) {
                 grave.setGraveText(itemStack.getName());
+                grave.markDirty();
+            }
         }
         super.onPlaced(world, pos, state, placer, itemStack);
     }

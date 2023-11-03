@@ -351,6 +351,10 @@ public class GraveComponent {
             } else {
                 world.removeBlock(pos, false);
             }
+        } else {
+            GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(pos);
+            if (be != null)
+                be.setClaimed(true);
         }
 
         this.status = GraveStatus.CLAIMED;
