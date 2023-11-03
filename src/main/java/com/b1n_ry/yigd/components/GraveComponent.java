@@ -353,8 +353,13 @@ public class GraveComponent {
             }
         } else {
             GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(pos);
-            if (be != null)
+            if (be != null) {
+                BlockState state = world.getBlockState(pos);
+
                 be.setClaimed(true);
+                be.markDirty();
+                world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+            }
         }
 
         this.status = GraveStatus.CLAIMED;

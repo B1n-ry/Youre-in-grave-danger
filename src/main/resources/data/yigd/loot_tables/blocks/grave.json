@@ -14,13 +14,8 @@
               "source": "block_entity",
               "ops": [
                 {
-                  "source": "graveId",
-                  "target": "BlockEntityTag.graveId",
-                  "op": "replace"
-                },
-                {
-                  "source": "owner",
-                  "target": "BlockEntityTag.owner",
+                  "source": "",
+                  "target": "BlockEntityTag",
                   "op": "replace"
                 }
               ],
