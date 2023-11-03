@@ -67,6 +67,9 @@ public class GraveBlockEntity extends BlockEntity {
     public @Nullable GameProfile getGraveSkull() {
         return this.graveSkull;
     }
+    public void setGraveSkull(@Nullable GameProfile skull) {
+        this.graveSkull = skull;
+    }
     public @Nullable GraveComponent getComponent() {
         return this.component;
     }
@@ -99,7 +102,7 @@ public class GraveBlockEntity extends BlockEntity {
         if (this.graveSkull != null)
             nbt.put("skull", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
         if (this.graveText != null)
-            nbt.putString("text", this.graveText.getString());
+            nbt.putString("text", Text.Serializer.toJson(this.graveText));
         nbt.putBoolean("claimed", this.claimed);
 
         return nbt;
@@ -115,7 +118,9 @@ public class GraveBlockEntity extends BlockEntity {
     protected void writeNbt(NbtCompound nbt) {
         nbt.putBoolean("claimed", this.claimed);
         if (this.graveText != null)
-            nbt.putString("text", this.graveText.getString());
+            nbt.putString("text", Text.Serializer.toJson(this.graveText));
+        if (this.graveSkull != null)
+            nbt.put("skull", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
         if (this.graveId != null)
             nbt.putUuid("graveId", this.graveId);
         if (this.previousState != null)
@@ -124,11 +129,11 @@ public class GraveBlockEntity extends BlockEntity {
 
     @Override
     public void readNbt(NbtCompound nbt) {
-        if (nbt.contains("skull"))  // Only for the client
+        if (nbt.contains("skull"))
             this.graveSkull = NbtHelper.toGameProfile(nbt.getCompound("skull"));
 
         if (nbt.contains("text"))
-            this.graveText = Text.literal(nbt.getString("text"));
+            this.graveText = Text.Serializer.fromJson(nbt.getString("text"));
 
         this.claimed = nbt.getBoolean("claimed");
 

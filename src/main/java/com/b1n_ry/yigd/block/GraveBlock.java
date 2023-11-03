@@ -11,6 +11,7 @@ import com.b1n_ry.yigd.data.TimePoint;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -20,6 +21,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -122,7 +125,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
                 if (graveComponent == null)
                     // It was indeed just a normal grave, belonging to no one whatsoever
-                    return ActionResult.PASS;
+                    return this.interactWithNonPlayerGrave(grave, state, world, pos, player, hand, hit);
             }
 
             if (config.graveConfig.persistentGraves.enabled && graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
@@ -149,6 +152,31 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             return graveComponent.claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
         }
         return ActionResult.FAIL;
+    }
+    private ActionResult interactWithNonPlayerGrave(GraveBlockEntity grave, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult ignoredHit) {
+        if (player.isSneaking()) return ActionResult.FAIL;
+
+        ItemStack stack = player.getStackInHand(hand);
+        NbtCompound nbt = stack.getNbt();
+        NbtElement skullOwnerNbt;
+        if (stack.isOf(Items.PLAYER_HEAD) && nbt != null && (skullOwnerNbt = nbt.get("SkullOwner")) != null) {
+            byte nbtType = skullOwnerNbt.getType();
+            GameProfile profile = switch (nbtType) {
+                case NbtElement.STRING_TYPE -> new GameProfile(null, skullOwnerNbt.asString());
+                case NbtElement.COMPOUND_TYPE -> NbtHelper.toGameProfile((NbtCompound) skullOwnerNbt);
+                default -> null;
+            };
+
+            grave.setGraveSkull(profile);  // Works since profile is nullable
+            grave.markDirty();
+            world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+
+            if (!player.isCreative())
+                stack.decrement(1);
+
+            return ActionResult.SUCCESS;
+        }
+        return ActionResult.PASS;
     }
 
     @Override

@@ -17,6 +17,11 @@
                   "source": "",
                   "target": "BlockEntityTag",
                   "op": "replace"
+                },
+                {
+                  "source": "text",
+                  "target": "display.Name",
+                  "op": "replace"
                 }
               ],
               "conditions": [
