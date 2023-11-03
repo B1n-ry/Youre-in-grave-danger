@@ -60,15 +60,7 @@ public class DeathInfoManager extends PersistentState {
 
         if (component.getStatus() != GraveStatus.UNCLAIMED) return ActionResult.SUCCESS;
 
-        BlockPos pos = component.getPos();
-        ServerWorld world = component.getWorld();
-        if (world == null) return ActionResult.PASS;
-        BlockEntity be = world.getBlockEntity(pos);
-
-        if (!(be instanceof GraveBlockEntity grave)) return ActionResult.PASS;
-        world.setBlockState(pos, grave.getPreviousState());
-
-        return ActionResult.SUCCESS;
+        return component.removeGraveBlock() ? ActionResult.SUCCESS : ActionResult.PASS;
     }
 
     public void addRespawnComponent(GameProfile profile, RespawnComponent component) {

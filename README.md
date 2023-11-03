@@ -39,7 +39,7 @@ The mod is also compatible with all soulbound enchantments, as long as they're a
 Graves can be waterlogged, and renders can be adapted to the block the grave is standing on.
 
 The mod also includes a large number of other features. If you're intrigued by what YiGD can do, check the configs.
-The mod includes components that can control various aspects of:
+The mod includes components that can control various aspects of the following, when a player die:
 * Player Inventory
 * Player experience points
 * Player Respawn event

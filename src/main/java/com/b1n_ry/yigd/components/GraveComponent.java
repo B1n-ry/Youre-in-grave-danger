@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.DropType;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -373,6 +374,26 @@ public class GraveComponent {
         Yigd.LOGGER.info("%s claimed a grave belonging to %s at %d, %d, %d, %s"
                 .formatted(player.getGameProfile().getName(), this.owner.getName(), this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.worldRegistryKey.getValue()));
         return ActionResult.SUCCESS;
+    }
+
+    /**
+     * Will remove the grave block associated with the component (if it exists)
+     * __DO NOTE__: Unless status for the grave is changed from UNCLAIMED *before* called, status will be set to DESTROYED
+     * @return Weather or not a grave block was removed
+     */
+    public boolean removeGraveBlock() {
+        if (this.status == GraveStatus.UNCLAIMED)
+            this.setStatus(GraveStatus.DESTROYED);
+
+        if (this.world == null) return false;
+        if (!(this.world.getBlockEntity(this.pos) instanceof GraveBlockEntity grave)) return false;
+
+        BlockState previousState = grave.getPreviousState();
+        if (previousState == null) {
+            return this.world.removeBlock(this.pos, false);
+        } else {
+            return this.world.setBlockState(this.pos, previousState);
+        }
     }
 
     private void handleRandomSpawn(YigdConfig.GraveConfig.RandomSpawn config, ServerWorld world, GameProfile looter) {

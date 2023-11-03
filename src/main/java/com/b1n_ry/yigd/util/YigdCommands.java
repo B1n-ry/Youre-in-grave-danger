@@ -172,6 +172,8 @@ public class YigdCommands {
         component.applyToPlayer(target, target.getServerWorld(), target.getBlockPos(), true);
         component.setStatus(GraveStatus.CLAIMED);
 
+        component.removeGraveBlock();
+
         context.getSource().sendMessage(Text.translatable("text.yigd.command.restore.success"));
         return 1;
     }
@@ -197,6 +199,8 @@ public class YigdCommands {
 
         component.applyToPlayer(player, context.getSource().getWorld(), player.getBlockPos(), false);
         component.setStatus(GraveStatus.CLAIMED);
+
+        component.removeGraveBlock();
 
         player.sendMessage(Text.translatable("text.yigd.command.rob.success"));
         return 1;
