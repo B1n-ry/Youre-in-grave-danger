@@ -142,7 +142,7 @@ public class GraveBlockEntity extends BlockEntity {
 
         if (!timeoutConfig.enabled || be.component.getStatus() != GraveStatus.UNCLAIMED) return;
 
-        long timePassed = world.getTime() - be.component.getCreationTime();
+        long timePassed = world.getTime() - be.component.getCreationTime().getTime();
         final int ticksPerSecond = 20;
         if (timeoutConfig.timeUnit.toSeconds(timeoutConfig.afterTime) * ticksPerSecond <= timePassed) {
             BlockState newState = Blocks.AIR.getDefaultState();

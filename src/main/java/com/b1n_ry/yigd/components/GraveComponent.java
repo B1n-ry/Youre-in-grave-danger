@@ -61,16 +61,16 @@ public class GraveComponent {
     private final UUID graveId;
     private GraveStatus status;
     private boolean locked;
-    private final long creationTime;
+    private final TimePoint creationTime;
     private final UUID killerId;
 
     public static GraveyardData graveyardData = null;
 
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, TranslatableDeathMessage deathMessage, UUID killerId) {
-        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true, world.getTime(), killerId);
+        this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true, new TimePoint(world), killerId);
     }
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world,
-                          BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked, long creationTime, UUID killerId) {
+                          BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked, TimePoint creationTime, UUID killerId) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
@@ -85,7 +85,7 @@ public class GraveComponent {
         this.killerId = killerId;
     }
     public GraveComponent(GameProfile owner, InventoryComponent inventoryComponent, ExpComponent expComponent, RegistryKey<World> worldKey,
-                          BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked, long creationTime, UUID killerId) {
+                          BlockPos pos, TranslatableDeathMessage deathMessage, UUID graveId, GraveStatus status, boolean locked, TimePoint creationTime, UUID killerId) {
         this.owner = owner;
         this.inventoryComponent = inventoryComponent;
         this.expComponent = expComponent;
@@ -141,7 +141,7 @@ public class GraveComponent {
     public boolean isLocked() {
         return this.locked;
     }
-    public long getCreationTime() {
+    public TimePoint getCreationTime() {
         return this.creationTime;
     }
     public UUID getKillerId() {
@@ -318,7 +318,7 @@ public class GraveComponent {
     public boolean hasExistedMs(long time) {
         if (this.world == null) return false;
 
-        return this.world.getTime() - this.creationTime < time;
+        return this.world.getTime() - this.creationTime.getTime() < time;
     }
 
     public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState previousState, BlockPos pos, ItemStack tool) {
@@ -345,7 +345,7 @@ public class GraveComponent {
                 ItemScatterer.spawn(this.world, this.pos.getX(), this.pos.getY(), this.pos.getZ(), graveItem);
         }
 
-        if (!config.graveConfig.persistentGraves) {
+        if (!config.graveConfig.persistentGraves.enabled) {
             if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
                 world.setBlockState(pos, previousState);
             } else {
@@ -506,7 +506,8 @@ public class GraveComponent {
         nbt.put("deathMessage", this.deathMessage.toNbt());
         nbt.putUuid("graveId", this.graveId);
         nbt.putString("status", this.status.toString());
-        nbt.putLong("creationTime", this.creationTime);
+//        nbt.putLong("creationTime", this.creationTime);
+        nbt.put("creationTime", this.creationTime.toNbt());
         if (this.killerId != null) nbt.putUuid("killerId", this.killerId);
 
 
@@ -530,7 +531,7 @@ public class GraveComponent {
         UUID graveId = nbt.getUuid("graveId");
         GraveStatus status = GraveStatus.valueOf(nbt.getString("status"));
         boolean locked = nbt.getBoolean("locked");
-        long creationTime = nbt.getLong("creationTime");
+        TimePoint creationTime = TimePoint.fromNbt(nbt.getCompound("creationTime"));
         UUID killerId = nbt.contains("killerId") ? nbt.getUuid("killerId") : null;
 
         if (server != null) {

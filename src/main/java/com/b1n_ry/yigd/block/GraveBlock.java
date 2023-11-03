@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.b1n_ry.yigd.data.TimePoint;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -23,6 +24,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -120,8 +123,23 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     return ActionResult.PASS;
             }
 
-            if (config.graveConfig.persistentGraves && graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
-                player.sendMessage(graveComponent.getDeathMessage().getDeathMessage().copy().append(" : Day " + graveComponent.getCreationTime() / 24000));
+            if (config.graveConfig.persistentGraves.enabled && graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
+                MutableText message = graveComponent.getDeathMessage().getDeathMessage();
+
+                TimePoint creationTime = graveComponent.getCreationTime();
+                if (config.graveConfig.persistentGraves.showDeathDay)
+                    message.append(Text.translatable("text.yigd.message.on_day", creationTime.getDay()));
+                if (config.graveConfig.persistentGraves.showDeathIrlTime)
+                    message.append(Text.translatable("text.yigd.message.irl_time",
+                            creationTime.getMonthName(),
+                            creationTime.getDate(),
+                            creationTime.getYear(),
+                            creationTime.getHour(config.graveConfig.persistentGraves.useAmPm),
+                            creationTime.getMinute(),
+                            creationTime.getTimePostfix(config.graveConfig.persistentGraves.useAmPm)
+                    ));
+
+                player.sendMessage(message);
                 return ActionResult.SUCCESS;
             }
 
@@ -150,9 +168,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     }
 
                     if (graveComponent != null)  // Check needed again
-                        if (graveConfig.persistentGraves && graveComponent.getStatus() == GraveStatus.CLAIMED) {
-                            player.sendMessage(graveComponent.getDeathMessage().getDeathMessage().copy().append(" : Day " + graveComponent.getCreationTime() / 24000));
-                        } else {
+                        if (graveComponent.getStatus() != GraveStatus.CLAIMED) {
                             graveComponent.claim(player, (ServerWorld) world, grave.getPreviousState(), pos, player.getMainHandStack());
                         }
                 }

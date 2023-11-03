@@ -186,7 +186,8 @@ public class YigdConfig implements ConfigData {
         public boolean replaceOldWhenClaimed = true;
         // Keep grave after it's looted
         @Comment("If true, graves will persist when claiming them, and right clicking on them after that will let you know when and how they died. Can also then be mined")
-        public boolean persistentGraves = false;
+        @ConfigEntry.Gui.CollapsibleObject
+        public PersistentGraves persistentGraves = new PersistentGraves();
         // grave generation dimension blacklist
         public List<String> dimensionBlacklist = new ArrayList<>();
         // block under grave?
@@ -224,6 +225,13 @@ public class YigdConfig implements ConfigData {
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public TimeUnit timeUnit = TimeUnit.HOURS;
             public boolean dropContentsOnTimeout = true;
+        }
+
+        public static class PersistentGraves {
+            public boolean enabled = false;
+            public boolean showDeathDay = true;
+            public boolean showDeathIrlTime = true;
+            public boolean useAmPm = true;
         }
 
         public static class RandomSpawn {

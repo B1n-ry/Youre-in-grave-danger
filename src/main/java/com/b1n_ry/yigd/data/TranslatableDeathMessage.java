@@ -5,6 +5,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,7 @@ public class TranslatableDeathMessage {
         this.primeAdversaryDisplayName = primeAdversaryDisplayName;
     }
 
-    public Text getDeathMessage() {
+    public MutableText getDeathMessage() {
         String string = "death.attack." + this.damageTypeId;
         if (this.attackerDisplayName != null || this.sourceDisplayName != null) {
             String killedBy = this.attackerDisplayName == null ? this.sourceDisplayName : this.attackerDisplayName;
