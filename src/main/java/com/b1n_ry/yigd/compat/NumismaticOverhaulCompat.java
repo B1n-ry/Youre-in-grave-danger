@@ -2,6 +2,8 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.events.DropRuleEvent;
+import com.b1n_ry.yigd.util.DropRule;
 import com.glisco.numismaticoverhaul.ModComponents;
 import com.glisco.numismaticoverhaul.NumismaticOverhaul;
 import com.glisco.numismaticoverhaul.currency.Currency;
@@ -82,7 +84,10 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
             Vec3d deathPos = context.getDeathPos();
             for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.inventory)) {
-                switch (compatConfig.numismaticDropRule) {
+                DropRule dropRule = compatConfig.defaultNumismaticDropRule;
+                if (dropRule == DropRule.PUT_IN_GRAVE)
+                    dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
+                switch (dropRule) {
                     case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, stack);
                     case DESTROY -> this.inventory = 0L;
                     case KEEP -> soulbound += this.inventory;

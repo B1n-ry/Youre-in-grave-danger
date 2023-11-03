@@ -250,17 +250,34 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class CompatConfig {
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropRule standardDropRuleInClaim = DropRule.PUT_IN_GRAVE;
 
         public boolean enableInventorioCompat = true;
-        public boolean enableLevelzCompat = true;
-        public boolean enableNumismaticOverhaulCompat = true;
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
-        public DropRule numismaticDropRule = DropRule.PUT_IN_GRAVE;
+        public DropRule defaultInventorioDropRule = DropRule.PUT_IN_GRAVE;
+        public boolean enableLevelzCompat = true;
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropRule defaultLevelzDropRule = DropRule.PUT_IN_GRAVE;
+        public boolean enableNumismaticOverhaulCompat = true;
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropRule defaultNumismaticDropRule = DropRule.PUT_IN_GRAVE;
         public boolean enableOriginsInventoryCompat = true;
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropRule defaultOriginsDropRule = DropRule.PUT_IN_GRAVE;
         public boolean enableTravelersBackpackCompat = true;
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropRule defaultTravelersBackpackDropRule = DropRule.PUT_IN_GRAVE;
         public boolean enableTrinketsCompat = true;
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropRule defaultTrinketsDropRule = DropRule.PUT_IN_GRAVE;
     }
 
     public static class CommandConfig {

@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
@@ -209,8 +210,10 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
         @Override
         public CompatComponent<Map<String, Map<String, DefaultedList<Pair<TrinketEnums.DropRule, ItemStack>>>>> handleDropRules(DeathContext context) {
+            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
             Map<String, Map<String, DefaultedList<Pair<TrinketEnums.DropRule, ItemStack>>>> soulboundInventory = new HashMap<>();
 
+            Vec3d deathPos = context.getDeathPos();
             // Traverse through groups
             for (Map.Entry<String, Map<String, DefaultedList<Pair<TrinketEnums.DropRule, ItemStack>>>> group : this.inventory.entrySet()) {
                 Map<String, DefaultedList<Pair<TrinketEnums.DropRule, ItemStack>>> soulboundGroup = new HashMap<>();
@@ -226,13 +229,17 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         Pair<TrinketEnums.DropRule, ItemStack> pair = slotItems.get(i);
                         ItemStack item = pair.getRight();
 
-                        Vec3d deathPos = context.getDeathPos();
+                        DropRule dropRule = compatConfig.defaultTrinketsDropRule;
+                        if (dropRule == DropRule.PUT_IN_GRAVE)
+                            dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
 
-                        DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
-                        switch (pair.getLeft()) {  // Translate trinket drop rules
-                            case DESTROY -> dropRule = DropRule.DESTROY;
-                            case KEEP ->  dropRule = DropRule.KEEP;
+                        if (dropRule == DropRule.PUT_IN_GRAVE) {
+                            switch (pair.getLeft()) {  // Translate trinket drop rules
+                                case DESTROY -> dropRule = DropRule.DESTROY;
+                                case KEEP -> dropRule = DropRule.KEEP;
+                            }
                         }
+
                         switch (dropRule) {
                             case KEEP -> soulboundItems.set(i, new Pair<>(TrinketEnums.DropRule.DEFAULT, item));
                             case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);

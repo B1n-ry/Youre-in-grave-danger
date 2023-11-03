@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
@@ -82,7 +83,12 @@ public class TravelersBackpackCompat implements InvModCompat<ItemStack> {
 
         @Override
         public CompatComponent<ItemStack> handleDropRules(DeathContext context) {
-            DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(this.inventory, -1, context, true);
+            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+
+            DropRule dropRule = compatConfig.defaultTravelersBackpackDropRule;
+            if (dropRule == DropRule.PUT_IN_GRAVE)
+                dropRule = DropRuleEvent.EVENT.invoker().getDropRule(this.inventory, -1, context, true);
+
             TBCompatComponent soulboundComponent = new TBCompatComponent(dropRule == DropRule.KEEP ? this.inventory : ItemStack.EMPTY);
 
             Vec3d deathPos = context.getDeathPos();
@@ -90,7 +96,7 @@ public class TravelersBackpackCompat implements InvModCompat<ItemStack> {
                 ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, this.inventory);
 
             if (dropRule != DropRule.PUT_IN_GRAVE)
-                this.inventory = ItemStack.EMPTY;
+                this.clear();
 
             return soulboundComponent;
         }

@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
@@ -145,8 +146,10 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
 
         @Override
         public CompatComponent<Map<String, DefaultedList<ItemStack>>> handleDropRules(DeathContext context) {
+            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
             Map<String, DefaultedList<ItemStack>> soulbound = new HashMap<>();
 
+            Vec3d deathPos = context.getDeathPos();
             for (Map.Entry<String, DefaultedList<ItemStack>> entry : this.inventory.entrySet()) {
                 String key = entry.getKey();
                 DefaultedList<ItemStack> items = entry.getValue();
@@ -155,8 +158,11 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
 
                 for (int i = 0; i < items.size(); i++) {
                     ItemStack item = items.get(i);
-                    Vec3d deathPos = context.getDeathPos();
-                    DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
+
+                    DropRule dropRule = compatConfig.defaultOriginsDropRule;
+                    if (dropRule == DropRule.PUT_IN_GRAVE)
+                        dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
+
                     switch (dropRule) {
                         case KEEP -> soulboundStacks.set(i, item);
                         case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);

@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import net.levelz.access.PlayerStatsManagerAccess;
 import net.levelz.stats.PlayerStatsManager;
@@ -65,6 +66,19 @@ public class LevelzCompat implements InvModCompat<Float> {
 
         @Override
         public CompatComponent<Float> handleDropRules(DeathContext context) {
+            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+            switch (compatConfig.defaultLevelzDropRule) {
+                case KEEP -> {
+                    LevelzCompatComponent component = new LevelzCompatComponent(this.inventory);
+                    this.clear();
+                    return component;
+                }
+                case DROP -> {
+                    this.dropItems(context.getWorld(), context.getDeathPos());
+                    this.clear();
+                }
+                case DESTROY -> this.inventory = 0f;
+            }
             return new LevelzCompatComponent(0f);
         }
 

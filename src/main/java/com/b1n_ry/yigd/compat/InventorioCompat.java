@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
@@ -108,13 +109,17 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
 
         @Override
         public CompatComponent<DefaultedList<ItemStack>> handleDropRules(DeathContext context) {
+            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
             DefaultedList<ItemStack> soulboundItems = DefaultedList.ofSize(this.inventory.size(), ItemStack.EMPTY);
 
+            Vec3d deathPos = context.getDeathPos();
             for (int i = 0; i < this.inventory.size(); i++) {
                 ItemStack stack = this.inventory.get(i);
 
-                DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
-                Vec3d deathPos = context.getDeathPos();
+                DropRule dropRule = compatConfig.defaultInventorioDropRule;
+                if (dropRule == DropRule.PUT_IN_GRAVE)
+                    dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
+
                 switch (dropRule) {
                     case KEEP -> soulboundItems.set(i, stack);
                     case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, stack);
