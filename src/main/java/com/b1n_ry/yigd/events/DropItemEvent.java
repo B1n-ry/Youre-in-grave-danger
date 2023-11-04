@@ -5,6 +5,11 @@ import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
+/**
+ * Here custom logic for item drops can be applied. If any items from any mod has a special drop function,
+ * this event can be used.
+ * Vanilla minecraft doesn't use this, but it exists if any mod wants to use it.
+ */
 public interface DropItemEvent {
     Event<DropItemEvent> EVENT = EventFactory.createArrayBacked(DropItemEvent.class, dropItemEvents -> (stack, x, y, z, world) -> {
         for (DropItemEvent event : dropItemEvents) {

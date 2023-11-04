@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
@@ -122,7 +123,7 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
 
                 switch (dropRule) {
                     case KEEP -> soulboundItems.set(i, stack);
-                    case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, stack);
+                    case DROP -> InventoryComponent.dropItemIfToBeDropped(stack, deathPos.x, deathPos.y, deathPos.z, context.getWorld());
                 }
                 if (dropRule != DropRule.PUT_IN_GRAVE)
                     this.inventory.set(i, ItemStack.EMPTY);

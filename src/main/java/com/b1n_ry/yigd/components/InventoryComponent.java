@@ -139,7 +139,7 @@ public class InventoryComponent {
             DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context, true);
             switch (dropRule) {
                 case KEEP -> soulboundInventory.items.set(i, item);
-                case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);
+                case DROP -> InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.getWorld());
             }
 
             if (dropRule != DropRule.PUT_IN_GRAVE)
@@ -221,8 +221,7 @@ public class InventoryComponent {
     public void dropAll(ServerWorld world, Vec3d pos) {
         for (ItemStack stack : this.items) {
             if (stack.isEmpty()) continue;
-            if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, pos.x, pos.y, pos.z, world))
-                ItemScatterer.spawn(world, pos.x, pos.y, pos.z, stack);
+            InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
         }
 
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
@@ -491,6 +490,11 @@ public class InventoryComponent {
         }
 
         return new InventoryComponent(items, compatComponents, mainSize, armorSize, offHandSize);
+    }
+
+    public static void dropItemIfToBeDropped(ItemStack stack, double x, double y, double z, ServerWorld world) {
+        if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
+            ItemScatterer.spawn(world, x, y, z, stack);
     }
 
     public static void clearPlayer(ServerPlayerEntity player) {

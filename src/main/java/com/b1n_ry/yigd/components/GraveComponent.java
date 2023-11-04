@@ -342,7 +342,7 @@ public class GraveComponent {
             this.dropAll();
 
             if (this.world != null && addGraveItem)
-                ItemScatterer.spawn(this.world, this.pos.getX(), this.pos.getY(), this.pos.getZ(), graveItem);
+                InventoryComponent.dropItemIfToBeDropped(graveItem, this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.world);
         }
 
         if (!config.graveConfig.persistentGraves.enabled) {
@@ -489,8 +489,7 @@ public class GraveComponent {
             int x = pos.getX();
             int y = pos.getY();
             int z = pos.getZ();
-            if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
-                ItemScatterer.spawn(world, x, y, z, stack);
+            InventoryComponent.dropItemIfToBeDropped(stack, x, y, z, world);
         }
     }
 

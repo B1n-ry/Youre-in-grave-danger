@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
@@ -93,7 +94,7 @@ public class TravelersBackpackCompat implements InvModCompat<ItemStack> {
 
             Vec3d deathPos = context.getDeathPos();
             if (dropRule == DropRule.DROP)
-                ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, this.inventory);
+                InventoryComponent.dropItemIfToBeDropped(this.inventory, deathPos.x, deathPos.y, deathPos.z, context.getWorld());
 
             if (dropRule != DropRule.PUT_IN_GRAVE)
                 this.clear();

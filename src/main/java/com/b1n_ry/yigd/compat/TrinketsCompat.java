@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
@@ -242,7 +243,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
                         switch (dropRule) {
                             case KEEP -> soulboundItems.set(i, new Pair<>(TrinketEnums.DropRule.DEFAULT, item));
-                            case DROP -> ItemScatterer.spawn(context.getWorld(), deathPos.x, deathPos.y, deathPos.z, item);
+                            case DROP -> InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.getWorld());
                         }
 
                         if (dropRule != DropRule.PUT_IN_GRAVE)

@@ -51,13 +51,12 @@ public class RespawnComponent {
         if (this.soulboundInventory != null) {
             DefaultedList<ItemStack> extraItems = this.soulboundInventory.applyToPlayer(player);
 
+            double x = player.getX();
+            double y = player.getY();
+            double z = player.getZ();
+            ServerWorld world = player.getServerWorld();
             for (ItemStack stack : extraItems) {
-                double x = player.getX();
-                double y = player.getY();
-                double z = player.getZ();
-                ServerWorld world = player.getServerWorld();
-                if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
-                    ItemScatterer.spawn(world, x, y, z, stack);
+                InventoryComponent.dropItemIfToBeDropped(stack, x, y, z, world);
             }
         }
 

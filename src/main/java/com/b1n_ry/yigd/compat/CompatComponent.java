@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import net.minecraft.item.ItemStack;
@@ -49,8 +50,7 @@ public abstract class CompatComponent<T> {
     public void dropItems(ServerWorld world, Vec3d pos) {
         DefaultedList<ItemStack> items = this.getAsStackList();
         for (ItemStack stack : items) {
-            if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, pos.x, pos.y, pos.z, world))
-                ItemScatterer.spawn(world, pos.x, pos.y, pos.z, stack);
+            InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
         }
     }
     public abstract void clear();
