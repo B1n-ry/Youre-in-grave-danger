@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.client.render;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.RenderGlowingGraveEvent;
+import com.b1n_ry.yigd.mixin.accessor.WorldRendererAccessor;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -14,6 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.model.*;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.OutlineVertexConsumerProvider;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -83,8 +85,11 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         matrices.multiply(RotationAxis.POSITIVE_Y.rotation(rotation), .5f, .5f, .5f);
 
-        if (config.useGlowingEffect && !entity.isClaimed())
-            this.renderGlowingOutline(entity, tickDelta, matrices, vertexConsumers, light, overlay);
+        if (config.useGlowingEffect && !entity.isClaimed()) {
+            // Get the actual outline vertex consumer, instead of the normal one
+            OutlineVertexConsumerProvider consumerProvider = ((WorldRendererAccessor) this.client.worldRenderer).getBufferBuilders().getOutlineVertexConsumers();
+            this.renderGlowingOutline(entity, tickDelta, matrices, consumerProvider, light, overlay);
+        }
 
         if (config.useSkullRenderer)
             this.renderOwnerSkull(entity, tickDelta, matrices, vertexConsumers, light, overlay);

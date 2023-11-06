@@ -9,7 +9,8 @@
   ],
   "client": [
     "AbstractConfigScreenMixin",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "accessor.WorldRendererAccessor"
   ],
   "server": [
     "MinecraftDedicatedServerMixin"
