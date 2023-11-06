@@ -11,7 +11,8 @@ public abstract class WorldRendererMixin {
     /**
      * It just works  - Tod Howard
      * I *think* this will render the block entities on the entity rendering profile, allowing them to have entity outlines
-     * Kinda cursed if this is the case, I feel like, but I don't know how else to do it ¯\_(ツ)_/¯
+     * I feel like this is kinda cursed if this is the case, but I don't know how else to do it ¯\_(ツ)_/¯
+     * Also it seems to work, as long as the rendering on the outline render layer is an actual outline vertex consumer
      */
     @SuppressWarnings("InvalidInjectorMethodSignature")
     @ModifyVariable(method = "render", at = @At(value = "CONSTANT", args = "stringValue=blockentities", ordinal = 0), ordinal = 3)

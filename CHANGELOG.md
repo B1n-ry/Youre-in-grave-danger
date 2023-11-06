@@ -1,3 +1,13 @@
+# You're in Grave Danger 2.0.0-beta.2
+Small update to fix an issue with iris
+
+### Fixes
+ * Using iris, graves used to render completely white when glowing grave render config
+was enabled. It should now appear normally with just a white glowing outline
+
+
+---
+
 # You're in Grave Danger 2.0.0-beta.1
 **NOTE: This version is a rewrite of previous versions of the mod for minecraft 1.20
 and above. It will not be backwards compatible with previous versions of the mod.**
