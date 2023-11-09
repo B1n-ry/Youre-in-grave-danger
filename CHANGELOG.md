@@ -2,7 +2,7 @@
 Small update to fix an issue with iris
 
 ### Fixes
- * Using iris, graves used to render completely white when glowing grave render config
+* Using iris, graves used to render completely white when glowing grave render config
 was enabled. It should now appear normally with just a white glowing outline
 
 

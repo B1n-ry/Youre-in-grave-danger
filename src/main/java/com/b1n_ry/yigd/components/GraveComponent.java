@@ -7,7 +7,6 @@ import com.b1n_ry.yigd.config.DropType;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.*;
 import com.b1n_ry.yigd.events.AllowBlockUnderGraveGenerationEvent;
-import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.b1n_ry.yigd.packets.LightGraveData;
@@ -31,7 +30,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -514,7 +512,6 @@ public class GraveComponent {
         nbt.put("deathMessage", this.deathMessage.toNbt());
         nbt.putUuid("graveId", this.graveId);
         nbt.putString("status", this.status.toString());
-//        nbt.putLong("creationTime", this.creationTime);
         nbt.put("creationTime", this.creationTime.toNbt());
         if (this.killerId != null) nbt.putUuid("killerId", this.killerId);
 

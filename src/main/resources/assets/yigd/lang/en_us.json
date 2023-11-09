@@ -140,6 +140,7 @@
   "text.autoconfig.yigd.option.graveConfig.blockUnderGrave.generateOnProtectedLand": "Generate On Protected Land",
   "text.autoconfig.yigd.option.graveConfig.sellOutOfflinePeople": "Sell Out Offline People",
   "text.autoconfig.yigd.option.graveConfig.maxBackupsPerPerson": "Max Backups Per Person",
+  "text.autoconfig.yigd.option.graveConfig.dropFromOldestWhenDeleted": "Drop Items From Oldest Deleted",
   "text.autoconfig.yigd.option.respawnConfig": "Respawn Component Config",
   "text.autoconfig.yigd.option.respawnConfig.respawnEffects": "Respawn Status Effects",
   "text.autoconfig.yigd.option.EffectConfig": "Effect",

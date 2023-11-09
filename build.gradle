@@ -43,15 +43,15 @@ dependencies {
 
 	// Compat mods
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modImplementation "eu.pb4:common-protection-api:${project.protection_api_version}"
+	modCompileOnly "eu.pb4:common-protection-api:${project.protection_api_version}"
 
 	// Inventory Mods
-	modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-	modImplementation "curse.maven:inventorio-${project.inventorio_version}"
-	modImplementation "curse.maven:travelersbackpack-${project.travelers_backpack_version}"
-	modImplementation "curse.maven:numismaticoverhaul-${project.numismatic_version}"
-	modImplementation "com.github.apace100:apoli:${project.apoli_version}"
-	modImplementation "curse.maven:levelz-${project.levelz_version}"
+	modCompileOnly "dev.emi:trinkets:${project.trinkets_version}"
+	modCompileOnly "curse.maven:inventorio-${project.inventorio_version}"
+	modCompileOnly "curse.maven:travelersbackpack-${project.travelers_backpack_version}"
+	modCompileOnly "curse.maven:numismaticoverhaul-${project.numismatic_version}"
+	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"
+	modCompileOnly "curse.maven:levelz-${project.levelz_version}"
 
 	// Dev dependencies
 	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"

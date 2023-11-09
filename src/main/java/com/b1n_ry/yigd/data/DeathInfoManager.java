@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -91,6 +92,10 @@ public class DeathInfoManager extends PersistentState {
         if (playerGraves.size() > config.graveConfig.maxBackupsPerPerson) {
             GraveComponent toBeRemoved = playerGraves.get(0);
             this.delete(toBeRemoved.getGraveId());
+            if (toBeRemoved.getStatus() == GraveStatus.UNCLAIMED) {
+                if (config.graveConfig.dropFromOldestWhenDeleted)
+                    toBeRemoved.dropAll();
+            }
         }
     }
     public @NotNull List<GraveComponent> getBackupData(GameProfile profile) {
