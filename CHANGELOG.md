@@ -1,10 +1,20 @@
+# You're in Grave Danger 2.0.0-beta.3
+
+### Changes
+* Added config to drop contents of deleted graves, when deleted due to the max grave
+count reached.
+
+### Fixes
+* Graves will no longer unlock when closing and reopening the game
+
+---
+
 # You're in Grave Danger 2.0.0-beta.2
 Small update to fix an issue with iris
 
 ### Fixes
 * Using iris, graves used to render completely white when glowing grave render config
 was enabled. It should now appear normally with just a white glowing outline
-
 
 ---
 

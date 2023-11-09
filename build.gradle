@@ -54,11 +54,11 @@ dependencies {
 	modCompileOnly "curse.maven:levelz-${project.levelz_version}"
 
 	// Dev dependencies
-	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
-	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}"
-	modImplementation "curse.maven:libz-${project.libz_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
-	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
+	modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
+	modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}"
+	modCompileOnly "curse.maven:libz-${project.libz_version}"
+	modCompileOnly "io.wispforest:owo-lib:${project.owo_version}"
 }
 
 processResources {

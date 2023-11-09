@@ -512,6 +512,7 @@ public class GraveComponent {
         nbt.put("deathMessage", this.deathMessage.toNbt());
         nbt.putUuid("graveId", this.graveId);
         nbt.putString("status", this.status.toString());
+        nbt.putBoolean("locked", this.locked);
         nbt.put("creationTime", this.creationTime.toNbt());
         if (this.killerId != null) nbt.putUuid("killerId", this.killerId);
 
