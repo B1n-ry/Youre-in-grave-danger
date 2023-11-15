@@ -2,6 +2,10 @@
   "block.yigd.grave": "Grave",
   "item.yigd.death_scroll": "Death Scroll",
   "item.yigd.grave_key": "Grave Key",
+  "enchantment.yigd.soulbound": "Soulbound",
+  "enchantment.yigd.soulbound.desc": "Keep your items when you die and respawn",
+  "enchantment.yigd.death_sight": "Death Sight",
+  "enchantment.yigd.death_sight.desc": "Graves will be highlighted to you",
 
   "button.yigd.gui.restore": "Restore",
   "button.yigd.gui.rob": "Rob",
