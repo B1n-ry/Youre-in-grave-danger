@@ -3,9 +3,12 @@
 ### Changes
 * Added config to drop contents of deleted graves, when deleted due to the max grave
 count reached.
+* Config now uses GSON instead of jankson (config file is now yigd.json instead of yigd.json5)
 
 ### Fixes
 * Graves will no longer unlock when closing and reopening the game
+* Added translation keys for enchantments
+* Fixed error where game could not read config file, so you could not change the configs
 
 ---
 

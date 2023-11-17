@@ -15,6 +15,7 @@ import com.b1n_ry.yigd.util.YigdCommands;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
 import com.b1n_ry.yigd.util.YigdResourceHandler;
 import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -61,7 +62,7 @@ public class Yigd implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        AutoConfig.register(YigdConfig.class, JanksonConfigSerializer::new);
+        AutoConfig.register(YigdConfig.class, GsonConfigSerializer::new);
 
         GRAVE_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, new Identifier(MOD_ID, "grave_block_entity"), FabricBlockEntityTypeBuilder.create(GraveBlockEntity::new, GRAVE_BLOCK).build());
 

@@ -7,8 +7,6 @@ import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -51,9 +49,9 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public ItemLossConfig itemLoss = new ItemLossConfig();
         // delete enchantments
-        public List<String> vanishingEnchantments = List.of("minecraft:vanishing_curse");
+        public List<String> vanishingEnchantments = new ArrayList<>() {{ add("minecraft:vanishing_curse"); }};
         // soulbinding enchantments
-        public List<String> soulboundEnchantments = List.of("yigd:soulbound");
+        public List<String> soulboundEnchantments = new ArrayList<>() {{ add("yigd:soulbound"); }};
         // loose soulbound level
         public boolean loseSoulboundLevelOnDeath = false;
         // void slots
@@ -249,11 +247,12 @@ public class YigdConfig implements ConfigData {
 
         public static class BlockUnderGrave {
             public boolean enabled = true;
-            public List<MapEntry> blockInDimensions = List.of(
-                    new MapEntry("minecraft:overworld", "minecraft:cobblestone"),
-                    new MapEntry("minecraft:nether", "minecraft:soul_soil"),
-                    new MapEntry("minecraft:end", "minecraft:end_stone"),
-                    new MapEntry("misc", "minecraft:dirt"));
+            public List<MapEntry> blockInDimensions = new ArrayList<>() {{
+                    add(new MapEntry("minecraft:overworld", "minecraft:cobblestone"));
+                    add(new MapEntry("minecraft:nether", "minecraft:soul_soil"));
+                    add(new MapEntry("minecraft:end", "minecraft:end_stone"));
+                    add(new MapEntry("misc", "minecraft:dirt"));
+            }};
             public boolean generateOnProtectedLand = false;
         }
     }
