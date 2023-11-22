@@ -29,21 +29,26 @@ public class ExpComponent {
         if (config.expConfig.dropBehaviour == ExpDropBehaviour.VANILLA) {
             return Math.min(7 * player.experienceLevel, 100);
         } else if (config.expConfig.dropBehaviour == ExpDropBehaviour.PERCENTAGE) {
-            int currentLevel = player.experienceLevel;
-            int totalExperience;
-            if (currentLevel >= 32) {
-                totalExperience = (int) (4.5 * Math.pow(currentLevel, 2) - 162.5 * currentLevel + 2220);
-            } else if (currentLevel >= 17) {
-                totalExperience = (int) (2.5 * Math.pow(currentLevel, 2) - 40.5 * currentLevel + 360);
-            } else {
-                totalExperience = (int) (Math.pow(currentLevel, 2) + 6 * currentLevel);
-            }
-            totalExperience += player.experienceProgress;
+            double totalExperience = this.getTotalExperience(player);
 
-            return (int) ((config.expConfig.dropPercentage / 100f) * (float) totalExperience);
+            return (int) ((config.expConfig.dropPercentage / 100f) * totalExperience);
         }
 
         return 0;
+    }
+
+    private double getTotalExperience(ServerPlayerEntity player) {
+        int currentLevel = player.experienceLevel;
+        double totalExperience;
+        if (currentLevel >= 32) {
+            totalExperience = 4.5 * Math.pow(currentLevel, 2) - 162.5 * currentLevel + 2220;
+        } else if (currentLevel >= 17) {
+            totalExperience = 2.5 * Math.pow(currentLevel, 2) - 40.5 * currentLevel + 360;
+        } else {
+            totalExperience = Math.pow(currentLevel, 2) + 6 * currentLevel;
+        }
+        totalExperience += player.experienceProgress;
+        return totalExperience;
     }
 
     public int getXpLevel() {
