@@ -249,8 +249,8 @@ public class YigdConfig implements ConfigData {
             public boolean enabled = true;
             public List<MapEntry> blockInDimensions = new ArrayList<>() {{
                     add(new MapEntry("minecraft:overworld", "minecraft:cobblestone"));
-                    add(new MapEntry("minecraft:nether", "minecraft:soul_soil"));
-                    add(new MapEntry("minecraft:end", "minecraft:end_stone"));
+                    add(new MapEntry("minecraft:the_nether", "minecraft:soul_soil"));
+                    add(new MapEntry("minecraft:the_end", "minecraft:end_stone"));
                     add(new MapEntry("misc", "minecraft:dirt"));
             }};
             public boolean generateOnProtectedLand = false;

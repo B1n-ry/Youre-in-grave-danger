@@ -100,16 +100,17 @@ public class DeathHandler {
                 BlockState previousState = graveWorld.getBlockState(gravePos);
 
                 boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
+                BlockPos placedPos = graveComponent.getPos();
 
                 if (!placed) {
-                    Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(gravePos.getX(), gravePos.getY(), gravePos.getZ(), graveWorld.getRegistryKey().getValue()));
+                    Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(placedPos.getX(), placedPos.getY(), placedPos.getZ(), graveWorld.getRegistryKey().getValue()));
                     Yigd.LOGGER.info("Dropping items on ground instead of in grave");
-                    graveComponent.getInventoryComponent().dropAll(graveWorld, Vec3d.of(gravePos));
-                    graveComponent.getExpComponent().dropAll(graveWorld, Vec3d.of(gravePos));
+                    graveComponent.getInventoryComponent().dropAll(graveWorld, Vec3d.of(placedPos));
+                    graveComponent.getExpComponent().dropAll(graveWorld, Vec3d.of(placedPos));
                     return;
                 }
 
-                GraveBlockEntity be = (GraveBlockEntity) graveWorld.getBlockEntity(gravePos);
+                GraveBlockEntity be = (GraveBlockEntity) graveWorld.getBlockEntity(placedPos);
                 if (be == null) return;
                 be.setPreviousState(previousState);
                 be.setComponent(graveComponent);
