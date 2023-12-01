@@ -1,3 +1,12 @@
+# You're in Grave Danger 2.0.0-beta.4
+
+### Fixes
+* Graves generating inside the world when dying outside the world (like falling
+out of the end) will now store the grave data
+* Origins inventories will now properly handle its own drop rules
+
+---
+
 # You're in Grave Danger 2.0.0-beta.3
 
 ### Changes

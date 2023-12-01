@@ -1,16 +1,21 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.components.InventoryComponent;
+import com.b1n_ry.yigd.config.DropType;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import io.github.apace100.apoli.component.PowerHolderComponent;
+import io.github.apace100.apoli.component.PowerHolderComponentImpl;
 import io.github.apace100.apoli.power.Active;
 import io.github.apace100.apoli.power.InventoryPower;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
@@ -32,6 +37,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
     @Override
     public CompatComponent<Map<String, DefaultedList<ItemStack>>> readNbt(NbtCompound nbt) {
         Map<String, DefaultedList<ItemStack>> inventory = new HashMap<>();
+        Map<String, DefaultedList<DropRule>> inventoryDropRules = new HashMap<>();
 
         for (String key : nbt.getKeys()) {
             NbtCompound inventoryNbt = nbt.getCompound(key);
@@ -42,8 +48,22 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
             Inventories.readNbt(inventoryNbt, items);
 
             inventory.put(key, items);
+
+            NbtList dropRulesNbt = nbt.getList(key + "_dropRules", NbtElement.COMPOUND_TYPE);
+            DefaultedList<DropRule> dropRules = DefaultedList.ofSize(size, DropRule.PUT_IN_GRAVE);
+            for (NbtElement element : dropRulesNbt) {
+                NbtCompound c = (NbtCompound) element;
+                int i = c.getInt("Id");
+                DropRule dropRule = DropRule.valueOf(c.getString("dropRule"));
+                dropRules.set(i, dropRule);
+            }
+            inventoryDropRules.put(key, dropRules);
         }
-        return new OriginsCompatComponent(inventory);
+
+        OriginsCompatComponent returnValue = new OriginsCompatComponent(inventory);
+        returnValue.inventoryDropRules = inventoryDropRules;
+
+        return returnValue;
     }
 
     @Override
@@ -52,6 +72,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
     }
 
     private static class OriginsCompatComponent extends CompatComponent<Map<String, DefaultedList<ItemStack>>> {
+        private Map<String, DefaultedList<DropRule>> inventoryDropRules = new HashMap<>();
 
         public OriginsCompatComponent(ServerPlayerEntity player) {
             super(player);
@@ -63,18 +84,25 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
 
         @Override
         public Map<String, DefaultedList<ItemStack>> getInventory(ServerPlayerEntity player) {
+            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+
             Map<String, DefaultedList<ItemStack>> inventory = new HashMap<>();
+            this.inventoryDropRules.clear();
 
             List<InventoryPower> powers =  PowerHolderComponent.getPowers(player, InventoryPower.class);
             for (InventoryPower inventoryPower : powers) {
                 Active.Key key = inventoryPower.getKey();
                 DefaultedList<ItemStack> stacks = DefaultedList.of();
+                DefaultedList<DropRule> dropRules = DefaultedList.of();
 
                 for (int i = 0; i < inventoryPower.size(); i++) {
-                    stacks.add(inventoryPower.getStack(i));
+                    ItemStack stack = inventoryPower.getStack(i);
+                    stacks.add(stack);
+                    dropRules.add(inventoryPower.shouldDropOnDeath(stack) ? compatConfig.defaultOriginsDropRule : DropRule.KEEP);
                 }
 
                 inventory.put(key.key, stacks);
+                this.inventoryDropRules.put(key.key, dropRules);
             }
 
             return inventory;
@@ -146,20 +174,22 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
 
         @Override
         public CompatComponent<Map<String, DefaultedList<ItemStack>>> handleDropRules(DeathContext context) {
-            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
             Map<String, DefaultedList<ItemStack>> soulbound = new HashMap<>();
+
 
             Vec3d deathPos = context.getDeathPos();
             for (Map.Entry<String, DefaultedList<ItemStack>> entry : this.inventory.entrySet()) {
                 String key = entry.getKey();
                 DefaultedList<ItemStack> items = entry.getValue();
+                DefaultedList<DropRule> dropRules = this.inventoryDropRules.get(key);
 
                 DefaultedList<ItemStack> soulboundStacks = DefaultedList.ofSize(items.size(), ItemStack.EMPTY);
 
                 for (int i = 0; i < items.size(); i++) {
                     ItemStack item = items.get(i);
 
-                    DropRule dropRule = compatConfig.defaultOriginsDropRule;
+                    DropRule dropRule = dropRules.get(i);
+
                     if (dropRule == DropRule.PUT_IN_GRAVE)
                         dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
 
@@ -223,7 +253,21 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
 
                 itemsNbt.putInt("size", items.size());
 
+                NbtList dropRulesNbt = new NbtList();
+                DefaultedList<DropRule> dropRules = this.inventoryDropRules.get(entry.getKey());
+                for (int j = 0; j < dropRules.size(); j++) {
+                    if (items.get(j).isEmpty())
+                        continue;
+
+                    NbtCompound element = new NbtCompound();
+                    element.putInt("Id", j);
+                    element.putString("dropRule", dropRules.get(j).toString());
+
+                    dropRulesNbt.add(element);
+                }
+
                 nbt.put(entry.getKey(), itemsNbt);
+                nbt.put(entry.getKey() + "_dropRules", dropRulesNbt);
             }
             return nbt;
         }
