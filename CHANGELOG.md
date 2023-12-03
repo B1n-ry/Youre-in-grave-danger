@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.0-beta.5
+
+### Fixes
+* Fixed issue where no graves generated while origins was loaded
+
+---
+
 # You're in Grave Danger 2.0.0-beta.4
 
 ### Fixes

@@ -1,20 +1,17 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.components.InventoryComponent;
-import com.b1n_ry.yigd.config.DropType;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import io.github.apace100.apoli.component.PowerHolderComponent;
-import io.github.apace100.apoli.component.PowerHolderComponentImpl;
 import io.github.apace100.apoli.power.Active;
 import io.github.apace100.apoli.power.InventoryPower;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
@@ -72,7 +69,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
     }
 
     private static class OriginsCompatComponent extends CompatComponent<Map<String, DefaultedList<ItemStack>>> {
-        private Map<String, DefaultedList<DropRule>> inventoryDropRules = new HashMap<>();
+        private Map<String, DefaultedList<DropRule>> inventoryDropRules;
 
         public OriginsCompatComponent(ServerPlayerEntity player) {
             super(player);
@@ -87,7 +84,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
             YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
             Map<String, DefaultedList<ItemStack>> inventory = new HashMap<>();
-            this.inventoryDropRules.clear();
+            this.inventoryDropRules = new HashMap<>();
 
             List<InventoryPower> powers =  PowerHolderComponent.getPowers(player, InventoryPower.class);
             for (InventoryPower inventoryPower : powers) {
@@ -175,7 +172,6 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
         @Override
         public CompatComponent<Map<String, DefaultedList<ItemStack>>> handleDropRules(DeathContext context) {
             Map<String, DefaultedList<ItemStack>> soulbound = new HashMap<>();
-
 
             Vec3d deathPos = context.getDeathPos();
             for (Map.Entry<String, DefaultedList<ItemStack>> entry : this.inventory.entrySet()) {
