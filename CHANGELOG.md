@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.0-beta.6
+
+### Fixes
+* Players can't retrieve their graves while dead anymore
+
+---
+
 # You're in Grave Danger 2.0.0-beta.5
 
 ### Fixes

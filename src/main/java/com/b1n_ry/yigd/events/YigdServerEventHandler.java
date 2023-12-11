@@ -94,6 +94,8 @@ public class YigdServerEventHandler {
         });
 
         GraveClaimEvent.EVENT.register((player, world, pos, grave, tool) -> {
+            if (player.isDead()) return false;
+
             YigdConfig config = YigdConfig.getConfig();
 
             if (config.extraFeatures.graveKeys.enabled) {
