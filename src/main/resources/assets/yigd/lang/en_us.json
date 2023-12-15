@@ -48,6 +48,7 @@
   "text.yigd.command.view_self.fail": "Failed to view grave. Couldn't find grave",
   "text.yigd.command.whitelist.show_current": "List mode currently %s",
   "text.yigd.command.whitelist.added_players": "Added %d players to %s",
+  "text.yigd.command.whitelist.removed_players": "Removed %d players from %s",
   "text.yigd.command.whitelist.toggle": "Toggled list to %s",
   "text.yigd.command.whitelist.set_mode": "Set list to %s",
   "text.yigd.message.sellout_player": "%s logged off, and they have a grave at X: %d / Y: %d / Z: %d / %s",
@@ -58,6 +59,8 @@
   "text.yigd.message.irl_time": " (%d %s, %d, %d:%d%s)",
 
   "text.yigd.dimension.name.minecraft:overworld": "The Overworld",
+  "text.yigd.dimension.name.minecraft:the_nether": "The Nether",
+  "text.yigd.dimension.name.minecraft:the_end": "The End",
 
   "text.autoconfig.yigd.option.inventoryConfig": "Inventory Component Config",
   "text.autoconfig.yigd.option.inventoryConfig.dropPlayerHead": "Drop Player Head",

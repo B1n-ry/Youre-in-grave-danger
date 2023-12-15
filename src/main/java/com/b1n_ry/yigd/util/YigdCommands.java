@@ -87,8 +87,8 @@ public class YigdCommands {
         List<GraveComponent> components = DeathInfoManager.INSTANCE.getBackupData(player.getGameProfile());
         List<GraveComponent> unClaimedGraves = new ArrayList<>(components);
         unClaimedGraves.removeIf(graveComponent -> graveComponent.getStatus() != GraveStatus.UNCLAIMED);
-        if (unClaimedGraves.size() == 0) {
-            player.sendMessage(Text.translatable("text.yigd.command_callback.latest.fail"));
+        if (unClaimedGraves.isEmpty()) {
+            player.sendMessage(Text.translatable("text.yigd.command.latest.fail"));
             return -1;
         }
 

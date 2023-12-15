@@ -31,22 +31,24 @@ public class ServerPacketHandler {
 
             UUID graveId = buf.readUuid();
 
-            Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
-            maybeComponent.ifPresentOrElse(component -> {
-                GameProfile owner = component.getOwner();
-                ServerPlayerEntity restoringPlayer = server.getPlayerManager().getPlayer(owner.getId());
-                if (restoringPlayer == null) {
-                    player.sendMessage(Text.translatable("text.yigd.command.restore.fail.offline_player"));
-                    return;
-                }
+            server.execute(() -> {
+                Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
+                maybeComponent.ifPresentOrElse(component -> {
+                    GameProfile owner = component.getOwner();
+                    ServerPlayerEntity restoringPlayer = server.getPlayerManager().getPlayer(owner.getId());
+                    if (restoringPlayer == null) {
+                        player.sendMessage(Text.translatable("text.yigd.command.restore.fail.offline_player"));
+                        return;
+                    }
 
-                component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true);
-                component.setStatus(GraveStatus.CLAIMED);
+                    component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true);
+                    component.setStatus(GraveStatus.CLAIMED);
 
-                component.removeGraveBlock();
+                    component.removeGraveBlock();
 
-                player.sendMessage(Text.translatable("text.yigd.command.restore.success"));
-            }, () -> player.sendMessage(Text.translatable("text.yigd.command.restore.fail")));
+                    player.sendMessage(Text.translatable("text.yigd.command.restore.success"));
+                }, () -> player.sendMessage(Text.translatable("text.yigd.command.restore.fail")));
+            });
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_ROBBING_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
@@ -57,15 +59,17 @@ public class ServerPacketHandler {
 
             UUID graveId = buf.readUuid();
 
-            Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
-            maybeComponent.ifPresentOrElse(component -> {
-                component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false);
-                component.setStatus(GraveStatus.CLAIMED);
+            server.execute(() -> {
+                Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
+                maybeComponent.ifPresentOrElse(component -> {
+                    component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false);
+                    component.setStatus(GraveStatus.CLAIMED);
 
-                component.removeGraveBlock();
+                    component.removeGraveBlock();
 
-                player.sendMessage(Text.translatable("text.yigd.command.rob.success"));
-            }, () -> player.sendMessage(Text.translatable("text.yigd.command.rob.fail")));
+                    player.sendMessage(Text.translatable("text.yigd.command.rob.success"));
+                }, () -> player.sendMessage(Text.translatable("text.yigd.command.rob.fail")));
+            });
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_DELETE_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
@@ -76,30 +80,34 @@ public class ServerPacketHandler {
 
             UUID graveId = buf.readUuid();
 
-            ActionResult deleted = DeathInfoManager.INSTANCE.delete(graveId);
-            DeathInfoManager.INSTANCE.markDirty();
+            server.execute(() -> {
+                ActionResult deleted = DeathInfoManager.INSTANCE.delete(graveId);
+                DeathInfoManager.INSTANCE.markDirty();
 
-            String translatable = switch (deleted) {
-                case SUCCESS -> "text.yigd.command.delete.success";
-                case PASS -> "text.yigd.command.delete.pass";
-                case FAIL -> "text.yigd.command.delete.fail";
-                default -> "If you see this, congratulations. You've broken YIGD";
-            };
-            player.sendMessage(Text.translatable(translatable));
+                String translatable = switch (deleted) {
+                    case SUCCESS -> "text.yigd.command.delete.success";
+                    case PASS -> "text.yigd.command.delete.pass";
+                    case FAIL -> "text.yigd.command.delete.fail";
+                    default -> "If you see this, congratulations. You've broken YIGD";
+                };
+                player.sendMessage(Text.translatable(translatable));
+            });
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_LOCKING_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();
-            if (!Permissions.check(player, "yigd.command.lock", config.commandConfig.unlockPermissionLevel)) {
+            if (!Permissions.check(player, "yigd.command.locking", config.commandConfig.unlockPermissionLevel)) {
                 player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
             UUID graveId = buf.readUuid();
-            boolean lockState = buf.readBoolean();
 
-            Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
-            component.ifPresentOrElse(grave -> grave.setLocked(lockState),
-                    () -> player.sendMessage(Text.translatable("text.yigd.command.lock.fail")));
+            boolean lockState = buf.readBoolean();
+            server.execute(() -> {
+                Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
+                component.ifPresentOrElse(grave -> grave.setLocked(lockState),
+                        () -> player.sendMessage(Text.translatable("text.yigd.command.lock.fail")));
+            });
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_OVERVIEW_REQUEST_C2S, (server, player, handler, buf, responseSender) -> {
             YigdConfig config = YigdConfig.getConfig();

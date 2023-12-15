@@ -7,7 +7,6 @@ import com.b1n_ry.yigd.client.gui.screens.GraveOverviewScreen;
 import com.b1n_ry.yigd.client.gui.screens.GraveSelectionScreen;
 import com.b1n_ry.yigd.client.gui.screens.PlayerSelectionScreen;
 import com.b1n_ry.yigd.components.GraveComponent;
-import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;

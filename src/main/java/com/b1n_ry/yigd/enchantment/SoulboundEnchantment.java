@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.enchantment;
 
+import com.b1n_ry.yigd.util.YigdTags;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.EquipmentSlot;
@@ -25,6 +26,6 @@ public class SoulboundEnchantment extends Enchantment {
 
     @Override
     public boolean isAcceptableItem(ItemStack stack) {
-        return true;
+        return !stack.isIn(YigdTags.SOULBOUND_BLACKLIST);
     }
 }

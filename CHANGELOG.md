@@ -1,7 +1,11 @@
 # You're in Grave Danger 2.0.0-beta.6
 
+### Changes
+* Added back soulbound blacklist tag. Items in this tag can't be enchanted with soulbound
+
 ### Fixes
 * Players can't retrieve their graves while dead anymore
+* Restore command should now delete the grave appropriately
 
 ---
 
