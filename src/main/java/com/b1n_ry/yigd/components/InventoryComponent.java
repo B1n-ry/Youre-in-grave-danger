@@ -134,6 +134,8 @@ public class InventoryComponent {
         for (int i = 0; i < this.items.size(); i++) {
             ItemStack item = this.items.get(i);
 
+            if (item.isEmpty()) continue;
+
             Vec3d deathPos = context.getDeathPos();
 
             DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context, true);
@@ -268,7 +270,7 @@ public class InventoryComponent {
                 currentComponentIndex = groupIndex + this.mainSize + this.armorSize + this.offHandSize;
             }
 
-            ItemStack mergingStack = mergingComponent.items.get(i);
+            ItemStack mergingStack = mergingComponent.items.get(i).copy();  // Copy to avoid a problem in the case when merging and current stack are the same object
             if (currentComponentIndex > this.items.size()) {
                 extraItems.add(mergingStack);
                 continue;
@@ -276,12 +278,13 @@ public class InventoryComponent {
 
             ItemStack currentStack = this.items.get(currentComponentIndex);
             if (config.graveConfig.mergeStacksOnRetrieve) {
+                // Merge ItemStacks, and modify sizes accordingly if possible
                 int combinationSlot = this.findMatchingStackSlot(mergingStack);
                 if (combinationSlot != -1) {
                     this.mergeItemInSlot(mergingStack, combinationSlot);
                 }
             }
-            if (!mergingStack.isEmpty()) {  // Can be due to merging (count could be 0)
+            if (!mergingStack.isEmpty()) {  // Can be due to merging (count could be 0 if merge was "fully completed")
                 if (currentStack.isEmpty()) {
                     this.items.set(currentComponentIndex, mergingStack);
                 } else {

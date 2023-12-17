@@ -116,7 +116,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
                 DefaultedList<ItemStack> mergingItems = entry.getValue();
 
                 for (int i = 0; i < mergingItems.size(); i++) {
-                    ItemStack mergingStack = mergingItems.get(i);
+                    ItemStack mergingStack = mergingItems.get(i).copy();  // Solves the case where the itemstacks are the same instance
 
                     if (i >= currentItems.size()) {
                         extraItems.add(mergingStack);

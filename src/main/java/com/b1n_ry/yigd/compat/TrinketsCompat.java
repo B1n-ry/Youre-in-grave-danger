@@ -127,7 +127,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                 if (slotMap == null) {
                     for (DefaultedList<Pair<TrinketEnums.DropRule, ItemStack>> items : groupEntry.getValue().values()) {
                         for (Pair<TrinketEnums.DropRule, ItemStack> stack : items) {
-                            extraItems.add(stack.getRight());
+                            extraItems.add(stack.getRight().copy());  // Solves the issue where the itemstacks are the same instance
                         }
                     }
                     continue;
@@ -138,14 +138,14 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     DefaultedList<Pair<TrinketEnums.DropRule, ItemStack>> mergingItems = slotEntry.getValue();  // From merging
                     if (stacks == null) {
                         for (Pair<TrinketEnums.DropRule, ItemStack> stack : mergingItems) {
-                            extraItems.add(stack.getRight());
+                            extraItems.add(stack.getRight().copy());  // Solves the issue where the itemstacks are the same instance
                         }
                         continue;
                     }
 
                     for (int i = 0; i < mergingItems.size(); i++) {
                         Pair<TrinketEnums.DropRule, ItemStack> pair = mergingItems.get(i);
-                        ItemStack mergingStack = pair.getRight();
+                        ItemStack mergingStack = pair.getRight().copy();  // Solves the issue where the itemstacks are the same instance
                         if (stacks.size() <= i || !stacks.get(i).getRight().isEmpty()) {
                             extraItems.add(mergingStack);
                             continue;

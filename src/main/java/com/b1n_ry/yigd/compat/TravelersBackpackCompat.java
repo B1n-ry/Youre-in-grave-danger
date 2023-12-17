@@ -59,7 +59,7 @@ public class TravelersBackpackCompat implements InvModCompat<ItemStack> {
 
             if (mergingComponent.isEmpty()) return extraItems;
 
-            ItemStack mergingStack = (ItemStack) mergingComponent.inventory;
+            ItemStack mergingStack = ((ItemStack) mergingComponent.inventory).copy();  // Solves the case where the merging component is the same as this component
             if (!this.isEmpty()) {
                 extraItems.add(mergingStack);
                 return extraItems;

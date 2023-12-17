@@ -76,7 +76,7 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
             @SuppressWarnings("unchecked")
             DefaultedList<ItemStack> mergingInventory = (DefaultedList<ItemStack>) mergingComponent.inventory;
             for (int i = 0; i < mergingInventory.size(); i++) {
-                ItemStack mergingItem = mergingInventory.get(i);
+                ItemStack mergingItem = mergingInventory.get(i).copy();  // Solves the issue where the itemstacks are the same instance
                 if (mergingItem.isEmpty()) continue;
 
                 if (!this.inventory.get(i).isEmpty()) {

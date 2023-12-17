@@ -6,6 +6,7 @@
 ### Fixes
 * Players can't retrieve their graves while dead anymore
 * Restore command should now delete the grave appropriately
+* Restore/rob command should no longer crash the game if being called twice
 
 ---
 
