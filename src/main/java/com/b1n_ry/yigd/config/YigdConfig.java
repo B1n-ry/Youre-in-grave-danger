@@ -313,13 +313,15 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class ExtraFeatures {
-        public boolean customSoulboundEnchant = true;
+        
         @ConfigEntry.Gui.CollapsibleObject
         public DeathSightConfig deathSightEnchant = new DeathSightConfig();
         @ConfigEntry.Gui.CollapsibleObject
         public GraveKeyConfig graveKeys = new GraveKeyConfig();
         @ConfigEntry.Gui.CollapsibleObject
         public ScrollConfig deathScroll = new ScrollConfig();
+        @ConfigEntry.Gui.CollapsibleObject
+        public SoulboundConfig soulbound = new SoulboundConfig();
 
         public static class DeathSightConfig {
             public boolean enabled = false;
@@ -350,6 +352,13 @@ public class YigdConfig implements ConfigData {
             public enum ClickFunction {
                 RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION
             }
+        }
+
+        public static class SoulboundConfig {
+            public boolean customSoulboundEnchant = true;
+            public boolean isTreasure = true;
+            public boolean isAvailableForEnchantedBookOffer = true;
+            public boolean isAvailableForRandomSelection = false;
         }
     }
 

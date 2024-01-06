@@ -199,7 +199,6 @@
   "text.autoconfig.yigd.option.graveRendering.useGlowingEffect": "Glowing Outline Enabled?",
   "text.autoconfig.yigd.option.graveRendering.glowingDistance": "Glowing Outline Distance",
   "text.autoconfig.yigd.option.extraFeatures": "Extra Features",
-  "text.autoconfig.yigd.option.extraFeatures.customSoulboundEnchant": "Use YiGD Soulbound Enchant",
   "text.autoconfig.yigd.option.extraFeatures.deathSightEnchant": "Death Sight Enchant",
   "text.autoconfig.yigd.option.extraFeatures.deathSightEnchant.enabled": "Should Load?",
   "text.autoconfig.yigd.option.extraFeatures.deathSightEnchant.range": "Range",
@@ -214,5 +213,10 @@
   "text.autoconfig.yigd.option.extraFeatures.deathScroll.enabled": "Should Load?",
   "text.autoconfig.yigd.option.extraFeatures.deathScroll.rebindable": "Rebindable",
   "text.autoconfig.yigd.option.extraFeatures.deathScroll.receiveOnRespawn": "Receive on Respawn",
-  "text.autoconfig.yigd.option.extraFeatures.deathScroll.clickFunction": "Executed When Used"
+  "text.autoconfig.yigd.option.extraFeatures.deathScroll.clickFunction": "Executed When Used",
+  "text.autoconfig.yigd.option.extraFeatures.soulbound": "Soulbound",
+  "text.autoconfig.yigd.option.extraFeatures.soulbound.customSoulboundEnchant": "Should Load?",
+  "text.autoconfig.yigd.option.extraFeatures.soulbound.isTreasure": "Is Treasure Enchantment?",
+  "text.autoconfig.yigd.option.extraFeatures.soulbound.isAvailableForEnchantedBookOffer": "Is Tradeable from Villagers?",
+  "text.autoconfig.yigd.option.extraFeatures.soulbound.isAvailableForRandomSelection": "Appears in Enchanting Table (and loots with random enchants)?"
 }
