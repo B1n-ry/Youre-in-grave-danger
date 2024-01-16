@@ -10,6 +10,8 @@ import com.b1n_ry.yigd.events.AllowBlockUnderGraveGenerationEvent;
 import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.b1n_ry.yigd.packets.LightGraveData;
+import com.b1n_ry.yigd.util.DropRule;
+import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.Block;
@@ -30,6 +32,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -413,7 +416,7 @@ public class GraveComponent {
 
         // While the nbt string has an item to add (text contains "${item[i]}")
         Matcher nbtMatcher;
-        DefaultedList<ItemStack> items = this.inventoryComponent.getItems();
+        DefaultedList<Pair<ItemStack, DropRule>> items = this.inventoryComponent.getItems();
         do {
             // Find if there are any instances an item should be placed in the nbt
             Pattern nbtPattern = Pattern.compile("\\$\\{!?item\\[[0-9]+]}");
@@ -431,7 +434,7 @@ public class GraveComponent {
             int itemNumber = Integer.parseInt(res);
 
             // Package item as NBT, and put inside NBT summon string
-            ItemStack item = items.get(itemNumber);
+            ItemStack item = items.get(itemNumber).getLeft();
             NbtCompound itemNbt = item.getNbt();
             NbtCompound newNbt = new NbtCompound();
             newNbt.put("tag", itemNbt);
@@ -442,7 +445,7 @@ public class GraveComponent {
 
             summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", newNbt.asString());
 
-            if (removeItem) items.set(itemNumber, ItemStack.EMPTY); // Make sure item gets "used"
+            if (removeItem) items.set(itemNumber, new Pair<>(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
         } while (nbtMatcher.find());  // Loop until no more items should be inserted in NBT
 
         try {
@@ -475,11 +478,17 @@ public class GraveComponent {
 
         ClaimPriority priority = isGraveOwner ? claimPriority : robPriority;
 
+        InventoryComponent graveInv = this.inventoryComponent.filteredInv(dropRule -> dropRule == DropRule.PUT_IN_GRAVE);
+
+        // Move curse of binding items from equipped in grave, so they can't get stuck to the player even after death
+        if (config.graveConfig.treatBindingCurse) {
+            extraItems.addAll(graveInv.pullBindingCurseItems());
+        }
         if (priority == ClaimPriority.GRAVE) {
-            extraItems.addAll(this.inventoryComponent.merge(currentPlayerInv, true));
-            extraItems.addAll(this.inventoryComponent.applyToPlayer(player));
+            extraItems.addAll(graveInv.merge(currentPlayerInv));
+            extraItems.addAll(graveInv.applyToPlayer(player));
         } else {
-            extraItems.addAll(currentPlayerInv.merge(this.inventoryComponent, false));
+            extraItems.addAll(currentPlayerInv.merge(graveInv));
             extraItems.addAll(currentPlayerInv.applyToPlayer(player));
         }
 

@@ -1,6 +1,5 @@
 package com.b1n_ry.yigd.events;
 
-import com.b1n_ry.yigd.DeathHandler;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
@@ -8,12 +7,10 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -44,7 +41,7 @@ public class ServerEventHandler {
             if (YigdConfig.getConfig().graveConfig.informGraveLocation) {
                 List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(newProfile));
                 graves.removeIf(grave -> grave.getStatus() != GraveStatus.UNCLAIMED);
-                if (graves.size() > 0) {
+                if (!graves.isEmpty()) {
                     GraveComponent latest = graves.get(graves.size() - 1);
                     BlockPos gravePos = latest.getPos();
                     newPlayer.sendMessage(Text.translatable("text.yigd.message.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ(), latest.getWorldRegistryKey().getValue()));
@@ -68,7 +65,7 @@ public class ServerEventHandler {
             List<GraveComponent> loggedOffGraves = DeathInfoManager.INSTANCE.getBackupData(loggedOffProfile);
             List<GraveComponent> loggedOffUnclaimed = new ArrayList<>(loggedOffGraves);
             loggedOffGraves.removeIf(c -> c.getStatus() == GraveStatus.UNCLAIMED);
-            if (loggedOffUnclaimed.size() > 0) {
+            if (!loggedOffUnclaimed.isEmpty()) {
                 GraveComponent component = loggedOffUnclaimed.get(0);
                 BlockPos lastGravePos = component.getPos();
                 server.sendMessage(Text.translatable("text.yigd.message.sellout_player",

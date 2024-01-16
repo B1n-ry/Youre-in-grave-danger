@@ -47,7 +47,7 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         WTextField searchField = new WTextField();
         root.add(searchField, 0, 1, 11, 1);
         searchField.setChangedListener(s -> listPanel.setFilter("filter",
-                playerData -> !s.equals("") && playerData.playerProfile().getName().toLowerCase().startsWith(s.toLowerCase())));
+                playerData -> !s.isEmpty() && playerData.playerProfile().getName().toLowerCase().startsWith(s.toLowerCase())));
 
         this.addFilterButton(root, listPanel);
 

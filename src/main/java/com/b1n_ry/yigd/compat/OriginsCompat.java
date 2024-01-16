@@ -8,19 +8,17 @@ import com.b1n_ry.yigd.util.DropRule;
 import io.github.apace100.apoli.component.PowerHolderComponent;
 import io.github.apace100.apoli.power.Active;
 import io.github.apace100.apoli.power.InventoryPower;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<ItemStack>>> {
+public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> {
     @Override
     public String getModName() {
         return "apoli";
@@ -32,74 +30,64 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
     }
 
     @Override
-    public CompatComponent<Map<String, DefaultedList<ItemStack>>> readNbt(NbtCompound nbt) {
-        Map<String, DefaultedList<ItemStack>> inventory = new HashMap<>();
-        Map<String, DefaultedList<DropRule>> inventoryDropRules = new HashMap<>();
+    public CompatComponent<Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> readNbt(NbtCompound nbt) {
+        Map<String, DefaultedList<Pair<ItemStack, DropRule>>> inventory = new HashMap<>();
 
         for (String key : nbt.getKeys()) {
             NbtCompound inventoryNbt = nbt.getCompound(key);
 
-            int size = inventoryNbt.getInt("size");
-            DefaultedList<ItemStack> items = DefaultedList.ofSize(size, ItemStack.EMPTY);
+            DefaultedList<Pair<ItemStack, DropRule>> items = InventoryComponent.listFromNbt(inventoryNbt, itemNbt -> {
+                ItemStack stack = ItemStack.fromNbt(itemNbt);
 
-            Inventories.readNbt(inventoryNbt, items);
+                DropRule dropRule;
+                if (itemNbt.contains("dropRule")) {
+                    dropRule = DropRule.valueOf(itemNbt.getString("dropRule"));
+                } else {
+                    dropRule = YigdConfig.getConfig().compatConfig.defaultOriginsDropRule;
+                }
+
+                return new Pair<>(stack, dropRule);
+            }, InventoryComponent.EMPTY_ITEM_PAIR);
 
             inventory.put(key, items);
-
-            NbtList dropRulesNbt = nbt.getList(key + "_dropRules", NbtElement.COMPOUND_TYPE);
-            DefaultedList<DropRule> dropRules = DefaultedList.ofSize(size, DropRule.PUT_IN_GRAVE);
-            for (NbtElement element : dropRulesNbt) {
-                NbtCompound c = (NbtCompound) element;
-                int i = c.getInt("Id");
-                DropRule dropRule = DropRule.valueOf(c.getString("dropRule"));
-                dropRules.set(i, dropRule);
-            }
-            inventoryDropRules.put(key, dropRules);
         }
 
-        OriginsCompatComponent returnValue = new OriginsCompatComponent(inventory);
-        returnValue.inventoryDropRules = inventoryDropRules;
-
-        return returnValue;
+        return new OriginsCompatComponent(inventory);
     }
 
     @Override
-    public CompatComponent<Map<String, DefaultedList<ItemStack>>> getNewComponent(ServerPlayerEntity player) {
+    public CompatComponent<Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> getNewComponent(ServerPlayerEntity player) {
         return new OriginsCompatComponent(player);
     }
 
-    private static class OriginsCompatComponent extends CompatComponent<Map<String, DefaultedList<ItemStack>>> {
-        private Map<String, DefaultedList<DropRule>> inventoryDropRules;
+    private static class OriginsCompatComponent extends CompatComponent<Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> {
 
         public OriginsCompatComponent(ServerPlayerEntity player) {
             super(player);
         }
 
-        public OriginsCompatComponent(Map<String, DefaultedList<ItemStack>> inventory) {
+        public OriginsCompatComponent(Map<String, DefaultedList<Pair<ItemStack, DropRule>>> inventory) {
             super(inventory);
         }
 
         @Override
-        public Map<String, DefaultedList<ItemStack>> getInventory(ServerPlayerEntity player) {
+        public Map<String, DefaultedList<Pair<ItemStack, DropRule>>> getInventory(ServerPlayerEntity player) {
             YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
-            Map<String, DefaultedList<ItemStack>> inventory = new HashMap<>();
-            this.inventoryDropRules = new HashMap<>();
+            Map<String, DefaultedList<Pair<ItemStack, DropRule>>> inventory = new HashMap<>();
 
-            List<InventoryPower> powers =  PowerHolderComponent.getPowers(player, InventoryPower.class);
+            List<InventoryPower> powers = PowerHolderComponent.getPowers(player, InventoryPower.class);
             for (InventoryPower inventoryPower : powers) {
                 Active.Key key = inventoryPower.getKey();
-                DefaultedList<ItemStack> stacks = DefaultedList.of();
-                DefaultedList<DropRule> dropRules = DefaultedList.of();
+                DefaultedList<Pair<ItemStack, DropRule>> stacks = DefaultedList.of();
 
                 for (int i = 0; i < inventoryPower.size(); i++) {
                     ItemStack stack = inventoryPower.getStack(i);
-                    stacks.add(stack);
-                    dropRules.add(inventoryPower.shouldDropOnDeath(stack) ? compatConfig.defaultOriginsDropRule : DropRule.KEEP);
+                    DropRule dropRule = inventoryPower.shouldDropOnDeath(stack) ? compatConfig.defaultOriginsDropRule : DropRule.KEEP;
+                    stacks.add(new Pair<>(stack, dropRule));
                 }
 
                 inventory.put(key.key, stacks);
-                this.inventoryDropRules.put(key.key, dropRules);
             }
 
             return inventory;
@@ -112,7 +100,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
             @SuppressWarnings("unchecked")
             Map<String, DefaultedList<ItemStack>> mergingInventory = (Map<String, DefaultedList<ItemStack>>) mergingComponent.inventory;
             for (Map.Entry<String, DefaultedList<ItemStack>> entry : mergingInventory.entrySet()) {
-                DefaultedList<ItemStack> currentItems = this.inventory.getOrDefault(entry.getKey(), DefaultedList.of());
+                DefaultedList<Pair<ItemStack, DropRule>> currentItems = this.inventory.getOrDefault(entry.getKey(), DefaultedList.of());
                 DefaultedList<ItemStack> mergingItems = entry.getValue();
 
                 for (int i = 0; i < mergingItems.size(); i++) {
@@ -123,11 +111,11 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
                         continue;
                     }
 
-                    ItemStack currentStack = currentItems.get(i);
+                    ItemStack currentStack = currentItems.get(i).getLeft();
                     if (!currentStack.isEmpty()) {
                         extraItems.add(mergingStack);
                     } else {
-                        currentItems.set(i, mergingStack);
+                        currentItems.get(i).setLeft(mergingStack);
                     }
                 }
             }
@@ -146,12 +134,12 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
                 String key = power.getKey().key;
                 unhandledPowers.remove(key);
 
-                DefaultedList<ItemStack> inventoryItems = this.inventory.get(key);
+                DefaultedList<Pair<ItemStack, DropRule>> inventoryItems = this.inventory.get(key);
                 if (inventoryItems == null)
                     continue;
 
                 for (int i = 0; i < inventoryItems.size(); i++) {
-                    ItemStack currentStack = inventoryItems.get(i);
+                    ItemStack currentStack = inventoryItems.get(i).getLeft();
 
                     if (i >= power.size()) {
                         extraItems.add(currentStack);
@@ -162,7 +150,9 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
             }
 
             for (String key : unhandledPowers) {
-                extraItems.addAll(this.inventory.get(key));
+                for (Pair<ItemStack, DropRule> pair : this.inventory.get(key)) {
+                    extraItems.add(pair.getLeft());
+                }
             }
 
 
@@ -170,51 +160,64 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
         }
 
         @Override
-        public CompatComponent<Map<String, DefaultedList<ItemStack>>> handleDropRules(DeathContext context) {
-            Map<String, DefaultedList<ItemStack>> soulbound = new HashMap<>();
+        public void handleDropRules(DeathContext context) {
+            Vec3d deathPos = context.deathPos();
+            for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> entry : this.inventory.entrySet()) {
+                DefaultedList<Pair<ItemStack, DropRule>> items = entry.getValue();
 
-            Vec3d deathPos = context.getDeathPos();
-            for (Map.Entry<String, DefaultedList<ItemStack>> entry : this.inventory.entrySet()) {
-                String key = entry.getKey();
-                DefaultedList<ItemStack> items = entry.getValue();
-                DefaultedList<DropRule> dropRules = this.inventoryDropRules.get(key);
+                for (Pair<ItemStack, DropRule> pair : items) {
+                    ItemStack item = pair.getLeft();
 
-                DefaultedList<ItemStack> soulboundStacks = DefaultedList.ofSize(items.size(), ItemStack.EMPTY);
-
-                for (int i = 0; i < items.size(); i++) {
-                    ItemStack item = items.get(i);
-
-                    DropRule dropRule = dropRules.get(i);
+                    DropRule dropRule = pair.getRight();
 
                     if (dropRule == DropRule.PUT_IN_GRAVE)
                         dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
 
-                    switch (dropRule) {
-                        case KEEP -> soulboundStacks.set(i, item);
-                        case DROP -> InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.getWorld());
+                    if (dropRule == DropRule.DROP) {
+                        InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.world());
                     }
-                    if (dropRule != DropRule.PUT_IN_GRAVE)
-                        items.set(i, ItemStack.EMPTY);
+                    pair.setRight(dropRule);
                 }
-
-                soulbound.put(key, soulboundStacks);
             }
-            return new OriginsCompatComponent(soulbound);
+            this.filterInv(dropRule -> dropRule == DropRule.KEEP);
         }
 
         @Override
         public DefaultedList<ItemStack> getAsStackList() {
             DefaultedList<ItemStack> allItems = DefaultedList.of();
-            for (DefaultedList<ItemStack> stacks : this.inventory.values())
-                allItems.addAll(stacks);
+            for (DefaultedList<Pair<ItemStack, DropRule>> stacks : this.inventory.values())
+                for (Pair<ItemStack, DropRule> pair : stacks)
+                    allItems.add(pair.getLeft());
 
             return allItems;
         }
 
         @Override
+        public CompatComponent<Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> filterInv(Predicate<DropRule> predicate) {
+            Map<String, DefaultedList<Pair<ItemStack, DropRule>>> inventory = new HashMap<>();
+            for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> entry : this.inventory.entrySet()) {
+                DefaultedList<Pair<ItemStack, DropRule>> items = entry.getValue();
+
+                DefaultedList<Pair<ItemStack, DropRule>> filteredItems = DefaultedList.of();
+                for (Pair<ItemStack, DropRule> pair : items) {
+                    if (predicate.test(pair.getRight())) {
+                        filteredItems.add(pair);
+                    } else {
+                        filteredItems.add(InventoryComponent.EMPTY_ITEM_PAIR);
+                    }
+                }
+
+                inventory.put(entry.getKey(), filteredItems);
+            }
+
+            return new OriginsCompatComponent(inventory);
+        }
+
+        @Override
         public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
-            for (DefaultedList<ItemStack> stacks : this.inventory.values()) {
-                for (ItemStack stack : stacks) {
+            for (DefaultedList<Pair<ItemStack, DropRule>> stacks : this.inventory.values()) {
+                for (Pair<ItemStack, DropRule> pair : stacks) {
+                    ItemStack stack = pair.getLeft();
                     if (predicate.test(stack)) {
                         stack.decrement(itemCount);
                         return true;
@@ -226,8 +229,10 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
 
         @Override
         public void clear() {
-            for (DefaultedList<ItemStack> stacks : this.inventory.values()) {
-                Collections.fill(stacks, ItemStack.EMPTY);
+            for (DefaultedList<Pair<ItemStack, DropRule>> stacks : this.inventory.values()) {
+                for (Pair<ItemStack, DropRule> pair : stacks) {
+                    pair.setLeft(ItemStack.EMPTY);
+                }
             }
         }
 
@@ -243,27 +248,17 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Ite
         @Override
         public NbtCompound writeNbt() {
             NbtCompound nbt = new NbtCompound();
-            for (Map.Entry<String, DefaultedList<ItemStack>> entry : this.inventory.entrySet()) {
-                DefaultedList<ItemStack> items = entry.getValue();
-                NbtCompound itemsNbt = Inventories.writeNbt(new NbtCompound(), items);
+            for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> entry : this.inventory.entrySet()) {
+                DefaultedList<Pair<ItemStack, DropRule>> items = entry.getValue();
 
-                itemsNbt.putInt("size", items.size());
-
-                NbtList dropRulesNbt = new NbtList();
-                DefaultedList<DropRule> dropRules = this.inventoryDropRules.get(entry.getKey());
-                for (int j = 0; j < dropRules.size(); j++) {
-                    if (items.get(j).isEmpty())
-                        continue;
-
-                    NbtCompound element = new NbtCompound();
-                    element.putInt("Id", j);
-                    element.putString("dropRule", dropRules.get(j).toString());
-
-                    dropRulesNbt.add(element);
-                }
+                NbtCompound itemsNbt = InventoryComponent.listToNbt(items, pair -> {
+                    NbtCompound itemNbt = new NbtCompound();
+                    pair.getLeft().writeNbt(itemNbt);
+                    itemNbt.putString("dropRule", pair.getRight().toString());
+                    return itemNbt;
+                }, pair -> pair.getLeft().isEmpty());
 
                 nbt.put(entry.getKey(), itemsNbt);
-                nbt.put(entry.getKey() + "_dropRules", dropRulesNbt);
             }
             return nbt;
         }

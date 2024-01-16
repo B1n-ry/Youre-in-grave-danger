@@ -43,7 +43,7 @@ public class YigdServerEventHandler {
             if (item.isIn(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
             if (item.isIn(YigdTags.GRAVE_INCOMPATIBLE)) return DropRule.DROP;
 
-            if (statusEffect != null && context != null && context.getPlayer().getActiveStatusEffects().containsKey(statusEffect))
+            if (statusEffect != null && context != null && context.player().getActiveStatusEffects().containsKey(statusEffect))
                 return DropRule.KEEP;
 
             if (!item.isEmpty() && item.hasNbt()) {
@@ -58,7 +58,7 @@ public class YigdServerEventHandler {
 
             DropRule dropRule;
             if (context != null)
-                dropRule = GraveOverrideAreas.INSTANCE.getDropRuleFromArea(BlockPos.ofFloored(context.getDeathPos()), context.getWorld());
+                dropRule = GraveOverrideAreas.INSTANCE.getDropRuleFromArea(BlockPos.ofFloored(context.deathPos()), context.world());
             else
                 dropRule = GraveOverrideAreas.INSTANCE.defaultDropRule;
 
@@ -144,8 +144,8 @@ public class YigdServerEventHandler {
             YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
             if (!graveConfig.enabled) return false;
 
-            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.getPlayer().getGameProfile())) return false;
-            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST && DeathInfoManager.INSTANCE.isInList(context.getPlayer().getGameProfile())) return false;
+            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) return false;
+            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST && DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) return false;
 
             if (!graveConfig.generateEmptyGraves && grave.isEmpty()) return false;
 
@@ -160,7 +160,7 @@ public class YigdServerEventHandler {
                 }
             }
 
-            return !graveConfig.ignoredDeathTypes.contains(context.getDeathSource().getName());
+            return !graveConfig.ignoredDeathTypes.contains(context.deathSource().getName());
         });
         AllowBlockUnderGraveGenerationEvent.EVENT.register(
                 (grave, currentUnder) -> YigdConfig.getConfig().graveConfig.blockUnderGrave.enabled && currentUnder.isIn(YigdTags.REPLACE_SOFT_WHITELIST));

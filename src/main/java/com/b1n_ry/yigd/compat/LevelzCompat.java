@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.util.DropRule;
 import net.levelz.access.PlayerStatsManagerAccess;
 import net.levelz.stats.PlayerStatsManager;
 import net.minecraft.item.ItemStack;
@@ -65,26 +66,25 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public CompatComponent<Float> handleDropRules(DeathContext context) {
-            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
-            switch (compatConfig.defaultLevelzDropRule) {
-                case KEEP -> {
-                    LevelzCompatComponent component = new LevelzCompatComponent(this.inventory);
-                    this.clear();
-                    return component;
-                }
-                case DROP -> {
-                    this.dropItems(context.getWorld(), context.getDeathPos());
-                    this.clear();
-                }
-                case DESTROY -> this.inventory = 0f;
+        public void handleDropRules(DeathContext context) {
+            // There are no specific drop rules for this component (except drop). Only a set standard from the config
+            if (YigdConfig.getConfig().compatConfig.defaultLevelzDropRule == DropRule.DROP) {
+                this.dropItems(context.world(), context.deathPos());
             }
-            return new LevelzCompatComponent(0f);
         }
 
         @Override
         public DefaultedList<ItemStack> getAsStackList() {
             return DefaultedList.of();
+        }
+
+        @Override
+        public CompatComponent<Float> filterInv(Predicate<DropRule> predicate) {
+            if (predicate.test(YigdConfig.getConfig().compatConfig.defaultLevelzDropRule)) {
+                return this;
+            } else {
+                return new LevelzCompatComponent(0f);
+            }
         }
 
         @Override

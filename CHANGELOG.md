@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.0-beta.7
+
+### Fixes
+* Game will no longer crash when dying if Travelers backpack is installed
+
+---
+
 # You're in Grave Danger 2.0.0-beta.6
 
 ### Changes

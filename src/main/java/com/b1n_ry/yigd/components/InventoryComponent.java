@@ -7,34 +7,43 @@ import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
+import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.b1n_ry.yigd.util.YigdTags;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class InventoryComponent {
-    private final DefaultedList<ItemStack> items;
+    private final DefaultedList<Pair<ItemStack, DropRule>> items;
     private final Map<String, CompatComponent<?>> modInventoryItems;
     public final int mainSize;
     public final int armorSize;
     public final int offHandSize;
 
+    private final Random random = new Random();
+    public static final Pair<ItemStack, DropRule> EMPTY_ITEM_PAIR = new Pair<>(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule);
+
     public InventoryComponent(ServerPlayerEntity player) {
         // Avoiding list being immutable in case items should be added on death
         this.items = DefaultedList.of();
-        this.items.addAll(this.getInventoryItems(player));
+        for (ItemStack stack : this.getInventoryItems(player)) {
+            this.items.add(new Pair<>(stack, DropRule.PUT_IN_GRAVE));
+        }
 
         this.modInventoryItems = this.getModInventoryItems(player);
 
@@ -43,7 +52,7 @@ public class InventoryComponent {
         this.armorSize = inventory.armor.size();
         this.offHandSize = inventory.offHand.size();
     }
-    private InventoryComponent(DefaultedList<ItemStack> items, Map<String, CompatComponent<?>> modInventoryItems, int mainSize, int armorSize, int offHandSize) {
+    private InventoryComponent(DefaultedList<Pair<ItemStack, DropRule>> items, Map<String, CompatComponent<?>> modInventoryItems, int mainSize, int armorSize, int offHandSize) {
         // Avoiding list being immutable in case items should be added on death
         this.items = DefaultedList.of();
         this.items.addAll(items);
@@ -54,7 +63,7 @@ public class InventoryComponent {
         this.offHandSize = offHandSize;
     }
 
-    public DefaultedList<ItemStack> getItems() {
+    public DefaultedList<Pair<ItemStack, DropRule>> getItems() {
         return this.items;
     }
     public DefaultedList<ItemStack> getAllExtraItems(boolean withoutEmpty) {
@@ -73,7 +82,8 @@ public class InventoryComponent {
     public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
         predicate = predicate.and(stack -> stack.getCount() >= itemCount);
 
-        for (ItemStack stack : this.items) {
+        for (Pair<ItemStack, DropRule> pair : this.items) {
+            ItemStack stack = pair.getLeft();
             if (predicate.test(stack)) {
                 stack.decrement(itemCount);
                 return true;
@@ -112,12 +122,13 @@ public class InventoryComponent {
         YigdConfig config = YigdConfig.getConfig();
         if (config.inventoryConfig.dropPlayerHead) {
             ItemStack playerHead = new ItemStack(Items.PLAYER_HEAD);
-            NbtCompound profileNbt = NbtHelper.writeGameProfile(new NbtCompound(), context.getPlayer().getGameProfile());
+            NbtCompound profileNbt = NbtHelper.writeGameProfile(new NbtCompound(), context.player().getGameProfile());
             playerHead.setSubNbt("SkullOwner", profileNbt);
-            this.items.add(playerHead);
+            this.items.add(new Pair<>(playerHead, GraveOverrideAreas.INSTANCE.defaultDropRule));  // Drop rules should not yet be handled, so default one is used
         }
 
-        InventoryComponent soulboundInventory = this.handleDropRules(context);
+        this.handleDropRules(context);
+        InventoryComponent soulboundInventory = this.filteredInv(dropRule -> dropRule == DropRule.KEEP);
 
         respawnComponent.setSoulboundInventory(soulboundInventory);
     }
@@ -125,50 +136,43 @@ public class InventoryComponent {
     /**
      * Handles the drop rule for each item in the component
      * @param context extra info about the death
-     * @return new inventory component with all items that should be kept
      */
-    private InventoryComponent handleDropRules(DeathContext context) {
-        InventoryComponent soulboundInventory = new InventoryComponent(DefaultedList.ofSize(this.items.size(), ItemStack.EMPTY), new HashMap<>(), this.mainSize, this.armorSize, this.offHandSize);
-
+    private void handleDropRules(DeathContext context) {
         // Handle drop rules for vanilla inventory
         for (int i = 0; i < this.items.size(); i++) {
-            ItemStack item = this.items.get(i);
+            Pair<ItemStack, DropRule> pair = this.items.get(i);
 
+            ItemStack item = pair.getLeft();
             if (item.isEmpty()) continue;
 
-            Vec3d deathPos = context.getDeathPos();
+            Vec3d deathPos = context.deathPos();
 
             DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context, true);
-            switch (dropRule) {
-                case KEEP -> soulboundInventory.items.set(i, item);
-                case DROP -> InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.getWorld());
+            pair.setRight(dropRule);
+            if (dropRule == DropRule.DROP) {
+                InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.world());
             }
-
-            if (dropRule != DropRule.PUT_IN_GRAVE)
-                this.items.set(i, ItemStack.EMPTY);
         }
 
         // Handle drop rules for mod compat inventories
         for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
             String modName = compatMod.getModName();
             CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
-            CompatComponent<?> soulboundComponent = compatComponent.handleDropRules(context);
-
-            soulboundInventory.modInventoryItems.put(modName, soulboundComponent);
+            compatComponent.handleDropRules(context);
         }
-
-        return soulboundInventory;
     }
 
-    public void applyLoss(DeathContext context) {
+    public void applyLoss() {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
 
         int from, to;
         if (itemLoss.usePercentRange) {
             DefaultedList<ItemStack> vanillaStacks = DefaultedList.of();
-            vanillaStacks.addAll(this.items);
-            vanillaStacks.removeIf(ItemStack::isEmpty);
+            for (Pair<ItemStack, DropRule> pair : this.items) {
+                if (!pair.getLeft().isEmpty() && pair.getRight() != DropRule.DESTROY)
+                    vanillaStacks.add(pair.getLeft());
+            }
 
             int itemCount = vanillaStacks.size();
             if (!itemLoss.affectStacks) {
@@ -189,18 +193,19 @@ public class InventoryComponent {
         for (int i = 0; i < amount; i++) {
             if (Math.random() > itemLoss.percentChanceOfLoss / 100D) continue;
 
-            this.loseRandomItem(context);
+            this.loseRandomItem();
         }
     }
-    private void loseRandomItem(DeathContext context) {
+    private void loseRandomItem() {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
 
         List<Integer> itemSlots = new ArrayList<>();
         for (int i = 0; i < this.items.size(); i++) {
-            ItemStack stack = this.items.get(i);
+            Pair<ItemStack, DropRule> pair = this.items.get(i);
+            ItemStack stack = pair.getLeft();
             if (stack.isEmpty()) continue;
-            if (DropRuleEvent.EVENT.invoker().getDropRule(stack, i, context, false) == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
+            if (pair.getRight() == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
             if (stack.isIn(YigdTags.LOSS_IMMUNE)) continue;
 
             itemSlots.add(i);
@@ -208,21 +213,22 @@ public class InventoryComponent {
 
         if (itemSlots.isEmpty()) return;
 
-        int random = new Random().nextInt(itemSlots.size());
+        int random = this.random.nextInt(itemSlots.size());
 
+        int slot = itemSlots.get(random);
         if (itemLoss.affectStacks) {
-            this.items.set(random, ItemStack.EMPTY);
+            this.items.get(slot).setRight(DropRule.DESTROY);
         } else {
-            int slot = itemSlots.get(random);
-            ItemStack stack = this.items.get(slot);
+            ItemStack stack = this.items.get(slot).getLeft();
 
             stack.decrement(1);
         }
     }
 
     public void dropAll(ServerWorld world, Vec3d pos) {
-        for (ItemStack stack : this.items) {
-            if (stack.isEmpty()) continue;
+        for (Pair<ItemStack, DropRule> pair : this.items) {
+            ItemStack stack = pair.getLeft();
+            if (stack.isEmpty() || pair.getRight() == DropRule.KEEP || pair.getRight() == DropRule.DESTROY) continue;
             InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
         }
 
@@ -234,21 +240,12 @@ public class InventoryComponent {
     /**
      * Adds a new inventory component on top of the currently existing one
      * @param mergingComponent Inventory component to merge with. This will be added to existing component
-     * @param isGraveInventory If this component is connected to the grave. Depending on this
      * @return All items that wouldn't fit in inventory
      */
-    public DefaultedList<ItemStack> merge(InventoryComponent mergingComponent, boolean isGraveInventory) {
+    public DefaultedList<ItemStack> merge(InventoryComponent mergingComponent) {
         YigdConfig config = YigdConfig.getConfig();
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
-        // Move curse of binding items from equipped in grave, so they can't get stuck to the player even after death
-        if (config.graveConfig.treatBindingCurse) {
-            if (isGraveInventory) {
-                extraItems.addAll(this.pullBindingCurseItems());
-            } else {
-                extraItems.addAll(mergingComponent.pullBindingCurseItems());
-            }
-        }
 
         for (int i = 0; i < mergingComponent.items.size(); i++) {
             // Make sure to only add items from respective section to correct group. E.g. no sword should end up in the chest-plate slot
@@ -270,13 +267,14 @@ public class InventoryComponent {
                 currentComponentIndex = groupIndex + this.mainSize + this.armorSize + this.offHandSize;
             }
 
-            ItemStack mergingStack = mergingComponent.items.get(i).copy();  // Copy to avoid a problem in the case when merging and current stack are the same object
+            // TODO: If merging stack is armor and curse of binding, force in that slot
+            ItemStack mergingStack = mergingComponent.items.get(i).getLeft().copy();  // Copy to avoid a problem in the case when merging and current stack are the same object
             if (currentComponentIndex > this.items.size()) {
                 extraItems.add(mergingStack);
                 continue;
             }
 
-            ItemStack currentStack = this.items.get(currentComponentIndex);
+            ItemStack currentStack = this.items.get(currentComponentIndex).getLeft();
             if (config.graveConfig.mergeStacksOnRetrieve) {
                 // Merge ItemStacks, and modify sizes accordingly if possible
                 int combinationSlot = this.findMatchingStackSlot(mergingStack);
@@ -286,7 +284,7 @@ public class InventoryComponent {
             }
             if (!mergingStack.isEmpty()) {  // Can be due to merging (count could be 0 if merge was "fully completed")
                 if (currentStack.isEmpty()) {
-                    this.items.set(currentComponentIndex, mergingStack);
+                    this.items.set(currentComponentIndex, new Pair<>(mergingStack, DropRule.PUT_IN_GRAVE));  // Drop rule should not make a difference here
                 } else {
                     extraItems.add(mergingStack);
                 }
@@ -309,7 +307,7 @@ public class InventoryComponent {
 
     private int findMatchingStackSlot(ItemStack stack) {
         for (int i = 0; i < this.mainSize; i++) {
-            ItemStack iStack = this.items.get(i);
+            ItemStack iStack = this.items.get(i).getLeft();
             if (ItemStack.canCombine(stack, iStack) && iStack.isStackable() && iStack.getMaxCount() > iStack.getCount()) {
                 return i;
             }
@@ -323,7 +321,7 @@ public class InventoryComponent {
      * @param slot Which slot the item should merge into
      */
     private void mergeItemInSlot(ItemStack toMerge, int slot) {
-        ItemStack mergeTo = this.items.get(slot);
+        ItemStack mergeTo = this.items.get(slot).getLeft();
         int remaining = mergeTo.getMaxCount() - mergeTo.getCount();
 
         int ableToAdd = Math.min(toMerge.getCount(), remaining);
@@ -335,13 +333,13 @@ public class InventoryComponent {
      * Pull all curse of binding items from component (that would get stuck) and deletes them from component
      * @return all curse of binding items in armor slots
      */
-    private DefaultedList<ItemStack> pullBindingCurseItems() {
+    public DefaultedList<ItemStack> pullBindingCurseItems() {
         DefaultedList<ItemStack> bindingItems = DefaultedList.of();
         for (int i = 0; i < this.armorSize; i++) {
-            ItemStack armorStack = this.items.get(this.mainSize + i);  // Current armor item
+            ItemStack armorStack = this.items.get(this.mainSize + i).getLeft();  // Current armor item
             if (EnchantmentHelper.hasBindingCurse(armorStack)) {
                 bindingItems.add(armorStack);
-                this.items.set(this.mainSize + i, ItemStack.EMPTY);  // Moving the item in  this slot
+                this.items.set(this.mainSize + i, EMPTY_ITEM_PAIR);  // Moving the item in  this slot
             }
         }
         return bindingItems;
@@ -360,9 +358,9 @@ public class InventoryComponent {
                 addToSlot = this.findEmptySlot();
                 if (addToSlot == -1) return;  // Inventory is full
             }
-            ItemStack addToStack = this.items.get(addToSlot);
+            ItemStack addToStack = this.items.get(addToSlot).getLeft();
             if (addToStack.isEmpty()) {
-                this.items.set(addToSlot, stack);
+                this.items.set(addToSlot, new Pair<>(stack, GraveOverrideAreas.INSTANCE.defaultDropRule));
                 extraItems.remove(0);
             } else {
                 this.mergeItemInSlot(stack, addToSlot);
@@ -375,7 +373,7 @@ public class InventoryComponent {
 
     private int findEmptySlot() {
         for (int i = 0; i < this.mainSize; i++) {
-            if (this.items.get(i).isEmpty()) {
+            if (this.items.get(i).getLeft().isEmpty()) {
                 return i;
             }
         }
@@ -387,21 +385,27 @@ public class InventoryComponent {
             if (!compatComponent.isEmpty()) return false;
         }
 
-        List<ItemStack> allItems = new ArrayList<>(this.items);
-        allItems.removeIf(ItemStack::isEmpty);
-
-        return allItems.isEmpty();
+        for (Pair<ItemStack, DropRule> pair : this.items) {
+            if (!pair.getLeft().isEmpty())
+                return false;
+        }
+        return true;
     }
     public int size() {
-        List<ItemStack> allItems = new ArrayList<>(this.items);
+        int size = 0;
 
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
-            allItems.addAll(compatComponent.getAsStackList());
+            for (ItemStack stack : compatComponent.getAsStackList()) {
+                if (!stack.isEmpty())
+                    ++size;
+            }
+        }
+        for (Pair<ItemStack, DropRule> pair : this.items) {
+            if (!pair.getLeft().isEmpty())
+                ++size;
         }
 
-        allItems.removeIf(ItemStack::isEmpty);
-
-        return allItems.size();
+        return size;
     }
 
     public DefaultedList<ItemStack> applyToPlayer(ServerPlayerEntity player) {
@@ -429,7 +433,7 @@ public class InventoryComponent {
                 playerInvIndex = groupIndex + invMainSize + invArmorSize + invOffHandSize;
             }
 
-            ItemStack stack = this.items.get(i);
+            ItemStack stack = this.items.get(i).getLeft();
 
             if (playerInvIndex >= inventory.size() || playerInvIndex == -1) {
                 extraItems.add(stack);
@@ -446,8 +450,32 @@ public class InventoryComponent {
 
         return extraItems;
     }
+
+    public InventoryComponent filteredInv(Predicate<DropRule> filter) {
+        DefaultedList<Pair<ItemStack, DropRule>> filteredItems = DefaultedList.of();
+        for (Pair<ItemStack, DropRule> pair : this.items) {
+            if (filter.test(pair.getRight())) {
+                filteredItems.add(pair);
+            } else {
+                filteredItems.add(EMPTY_ITEM_PAIR);
+            }
+        }
+
+        Map<String, CompatComponent<?>> filteredModInventories = new HashMap<>();
+        for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
+            String modName = compatMod.getModName();
+            CompatComponent<?> compatInv = this.modInventoryItems.get(modName);
+            CompatComponent<?> filteredCompatInv = compatInv.filterInv(filter);
+            filteredModInventories.put(modName, filteredCompatInv);
+        }
+
+        return new InventoryComponent(filteredItems, filteredModInventories, this.mainSize, this.armorSize, this.offHandSize);
+    }
+
     public void clear() {
-        Collections.fill(this.items, ItemStack.EMPTY);
+        for (Pair<ItemStack, DropRule> item : this.items) {
+            item.setLeft(ItemStack.EMPTY);
+        }
         for (CompatComponent<?> component : this.modInventoryItems.values()) {
             component.clear();
         }
@@ -455,8 +483,14 @@ public class InventoryComponent {
 
     public NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
-        NbtCompound vanillaInventoryNbt = Inventories.writeNbt(new NbtCompound(), this.items);
-        vanillaInventoryNbt.putInt("size", this.items.size());
+        NbtCompound vanillaInventoryNbt = listToNbt(this.items, pair -> {
+            NbtCompound itemNbt = new NbtCompound();
+            pair.getLeft().writeNbt(itemNbt);
+            itemNbt.putString("dropRule", pair.getRight().name());
+
+            return itemNbt;
+        }, pair -> pair.getLeft().isEmpty());
+        
         vanillaInventoryNbt.putInt("mainSize", this.mainSize);
         vanillaInventoryNbt.putInt("armorSize", this.armorSize);
         vanillaInventoryNbt.putInt("offHandSize", this.offHandSize);
@@ -476,9 +510,14 @@ public class InventoryComponent {
 
     public static InventoryComponent fromNbt(NbtCompound nbt) {
         NbtCompound vanillaInvNbt = nbt.getCompound("vanilla");
-        int listSize = vanillaInvNbt.getInt("size");
-        DefaultedList<ItemStack> items = DefaultedList.ofSize(listSize, ItemStack.EMPTY);
-        Inventories.readNbt(vanillaInvNbt, items);
+        DefaultedList<Pair<ItemStack, DropRule>> items = listFromNbt(vanillaInvNbt, itemNbt -> {
+            ItemStack stack = ItemStack.fromNbt(itemNbt);
+            DropRule dropRule = GraveOverrideAreas.INSTANCE.defaultDropRule;
+            if (itemNbt.contains("dropRule")) {
+                dropRule = DropRule.valueOf(itemNbt.getString("dropRule"));
+            }
+            return new Pair<>(stack, dropRule);
+        }, EMPTY_ITEM_PAIR);
 
         int mainSize = vanillaInvNbt.getInt("mainSize");
         int armorSize = vanillaInvNbt.getInt("armorSize");
@@ -493,6 +532,44 @@ public class InventoryComponent {
         }
 
         return new InventoryComponent(items, compatComponents, mainSize, armorSize, offHandSize);
+    }
+
+    public static <T> NbtCompound listToNbt(DefaultedList<T> list, Function<T, NbtCompound> mappingFunction, Predicate<T> isEmpty) {
+        return listToNbt(list, mappingFunction, isEmpty, "Items", "Slot");
+    }
+    public static <T> NbtCompound listToNbt(DefaultedList<T> list, Function<T, NbtCompound> mappingFunction, Predicate<T> isEmpty, String listName, String itemName) {
+        NbtCompound nbt = new NbtCompound();
+        int size = list.size();
+        nbt.putInt("size", size);
+
+        NbtList nbtList = new NbtList();
+        for (int i = 0; i < size; i++) {
+            T item = list.get(i);
+            if (isEmpty.test(item)) continue;
+
+            NbtCompound itemNbt = mappingFunction.apply(item);
+            itemNbt.putInt(itemName, i);
+            nbtList.add(itemNbt);
+        }
+        nbt.put(listName, nbtList);
+        return nbt;
+    }
+    public static <T> DefaultedList<T> listFromNbt(NbtCompound nbt, Function<NbtCompound, T> mappingFunction, T emptyValue) {
+        return listFromNbt(nbt, mappingFunction, emptyValue, "Items", "Slot");
+    }
+    public static <T> DefaultedList<T> listFromNbt(NbtCompound nbt, Function<NbtCompound, T> mappingFunction, T emptyValue, String listName, String itemName) {
+        int size = nbt.getInt("size");
+        DefaultedList<T> list = DefaultedList.ofSize(size, emptyValue);
+
+        NbtList nbtList = nbt.getList(listName, NbtElement.COMPOUND_TYPE);
+        for (NbtElement element : nbtList) {
+            NbtCompound itemNbt = (NbtCompound) element;
+            int index = itemNbt.getInt(itemName);
+            T item = mappingFunction.apply(itemNbt);
+            list.set(index, item);
+        }
+
+        return list;
     }
 
     public static void dropItemIfToBeDropped(ItemStack stack, double x, double y, double z, ServerWorld world) {

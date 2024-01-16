@@ -7,17 +7,16 @@ import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import me.lizardofoz.inventorio.api.InventorioAPI;
 import me.lizardofoz.inventorio.player.PlayerInventoryAddon;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.Collections;
 import java.util.function.Predicate;
 
-public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> {
+public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemStack, DropRule>>> {
     @Override
     public String getModName() {
         return "inventorio";
@@ -32,38 +31,52 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
     }
 
     @Override
-    public CompatComponent<DefaultedList<ItemStack>> readNbt(NbtCompound nbt) {
+    public CompatComponent<DefaultedList<Pair<ItemStack, DropRule>>> readNbt(NbtCompound nbt) {
         int size = nbt.getInt("size");
-        DefaultedList<ItemStack> items = DefaultedList.ofSize(size, ItemStack.EMPTY);
+        DefaultedList<Pair<ItemStack, DropRule>> items = DefaultedList.ofSize(size, InventoryComponent.EMPTY_ITEM_PAIR);
 
-        Inventories.readNbt(nbt, items);
+        InventoryComponent.listFromNbt(nbt, itemNbt -> {
+            ItemStack stack = ItemStack.fromNbt(itemNbt);
+
+            DropRule dropRule;
+            if (itemNbt.contains("dropRule")) {
+                dropRule = DropRule.valueOf(itemNbt.getString("dropRule"));
+            } else {
+                dropRule = YigdConfig.getConfig().compatConfig.defaultInventorioDropRule;
+            }
+
+            return new Pair<>(stack, dropRule);
+        }, InventoryComponent.EMPTY_ITEM_PAIR);
+
         return new InventorioCompatComponent(items);
     }
 
     @Override
-    public CompatComponent<DefaultedList<ItemStack>> getNewComponent(ServerPlayerEntity player) {
+    public CompatComponent<DefaultedList<Pair<ItemStack, DropRule>>> getNewComponent(ServerPlayerEntity player) {
         return new InventorioCompatComponent(player);
     }
 
-    private static class InventorioCompatComponent extends CompatComponent<DefaultedList<ItemStack>> {
+    private static class InventorioCompatComponent extends CompatComponent<DefaultedList<Pair<ItemStack, DropRule>>> {
 
         public InventorioCompatComponent(ServerPlayerEntity player) {
             super(player);
         }
-        public InventorioCompatComponent(DefaultedList<ItemStack> inventory) {
+        public InventorioCompatComponent(DefaultedList<Pair<ItemStack, DropRule>> inventory) {
             super(inventory);
         }
 
         @Override
-        public DefaultedList<ItemStack> getInventory(ServerPlayerEntity player) {
+        public DefaultedList<Pair<ItemStack, DropRule>> getInventory(ServerPlayerEntity player) {
             PlayerInventoryAddon addon = InventorioAPI.getInventoryAddon(player);
 
-            DefaultedList<ItemStack> items = DefaultedList.of();
+            DefaultedList<Pair<ItemStack, DropRule>> items = DefaultedList.of();
             if (addon == null) return items;
+
+            DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultInventorioDropRule;
 
             for (int i = 0; i < addon.size(); i++) {
                 ItemStack stack = addon.getStack(i);
-                items.add(stack);
+                items.add(new Pair<>(stack, defaultDropRule));
             }
 
             return items;
@@ -74,15 +87,15 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
             @SuppressWarnings("unchecked")
-            DefaultedList<ItemStack> mergingInventory = (DefaultedList<ItemStack>) mergingComponent.inventory;
+            DefaultedList<Pair<ItemStack, DropRule>> mergingInventory = (DefaultedList<Pair<ItemStack, DropRule>>) mergingComponent.inventory;
             for (int i = 0; i < mergingInventory.size(); i++) {
-                ItemStack mergingItem = mergingInventory.get(i).copy();  // Solves the issue where the itemstacks are the same instance
+                ItemStack mergingItem = mergingInventory.get(i).getLeft().copy();  // Solves the issue where the itemstacks are the same instance
                 if (mergingItem.isEmpty()) continue;
 
-                if (!this.inventory.get(i).isEmpty()) {
+                if (!this.inventory.get(i).getLeft().isEmpty()) {
                     extraItems.add(mergingItem);
                 } else {
-                    this.inventory.set(i, mergingItem);
+                    this.inventory.get(i).setLeft(mergingItem);
                 }
             }
             return extraItems;
@@ -96,7 +109,7 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
             if (addon == null) return extraItems;
 
             for (int i = 0; i < this.inventory.size(); i++) {
-                ItemStack item = this.inventory.get(i);
+                ItemStack item = this.inventory.get(i).getLeft();
                 if (i >= addon.size()) {
                     extraItems.add(item);
                 } else {
@@ -108,36 +121,57 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
         }
 
         @Override
-        public CompatComponent<DefaultedList<ItemStack>> handleDropRules(DeathContext context) {
+        public void handleDropRules(DeathContext context) {
             YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
-            DefaultedList<ItemStack> soulboundItems = DefaultedList.ofSize(this.inventory.size(), ItemStack.EMPTY);
 
-            Vec3d deathPos = context.getDeathPos();
-            for (int i = 0; i < this.inventory.size(); i++) {
-                ItemStack stack = this.inventory.get(i);
+            Vec3d deathPos = context.deathPos();
+            for (Pair<ItemStack, DropRule> pair : this.inventory) {
+                ItemStack stack = pair.getLeft();
 
                 DropRule dropRule = compatConfig.defaultInventorioDropRule;
                 if (dropRule == DropRule.PUT_IN_GRAVE)
                     dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
 
-                switch (dropRule) {
-                    case KEEP -> soulboundItems.set(i, stack);
-                    case DROP -> InventoryComponent.dropItemIfToBeDropped(stack, deathPos.x, deathPos.y, deathPos.z, context.getWorld());
+                if (dropRule == DropRule.DROP) {
+                    InventoryComponent.dropItemIfToBeDropped(stack, deathPos.x, deathPos.y, deathPos.z, context.world());
                 }
-                if (dropRule != DropRule.PUT_IN_GRAVE)
-                    this.inventory.set(i, ItemStack.EMPTY);
+
+                pair.setRight(dropRule);
             }
-            return new InventorioCompatComponent(soulboundItems);
         }
 
         @Override
         public DefaultedList<ItemStack> getAsStackList() {
-            return this.inventory;
+            DefaultedList<ItemStack> items = DefaultedList.of();
+            for (Pair<ItemStack, DropRule> pair : this.inventory) {
+                items.add(pair.getLeft());
+            }
+            return items;
+        }
+
+        @Override
+        public CompatComponent<DefaultedList<Pair<ItemStack, DropRule>>> filterInv(Predicate<DropRule> predicate) {
+            DefaultedList<Pair<ItemStack, DropRule>> filteredItems = DefaultedList.of();
+
+            for (int i = 0; i < this.inventory.size(); i++) {
+                Pair<ItemStack, DropRule> pair = this.inventory.get(i);
+                ItemStack stack = pair.getLeft();
+                DropRule dropRule = pair.getRight();
+
+                if (predicate.test(dropRule)) {
+                    filteredItems.add(i, new Pair<>(stack, dropRule));
+                } else {
+                    filteredItems.add(i, InventoryComponent.EMPTY_ITEM_PAIR);
+                }
+            }
+
+            return new InventorioCompatComponent(filteredItems);
         }
 
         @Override
         public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
-            for (ItemStack stack : this.inventory) {
+            for (Pair<ItemStack, DropRule> pair : this.inventory) {
+                ItemStack stack = pair.getLeft();
                 if (predicate.test(stack)) {
                     stack.decrement(itemCount);
                     return true;
@@ -148,22 +182,29 @@ public class InventorioCompat implements InvModCompat<DefaultedList<ItemStack>> 
 
         @Override
         public void clear() {
-            Collections.fill(this.inventory, ItemStack.EMPTY);
+            for (Pair<ItemStack, DropRule> pair : this.inventory) {
+                pair.setLeft(ItemStack.EMPTY);
+            }
         }
 
         @Override
         public boolean isEmpty() {
-            DefaultedList<ItemStack> items = DefaultedList.of();
-            items.addAll(this.inventory);
-            items.removeIf(ItemStack::isEmpty);
-            return items.isEmpty();
+            for (Pair<ItemStack, DropRule> pair : this.inventory) {
+                if (!pair.getLeft().isEmpty()) return false;
+            }
+
+            return true;
         }
 
         @Override
         public NbtCompound writeNbt() {
-            NbtCompound nbt = new NbtCompound();
-            nbt.putInt("size", this.inventory.size());
-            return Inventories.writeNbt(nbt, this.inventory);
+            return InventoryComponent.listToNbt(this.inventory, pair -> {
+                NbtCompound itemNbt = new NbtCompound();
+                pair.getLeft().writeNbt(itemNbt);
+                itemNbt.putString("dropRule", pair.getRight().name());
+
+                return itemNbt;
+            }, pair -> pair.getLeft().isEmpty());
         }
     }
 }

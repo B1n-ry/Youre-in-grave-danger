@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.util.DropRule;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -34,16 +35,17 @@ public abstract class CompatComponent<T> {
 
     /**
      * Handle drop rules for each item or whatever the component holds
+     *
      * @param context How the player died
-     * @return A new component that the player will get when respawning
      */
-    public abstract CompatComponent<T> handleDropRules(DeathContext context);
+    public abstract void handleDropRules(DeathContext context);
 
     /**
      * Get all items as a {@link DefaultedList<ItemStack>} in the component
      * @return All items in the component <b>INCLUDING EMPTY ITEMS</b>
      */
     public abstract DefaultedList<ItemStack> getAsStackList();
+    public abstract CompatComponent<T> filterInv(Predicate<DropRule> predicate);
     public abstract boolean removeItem(Predicate<ItemStack> predicate, int itemCount);
     public void dropItems(ServerWorld world, Vec3d pos) {
         DefaultedList<ItemStack> items = this.getAsStackList();

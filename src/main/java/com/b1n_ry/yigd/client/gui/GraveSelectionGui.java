@@ -63,34 +63,26 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         return listPanel;
     }
     private void addFilterButtons(WGridPanel root, WFilterableListPanel<LightGraveData, WCardButton> filterableList) {
-        TextureIcon viewClaimedOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave.png"));
-        TextureIcon viewClaimedOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave_cross.png"));
-        WHoverToggleButton viewClaimed = new WHoverToggleButton(
-                viewClaimedOn,
-                Text.translatable("text.yigd.gui.btn.viewing_claimed"),
-                viewClaimedOff,
-                Text.translatable("text.yigd.gui.btn.hiding_claimed"));
-        TextureIcon viewUnclaimedOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"));
-        TextureIcon viewUnclaimedOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png"));
-        WHoverToggleButton viewUnclaimed = new WHoverToggleButton(
-                viewUnclaimedOn,
-                Text.translatable("text.yigd.gui.btn.viewing_unclaimed"),
-                viewUnclaimedOff,
-                Text.translatable("text.yigd.gui.btn.hiding_unclaimed"));
-        TextureIcon viewDestroyedOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"));
-        TextureIcon viewDestroyedOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave_cross.png"));
-        WHoverToggleButton viewDestroyed = new WHoverToggleButton(
-                viewDestroyedOn,
-                Text.translatable("text.yigd.gui.btn.viewing_destroyed"),
-                viewDestroyedOff,
-                Text.translatable("text.yigd.gui.btn.hiding_destroyed"));
-        TextureIcon showStatusOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/show_status.png"));
-        TextureIcon showStatusOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/hide_status.png"));
-        WHoverToggleButton showStatus = new WHoverToggleButton(
-                showStatusOn,
-                Text.translatable("text.yigd.gui.btn.showing_status"),
-                showStatusOff,
-                Text.translatable("text.yigd.gui.btn.hiding_status"));
+        WHoverToggleButton viewClaimed = this.addToggleButton(
+                new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave.png"),
+                "button.yigd.gui.viewing_claimed",
+                new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave_cross.png"),
+                "button.yigd.gui.hiding_claimed");
+        WHoverToggleButton viewUnclaimed = this.addToggleButton(
+                new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"),
+                "button.yigd.gui.viewing_unclaimed",
+                new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png"),
+                "button.yigd.gui.hiding_unclaimed");
+        WHoverToggleButton viewDestroyed = this.addToggleButton(
+                new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"),
+                "button.yigd.gui.viewing_destroyed",
+                new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave_cross.png"),
+                "button.yigd.gui.hiding_destroyed");
+        WHoverToggleButton showStatus = this.addToggleButton(
+                new Identifier(Yigd.MOD_ID, "textures/gui/show_status.png"),
+                "button.yigd.gui.showing_status",
+                new Identifier(Yigd.MOD_ID, "textures/gui/hide_status.png"),
+                "button.yigd.gui.hiding_status");
 
         // a == b && bool <=> a == b if bool, else a != b
         viewClaimed.setOnToggle(aBoolean -> {
@@ -121,6 +113,16 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         root.add(viewUnclaimed, 12, 2);
         root.add(viewDestroyed, 12, 3);
         root.add(showStatus, 12, 4);
+    }
+    private WHoverToggleButton addToggleButton(Identifier stateOnImg, String stateOnTranslationKey,
+                                               Identifier stateOffImg, String stateOffTranslationKey) {
+        TextureIcon onIcon = new TextureIcon(stateOnImg);
+        TextureIcon offIcon = new TextureIcon(stateOffImg);
+
+        Text stateOnText = Text.translatable(stateOnTranslationKey);
+        Text stateOffText = Text.translatable(stateOffTranslationKey);
+
+        return new WHoverToggleButton(onIcon, stateOnText, offIcon, stateOffText);
     }
 
     public Screen getPreviousScreen() {

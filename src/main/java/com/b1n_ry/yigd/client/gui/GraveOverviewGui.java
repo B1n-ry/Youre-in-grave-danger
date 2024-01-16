@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.client.gui.widget.WItemStack;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.packets.ClientPacketHandler;
+import com.b1n_ry.yigd.util.DropRule;
 import io.github.cottonmc.cotton.gui.client.BackgroundPainter;
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
 import io.github.cottonmc.cotton.gui.widget.*;
@@ -17,6 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -62,7 +64,9 @@ public class GraveOverviewGui extends LightweightGuiDescription {
     private void addItemSlots(WPlainPanel root) {
         InventoryComponent inventoryComponent = this.graveComponent.getInventoryComponent();
         DefaultedList<ItemStack> items = DefaultedList.of();
-        items.addAll(inventoryComponent.getItems());
+        for (Pair<ItemStack, DropRule> pair : inventoryComponent.getItems()) {
+            items.add(pair.getLeft());
+        }
 
         items.addAll(inventoryComponent.getAllExtraItems(true));
 

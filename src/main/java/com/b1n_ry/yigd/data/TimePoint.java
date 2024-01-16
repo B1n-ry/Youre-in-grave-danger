@@ -4,7 +4,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.Month;
 import java.util.EnumMap;
 
@@ -29,16 +28,6 @@ public class TimePoint {
     }
     public long getDay() {
         return this.timeOfDay / 24000;
-    }
-    public String getIrlTime() {
-        String month = MONTH_NAMES.get(this.irlTime.getMonth());
-        int hour = this.irlTime.getHour();
-        String timePostfix = "AM";
-        if (hour >= 12) {
-            hour -= 12;
-            timePostfix = "PM";
-        }
-        return "%s %d %d, %d:%d %s".formatted(month, this.irlTime.getDayOfMonth(), this.irlTime.getYear(), hour, this.irlTime.getMinute(), timePostfix);
     }
     public String getMonthName() {
         return MONTH_NAMES.get(this.irlTime.getMonth());

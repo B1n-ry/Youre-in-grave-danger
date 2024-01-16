@@ -57,7 +57,7 @@ public class DeathHandler {
 
 
         if (config.inventoryConfig.itemLoss.enabled) {
-            inventoryComponent.applyLoss(context);
+            inventoryComponent.applyLoss();
         }
 
         Vec3d graveGenerationPos = !config.graveConfig.generateOnLastGroundPos ? pos : ((ServerPlayerEntityImpl) player).youre_in_grave_danger$getLastGroundPos();

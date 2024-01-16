@@ -15,7 +15,7 @@ public class CommonProtectionApiCompat {
                 YigdConfig.getConfig().graveConfig.blockUnderGrave.generateOnProtectedLand || !ProtectionImpl.isProtected(grave.getWorld(), grave.getPos().down()));
 
         AllowGraveGenerationEvent.EVENT.register((context, grave) -> {
-            if (ProtectionImpl.isProtected(context.getWorld(), grave.getPos()))
+            if (ProtectionImpl.isProtected(context.world(), grave.getPos()))
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim == DropRule.PUT_IN_GRAVE;
 
             return true;
@@ -24,7 +24,7 @@ public class CommonProtectionApiCompat {
         DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
             if (context == null || !modify) return GraveOverrideAreas.INSTANCE.defaultDropRule;
 
-            if (ProtectionImpl.isProtected(context.getWorld(), BlockPos.ofFloored(context.getDeathPos())))
+            if (ProtectionImpl.isProtected(context.world(), BlockPos.ofFloored(context.deathPos())))
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim;
 
             return GraveOverrideAreas.INSTANCE.defaultDropRule;
