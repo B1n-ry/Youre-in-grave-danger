@@ -30,6 +30,10 @@ public class ServerPacketHandler {
             }
 
             UUID graveId = buf.readUuid();
+            boolean itemsInGrave = buf.readBoolean();
+            boolean itemsDeleted = buf.readBoolean();
+            boolean itemsKept = buf.readBoolean();
+            boolean itemsDropped = buf.readBoolean();
 
             server.execute(() -> {
                 Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
@@ -41,10 +45,17 @@ public class ServerPacketHandler {
                         return;
                     }
 
-                    component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true);
-                    component.setStatus(GraveStatus.CLAIMED);
+                    component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true, dropRule -> switch (dropRule) {
+                        case KEEP -> itemsKept;
+                        case DESTROY -> itemsDeleted;
+                        case DROP -> itemsDropped;
+                        case PUT_IN_GRAVE -> itemsInGrave;
+                    });
+                    if (itemsInGrave) {
+                        component.setStatus(GraveStatus.CLAIMED);
 
-                    component.removeGraveBlock();
+                        component.removeGraveBlock();
+                    }
 
                     player.sendMessage(Text.translatable("text.yigd.command.restore.success"));
                 }, () -> player.sendMessage(Text.translatable("text.yigd.command.restore.fail")));
@@ -58,14 +69,26 @@ public class ServerPacketHandler {
             }
 
             UUID graveId = buf.readUuid();
+            boolean itemsInGrave = buf.readBoolean();
+            boolean itemsDeleted = buf.readBoolean();
+            boolean itemsKept = buf.readBoolean();
+            boolean itemsDropped = buf.readBoolean();
 
             server.execute(() -> {
                 Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
                 maybeComponent.ifPresentOrElse(component -> {
-                    component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false);
-                    component.setStatus(GraveStatus.CLAIMED);
+                    component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false, dropRule -> switch (dropRule) {
+                        case KEEP -> itemsKept;
+                        case DESTROY -> itemsDeleted;
+                        case DROP -> itemsDropped;
+                        case PUT_IN_GRAVE -> itemsInGrave;
+                    });
 
-                    component.removeGraveBlock();
+                    if (itemsInGrave) {
+                        component.setStatus(GraveStatus.CLAIMED);
+
+                        component.removeGraveBlock();
+                    }
 
                     player.sendMessage(Text.translatable("text.yigd.command.rob.success"));
                 }, () -> player.sendMessage(Text.translatable("text.yigd.command.rob.fail")));

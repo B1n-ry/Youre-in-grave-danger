@@ -24,11 +24,21 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
 public class GraveOverviewGui extends LightweightGuiDescription {
     private final GraveComponent graveComponent;
+    private InventoryComponent visibleInventoryComponent;
+
+    private final Set<WItemStack> wItemStacks = new HashSet<>();
+
+    private boolean viewGraveItems = true;
+    private boolean viewDeletedItems = false;
+    private boolean viewSoulboundItems = false;
+    private boolean viewDroppedItems = false;
     private final Screen previousScreen;
 
     private static final int SLOT_SIZE = 18;
@@ -47,52 +57,68 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         WLabel title = new WLabel(this.graveComponent.getDeathMessage().getDeathMessage());
         root.add(title, slightlyLeft, 0);
 
-        this.addItemSlots(root);
-        this.addCoordinates(root, slightlyLeft, SLOT_SIZE);
-        this.addDimension(root, slightlyLeft, 2 * SLOT_SIZE);
-        this.addXpInfo(root, slightlyLeft, 3 * SLOT_SIZE);
+        this.addCoordinates(root, slightlyLeft);
+        this.addDimension(root, slightlyLeft);
+        this.addXpInfo(root, slightlyLeft);
 
-        this.addButtons(root, SLOT_SIZE * SLOTS_PER_LINE + 5, 0, canRestore, canRob, canDelete, canUnlock);
+        this.addButtons(root, canRestore, canRob, canDelete, canUnlock);
 
         root.validate(this);
+
+        this.updateFilters(root);  // Update visible inventory component
     }
 
     public Screen getPreviousScreen() {
         return this.previousScreen;
     }
 
+    private void updateFilters(WPlainPanel root) {
+        // Remove all wItemStacks
+        for (WItemStack wItemStack : this.wItemStacks) {
+            root.remove(wItemStack);
+        }
+
+        this.visibleInventoryComponent = this.graveComponent.getInventoryComponent().filteredInv(dropRule -> switch (dropRule) {
+            case PUT_IN_GRAVE -> this.viewGraveItems;
+            case DESTROY -> this.viewDeletedItems;
+            case KEEP -> this.viewSoulboundItems;
+            case DROP -> this.viewDroppedItems;
+        });
+
+        this.addItemSlots(root);
+    }
+
     private void addItemSlots(WPlainPanel root) {
-        InventoryComponent inventoryComponent = this.graveComponent.getInventoryComponent();
         DefaultedList<ItemStack> items = DefaultedList.of();
-        for (Pair<ItemStack, DropRule> pair : inventoryComponent.getItems()) {
+        for (Pair<ItemStack, DropRule> pair : this.visibleInventoryComponent.getItems()) {
             items.add(pair.getLeft());
         }
 
-        items.addAll(inventoryComponent.getAllExtraItems(true));
+        items.addAll(this.visibleInventoryComponent.getAllExtraItems(true));
 
-        int generateArmorAndOffhandFrom = Math.max(inventoryComponent.armorSize, inventoryComponent.offHandSize) - 1;
+        int generateArmorAndOffhandFrom = Math.max(this.visibleInventoryComponent.armorSize, this.visibleInventoryComponent.offHandSize) - 1;
 
         // Armor slots
-        this.addItemSlot(root, inventoryComponent.mainSize, inventoryComponent.armorSize,
+        this.addItemSlot(root, this.visibleInventoryComponent.mainSize, this.visibleInventoryComponent.armorSize,
                 items, i -> new Point(0, (generateArmorAndOffhandFrom - i) * SLOT_SIZE));
 
         // Offhand slot(s?)
-        this.addItemSlot(root, inventoryComponent.mainSize + inventoryComponent.armorSize,
-                inventoryComponent.offHandSize, items,
+        this.addItemSlot(root, this.visibleInventoryComponent.mainSize + this.visibleInventoryComponent.armorSize,
+                this.visibleInventoryComponent.offHandSize, items,
                 i -> new Point((SLOTS_PER_LINE - 1) * SLOT_SIZE, (generateArmorAndOffhandFrom - i) * SLOT_SIZE));
 
-        int mainInvHeight = inventoryComponent.mainSize / SLOTS_PER_LINE;
+        int mainInvHeight = this.visibleInventoryComponent.mainSize / SLOTS_PER_LINE;
 
         // Hot-bar slots
         this.addItemSlot(root, 0, SLOTS_PER_LINE, items,
                 i -> new Point(i * SLOT_SIZE, (mainInvHeight + generateArmorAndOffhandFrom + 1) * SLOT_SIZE));
 
         // Main slots
-        this.addItemSlot(root, SLOTS_PER_LINE, inventoryComponent.mainSize - SLOTS_PER_LINE, items,
+        this.addItemSlot(root, SLOTS_PER_LINE, this.visibleInventoryComponent.mainSize - SLOTS_PER_LINE, items,
                 i -> new Point((i % SLOTS_PER_LINE) * SLOT_SIZE,
                         (int) ((generateArmorAndOffhandFrom + 1.5 + (i / SLOTS_PER_LINE)) * SLOT_SIZE)));
 
-        int collectiveSize = inventoryComponent.mainSize + inventoryComponent.armorSize + inventoryComponent.offHandSize;
+        int collectiveSize = this.visibleInventoryComponent.mainSize + this.visibleInventoryComponent.armorSize + this.visibleInventoryComponent.offHandSize;
         int sizeDiff = items.size() - collectiveSize;
         if (sizeDiff > 0) {
             WPlainPanel extraItemsPanel = new WPlainPanel();
@@ -112,25 +138,25 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         }
     }
 
-    private void addCoordinates(WPlainPanel root, int x, int y) {
+    private void addCoordinates(WPlainPanel root, int x) {
         BlockPos pos = this.graveComponent.getPos();
         WText coordinates = new WText(Text.of("X: %d / Y: %d / Z: %d".formatted(pos.getX(), pos.getY(), pos.getZ())));
 
-        root.add(coordinates, x, y, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
+        root.add(coordinates, x, GraveOverviewGui.SLOT_SIZE, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
     }
 
-    private void addDimension(WPlainPanel root, int x, int y) {
+    private void addDimension(WPlainPanel root, int x) {
         RegistryKey<World> key = this.graveComponent.getWorldRegistryKey();
         String dimId = key.getValue().toString();
         WText dimension = new WText(Text.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId));
 
-        root.add(dimension, x, y, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
+        root.add(dimension, x, 36, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
     }
 
-    private void addXpInfo(WPlainPanel root, int x, int y) {
+    private void addXpInfo(WPlainPanel root, int x) {
         WSprite xpIcon = new WSprite(new Identifier(Yigd.MOD_ID, "textures/gui/exp_orb.png"));
         int spriteSize = (int) (SLOT_SIZE * 0.7);
-        root.add(xpIcon, x, y, spriteSize, spriteSize);
+        root.add(xpIcon, x, 54, spriteSize, spriteSize);
 
         int level = this.graveComponent.getExpComponent().getXpLevel();
         Text text = Text.of(String.valueOf(level));
@@ -145,7 +171,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         WText wText = new WText(text, 0x80FF20);
 
         int textX = x + spriteSize;
-        int textY = y + spriteSize / 2;
+        int textY = 54 + spriteSize / 2;
         root.add(bgTextRight, textX + 1, textY);
         root.add(bgTextLeft, textX - 1, textY);
         root.add(bgTextUp, textX, textY + 1);
@@ -159,14 +185,29 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
             WItemStack wItemStack = new WItemStack(items.get(fromIndex + i), SLOT_SIZE);
 
+            this.wItemStacks.add(wItemStack);
+
             root.add(wItemStack, pos.x, pos.y);
         }
     }
 
-    private void addButtons(WPlainPanel root, int x, int y, boolean restoreBtn, boolean robBtn, boolean deleteBtn, boolean lockingBtn) {
+    private void addButtons(WPlainPanel root, boolean restoreBtn, boolean robBtn, boolean deleteBtn, boolean lockingBtn) {
+        WHoverToggleButton viewGraveItems = new WHoverToggleButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png")),
+                Text.translatable("button.yigd.gui.view_grave_items"), new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png")),
+                Text.translatable("button.yigd.gui.hide_grave_items"));
+        WHoverToggleButton viewDeletedItems = new WHoverToggleButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/trashcan_icon.png")),
+                Text.translatable("button.yigd.gui.view_deleted_items"), new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/trashcan_icon_cross.png")),
+                Text.translatable("button.yigd.gui.hide_deleted_items"));
+        WHoverToggleButton viewSoulboundItems = new WHoverToggleButton(new TextureIcon(new Identifier("textures/item/enchanted_book.png")),
+                Text.translatable("button.yigd.gui.view_soulbound_items"), new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/enchanted_book_cross.png")),
+                Text.translatable("button.yigd.gui.hide_soulbound_items"));
+        WHoverToggleButton viewDroppedItems = new WHoverToggleButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/drop_icon.png")),
+                Text.translatable("button.yigd.gui.view_dropped_items"), new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/drop_icon_cross.png")),
+                Text.translatable("button.yigd.gui.hide_dropped_items"));
+
         WHoverButton restoreButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/restore_btn.png")), Text.translatable("button.yigd.gui.restore"));
         WHoverButton robButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/rob_btn.png")), Text.translatable("button.yigd.gui.rob"));
-        WHoverButton deleteButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/delete_btn.png")), Text.translatable("button.yigd.gui.delete"));
+        WHoverButton deleteButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/trashcan_icon.png")), Text.translatable("button.yigd.gui.delete"));
 
         TextureIcon lockingIconOn = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/locked_btn.png"));
         TextureIcon lockingIconOff = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unlocked_btn.png"));
@@ -175,26 +216,57 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
         UUID graveId = this.graveComponent.getGraveId();
 
-        restoreButton.setOnClick(() -> ClientPacketHandler.sendRestoreGraveRequestPacket(graveId));
-        robButton.setOnClick(() -> ClientPacketHandler.sendRobGraveRequestPacket(graveId));
+        viewGraveItems.setToggle(this.viewGraveItems);
+        viewDeletedItems.setToggle(this.viewDeletedItems);
+        viewSoulboundItems.setToggle(this.viewSoulboundItems);
+        viewDroppedItems.setToggle(this.viewDroppedItems);
+
+        viewGraveItems.setOnToggle(aBoolean -> {
+            this.viewGraveItems = aBoolean;
+            this.updateFilters(root);
+        });
+        viewDeletedItems.setOnToggle(aBoolean -> {
+            this.viewDeletedItems = aBoolean;
+            this.updateFilters(root);
+        });
+        viewSoulboundItems.setOnToggle(aBoolean -> {
+            this.viewSoulboundItems = aBoolean;
+            this.updateFilters(root);
+        });
+        viewDroppedItems.setOnToggle(aBoolean -> {
+            this.viewDroppedItems = aBoolean;
+            this.updateFilters(root);
+        });
+
+        restoreButton.setOnClick(() -> ClientPacketHandler.sendRestoreGraveRequestPacket(graveId, this.viewGraveItems, this.viewDeletedItems, this.viewSoulboundItems, this.viewDroppedItems));
+        robButton.setOnClick(() -> ClientPacketHandler.sendRobGraveRequestPacket(graveId, this.viewGraveItems, this.viewDeletedItems, this.viewSoulboundItems, this.viewDroppedItems));
         deleteButton.setOnClick(() -> ClientPacketHandler.sendDeleteGraveRequestPacket(graveId));
         lockingButton.setOnToggle(aBoolean -> ClientPacketHandler.sendGraveLockRequestPacket(graveId, aBoolean));
 
+        final int x = 167;
+        final int topY = 0;
+
         int i = 0;
+
+        root.add(viewGraveItems, x, topY); i += 21;
+        root.add(viewDeletedItems, x, topY + i); i += 21;
+        root.add(viewSoulboundItems, x, topY + i); i += 21;
+        root.add(viewDroppedItems, x, topY + i); i += 22;
+
         if (restoreBtn) {
-            root.add(restoreButton, x, y);
-            i += 24;
+            root.add(restoreButton, x, topY + i);
+            i += 21;
         }
         if (robBtn) {
-            root.add(robButton, x, y + i);
-            i += 24;
+            root.add(robButton, x, topY + i);
+            i += 21;
         }
         if (lockingBtn) {
-            root.add(lockingButton, x, y + i);
-            i += 24;
+            root.add(lockingButton, x, topY + i);
+            i += 21;
         }
         if (deleteBtn) {
-            root.add(deleteButton, x, y + i);
+            root.add(deleteButton, x, topY + i);
         }
     }
 }

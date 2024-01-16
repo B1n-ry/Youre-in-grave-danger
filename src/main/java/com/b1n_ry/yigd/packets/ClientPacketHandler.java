@@ -65,14 +65,22 @@ public class ClientPacketHandler {
         });
     }
 
-    public static void sendRestoreGraveRequestPacket(UUID graveId) {
+    public static void sendRestoreGraveRequestPacket(UUID graveId, boolean itemsInGrave, boolean itemsDeleted, boolean itemsKept, boolean itemsDropped) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeUuid(graveId);
+        buf.writeBoolean(itemsInGrave);
+        buf.writeBoolean(itemsDeleted);
+        buf.writeBoolean(itemsKept);
+        buf.writeBoolean(itemsDropped);
         ClientPlayNetworking.send(PacketIdentifiers.GRAVE_RESTORE_C2S, buf);
     }
-    public static void sendRobGraveRequestPacket(UUID graveId) {
+    public static void sendRobGraveRequestPacket(UUID graveId, boolean itemsInGrave, boolean itemsDeleted, boolean itemsKept, boolean itemsDropped) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeUuid(graveId);
+        buf.writeBoolean(itemsInGrave);
+        buf.writeBoolean(itemsDeleted);
+        buf.writeBoolean(itemsKept);
+        buf.writeBoolean(itemsDropped);
         ClientPlayNetworking.send(PacketIdentifiers.GRAVE_ROBBING_C2S, buf);
     }
     public static void sendDeleteGraveRequestPacket(UUID graveId) {

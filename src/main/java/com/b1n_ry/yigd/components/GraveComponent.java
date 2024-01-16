@@ -43,6 +43,7 @@ import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -463,6 +464,9 @@ public class GraveComponent {
     }
 
     public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, BlockPos pos, boolean isGraveOwner) {
+        this.applyToPlayer(player, world, pos, isGraveOwner, dropRule -> dropRule == DropRule.PUT_IN_GRAVE);
+    }
+    public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, BlockPos pos, boolean isGraveOwner, Predicate<DropRule> itemFilter) {
         YigdConfig config = YigdConfig.getConfig();
 
         this.expComponent.applyToPlayer(player);
@@ -478,7 +482,7 @@ public class GraveComponent {
 
         ClaimPriority priority = isGraveOwner ? claimPriority : robPriority;
 
-        InventoryComponent graveInv = this.inventoryComponent.filteredInv(dropRule -> dropRule == DropRule.PUT_IN_GRAVE);
+        InventoryComponent graveInv = this.inventoryComponent.filteredInv(itemFilter);
 
         // Move curse of binding items from equipped in grave, so they can't get stuck to the player even after death
         if (config.graveConfig.treatBindingCurse) {

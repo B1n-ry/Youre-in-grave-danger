@@ -1,5 +1,9 @@
 # You're in Grave Danger 2.0.0-beta.7
 
+### Changes
+* Improved backup system. Now all items are backed up, no matter drop rules.
+Through the backup in game GUI you can now also restore items with specific drop rules
+
 ### Fixes
 * Game will no longer crash when dying if Travelers backpack is installed
 

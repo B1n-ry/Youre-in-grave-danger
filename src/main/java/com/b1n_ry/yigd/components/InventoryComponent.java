@@ -229,6 +229,7 @@ public class InventoryComponent {
         for (Pair<ItemStack, DropRule> pair : this.items) {
             ItemStack stack = pair.getLeft();
             if (stack.isEmpty() || pair.getRight() == DropRule.KEEP || pair.getRight() == DropRule.DESTROY) continue;
+            pair.setRight(DropRule.DROP);  // Make sure item are marked as dropped, and not in a non-existent grave
             InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
         }
 
