@@ -336,7 +336,7 @@ public class GraveComponent {
         ItemStack graveItem = new ItemStack(Yigd.GRAVE_BLOCK.asItem());
         boolean addGraveItem = config.graveConfig.dropGraveBlock;
         if (config.graveConfig.dropOnRetrieve == DropType.IN_INVENTORY) {
-            this.applyToPlayer(player, world, pos, thisIsARobbery);
+            this.applyToPlayer(player, world, pos, !thisIsARobbery);
 
             if (addGraveItem)
                 player.giveItemStack(graveItem);

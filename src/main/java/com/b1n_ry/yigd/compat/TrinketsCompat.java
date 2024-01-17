@@ -163,12 +163,14 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     for (int i = 0; i < mergingItems.size(); i++) {
                         Pair<ItemStack, DropRule> pair = mergingItems.get(i);
                         ItemStack mergingStack = pair.getLeft().copy();  // Solves the issue where the itemstacks are the same instance
-                        if (stacks.size() <= i || !stacks.get(i).getLeft().isEmpty()) {
+
+                        Pair<ItemStack, DropRule> currentPair = stacks.get(i);
+                        if (stacks.size() <= i || !currentPair.getLeft().isEmpty()) {
                             extraItems.add(mergingStack);
                             continue;
                         }
 
-                        stacks.set(i, pair);
+                        currentPair.setLeft(mergingStack);
                     }
                 }
             }

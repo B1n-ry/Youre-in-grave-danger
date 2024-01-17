@@ -28,6 +28,7 @@ public abstract class CompatComponent<T> {
     /**
      * Slaps the merging component on top of the current one. If any item is occupied in current component, merging
      * component should add the item that would've gone in that slot to the returning list
+     * Component should be filtered based on drop rule before calling this, so different drop rules on items does not matter in this method
      * @param mergingComponent Component that will merge. REQUIRED TO BE OF SAME INSTANCE AS THIS COMPONENT
      * @return A list with all items that couldn't be merged from merging component
      */
@@ -42,8 +43,9 @@ public abstract class CompatComponent<T> {
     public abstract void handleDropRules(DeathContext context);
 
     /**
-     * Get all items as a {@link DefaultedList<ItemStack>} in the component
-     * @return All items in the component <b>INCLUDING EMPTY ITEMS</b>
+     * Get all items as a {@link DefaultedList<Pair>} of {@link Pair<>} containing {@link ItemStack} and {@link DropRule} in the component
+     * The drop rule refers to what drop rule was/will be applied on death
+     * @return Pairs containing all items in the component <b>INCLUDING EMPTY ITEMS</b>
      */
     public abstract DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList();
     public abstract CompatComponent<T> filterInv(Predicate<DropRule> predicate);
@@ -57,7 +59,7 @@ public abstract class CompatComponent<T> {
     public abstract void clear();
 
     /**
-     * Check if the component contains any items that should be placed in a grave
+     * Check if the component contains any items that should be placed in a grave (according to drop rules)
      * @return Whether the component contains any items that should be placed in a grave
      */
     public abstract boolean containsGraveItems();

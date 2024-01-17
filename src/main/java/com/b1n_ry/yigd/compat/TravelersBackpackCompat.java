@@ -66,13 +66,14 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent) {
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
-            if (mergingComponent.containsGraveItems()) return extraItems;
-
             @SuppressWarnings("unchecked")
             Pair<ItemStack, DropRule> pair = (Pair<ItemStack, DropRule>) mergingComponent.inventory;
-            ItemStack mergingStack = pair.getLeft();  // Solves the case where the merging component is the same as this component
+            ItemStack mergingStack = pair.getLeft();
+            ItemStack currentStack = this.inventory.getLeft();
 
-            if (!this.containsGraveItems()) {
+            if (mergingStack.isEmpty()) return extraItems;
+
+            if (!currentStack.isEmpty()) {
                 extraItems.add(mergingStack);
                 return extraItems;
             }
@@ -105,12 +106,12 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
             if (dropRule == DropRule.PUT_IN_GRAVE)
                 dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
 
-            TBCompatComponent soulboundComponent = new TBCompatComponent(dropRule == DropRule.KEEP ? this.inventory : InventoryComponent.EMPTY_ITEM_PAIR);
-
             Vec3d deathPos = context.deathPos();
-            if (dropRule == DropRule.DROP)
+            if (dropRule == DropRule.DROP) {
                 InventoryComponent.dropItemIfToBeDropped(stack, deathPos.x, deathPos.y, deathPos.z, context.world());
+            }
 
+            this.inventory.setRight(dropRule);
         }
 
         @Override

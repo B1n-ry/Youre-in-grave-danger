@@ -33,7 +33,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
     private final GraveComponent graveComponent;
     private InventoryComponent visibleInventoryComponent;
 
-    private final Set<WItemStack> wItemStacks = new HashSet<>();
+    private final Set<Runnable> removeItemFunctions = new HashSet<>();
 
     private boolean viewGraveItems = true;
     private boolean viewDeletedItems = false;
@@ -74,8 +74,8 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
     private void updateFilters(WPlainPanel root) {
         // Remove all wItemStacks
-        for (WItemStack wItemStack : this.wItemStacks) {
-            root.remove(wItemStack);
+        for (Runnable runnable : this.removeItemFunctions) {
+            runnable.run();
         }
 
         this.visibleInventoryComponent = this.graveComponent.getInventoryComponent().filteredInv(dropRule -> switch (dropRule) {
@@ -135,6 +135,8 @@ public class GraveOverviewGui extends LightweightGuiDescription {
             int height = extraItemsPanel.getHeight();
             root.add(extraItemsPanel, -(panelInsets.left() + extraItemsPanel.getWidth()), -extraItemsPanel.getInsets().top());
             extraItemsPanel.setSize(width, height);  // WPlainPanel#add automatically makes added elements 18x18 pixels
+
+            this.removeItemFunctions.add(() -> root.remove(extraItemsPanel));  // Make sure entire left panel is reset
         }
     }
 
@@ -185,7 +187,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
             WItemStack wItemStack = new WItemStack(items.get(fromIndex + i), SLOT_SIZE);
 
-            this.wItemStacks.add(wItemStack);
+            this.removeItemFunctions.add(() -> root.remove(wItemStack));
 
             root.add(wItemStack, pos.x, pos.y);
         }

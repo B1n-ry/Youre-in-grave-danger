@@ -130,7 +130,29 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
         @Override
         public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
-            return DefaultedList.of();
+            DefaultedList<Pair<ItemStack, DropRule>> list = DefaultedList.of();
+            if (this.graveValue != 0) {
+                for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.graveValue)) {
+                    list.add(new Pair<>(stack, DropRule.PUT_IN_GRAVE));
+                }
+            }
+            if (this.dropValue != 0) {
+                for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.dropValue)) {
+                    list.add(new Pair<>(stack, DropRule.DROP));
+                }
+            }
+            if (this.keepValue != 0) {
+                for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.keepValue)) {
+                    list.add(new Pair<>(stack, DropRule.KEEP));
+                }
+            }
+            if (this.destroyValue != 0) {
+                for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.destroyValue)) {
+                    list.add(new Pair<>(stack, DropRule.DESTROY));
+                }
+            }
+
+            return list;
         }
 
         @Override

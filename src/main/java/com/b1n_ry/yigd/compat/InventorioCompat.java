@@ -92,10 +92,11 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
                 ItemStack mergingItem = mergingInventory.get(i).getLeft().copy();  // Solves the issue where the itemstacks are the same instance
                 if (mergingItem.isEmpty()) continue;
 
-                if (!this.inventory.get(i).getLeft().isEmpty()) {
+                Pair<ItemStack, DropRule> pair = this.inventory.get(i);
+                if (!pair.getLeft().isEmpty()) {
                     extraItems.add(mergingItem);
                 } else {
-                    this.inventory.get(i).setLeft(mergingItem);
+                    pair.setLeft(mergingItem);
                 }
             }
             return extraItems;

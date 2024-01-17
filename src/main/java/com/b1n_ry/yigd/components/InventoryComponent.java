@@ -275,14 +275,23 @@ public class InventoryComponent {
                 currentComponentIndex = groupIndex + this.mainSize + this.armorSize + this.offHandSize;
             }
 
-            // TODO: If merging stack is armor and curse of binding, force in that slot
             ItemStack mergingStack = mergingComponent.items.get(i).getLeft().copy();  // Copy to avoid a problem in the case when merging and current stack are the same object
             if (currentComponentIndex > this.items.size()) {
                 extraItems.add(mergingStack);
                 continue;
             }
 
-            ItemStack currentStack = this.items.get(currentComponentIndex).getLeft();
+            Pair<ItemStack, DropRule> currentPair = this.items.get(currentComponentIndex);
+            ItemStack currentStack = currentPair.getLeft();
+
+            if (config.graveConfig.treatBindingCurse && i >= mergingComponent.mainSize && i < mergingComponent.mainSize + mergingComponent.armorSize) {  // If merging stack is armor, check for curse of binding
+                if (EnchantmentHelper.hasBindingCurse(mergingStack)) {  // If merging stack has curse of binding, force in that slot
+                    // If grave inventory got all curse of binding items pulled, only the player equipped ones should be forced on the player (because that makes sense)
+                    if (!currentStack.isEmpty()) extraItems.add(currentStack);
+
+                    currentPair.setLeft(mergingStack);
+                }
+            }
             if (config.graveConfig.mergeStacksOnRetrieve) {
                 // Merge ItemStacks, and modify sizes accordingly if possible
                 int combinationSlot = this.findMatchingStackSlot(mergingStack);
@@ -292,7 +301,7 @@ public class InventoryComponent {
             }
             if (!mergingStack.isEmpty()) {  // Can be due to merging (count could be 0 if merge was "fully completed")
                 if (currentStack.isEmpty()) {
-                    this.items.set(currentComponentIndex, new Pair<>(mergingStack, DropRule.PUT_IN_GRAVE));  // Drop rule should not make a difference here
+                    currentPair.setLeft(mergingStack);  // Drop rule should not make a difference here
                 } else {
                     extraItems.add(mergingStack);
                 }

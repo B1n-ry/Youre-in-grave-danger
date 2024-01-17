@@ -111,11 +111,11 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
                         continue;
                     }
 
-                    ItemStack currentStack = currentItems.get(i).getLeft();
-                    if (!currentStack.isEmpty()) {
+                    Pair<ItemStack, DropRule> currentPair = currentItems.get(i);
+                    if (!currentPair.getLeft().isEmpty()) {
                         extraItems.add(mergingStack);
                     } else {
-                        currentItems.get(i).setLeft(mergingStack);
+                        currentPair.setLeft(mergingStack);
                     }
                 }
             }
