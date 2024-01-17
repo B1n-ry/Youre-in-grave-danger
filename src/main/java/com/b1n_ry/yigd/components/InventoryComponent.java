@@ -66,15 +66,22 @@ public class InventoryComponent {
     public DefaultedList<Pair<ItemStack, DropRule>> getItems() {
         return this.items;
     }
+
+    /**
+     * Get all items in component, excluding vanilla inventory
+     * @param withoutEmpty Whether empty items should be included
+     * @return All items in component, excluding vanilla inventory
+     */
     public DefaultedList<ItemStack> getAllExtraItems(boolean withoutEmpty) {
         DefaultedList<ItemStack> stacks = DefaultedList.of();
 
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
-            stacks.addAll(compatComponent.getAsStackList());
-        }
+            for (Pair<ItemStack, DropRule> pair : compatComponent.getAsStackDropList()) {
+                ItemStack stack = pair.getLeft();
+                if (withoutEmpty && stack.isEmpty()) continue;
 
-        if (withoutEmpty) {
-            stacks.removeIf(ItemStack::isEmpty);
+                stacks.add(stack);
+            }
         }
 
         return stacks;
@@ -381,9 +388,9 @@ public class InventoryComponent {
         return -1;
     }
 
-    public boolean isEmpty() {
+    public boolean isGraveEmpty() {
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
-            if (!compatComponent.isEmpty()) return false;
+            if (compatComponent.containsGraveItems()) return false;
         }
 
         for (Pair<ItemStack, DropRule> pair : this.items) {
@@ -392,17 +399,22 @@ public class InventoryComponent {
         }
         return true;
     }
-    public int size() {
+
+    /**
+     * Get the number of occupied slots with drop rule PUT_IN_GRAVE
+     * @return Number of occupied slots with drop rule PUT_IN_GRAVE
+     */
+    public int graveSize() {
         int size = 0;
 
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
-            for (ItemStack stack : compatComponent.getAsStackList()) {
-                if (!stack.isEmpty())
+            for (Pair<ItemStack, DropRule> pair : compatComponent.getAsStackDropList()) {
+                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE)
                     ++size;
             }
         }
         for (Pair<ItemStack, DropRule> pair : this.items) {
-            if (!pair.getLeft().isEmpty())
+            if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE)
                 ++size;
         }
 

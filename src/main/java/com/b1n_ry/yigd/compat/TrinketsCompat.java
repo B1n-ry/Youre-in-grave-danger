@@ -255,13 +255,11 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public DefaultedList<ItemStack> getAsStackList() {
-            DefaultedList<ItemStack> allItems = DefaultedList.of();
+        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
+            DefaultedList<Pair<ItemStack, DropRule>> allItems = DefaultedList.of();
             for (Map<String, DefaultedList<Pair<ItemStack, DropRule>>> slotMap : this.inventory.values()) {
                 for (DefaultedList<Pair<ItemStack, DropRule>> itemStacks : slotMap.values()) {
-                    for (Pair<ItemStack, DropRule> pair : itemStacks) {
-                        allItems.add(pair.getLeft());
-                    }
+                    allItems.addAll(itemStacks);
                 }
             }
 
@@ -322,12 +320,12 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public boolean isEmpty() {
-            DefaultedList<ItemStack> items = DefaultedList.of();
-            items.addAll(this.getAsStackList());
+        public boolean containsGraveItems() {
+            for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
+                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
+            }
 
-            items.removeIf(ItemStack::isEmpty);
-            return items.isEmpty();
+            return false;
         }
 
         @Override

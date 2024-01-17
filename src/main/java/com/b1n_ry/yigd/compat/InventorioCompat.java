@@ -141,11 +141,9 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
         }
 
         @Override
-        public DefaultedList<ItemStack> getAsStackList() {
-            DefaultedList<ItemStack> items = DefaultedList.of();
-            for (Pair<ItemStack, DropRule> pair : this.inventory) {
-                items.add(pair.getLeft());
-            }
+        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
+            DefaultedList<Pair<ItemStack, DropRule>> items = DefaultedList.of();
+            items.addAll(this.inventory);
             return items;
         }
 
@@ -188,12 +186,12 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
         }
 
         @Override
-        public boolean isEmpty() {
+        public boolean containsGraveItems() {
             for (Pair<ItemStack, DropRule> pair : this.inventory) {
-                if (!pair.getLeft().isEmpty()) return false;
+                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
             }
 
-            return true;
+            return false;
         }
 
         @Override

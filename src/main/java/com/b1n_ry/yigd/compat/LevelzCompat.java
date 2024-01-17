@@ -8,6 +8,7 @@ import net.levelz.stats.PlayerStatsManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.function.Predicate;
@@ -74,14 +75,14 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public DefaultedList<ItemStack> getAsStackList() {
+        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
             return DefaultedList.of();
         }
 
         @Override
         public CompatComponent<Float> filterInv(Predicate<DropRule> predicate) {
             if (predicate.test(YigdConfig.getConfig().compatConfig.defaultLevelzDropRule)) {
-                return this;
+                return new LevelzCompatComponent(this.inventory);
             } else {
                 return new LevelzCompatComponent(0f);
             }
@@ -98,8 +99,8 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public boolean isEmpty() {
-            return this.inventory == 0f;
+        public boolean containsGraveItems() {
+            return this.inventory != 0f;
         }
 
         @Override

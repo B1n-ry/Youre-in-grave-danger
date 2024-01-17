@@ -159,7 +159,7 @@ public class GraveComponent {
     }
 
     public boolean isEmpty() {
-        return this.inventoryComponent.isEmpty() && this.expComponent.isEmpty();
+        return this.inventoryComponent.isGraveEmpty() && this.expComponent.isEmpty();
     }
 
     /**
@@ -510,7 +510,7 @@ public class GraveComponent {
     }
 
     public LightGraveData toLightData() {
-        return new LightGraveData(this.inventoryComponent.size(), this.pos,
+        return new LightGraveData(this.inventoryComponent.graveSize(), this.pos,
                 this.expComponent.getStoredXp(), this.worldRegistryKey, this.deathMessage, this.graveId, this.status);
     }
 

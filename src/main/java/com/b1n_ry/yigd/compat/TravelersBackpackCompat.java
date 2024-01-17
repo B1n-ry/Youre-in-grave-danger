@@ -66,13 +66,13 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent) {
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
-            if (mergingComponent.isEmpty()) return extraItems;
+            if (mergingComponent.containsGraveItems()) return extraItems;
 
             @SuppressWarnings("unchecked")
             Pair<ItemStack, DropRule> pair = (Pair<ItemStack, DropRule>) mergingComponent.inventory;
             ItemStack mergingStack = pair.getLeft();  // Solves the case where the merging component is the same as this component
 
-            if (!this.isEmpty()) {
+            if (!this.containsGraveItems()) {
                 extraItems.add(mergingStack);
                 return extraItems;
             }
@@ -114,9 +114,9 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         }
 
         @Override
-        public DefaultedList<ItemStack> getAsStackList() {
-            DefaultedList<ItemStack> stacks = DefaultedList.of();
-            stacks.add(this.inventory.getLeft());
+        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
+            DefaultedList<Pair<ItemStack, DropRule>> stacks = DefaultedList.of();
+            stacks.add(this.inventory);
             return stacks;
         }
 
@@ -147,8 +147,8 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         }
 
         @Override
-        public boolean isEmpty() {
-            return this.inventory.getLeft().isEmpty();
+        public boolean containsGraveItems() {
+            return !this.inventory.getLeft().isEmpty() && this.inventory.getRight() == DropRule.PUT_IN_GRAVE;
         }
 
         @Override

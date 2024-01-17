@@ -183,11 +183,10 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
         }
 
         @Override
-        public DefaultedList<ItemStack> getAsStackList() {
-            DefaultedList<ItemStack> allItems = DefaultedList.of();
+        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
+            DefaultedList<Pair<ItemStack, DropRule>> allItems = DefaultedList.of();
             for (DefaultedList<Pair<ItemStack, DropRule>> stacks : this.inventory.values())
-                for (Pair<ItemStack, DropRule> pair : stacks)
-                    allItems.add(pair.getLeft());
+                allItems.addAll(stacks);
 
             return allItems;
         }
@@ -237,12 +236,11 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
         }
 
         @Override
-        public boolean isEmpty() {
-            DefaultedList<ItemStack> items = DefaultedList.of();
-            items.addAll(this.getAsStackList());
-
-            items.removeIf(ItemStack::isEmpty);
-            return items.isEmpty();
+        public boolean containsGraveItems() {
+            for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
+                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
+            }
+            return false;
         }
 
         @Override

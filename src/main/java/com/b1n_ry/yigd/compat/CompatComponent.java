@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
@@ -44,16 +45,21 @@ public abstract class CompatComponent<T> {
      * Get all items as a {@link DefaultedList<ItemStack>} in the component
      * @return All items in the component <b>INCLUDING EMPTY ITEMS</b>
      */
-    public abstract DefaultedList<ItemStack> getAsStackList();
+    public abstract DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList();
     public abstract CompatComponent<T> filterInv(Predicate<DropRule> predicate);
     public abstract boolean removeItem(Predicate<ItemStack> predicate, int itemCount);
     public void dropItems(ServerWorld world, Vec3d pos) {
-        DefaultedList<ItemStack> items = this.getAsStackList();
-        for (ItemStack stack : items) {
-            InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
+        DefaultedList<Pair<ItemStack, DropRule>> items = this.getAsStackDropList();
+        for (Pair<ItemStack, DropRule> pair : items) {
+            InventoryComponent.dropItemIfToBeDropped(pair.getLeft(), pos.x, pos.y, pos.z, world);
         }
     }
     public abstract void clear();
-    public abstract boolean isEmpty();
+
+    /**
+     * Check if the component contains any items that should be placed in a grave
+     * @return Whether the component contains any items that should be placed in a grave
+     */
+    public abstract boolean containsGraveItems();
     public abstract NbtCompound writeNbt();
 }
