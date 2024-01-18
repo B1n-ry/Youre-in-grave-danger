@@ -78,7 +78,7 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
                 return extraItems;
             }
 
-            this.inventory.setLeft(mergingStack);
+            this.inventory = new Pair<>(mergingStack, pair.getRight());
             return extraItems;
         }
 
@@ -144,7 +144,7 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
 
         @Override
         public void clear() {
-            this.inventory.setLeft(ItemStack.EMPTY);
+            this.inventory = InventoryComponent.EMPTY_ITEM_PAIR;
         }
 
         @Override

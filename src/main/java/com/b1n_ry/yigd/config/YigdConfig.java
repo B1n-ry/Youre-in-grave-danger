@@ -313,7 +313,8 @@ public class YigdConfig implements ConfigData {
     }
 
     public static class ExtraFeatures {
-        public boolean customSoulboundEnchant = true;
+        @ConfigEntry.Gui.CollapsibleObject
+        public EnchantmentConfig soulboundEnchant = new EnchantmentConfig(true, true, true, false);
         @ConfigEntry.Gui.CollapsibleObject
         public DeathSightConfig deathSightEnchant = new DeathSightConfig();
         @ConfigEntry.Gui.CollapsibleObject
@@ -321,11 +322,35 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public ScrollConfig deathScroll = new ScrollConfig();
 
-        public static class DeathSightConfig {
+        public static class EnchantmentConfig {
+            public boolean enabled;
+            public boolean isTreasure;
+            public boolean isAvailableForEnchantedBookOffer;
+            public boolean isAvailableForRandomSelection;
+
+            public EnchantmentConfig(boolean enabled, boolean isTreasure, boolean isAvailableForEnchantedBookOffer, boolean isAvailableForRandomSelection) {
+                this.enabled = enabled;
+                this.isTreasure = isTreasure;
+                this.isAvailableForEnchantedBookOffer = isAvailableForEnchantedBookOffer;
+                this.isAvailableForRandomSelection = isAvailableForRandomSelection;
+            }
+        }
+        public static class DeathSightConfig /* extends EnchantmentConfig */ {
             public boolean enabled = false;
+            public boolean isTreasure = true;
+            public boolean isAvailableForEnchantedBookOffer = true;
+            public boolean isAvailableForRandomSelection = false;
             public double range = 64;
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public GraveTargets targets = GraveTargets.PLAYER_GRAVES;
+
+            /*
+            Reimplement when https://github.com/shedaniel/cloth-config/pull/236 is merged
+            public DeathSightConfig() {
+                super(false, true, true, false);
+            }
+            */
+
             public enum GraveTargets {
                 OWN_GRAVES, PLAYER_GRAVES, ALL_GRAVES
             }
@@ -366,5 +391,11 @@ public class YigdConfig implements ConfigData {
             this.key = key;
             this.value = value;
         }
+    }
+
+
+    @Override
+    public void validatePostLoad() throws ValidationException {
+        ConfigData.super.validatePostLoad();
     }
 }

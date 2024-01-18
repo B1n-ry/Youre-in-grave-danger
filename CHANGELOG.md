@@ -3,6 +3,8 @@
 ### Changes
 * Improved backup system. Now all items are backed up, no matter drop rules.
 Through the backup in game GUI you can now also restore items with specific drop rules
+* Updated enchantment configs so that you can configure how the enchantments are accessed.
+Note that if you had soulbound disabled you'll need to disable it again in the config
 
 ### Fixes
 * Game will no longer crash when dying if Travelers backpack is installed

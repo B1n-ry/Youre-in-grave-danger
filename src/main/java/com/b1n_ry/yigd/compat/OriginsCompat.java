@@ -115,7 +115,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
                     if (!currentPair.getLeft().isEmpty()) {
                         extraItems.add(mergingStack);
                     } else {
-                        currentPair.setLeft(mergingStack);
+                        currentItems.set(i, new Pair<>(mergingStack, currentPair.getRight()));
                     }
                 }
             }
@@ -229,9 +229,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
         @Override
         public void clear() {
             for (DefaultedList<Pair<ItemStack, DropRule>> stacks : this.inventory.values()) {
-                for (Pair<ItemStack, DropRule> pair : stacks) {
-                    pair.setLeft(ItemStack.EMPTY);
-                }
+                Collections.fill(stacks, InventoryComponent.EMPTY_ITEM_PAIR);
             }
         }
 

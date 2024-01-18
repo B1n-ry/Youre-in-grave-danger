@@ -281,15 +281,15 @@ public class InventoryComponent {
                 continue;
             }
 
-            Pair<ItemStack, DropRule> currentPair = this.items.get(currentComponentIndex);
-            ItemStack currentStack = currentPair.getLeft();
+            ItemStack currentStack = this.items.get(currentComponentIndex).getLeft();
 
             if (config.graveConfig.treatBindingCurse && i >= mergingComponent.mainSize && i < mergingComponent.mainSize + mergingComponent.armorSize) {  // If merging stack is armor, check for curse of binding
                 if (EnchantmentHelper.hasBindingCurse(mergingStack)) {  // If merging stack has curse of binding, force in that slot
                     // If grave inventory got all curse of binding items pulled, only the player equipped ones should be forced on the player (because that makes sense)
+                    // This is done by clearing the current slot, moving the item to extraItems, and the curse of binding item will be applied in the slot later
                     if (!currentStack.isEmpty()) extraItems.add(currentStack);
 
-                    currentPair.setLeft(mergingStack);
+                    this.items.set(currentComponentIndex, EMPTY_ITEM_PAIR);  // Item will get put here later
                 }
             }
             if (config.graveConfig.mergeStacksOnRetrieve) {
@@ -301,7 +301,7 @@ public class InventoryComponent {
             }
             if (!mergingStack.isEmpty()) {  // Can be due to merging (count could be 0 if merge was "fully completed")
                 if (currentStack.isEmpty()) {
-                    currentPair.setLeft(mergingStack);  // Drop rule should not make a difference here
+                    this.items.set(currentComponentIndex, new Pair<>(mergingStack, DropRule.PUT_IN_GRAVE));  // Drop rule does not matter
                 } else {
                     extraItems.add(mergingStack);
                 }
@@ -495,9 +495,8 @@ public class InventoryComponent {
     }
 
     public void clear() {
-        for (Pair<ItemStack, DropRule> item : this.items) {
-            item.setLeft(ItemStack.EMPTY);
-        }
+        Collections.fill(this.items, EMPTY_ITEM_PAIR);
+
         for (CompatComponent<?> component : this.modInventoryItems.values()) {
             component.clear();
         }

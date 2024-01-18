@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.enchantment;
 
+import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.util.YigdTags;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
@@ -13,15 +14,15 @@ public class SoulboundEnchantment extends Enchantment {
 
     @Override
     public boolean isTreasure() {
-        return super.isTreasure();
+        return YigdConfig.getConfig().extraFeatures.soulboundEnchant.isTreasure;
     }
     @Override
     public boolean isAvailableForEnchantedBookOffer() {
-        return super.isAvailableForEnchantedBookOffer();
+        return YigdConfig.getConfig().extraFeatures.soulboundEnchant.isAvailableForEnchantedBookOffer;
     }
     @Override
     public boolean isAvailableForRandomSelection() {
-        return super.isAvailableForRandomSelection();
+        return YigdConfig.getConfig().extraFeatures.soulboundEnchant.isAvailableForRandomSelection;
     }
 
     @Override

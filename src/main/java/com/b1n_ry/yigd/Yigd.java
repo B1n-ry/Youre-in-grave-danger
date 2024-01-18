@@ -69,7 +69,7 @@ public class Yigd implements ModInitializer {
         Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings()));
 
         YigdConfig config = YigdConfig.getConfig();
-        if (config.extraFeatures.customSoulboundEnchant) {
+        if (config.extraFeatures.soulboundEnchant.enabled) {
             SOULBOUND_ENCHANTMENT = new SoulboundEnchantment(Enchantment.Rarity.VERY_RARE);
             Registry.register(Registries.ENCHANTMENT, new Identifier(MOD_ID, "soulbound"), SOULBOUND_ENCHANTMENT);
         }

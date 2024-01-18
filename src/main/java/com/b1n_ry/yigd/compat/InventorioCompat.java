@@ -14,6 +14,7 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.Collections;
 import java.util.function.Predicate;
 
 public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemStack, DropRule>>> {
@@ -93,7 +94,8 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
                 if (!pair.getLeft().isEmpty()) {
                     extraItems.add(mergingItem);
                 } else {
-                    pair.setLeft(mergingItem);
+                    // Can't set the ItemStack directly because if it's the empty one we change the empty pair to a non-empty value
+                    this.inventory.set(i, new Pair<>(mergingItem, pair.getRight()));
                 }
             }
             return extraItems;
@@ -178,9 +180,7 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
 
         @Override
         public void clear() {
-            for (Pair<ItemStack, DropRule> pair : this.inventory) {
-                pair.setLeft(ItemStack.EMPTY);
-            }
+            Collections.fill(this.inventory, InventoryComponent.EMPTY_ITEM_PAIR);
         }
 
         @Override

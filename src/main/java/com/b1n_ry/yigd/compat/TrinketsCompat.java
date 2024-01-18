@@ -176,7 +176,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                             continue;
                         }
 
-                        currentPair.setLeft(mergingStack);
+                        stacks.set(i, new Pair<>(mergingStack, pair.getRight()));
                     }
                 }
             }
@@ -303,14 +303,12 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
             for (Map<String, DefaultedList<Pair<ItemStack, DropRule>>> group : this.inventory.values()) {
                 for (DefaultedList<Pair<ItemStack, DropRule>> slot : group.values()) {
-                    for (Pair<ItemStack, DropRule> stack : slot) {
-                        ItemStack item = stack.getLeft();
-                        if (predicate.test(item)) {
-                            item.decrement(itemCount);
+                    for (Pair<ItemStack, DropRule> pair : slot) {
+                        ItemStack stack = pair.getLeft();
+                        if (predicate.test(stack)) {
+                            stack.decrement(itemCount);
 
-                            if (item.getCount() == 0) {
-                                stack.setLeft(ItemStack.EMPTY);
-                            }
+                            return true;
                         }
                     }
                 }
