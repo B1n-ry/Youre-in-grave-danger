@@ -50,13 +50,19 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     ItemStack stack = ItemStack.fromNbt(itemNbt);
                     DropRule dropRule;
                     if (itemNbt.contains("dropRule")) {
-                        dropRule = DropRule.valueOf(itemNbt.getString("dropRule"));
+                        // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
+                        String dropRuleString = itemNbt.getString("dropRule");
+                        if (dropRuleString.equals("DEFAULT")) {
+                            dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                        } else {
+                            dropRule = DropRule.valueOf(dropRuleString);
+                        }
                     } else {
                         dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
                     }
 
                     return new Pair<>(stack, dropRule);
-                }, InventoryComponent.EMPTY_ITEM_PAIR);
+                }, InventoryComponent.EMPTY_ITEM_PAIR, "inventory", "size");
 
                 /*DefaultedList.ofSize(listSize, EMPTY_PAIR);
 
@@ -348,7 +354,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         itemNbt.putString("dropRule", pair.getRight().name());
 
                         return itemNbt;
-                    }, pair -> pair.getLeft().isEmpty());
+                    }, pair -> pair.getLeft().isEmpty(), "inventory", "size");
 
                     /*NbtList itemNbtList = new NbtList();
                     for (int i = 0; i < slotItems.size(); i++) {

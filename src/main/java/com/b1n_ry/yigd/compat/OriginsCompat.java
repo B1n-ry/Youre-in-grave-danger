@@ -98,13 +98,13 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
             @SuppressWarnings("unchecked")
-            Map<String, DefaultedList<ItemStack>> mergingInventory = (Map<String, DefaultedList<ItemStack>>) mergingComponent.inventory;
-            for (Map.Entry<String, DefaultedList<ItemStack>> entry : mergingInventory.entrySet()) {
+            Map<String, DefaultedList<Pair<ItemStack, DropRule>>> mergingInventory = (Map<String, DefaultedList<Pair<ItemStack, DropRule>>>) mergingComponent.inventory;
+            for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> entry : mergingInventory.entrySet()) {
                 DefaultedList<Pair<ItemStack, DropRule>> currentItems = this.inventory.getOrDefault(entry.getKey(), DefaultedList.of());
-                DefaultedList<ItemStack> mergingItems = entry.getValue();
+                DefaultedList<Pair<ItemStack, DropRule>> mergingItems = entry.getValue();
 
                 for (int i = 0; i < mergingItems.size(); i++) {
-                    ItemStack mergingStack = mergingItems.get(i).copy();  // Solves the case where the itemstacks are the same instance
+                    ItemStack mergingStack = mergingItems.get(i).getLeft().copy();  // Solves the case where the itemstacks are the same instance
 
                     if (i >= currentItems.size()) {
                         extraItems.add(mergingStack);

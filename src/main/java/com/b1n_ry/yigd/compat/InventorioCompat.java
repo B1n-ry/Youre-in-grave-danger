@@ -32,10 +32,7 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
 
     @Override
     public CompatComponent<DefaultedList<Pair<ItemStack, DropRule>>> readNbt(NbtCompound nbt) {
-        int size = nbt.getInt("size");
-        DefaultedList<Pair<ItemStack, DropRule>> items = DefaultedList.ofSize(size, InventoryComponent.EMPTY_ITEM_PAIR);
-
-        InventoryComponent.listFromNbt(nbt, itemNbt -> {
+        DefaultedList<Pair<ItemStack, DropRule>> items = InventoryComponent.listFromNbt(nbt, itemNbt -> {
             ItemStack stack = ItemStack.fromNbt(itemNbt);
 
             DropRule dropRule;
