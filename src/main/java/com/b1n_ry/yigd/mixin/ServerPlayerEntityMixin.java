@@ -10,6 +10,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,11 +35,15 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityImpl {
     private void onDeath(DamageSource damageSource, CallbackInfo ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 
+        ServerWorld world = player.getServerWorld();
+
         if (!player.isDead()) return;  // If some weird shit happens, this is a failsafe
         if (player.isSpectator()) return;  // Spectators don't generate graves
 
+        if (world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;  // KeepInv should be handled by vanilla. No need to complicate things
+
         DeathHandler deathHandler = new DeathHandler();
-        deathHandler.onPlayerDeath(player, player.getServerWorld(), player.getPos(), damageSource);
+        deathHandler.onPlayerDeath(player, world, player.getPos(), damageSource);
     }
 
     @Redirect(method = "createEndSpawnPlatform", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"))
