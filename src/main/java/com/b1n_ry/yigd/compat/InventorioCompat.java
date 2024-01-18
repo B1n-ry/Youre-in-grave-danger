@@ -124,17 +124,13 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
         public void handleDropRules(DeathContext context) {
             YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
-            Vec3d deathPos = context.deathPos();
             for (Pair<ItemStack, DropRule> pair : this.inventory) {
                 ItemStack stack = pair.getLeft();
+                if (stack.isEmpty()) continue;
 
                 DropRule dropRule = compatConfig.defaultInventorioDropRule;
                 if (dropRule == DropRule.PUT_IN_GRAVE)
                     dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
-
-                if (dropRule == DropRule.DROP) {
-                    InventoryComponent.dropItemIfToBeDropped(stack, deathPos.x, deathPos.y, deathPos.z, context.world());
-                }
 
                 pair.setRight(dropRule);
             }

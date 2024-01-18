@@ -98,7 +98,6 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
             this.keepValue = (long) (this.inventory * keepFactor);
             this.inventory -= this.keepValue;
 
-            Vec3d deathPos = context.deathPos();
             for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.inventory)) {
                 DropRule dropRule = compatConfig.defaultNumismaticDropRule;
                 long itemValue;
@@ -112,7 +111,6 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
                     dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
                 switch (dropRule) {
                     case DROP -> {
-                        InventoryComponent.dropItemIfToBeDropped(stack, deathPos.x, deathPos.y, deathPos.z, context.world());
                         this.inventory -= itemValue;
                         this.dropValue += itemValue;
                     }
@@ -157,9 +155,9 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
         @Override
         public CompatComponent<Long> filterInv(Predicate<DropRule> predicate) {
-            if (predicate.test(YigdConfig.getConfig().compatConfig.defaultNumismaticDropRule)) {
-                return new NumismaticCompatComponent(this.inventory, this.dropValue, this.keepValue, this.destroyValue, this.graveValue);
-            }
+//            if (predicate.test(YigdConfig.getConfig().compatConfig.defaultNumismaticDropRule)) {
+//                return new NumismaticCompatComponent(this.inventory, this.dropValue, this.keepValue, this.destroyValue, this.graveValue);
+//            }
 
             long totalValue = 0;
             if (predicate.test(DropRule.DROP))

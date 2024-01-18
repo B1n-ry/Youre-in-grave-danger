@@ -235,7 +235,6 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
         @Override
         public void handleDropRules(DeathContext context) {
-            Vec3d deathPos = context.deathPos();
             // Traverse through groups
             for (Map<String, DefaultedList<Pair<ItemStack, DropRule>>> group : this.inventory.values()) {
 
@@ -246,20 +245,16 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     for (Pair<ItemStack, DropRule> pair : slotItems) {
                         ItemStack item = pair.getLeft();
 
+                        if (item.isEmpty()) continue;
+
                         DropRule dropRule = pair.getRight();
                         if (dropRule == DropRule.PUT_IN_GRAVE)
                             dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
-
-                        if (dropRule == DropRule.DROP) {
-                            InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.world());
-                        }
 
                         pair.setRight(dropRule);
                     }
                 }
             }
-
-            this.filterInv(dropRule -> dropRule == DropRule.KEEP);
         }
 
         @Override

@@ -68,10 +68,11 @@ public class LevelzCompat implements InvModCompat<Float> {
 
         @Override
         public void handleDropRules(DeathContext context) {
+            // Only default drop rule should matter, which is tested in #filterInv()
             // There are no specific drop rules for this component (except drop). Only a set standard from the config
-            if (YigdConfig.getConfig().compatConfig.defaultLevelzDropRule == DropRule.DROP) {
-                this.dropItems(context.world(), context.deathPos());
-            }
+//            if (YigdConfig.getConfig().compatConfig.defaultLevelzDropRule == DropRule.DROP) {
+//                this.dropItems(context.world(), context.deathPos());
+//            }
         }
 
         @Override

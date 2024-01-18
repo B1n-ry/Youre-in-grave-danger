@@ -12,7 +12,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.function.Predicate;
 
@@ -102,14 +101,10 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
             DropRule dropRule = compatConfig.defaultTravelersBackpackDropRule;
 
             ItemStack stack = this.inventory.getLeft();
+            if (stack.isEmpty()) return;
 
             if (dropRule == DropRule.PUT_IN_GRAVE)
                 dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
-
-            Vec3d deathPos = context.deathPos();
-            if (dropRule == DropRule.DROP) {
-                InventoryComponent.dropItemIfToBeDropped(stack, deathPos.x, deathPos.y, deathPos.z, context.world());
-            }
 
             this.inventory.setRight(dropRule);
         }

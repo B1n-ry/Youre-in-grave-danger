@@ -3,7 +3,7 @@ package com.b1n_ry.yigd.events;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.server.world.ServerWorld;
 
 /**
  * Here custom logic for item drops can be applied. If any items from any mod has a special drop function,
@@ -20,5 +20,5 @@ public interface DropItemEvent {
         return true;
     });
 
-    boolean shouldDropItem(ItemStack stack, double x, double y, double z, World world);
+    boolean shouldDropItem(ItemStack stack, double x, double y, double z, ServerWorld world);
 }

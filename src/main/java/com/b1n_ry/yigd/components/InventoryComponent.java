@@ -135,9 +135,14 @@ public class InventoryComponent {
         }
 
         this.handleDropRules(context);
-        InventoryComponent soulboundInventory = this.filteredInv(dropRule -> dropRule == DropRule.KEEP);
 
+        // Set kept items as soulbound in respawn component
+        InventoryComponent soulboundInventory = this.filteredInv(dropRule -> dropRule == DropRule.KEEP);
         respawnComponent.setSoulboundInventory(soulboundInventory);
+
+        // Drop all dropped items
+        InventoryComponent dropInventory = this.filteredInv(dropRule -> dropRule == DropRule.DROP);
+        dropInventory.dropAll(context.world(), context.deathPos());
     }
 
     /**
@@ -152,13 +157,8 @@ public class InventoryComponent {
             ItemStack item = pair.getLeft();
             if (item.isEmpty()) continue;
 
-            Vec3d deathPos = context.deathPos();
-
             DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context, true);
             pair.setRight(dropRule);
-            if (dropRule == DropRule.DROP) {
-                InventoryComponent.dropItemIfToBeDropped(item, deathPos.x, deathPos.y, deathPos.z, context.world());
-            }
         }
 
         // Handle drop rules for mod compat inventories
