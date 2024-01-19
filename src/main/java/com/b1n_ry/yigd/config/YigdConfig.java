@@ -321,6 +321,8 @@ public class YigdConfig implements ConfigData {
         public GraveKeyConfig graveKeys = new GraveKeyConfig();
         @ConfigEntry.Gui.CollapsibleObject
         public ScrollConfig deathScroll = new ScrollConfig();
+        @ConfigEntry.Gui.CollapsibleObject
+        public GraveCompassConfig graveCompass = new GraveCompassConfig();
 
         public static class EnchantmentConfig {
             public boolean enabled;
@@ -375,6 +377,11 @@ public class YigdConfig implements ConfigData {
             public enum ClickFunction {
                 RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION
             }
+        }
+        public static class GraveCompassConfig {
+            public boolean receiveOnRespawn = false;
+            public boolean consumeOnUse = true;
+            public boolean deleteWhenUnlinked = true;
         }
     }
 

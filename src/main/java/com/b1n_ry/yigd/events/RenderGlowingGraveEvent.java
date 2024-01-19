@@ -7,11 +7,11 @@ import net.minecraft.client.network.ClientPlayerEntity;
 
 public interface RenderGlowingGraveEvent {
     Event<RenderGlowingGraveEvent> EVENT = EventFactory.createArrayBacked(RenderGlowingGraveEvent.class, events -> (be, player) -> {
+        boolean allow = false;
         for (RenderGlowingGraveEvent event : events) {
-            if (event.canRenderOutline(be, player))
-                return true;
+            allow = allow || event.canRenderOutline(be, player);
         }
-        return false;
+        return allow;
     });
 
     boolean canRenderOutline(GraveBlockEntity be, ClientPlayerEntity player);

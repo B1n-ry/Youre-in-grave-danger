@@ -12,12 +12,11 @@ import net.minecraft.server.world.ServerWorld;
  */
 public interface DropItemEvent {
     Event<DropItemEvent> EVENT = EventFactory.createArrayBacked(DropItemEvent.class, dropItemEvents -> (stack, x, y, z, world) -> {
+        boolean allow = true;
         for (DropItemEvent event : dropItemEvents) {
-            if (!event.shouldDropItem(stack, x, y, z, world)) {
-                return false;
-            }
+            allow = allow && event.shouldDropItem(stack, x, y, z, world);
         }
-        return true;
+        return allow;
     });
 
     boolean shouldDropItem(ItemStack stack, double x, double y, double z, ServerWorld world);

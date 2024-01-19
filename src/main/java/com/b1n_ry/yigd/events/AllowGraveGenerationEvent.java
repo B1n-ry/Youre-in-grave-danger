@@ -7,11 +7,11 @@ import net.fabricmc.fabric.api.event.EventFactory;
 
 public interface AllowGraveGenerationEvent {
     Event<AllowGraveGenerationEvent> EVENT = EventFactory.createArrayBacked(AllowGraveGenerationEvent.class, allowGraveGenerationEvents -> (context, grave) -> {
+        boolean allow = true;
         for (AllowGraveGenerationEvent event : allowGraveGenerationEvents) {
-            if (!event.allowGeneration(context, grave))
-                return false;
+            allow = allow && event.allowGeneration(context, grave);
         }
-        return true;
+        return allow;
     });
 
     /**

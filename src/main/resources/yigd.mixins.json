@@ -4,11 +4,13 @@
   "package": "com.b1n_ry.yigd.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "CompassItemMixin",
     "ServerPlayerEntityMixin",
     "WorldChunkMixin"
   ],
   "client": [
     "AbstractConfigScreenMixin",
+    "CompassModelMixin",
     "WorldRendererMixin",
     "accessor.WorldRendererAccessor"
   ],

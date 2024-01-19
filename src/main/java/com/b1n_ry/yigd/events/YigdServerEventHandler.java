@@ -12,19 +12,17 @@ import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class YigdServerEventHandler {
     public static void registerEventCallbacks() {
@@ -97,6 +95,21 @@ public class YigdServerEventHandler {
             if (player.isDead()) return false;
 
             YigdConfig config = YigdConfig.getConfig();
+
+            if (config.extraFeatures.graveCompass.consumeOnUse) {
+                PlayerInventory inventory = player.getInventory();
+                for (int i = 0; i < inventory.size(); i++) {
+                    ItemStack stack = inventory.getStack(i);
+                    NbtCompound stackNbt = stack.getNbt();
+                    if (stack.isOf(Items.COMPASS) && stackNbt != null && stackNbt.contains("linked_grave")) {
+                        UUID graveId = stackNbt.getUuid("linked_grave");
+                        if (graveId.equals(grave.getGraveId())) {
+                            stack.setCount(0);
+                            break;
+                        }
+                    }
+                }
+            }
 
             if (config.extraFeatures.graveKeys.enabled) {
                 if (tool.isOf(Yigd.GRAVE_KEY_ITEM)) {
