@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.0.0-beta.8
+
+### Fixes
+* Fixed compatibility issue with "utility belt". Items inside belt should no longer be
+deleted on death.
+
+---
+
 # You're in Grave Danger 2.0.0-beta.7
 
 ### Changes
@@ -9,6 +17,7 @@ Note that if you had soulbound disabled you'll need to disable it again in the c
 
 ### Fixes
 * Game will no longer crash when dying if Travelers backpack is installed
+* Keep inventory will no longer duplicate items
 
 ---
 

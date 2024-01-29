@@ -599,7 +599,10 @@ public class InventoryComponent {
     }
 
     public static void clearPlayer(ServerPlayerEntity player) {
-        player.getInventory().clear();
+        PlayerInventory inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            inventory.setStack(i, ItemStack.EMPTY);
+        }
 
         for (InvModCompat<?> invModCompat : InvModCompat.invCompatMods) {
             invModCompat.clear(player);
