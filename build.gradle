@@ -1,6 +1,7 @@
 plugins {
-	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
+	id "me.modmuss50.mod-publish-plugin" version "0.4.5"
 }
 
 version = project.mod_version
@@ -8,6 +9,55 @@ group = project.maven_group
 
 base {
 	archivesName = project.archives_base_name
+}
+
+publishMods {
+	file = remapJar.archiveFile
+
+	changelog = file("CHANGELOG.md").text.split("\n---")[0]
+	type = BETA
+
+	displayName = "You're in Grave Danger " + project.mod_version
+	modLoaders.add("fabric")
+
+	curseforge {
+		projectId = "544912"
+
+		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+
+		minecraftVersionRange {
+			start = "1.20"
+			end = project.minecraft_version
+		}
+
+		projectSlug = project.archives_base_name;
+		requires {
+			slug = "fabric-api"
+			slug = "cloth-config"
+		}
+	}
+
+	github {
+		accessToken = providers.environmentVariable("GITHUB_TOKEN")
+		repository = "B1n-ry/Youre-in-grave-danger"
+		commitish = "1.20"
+		tagName = project.minecraft_version + "-" + project.mod_version
+	}
+
+	modrinth {
+		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+		projectId = "HnD1GX6e"
+
+		minecraftVersionRange {
+			start = "1.20"
+			end = project.minecraft_version
+		}
+
+		requires {
+			slug = "fabric-api"
+			slug = "cloth-config"
+		}
+	}
 }
 
 repositories {
@@ -19,7 +69,7 @@ repositories {
 	maven { url "https://jitpack.io" }  // Apoli
 	maven { url "https://maven.nucleoid.xyz/" }  // Common Protection API
 	maven { url 'https://maven.wispforest.io' }  // owo
-	maven {  // Inventorio, travelers backpack, numismatic overhaul, levelz, libz (curseforge maven)
+	maven {  // Inventorio, travelers backpack, numismatic overhaul, levelz (curseforge maven)
 		url "https://cursemaven.com"
 		content { includeGroup "curse.maven" }
 	}
@@ -57,7 +107,7 @@ dependencies {
 //	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 //	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
 //	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}"
-//	modImplementation "curse.maven:libz-${project.libz_version}"
+//	modImplementation ""maven.modrinth:libz:${project.libz_version}""
 //	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
 }
 
