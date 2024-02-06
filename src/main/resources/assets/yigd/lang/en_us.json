@@ -2,6 +2,7 @@
   "block.yigd.grave": "Grave",
   "item.yigd.death_scroll": "Death Scroll",
   "item.yigd.grave_key": "Grave Key",
+  "item.yigd.grave_compass": "Grave Compass",
   "enchantment.yigd.soulbound": "Soulbound",
   "enchantment.yigd.soulbound.desc": "Keep your items when you die and respawn",
   "enchantment.yigd.death_sight": "Death Sight",
@@ -12,6 +13,8 @@
   "button.yigd.gui.delete": "Delete",
   "button.yigd.gui.locked": "Locked",
   "button.yigd.gui.unlocked": "Unlocked",
+  "button.yigd.gui.obtain_keys": "Create Grave Key",
+  "button.yigd.gui.obtain_compass": "Create Grave Compass",
   "button.yigd.gui.view_grave_items": "Viewing Grave Items",
   "button.yigd.gui.hide_grave_items": "Hiding Grave Items",
   "button.yigd.gui.view_dropped_items": "Viewing Dropped Items",
@@ -53,6 +56,8 @@
   "text.yigd.command.delete.pass": "Partially deleted some grave data, but not all",
   "text.yigd.command.delete.fail": "Couldn't delete grave because the grave could not be found",
   "text.yigd.command.lock.fail": "Failed to lock grave. Grave not found",
+  "text.yigd.command.obtain_key.fail": "Failed to obtain key. Grave not found",
+  "text.yigd.command.obtain_compass.fail": "Failed to obtain compass. Grave not found",
   "text.yigd.command.view_self.fail": "Failed to view grave. Couldn't find grave",
   "text.yigd.command.whitelist.show_current": "List mode currently %s",
   "text.yigd.command.whitelist.added_players": "Added %d players to %s",
@@ -237,5 +242,6 @@
   "text.autoconfig.yigd.option.extraFeatures.graveCompass": "Grave Compass",
   "text.autoconfig.yigd.option.extraFeatures.graveCompass.receiveOnRespawn": "Receive on Respawn",
   "text.autoconfig.yigd.option.extraFeatures.graveCompass.consumeOnUse": "Consume on Use",
-  "text.autoconfig.yigd.option.extraFeatures.graveCompass.deleteWhenUnlinked": "Delete when Unlinked"
+  "text.autoconfig.yigd.option.extraFeatures.graveCompass.deleteWhenUnlinked": "Delete when Unlinked",
+  "text.autoconfig.yigd.option.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI": "Clone Recovery Compass with GUI"
 }

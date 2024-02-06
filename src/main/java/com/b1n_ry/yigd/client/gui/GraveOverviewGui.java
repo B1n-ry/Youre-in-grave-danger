@@ -33,7 +33,11 @@ public class GraveOverviewGui extends LightweightGuiDescription {
     private final GraveComponent graveComponent;
     private InventoryComponent visibleInventoryComponent;
 
-    private final Set<Runnable> removeItemFunctions = new HashSet<>();
+    private final Set<WWidget> removables = new HashSet<>();
+
+    private final WPlainPanel root;
+    private final WPlainPanel invPanel;
+    private final WPlainPanel buttonPanel;
 
     private boolean viewGraveItems = true;
     private boolean viewDeletedItems = false;
@@ -44,38 +48,54 @@ public class GraveOverviewGui extends LightweightGuiDescription {
     private static final int SLOT_SIZE = 18;
     private static final int SLOTS_PER_LINE = 9;
     public GraveOverviewGui(GraveComponent graveComponent, Screen previousScreen, boolean canRestore, boolean canRob,
-                            boolean canDelete, boolean canUnlock) {
+                            boolean canDelete, boolean canUnlock, boolean obtainableKeys, boolean obtainableCompass) {
         this.graveComponent = graveComponent;
         this.previousScreen = previousScreen;
 
-        WPlainPanel root = new WPlainPanel();
-        this.setRootPanel(root);
-        root.setInsets(Insets.ROOT_PANEL);
+        this.root = new WPlainPanel();
+        this.setRootPanel(this.root);
+
+        this.invPanel = new WPlainPanel();
+        this.invPanel.setBackgroundPainter(BackgroundPainter.VANILLA);
+        this.invPanel.setInsets(Insets.ROOT_PANEL);
+
+        this.buttonPanel = new WPlainPanel();
+
+        int width = this.invPanel.getWidth();
+        int height = this.invPanel.getHeight();
+        this.root.add(this.invPanel, 0, 0);
+        this.invPanel.setSize(width, height);
 
         int slightlyRight = (int) (1.1 * SLOT_SIZE);
 
         WLabel title = new WLabel(this.graveComponent.getDeathMessage().getDeathMessage());
-        root.add(title, slightlyRight, 0);
+        this.invPanel.add(title, slightlyRight, 0);
 
-        this.addCoordinates(root, slightlyRight);
-        this.addDimension(root, slightlyRight);
-        this.addXpInfo(root, slightlyRight);
+        this.addCoordinates(slightlyRight);
+        this.addDimension(slightlyRight);
+        this.addXpInfo(slightlyRight);
 
-        this.addButtons(root, canRestore, canRob, canDelete, canUnlock);
+        this.addButtons(canRestore, canRob, canDelete, canUnlock, obtainableKeys, obtainableCompass);
 
-        root.validate(this);
+        this.updateFilters();  // Update visible inventory component
 
-        this.updateFilters(root);  // Update visible inventory component
+        this.root.validate(this);
+    }
+
+    @Override
+    public void addPainters() {
+        // Leave empty so no background is drawn on root panel
     }
 
     public Screen getPreviousScreen() {
         return this.previousScreen;
     }
 
-    private void updateFilters(WPlainPanel root) {
+    private void updateFilters() {
         // Remove all wItemStacks
-        for (Runnable runnable : this.removeItemFunctions) {
-            runnable.run();
+        for (WWidget removable : this.removables) {
+            if (removable.getParent() == null) continue;
+            removable.getParent().remove(removable);
         }
 
         this.visibleInventoryComponent = this.graveComponent.getInventoryComponent().filteredInv(dropRule -> switch (dropRule) {
@@ -85,10 +105,10 @@ public class GraveOverviewGui extends LightweightGuiDescription {
             case DROP -> this.viewDroppedItems;
         });
 
-        this.addItemSlots(root);
+        this.addItemSlots();
     }
 
-    private void addItemSlots(WPlainPanel root) {
+    private void addItemSlots() {
         DefaultedList<ItemStack> items = DefaultedList.of();
         for (Pair<ItemStack, DropRule> pair : this.visibleInventoryComponent.getItems()) {
             items.add(pair.getLeft());
@@ -99,22 +119,22 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         int generateArmorAndOffhandFrom = Math.max(this.visibleInventoryComponent.armorSize, this.visibleInventoryComponent.offHandSize) - 1;
 
         // Armor slots
-        this.addItemSlot(root, this.visibleInventoryComponent.mainSize, this.visibleInventoryComponent.armorSize,
+        this.addItemSlot(this.invPanel, this.visibleInventoryComponent.mainSize, this.visibleInventoryComponent.armorSize,
                 items, i -> new Point(0, (generateArmorAndOffhandFrom - i) * SLOT_SIZE));
 
         // Offhand slot(s?)
-        this.addItemSlot(root, this.visibleInventoryComponent.mainSize + this.visibleInventoryComponent.armorSize,
+        this.addItemSlot(this.invPanel, this.visibleInventoryComponent.mainSize + this.visibleInventoryComponent.armorSize,
                 this.visibleInventoryComponent.offHandSize, items,
                 i -> new Point((SLOTS_PER_LINE - 1) * SLOT_SIZE, (generateArmorAndOffhandFrom - i) * SLOT_SIZE));
 
         int mainInvHeight = this.visibleInventoryComponent.mainSize / SLOTS_PER_LINE;
 
         // Hot-bar slots
-        this.addItemSlot(root, 0, SLOTS_PER_LINE, items,
+        this.addItemSlot(this.invPanel, 0, SLOTS_PER_LINE, items,
                 i -> new Point(i * SLOT_SIZE, (mainInvHeight + generateArmorAndOffhandFrom + 1) * SLOT_SIZE));
 
         // Main slots
-        this.addItemSlot(root, SLOTS_PER_LINE, this.visibleInventoryComponent.mainSize - SLOTS_PER_LINE, items,
+        this.addItemSlot(this.invPanel, SLOTS_PER_LINE, this.visibleInventoryComponent.mainSize - SLOTS_PER_LINE, items,
                 i -> new Point((i % SLOTS_PER_LINE) * SLOT_SIZE,
                         (int) ((generateArmorAndOffhandFrom + 1.5 + (i / SLOTS_PER_LINE)) * SLOT_SIZE)));
 
@@ -125,40 +145,46 @@ public class GraveOverviewGui extends LightweightGuiDescription {
             extraItemsPanel.setInsets(new Insets(6));
             extraItemsPanel.setBackgroundPainter(BackgroundPainter.VANILLA);
 
-            Insets panelInsets = root.getInsets();
-            int slotsHigh = (root.getHeight() - (panelInsets.bottom() + panelInsets.top())) / SLOT_SIZE;
+            Insets panelInsets = this.invPanel.getInsets();
+            int slotsHigh = (this.invPanel.getHeight() - (panelInsets.bottom() + panelInsets.top())) / SLOT_SIZE;
 
             // If any extra, those slots go here (included modded inventories, non-empty slots)
             this.addItemSlot(extraItemsPanel, collectiveSize, sizeDiff, items, i -> new Point((i / slotsHigh) * SLOT_SIZE, i * SLOT_SIZE));
 
             int width = extraItemsPanel.getWidth();
             int height = extraItemsPanel.getHeight();
-            root.add(extraItemsPanel, -(panelInsets.left() + extraItemsPanel.getWidth()), -extraItemsPanel.getInsets().top());
+            this.root.add(extraItemsPanel, 0, panelInsets.top() - extraItemsPanel.getInsets().top());
             extraItemsPanel.setSize(width, height);  // WPlainPanel#add automatically makes added elements 18x18 pixels
 
-            this.removeItemFunctions.add(() -> root.remove(extraItemsPanel));  // Make sure entire left panel is reset
+            this.invPanel.setLocation(extraItemsPanel.getWidth(), 0);
+            this.buttonPanel.setLocation(this.invPanel.getX() + this.invPanel.getWidth(), this.buttonPanel.getY());
+
+            this.removables.add(extraItemsPanel);  // Make sure entire left panel is reset
+        } else {
+            this.invPanel.setLocation(0, 0);
+            this.buttonPanel.setLocation(this.invPanel.getX() + this.invPanel.getWidth(), this.buttonPanel.getY());
         }
     }
 
-    private void addCoordinates(WPlainPanel root, int x) {
+    private void addCoordinates(int x) {
         BlockPos pos = this.graveComponent.getPos();
         WText coordinates = new WText(Text.of("X: %d / Y: %d / Z: %d".formatted(pos.getX(), pos.getY(), pos.getZ())));
 
-        root.add(coordinates, x, GraveOverviewGui.SLOT_SIZE, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
+        this.invPanel.add(coordinates, x, GraveOverviewGui.SLOT_SIZE, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
     }
 
-    private void addDimension(WPlainPanel root, int x) {
+    private void addDimension(int x) {
         RegistryKey<World> key = this.graveComponent.getWorldRegistryKey();
         String dimId = key.getValue().toString();
         WText dimension = new WText(Text.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId));
 
-        root.add(dimension, x, 36, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
+        this.invPanel.add(dimension, x, 36, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
     }
 
-    private void addXpInfo(WPlainPanel root, int x) {
+    private void addXpInfo(int x) {
         WSprite xpIcon = new WSprite(new Identifier(Yigd.MOD_ID, "textures/gui/exp_orb.png"));
         int spriteSize = (int) (SLOT_SIZE * 0.7);
-        root.add(xpIcon, x, 54, spriteSize, spriteSize);
+        this.invPanel.add(xpIcon, x, 54, spriteSize, spriteSize);
 
         int level = this.graveComponent.getExpComponent().getXpLevel();
         Text text = Text.of(String.valueOf(level));
@@ -174,11 +200,11 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
         int textX = x + spriteSize;
         int textY = 54 + spriteSize / 2;
-        root.add(bgTextRight, textX + 1, textY);
-        root.add(bgTextLeft, textX - 1, textY);
-        root.add(bgTextUp, textX, textY + 1);
-        root.add(bgTextDown, textX, textY - 1);
-        root.add(wText, textX, textY);
+        this.invPanel.add(bgTextRight, textX + 1, textY);
+        this.invPanel.add(bgTextLeft, textX - 1, textY);
+        this.invPanel.add(bgTextUp, textX, textY + 1);
+        this.invPanel.add(bgTextDown, textX, textY - 1);
+        this.invPanel.add(wText, textX, textY);
     }
 
     private void addItemSlot(WPlainPanel root, int fromIndex, int amount, DefaultedList<ItemStack> items, Function<Integer, Point> posCalculation) {
@@ -187,13 +213,14 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
             WItemStack wItemStack = new WItemStack(items.get(fromIndex + i), SLOT_SIZE);
 
-            this.removeItemFunctions.add(() -> root.remove(wItemStack));
+            this.removables.add(wItemStack);
 
             root.add(wItemStack, pos.x, pos.y);
         }
     }
 
-    private void addButtons(WPlainPanel root, boolean restoreBtn, boolean robBtn, boolean deleteBtn, boolean lockingBtn) {
+    private void addButtons(boolean restoreBtn, boolean robBtn, boolean deleteBtn, boolean lockingBtn,
+                            boolean obtainableKeys, boolean obtainableCompass) {
         WHoverToggleButton viewGraveItems = new WHoverToggleButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png")),
                 Text.translatable("button.yigd.gui.view_grave_items"), new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png")),
                 Text.translatable("button.yigd.gui.hide_grave_items"));
@@ -216,6 +243,9 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         WHoverToggleButton lockingButton = new WHoverToggleButton(lockingIconOn, Text.translatable("button.yigd.gui.locked"), lockingIconOff, Text.translatable("button.yigd.gui.unlocked"));
         lockingButton.setToggle(this.graveComponent.isLocked());
 
+        WHoverButton obtainKeysButton = new WHoverButton(new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/item/grave_key.png")), Text.translatable("button.yigd.gui.obtain_keys"));
+        WHoverButton obtainCompassButton = new WHoverButton(new TextureIcon(new Identifier("textures/item/recovery_compass_18.png")), Text.translatable("button.yigd.gui.obtain_compass"));
+
         UUID graveId = this.graveComponent.getGraveId();
 
         viewGraveItems.setToggle(this.viewGraveItems);
@@ -225,50 +255,71 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
         viewGraveItems.setOnToggle(aBoolean -> {
             this.viewGraveItems = aBoolean;
-            this.updateFilters(root);
+            this.updateFilters();
         });
         viewDeletedItems.setOnToggle(aBoolean -> {
             this.viewDeletedItems = aBoolean;
-            this.updateFilters(root);
+            this.updateFilters();
         });
         viewSoulboundItems.setOnToggle(aBoolean -> {
             this.viewSoulboundItems = aBoolean;
-            this.updateFilters(root);
+            this.updateFilters();
         });
         viewDroppedItems.setOnToggle(aBoolean -> {
             this.viewDroppedItems = aBoolean;
-            this.updateFilters(root);
+            this.updateFilters();
         });
 
         restoreButton.setOnClick(() -> ClientPacketHandler.sendRestoreGraveRequestPacket(graveId, this.viewGraveItems, this.viewDeletedItems, this.viewSoulboundItems, this.viewDroppedItems));
         robButton.setOnClick(() -> ClientPacketHandler.sendRobGraveRequestPacket(graveId, this.viewGraveItems, this.viewDeletedItems, this.viewSoulboundItems, this.viewDroppedItems));
         deleteButton.setOnClick(() -> ClientPacketHandler.sendDeleteGraveRequestPacket(graveId));
         lockingButton.setOnToggle(aBoolean -> ClientPacketHandler.sendGraveLockRequestPacket(graveId, aBoolean));
+        obtainKeysButton.setOnClick(() -> ClientPacketHandler.sendObtainKeysRequestPacket(graveId));
+        obtainCompassButton.setOnClick(() -> ClientPacketHandler.sendObtainCompassRequestPacket(graveId));
 
-        final int x = 167;
-        final int topY = 0;
+        int x = 0;
+        final int y = 0;
 
         int i = 0;
 
-        root.add(viewGraveItems, x, topY); i += 21;
-        root.add(viewDeletedItems, x, topY + i); i += 21;
-        root.add(viewSoulboundItems, x, topY + i); i += 21;
-        root.add(viewDroppedItems, x, topY + i); i += 22;
+        this.buttonPanel.setBackgroundPainter(BackgroundPainter.VANILLA);
+        this.buttonPanel.setInsets(new Insets(6));
+
+        this.buttonPanel.add(viewGraveItems, x, y); i += 22;
+        this.buttonPanel.add(viewDeletedItems, x, y + i); i += 22;
+        this.buttonPanel.add(viewSoulboundItems, x, y + i); i += 22;
+        this.buttonPanel.add(viewDroppedItems, x, y + i);
+
+        i = 0;
+        x += 22;
 
         if (restoreBtn) {
-            root.add(restoreButton, x, topY + i);
-            i += 21;
+            this.buttonPanel.add(restoreButton, x, y);
+            i += 22;
         }
         if (robBtn) {
-            root.add(robButton, x, topY + i);
-            i += 21;
+            this.buttonPanel.add(robButton, x, y + i);
+            i += 22;
         }
         if (lockingBtn) {
-            root.add(lockingButton, x, topY + i);
-            i += 21;
+            this.buttonPanel.add(lockingButton, x, y + i);
+            i += 22;
         }
         if (deleteBtn) {
-            root.add(deleteButton, x, topY + i);
+            this.buttonPanel.add(deleteButton, x, y + i);
+            i += 22;
         }
+        if (obtainableKeys) {
+            this.buttonPanel.add(obtainKeysButton, x, y + i);
+            i += 22;
+        }
+        if (obtainableCompass) {
+            this.buttonPanel.add(obtainCompassButton, x, y + i);
+        }
+
+        int width = this.buttonPanel.getWidth();
+        int height = this.buttonPanel.getHeight();
+        this.root.add(this.buttonPanel, this.invPanel.getX() + this.invPanel.getWidth(), this.invPanel.getInsets().top() - this.buttonPanel.getInsets().top());
+        this.buttonPanel.setSize(width, height);
     }
 }

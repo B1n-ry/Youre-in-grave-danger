@@ -3,20 +3,18 @@ package com.b1n_ry.yigd.components;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
+import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,20 +76,10 @@ public class RespawnComponent {
                 player.giveItemStack(key);
         }
         if (extraFeaturesConfig.graveCompass.receiveOnRespawn) {
-            ItemStack compass = Items.COMPASS.getDefaultStack();
-            NbtCompound compassNbt = new NbtCompound();
-
             List<GraveComponent> playerGraves = DeathInfoManager.INSTANCE.getBackupData(player.getGameProfile());
             GraveComponent latestGrave = playerGraves.get(playerGraves.size() - 1);
 
-            compassNbt.putUuid("linked_grave", latestGrave.getGraveId());  // Speed up the process of identifying the grave server side
-
-            // Make clients read the grave position
-            compassNbt.put("grave_pos", NbtHelper.fromBlockPos(latestGrave.getPos()));
-            World.CODEC.encodeStart(NbtOps.INSTANCE, latestGrave.getWorldRegistryKey()).resultOrPartial(Yigd.LOGGER::error).ifPresent(worldNbt -> compassNbt.put("grave_dimension", worldNbt));
-
-            compass.setNbt(compassNbt);
-            player.giveItemStack(compass);
+            GraveCompassHelper.giveCompass(player, latestGrave.getGraveId(), latestGrave.getPos(), latestGrave.getWorldRegistryKey());
         }
 
         for (YigdConfig.RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {

@@ -362,7 +362,7 @@ public class YigdConfig implements ConfigData {
             public boolean rebindable = true;
             public boolean required = true;
             public boolean receiveOnRespawn = true;
-            public boolean obtainableFromGui = true;
+            public boolean obtainableFromGui = false;
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public KeyTargeting targeting = KeyTargeting.PLAYER_GRAVE;
             public enum KeyTargeting {
@@ -383,7 +383,7 @@ public class YigdConfig implements ConfigData {
             public boolean receiveOnRespawn = false;
             public boolean consumeOnUse = true;
             public boolean deleteWhenUnlinked = true;
-            public boolean cloneRecoveryCompassWithGUI = true;
+            public boolean cloneRecoveryCompassWithGUI = false;
         }
     }
 

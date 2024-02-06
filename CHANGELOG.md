@@ -5,7 +5,12 @@
 * Added new config options for XP drops. These are BEST_OF_BOTH and WORST_OF_BOTH,
 dropping the highest of VANILLA and PERCENTAGE, respectively the lowest of the
 two options.
-* 
+* Modified layout in grave overview GUI, and added more buttons
+* New GUI button (if grave keys are enabled, and button is allowed) to create a key 
+to the grave
+* New GUI button (if player has a recovery compass in inventory) to create a grave
+compass to the grave
+* Grave compasses are now called "Grave Compass"
 
 ### Fixes
 * Fixed compatibility issue with "utility belt". Items inside belt should no longer be

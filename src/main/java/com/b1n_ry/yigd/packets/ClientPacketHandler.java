@@ -35,7 +35,7 @@ public class ClientPacketHandler {
 
             // Set screen on client thread
             client.execute(() -> client.setScreen(new GraveOverviewScreen(new GraveOverviewGui(component,
-                    client.currentScreen, canRestore, canRob, canDelete, canUnlock))));
+                    client.currentScreen, canRestore, canRob, canDelete, canUnlock, obtainableKeys, obtainableCompass))));
         });
 
         ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_SELECTION_S2C, (client, handler, buf, responseSender) -> {
@@ -95,6 +95,16 @@ public class ClientPacketHandler {
         buf.writeUuid(graveId);
         buf.writeBoolean(locked);
         ClientPlayNetworking.send(PacketIdentifiers.GRAVE_LOCKING_C2S, buf);
+    }
+    public static void sendObtainKeysRequestPacket(UUID graveId) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeUuid(graveId);
+        ClientPlayNetworking.send(PacketIdentifiers.GRAVE_OBTAIN_KEYS_C2S, buf);
+    }
+    public static void sendObtainCompassRequestPacket(UUID graveId) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeUuid(graveId);
+        ClientPlayNetworking.send(PacketIdentifiers.GRAVE_OBTAIN_COMPASS_C2S, buf);
     }
     public static void sendGraveOverviewRequest(UUID graveId) {
         PacketByteBuf buf = PacketByteBufs.create();

@@ -21,7 +21,6 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameRules;
 
 import java.util.UUID;
 
@@ -41,19 +40,16 @@ public class DeathHandler {
         RespawnComponent respawnComponent = new RespawnComponent(player);  // Will keep track of data used on respawn
 
         InventoryComponent inventoryComponent = new InventoryComponent(player);  // Will keep track of all items
-        InventoryComponent.clearPlayer(player);  // No use for actual inventory when inventory component is created
-
         ExpComponent expComponent = new ExpComponent(player);  // Will keep track of XP
+
+        InventoryComponent.clearPlayer(player);  // No use for actual inventory when inventory component is created
         ExpComponent.clearXp(player);  // No use for actual exp when exp component is created
 
-        // TODO: Replace this with an event for other things to possibly check as well
-        if (world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) {
-            respawnComponent.setSoulboundInventory(inventoryComponent);
-            respawnComponent.setSoulboundExp(expComponent);
-        } else {
-            inventoryComponent.onDeath(respawnComponent, context);
-            expComponent.onDeath(respawnComponent, context);
-        }
+        // Here would be an if statement for keepInventory if vanilla didn't handle keepInventory
+        // There once was code here, but is no more since removing it was the easiest fix a duplication bug
+
+        inventoryComponent.onDeath(respawnComponent, context);
+        expComponent.onDeath(respawnComponent, context);
 
 
         if (config.inventoryConfig.itemLoss.enabled) {

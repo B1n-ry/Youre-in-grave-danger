@@ -6,10 +6,12 @@ import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.mojang.authlib.GameProfile;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -131,6 +133,37 @@ public class ServerPacketHandler {
                 Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
                 component.ifPresentOrElse(grave -> grave.setLocked(lockState),
                         () -> player.sendMessage(Text.translatable("text.yigd.command.lock.fail")));
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_OBTAIN_KEYS_C2S, (server, player, handler, buf, responseSender) -> {
+            YigdConfig config = YigdConfig.getConfig();
+            if (!config.extraFeatures.graveKeys.enabled || !config.extraFeatures.graveKeys.obtainableFromGui) {
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                return;
+            }
+
+            UUID graveId = buf.readUuid();
+            server.execute(() -> {
+                Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
+                component.ifPresentOrElse(grave -> {
+                    ItemStack key = new ItemStack(Yigd.GRAVE_KEY_ITEM);
+                    Yigd.GRAVE_KEY_ITEM.bindStackToGrave(graveId, grave.getOwner(), key);
+                    player.giveItemStack(key);
+                }, () -> player.sendMessage(Text.translatable("text.yigd.command.obtain_key.fail")));
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_OBTAIN_COMPASS_C2S, (server, player, handler, buf, responseSender) -> {
+            YigdConfig config = YigdConfig.getConfig();
+            if (!config.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI) {
+                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                return;
+            }
+
+            UUID graveId = buf.readUuid();
+            server.execute(() -> {
+                Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
+                component.ifPresentOrElse(grave -> GraveCompassHelper.giveCompass(player, graveId, grave.getPos(), grave.getWorldRegistryKey()),
+                        () -> player.sendMessage(Text.translatable("text.yigd.command.obtain_compass.fail")));
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(PacketIdentifiers.GRAVE_OVERVIEW_REQUEST_C2S, (server, player, handler, buf, responseSender) -> {

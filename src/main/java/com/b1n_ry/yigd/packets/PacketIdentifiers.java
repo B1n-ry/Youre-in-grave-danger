@@ -12,6 +12,8 @@ public interface PacketIdentifiers {
     Identifier GRAVE_RESTORE_C2S = idFor("grave_restore_c2s");
     Identifier GRAVE_ROBBING_C2S = idFor("grave_robbing_c2s");
     Identifier GRAVE_DELETE_C2S = idFor("grave_delete_c2s");
+    Identifier GRAVE_OBTAIN_KEYS_C2S = idFor("grave_obtain_key_c2s");
+    Identifier GRAVE_OBTAIN_COMPASS_C2S = idFor("grave_obtain_compass_c2s");
     Identifier GRAVE_OVERVIEW_REQUEST_C2S = idFor("grave_overview_request_c2s");
     Identifier GRAVE_SELECT_REQUEST_C2S = idFor("grave_select_request_c2s");
     Identifier CONFIG_UPDATE_C2S = idFor("config_update_c2s");

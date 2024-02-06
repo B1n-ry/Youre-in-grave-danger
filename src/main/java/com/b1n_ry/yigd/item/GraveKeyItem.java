@@ -16,6 +16,7 @@ import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class GraveKeyItem extends Item {
     public GraveKeyItem(Settings settings) {
@@ -34,7 +35,7 @@ public class GraveKeyItem extends Item {
         if (world.isClient) return super.use(world, user, hand);
 
         YigdConfig config = YigdConfig.getConfig();
-        // TODO: Also check if key is rebindable
+
         if (config.extraFeatures.graveKeys.rebindable && user.isSneaking()) {
             ItemStack key = user.getStackInHand(hand);
             if (this.bindStackToLatestGrave(user, key))
@@ -52,10 +53,13 @@ public class GraveKeyItem extends Item {
         int size = graves.size();
         if (size >= 1) {
             GraveComponent component = graves.get(size - 1);
-            key.setSubNbt("grave", NbtHelper.fromUuid(component.getGraveId()));
-            key.setSubNbt("user", NbtHelper.writeGameProfile(new NbtCompound(), playerProfile));
+            this.bindStackToGrave(component.getGraveId(), playerProfile, key);
             return true;
         }
         return false;
+    }
+    public void bindStackToGrave(UUID graveId, GameProfile playerProfile, ItemStack key) {
+        key.setSubNbt("grave", NbtHelper.fromUuid(graveId));
+        key.setSubNbt("user", NbtHelper.writeGameProfile(new NbtCompound(), playerProfile));
     }
 }
