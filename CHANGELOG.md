@@ -1,8 +1,17 @@
 # You're in Grave Danger 2.0.0-beta.8
 
+### Changes
+* Added overlay messages when failing to claim/rob graves due to a few reasons
+* Added new config options for XP drops. These are BEST_OF_BOTH and WORST_OF_BOTH,
+dropping the highest of VANILLA and PERCENTAGE, respectively the lowest of the
+two options.
+* 
+
 ### Fixes
 * Fixed compatibility issue with "utility belt". Items inside belt should no longer be
 deleted on death.
+* Travelers backpack will no longer be deleted on death whenever trinket integration is
+enabled.
 
 ---
 

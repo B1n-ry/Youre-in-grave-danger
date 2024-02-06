@@ -19,6 +19,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
@@ -136,10 +137,16 @@ public class YigdServerEventHandler {
                         }
                     }
                 }
-                if (config.extraFeatures.graveKeys.required) return false;  // The grave key didn't work
+                if (config.extraFeatures.graveKeys.required) {
+                    player.sendMessage(Text.translatable("text.yigd.message.missing_key"), true);
+                    return false;  // The grave key didn't work
+                }
             }
 
-            if (config.graveConfig.requireShovelToLoot && !tool.isIn(ItemTags.SHOVELS)) return false;
+            if (config.graveConfig.requireShovelToLoot && !tool.isIn(ItemTags.SHOVELS)) {
+                player.sendMessage(Text.translatable("text.yigd.message.no_shovel"), true);
+                return false;
+            }
 
             if (player.getUuid().equals(grave.getOwner().getId())) return true;
             if (!grave.isLocked()) return true;
@@ -148,7 +155,10 @@ public class YigdServerEventHandler {
             if (!robConfig.enabled) return false;
 
             final int tps = 20;  // ticks per second
-            if (!grave.hasExistedMs(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) return false;
+            if (!grave.hasExistedMs(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) {
+                player.sendMessage(Text.translatable("text.yigd.message.rob.too_early", grave.getTimeUntilRobbable()), true);
+                return false;
+            }
 
             return robConfig.onlyMurderer && player.getUuid().equals(grave.getKillerId());
         });

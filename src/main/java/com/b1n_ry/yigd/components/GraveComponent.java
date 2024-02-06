@@ -323,6 +323,23 @@ public class GraveComponent {
         return this.world.getTime() - this.creationTime.getTime() < time;
     }
 
+    /**
+     * Will return the time until the grave can be robbed. Will not check if grave can already be robbed, which might
+     * cause the time to be negative
+     * @return Time until the grave can be robbed represented as a string; hh:mm:ss
+     */
+    public String getTimeUntilRobbable() {
+        if (this.world == null) return "0";
+        YigdConfig.GraveConfig.GraveRobbing robConfig = YigdConfig.getConfig().graveConfig.graveRobbing;
+        long delay = robConfig.timeUnit.toSeconds(robConfig.afterTime);
+
+        long timePassed = this.creationTime.getTime() - this.world.getTime() + delay;
+        long seconds = timePassed % 60;
+        long minutes = (timePassed / 60) % 60;
+        long hours = timePassed / 3600;
+        return "%02d:%02d:%02d".formatted(hours, minutes, seconds);
+    }
+
     public ActionResult claim(ServerPlayerEntity player, ServerWorld world, BlockState previousState, BlockPos pos, ItemStack tool) {
         YigdConfig config = YigdConfig.getConfig();
 

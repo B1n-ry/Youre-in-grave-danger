@@ -28,6 +28,8 @@ public class ClientPacketHandler {
             boolean canRob = buf.readBoolean();
             boolean canDelete = buf.readBoolean();
             boolean canUnlock = buf.readBoolean();
+            boolean obtainableKeys = buf.readBoolean();
+            boolean obtainableCompass = buf.readBoolean();
 
             GraveComponent component = GraveComponent.fromNbt(componentNbt, null);
 

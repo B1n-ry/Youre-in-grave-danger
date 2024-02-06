@@ -52,14 +52,14 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         this.setRootPanel(root);
         root.setInsets(Insets.ROOT_PANEL);
 
-        int slightlyLeft = (int) (1.1 * SLOT_SIZE);
+        int slightlyRight = (int) (1.1 * SLOT_SIZE);
 
         WLabel title = new WLabel(this.graveComponent.getDeathMessage().getDeathMessage());
-        root.add(title, slightlyLeft, 0);
+        root.add(title, slightlyRight, 0);
 
-        this.addCoordinates(root, slightlyLeft);
-        this.addDimension(root, slightlyLeft);
-        this.addXpInfo(root, slightlyLeft);
+        this.addCoordinates(root, slightlyRight);
+        this.addDimension(root, slightlyRight);
+        this.addXpInfo(root, slightlyRight);
 
         this.addButtons(root, canRestore, canRob, canDelete, canUnlock);
 

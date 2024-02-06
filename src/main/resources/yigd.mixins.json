@@ -6,6 +6,7 @@
   "mixins": [
     "CompassItemMixin",
     "ServerPlayerEntityMixin",
+    "TravelersBackpackTrinketMixin",
     "WorldChunkMixin"
   ],
   "client": [

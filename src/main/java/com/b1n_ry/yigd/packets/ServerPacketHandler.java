@@ -10,6 +10,7 @@ import com.mojang.authlib.GameProfile;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -174,13 +175,17 @@ public class ServerPacketHandler {
     }
 
     public static void sendGraveOverviewPacket(ServerPlayerEntity player, GraveComponent component) {
-        YigdConfig.CommandConfig config = YigdConfig.getConfig().commandConfig;
+        YigdConfig config = YigdConfig.getConfig();
+        YigdConfig.CommandConfig commandConfig = YigdConfig.getConfig().commandConfig;
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeNbt(component.toNbt());
-        buf.writeBoolean(Permissions.check(player, "yigd.command.restore", config.restorePermissionLevel));
-        buf.writeBoolean(Permissions.check(player, "yigd.command.rob", config.robPermissionLevel));
-        buf.writeBoolean(Permissions.check(player, "yigd.command.delete", config.deletePermissionLevel));
-        buf.writeBoolean(Permissions.check(player, "yigd.command.locking", config.unlockPermissionLevel));
+        buf.writeBoolean(Permissions.check(player, "yigd.command.restore", commandConfig.restorePermissionLevel));
+        buf.writeBoolean(Permissions.check(player, "yigd.command.rob", commandConfig.robPermissionLevel));
+        buf.writeBoolean(Permissions.check(player, "yigd.command.delete", commandConfig.deletePermissionLevel));
+        buf.writeBoolean(Permissions.check(player, "yigd.command.locking", commandConfig.unlockPermissionLevel));
+
+        buf.writeBoolean(config.extraFeatures.graveKeys.enabled && config.extraFeatures.graveKeys.obtainableFromGui);
+        buf.writeBoolean(config.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI && player.getInventory().count(Items.RECOVERY_COMPASS) > 0);
 
         ServerPlayNetworking.send(player, PacketIdentifiers.GRAVE_OVERVIEW_S2C, buf);
     }

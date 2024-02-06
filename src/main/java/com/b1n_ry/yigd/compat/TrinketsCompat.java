@@ -5,13 +5,15 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
-import dev.emi.trinkets.api.*;
+import dev.emi.trinkets.api.SlotReference;
+import dev.emi.trinkets.api.TrinketEnums;
+import dev.emi.trinkets.api.TrinketInventory;
+import dev.emi.trinkets.api.TrinketsApi;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,18 +65,6 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
                     return new Pair<>(stack, dropRule);
                 }, InventoryComponent.EMPTY_ITEM_PAIR, "inventory", "size");
-
-                /*DefaultedList.ofSize(listSize, EMPTY_PAIR);
-
-                NbtList nbtInventory = slotNbt.getList("inventory", NbtElement.COMPOUND_TYPE);
-                for (NbtElement elem : nbtInventory) {
-                    NbtCompound comp = (NbtCompound) elem;
-                    ItemStack stack = ItemStack.fromNbt(comp);
-                    TrinketEnums.DropRule dropRule = TrinketEnums.DropRule.valueOf(comp.getString("dropRule"));
-                    int slot = comp.getInt("slot");
-
-                    items.set(slot, new Pair<>(dropRule, stack));
-                }*/
 
                 groupMap.put(slotName, items);
             }
@@ -348,22 +338,6 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
                         return itemNbt;
                     }, pair -> pair.getLeft().isEmpty(), "inventory", "size");
-
-                    /*NbtList itemNbtList = new NbtList();
-                    for (int i = 0; i < slotItems.size(); i++) {
-                        Pair<ItemStack, DropRule> item = slotItems.get(i);
-                        ItemStack stack = item.getLeft();
-                        if (stack.isEmpty()) continue;
-
-                        NbtCompound itemNbt = new NbtCompound();
-                        itemNbt.putString("dropRule", item.getLeft().toString());
-                        itemNbt.putInt("slot", i);
-                        stack.writeNbt(itemNbt);
-
-                        itemNbtList.add(itemNbt);
-                    }
-                    slotNbt.put("inventory", itemNbtList);
-                    slotNbt.putInt("size", slotItems.size());*/
 
                     groupNbt.put(slot.getKey(), slotNbt);
                 }

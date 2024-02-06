@@ -1,6 +1,5 @@
 package com.b1n_ry.yigd.components;
 
-import com.b1n_ry.yigd.config.ExpDropBehaviour;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import net.minecraft.entity.ExperienceOrbEntity;
@@ -26,18 +25,19 @@ public class ExpComponent {
     public int getXpDropAmount(ServerPlayerEntity player) {
         YigdConfig config = YigdConfig.getConfig();
 
-        if (config.expConfig.dropBehaviour == ExpDropBehaviour.VANILLA) {
-            return Math.min(7 * player.experienceLevel, 100);
-        } else if (config.expConfig.dropBehaviour == ExpDropBehaviour.PERCENTAGE) {
-            double totalExperience = this.getTotalExperience(player);
-
-            return (int) ((config.expConfig.dropPercentage / 100f) * totalExperience);
-        }
-
-        return 0;
+        double totalExperience = this.getTotalExperience(player);
+        int percentageDrop = (int) ((config.expConfig.dropPercentage / 100f) * totalExperience);
+        int vanillaDrop = player.getXpToDrop();
+        return switch (config.expConfig.dropBehaviour) {
+            case BEST_OF_BOTH -> Math.max(vanillaDrop, percentageDrop);
+            case WORST_OF_BOTH -> Math.min(vanillaDrop, percentageDrop);
+            case PERCENTAGE -> percentageDrop;
+            case VANILLA -> vanillaDrop;
+        };
     }
 
     private double getTotalExperience(ServerPlayerEntity player) {
+        // This for some reason works more reliably than to get player.totalExperience directly
         int currentLevel = player.experienceLevel;
         double totalExperience;
         if (currentLevel >= 32) {

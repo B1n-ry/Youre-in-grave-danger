@@ -108,11 +108,11 @@ public class YigdConfig implements ConfigData {
 
     public static class ExpConfig {
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
-        public ExpDropBehaviour dropBehaviour = ExpDropBehaviour.VANILLA;
+        public ExpDropBehaviour dropBehaviour = ExpDropBehaviour.BEST_OF_BOTH;
 
-        @Comment("Requires dropBehaviour to be set to PERCENTAGE to work")
+        @Comment("Ignored if dropBehaviour is set to VANILLA")
         @ConfigEntry.BoundedDiscrete(max = 100)
-        public int dropPercentage = 50;
+        public int dropPercentage = 0;
 
         @ConfigEntry.BoundedDiscrete(max = 100)
         public int keepPercentage = 0;
@@ -362,6 +362,7 @@ public class YigdConfig implements ConfigData {
             public boolean rebindable = true;
             public boolean required = true;
             public boolean receiveOnRespawn = true;
+            public boolean obtainableFromGui = true;
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public KeyTargeting targeting = KeyTargeting.PLAYER_GRAVE;
             public enum KeyTargeting {
@@ -382,6 +383,7 @@ public class YigdConfig implements ConfigData {
             public boolean receiveOnRespawn = false;
             public boolean consumeOnUse = true;
             public boolean deleteWhenUnlinked = true;
+            public boolean cloneRecoveryCompassWithGUI = true;
         }
     }
 
