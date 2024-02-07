@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -93,6 +94,10 @@ public class DeathInfoManager extends PersistentState {
                 if (config.graveConfig.dropFromOldestWhenDeleted)
                     toBeRemoved.dropAll();
             }
+        }
+
+        if (config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
+            GraveCompassHelper.addGravePosition(component.getWorldRegistryKey(), component.getPos(), profile.getId());
         }
     }
     public @NotNull List<GraveComponent> getBackupData(GameProfile profile) {

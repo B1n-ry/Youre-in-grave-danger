@@ -11,6 +11,8 @@ to the grave
 * New GUI button (if player has a recovery compass in inventory) to create a grave
 compass to the grave
 * Grave compasses are now called "Grave Compass"
+* Graves can now point to the closest grave, either owned by the player, or all
+graves. This is configurable in the config file
 
 ### Fixes
 * Fixed compatibility issue with "utility belt". Items inside belt should no longer be

@@ -384,6 +384,11 @@ public class YigdConfig implements ConfigData {
             public boolean consumeOnUse = true;
             public boolean deleteWhenUnlinked = true;
             public boolean cloneRecoveryCompassWithGUI = false;
+            @ConfigEntry.Gui.RequiresRestart
+            public CompassGraveTarget pointToClosest = CompassGraveTarget.DISABLED;
+            public enum CompassGraveTarget {
+                DISABLED, PLAYER, ALL
+            }
         }
     }
 

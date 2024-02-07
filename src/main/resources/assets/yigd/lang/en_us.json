@@ -243,5 +243,6 @@
   "text.autoconfig.yigd.option.extraFeatures.graveCompass.receiveOnRespawn": "Receive on Respawn",
   "text.autoconfig.yigd.option.extraFeatures.graveCompass.consumeOnUse": "Consume on Use",
   "text.autoconfig.yigd.option.extraFeatures.graveCompass.deleteWhenUnlinked": "Delete when Unlinked",
-  "text.autoconfig.yigd.option.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI": "Clone Recovery Compass with GUI"
+  "text.autoconfig.yigd.option.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI": "Clone Recovery Compass with GUI",
+  "text.autoconfig.yigd.option.extraFeatures.graveCompass.pointToClosest": "Point towards closest grave"
 }
