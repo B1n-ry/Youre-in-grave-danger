@@ -52,6 +52,8 @@ public class GraveCompassHelper {
         NbtCompound compassNbt = compass.getNbt();
         if (compassNbt == null) return;
 
+        if (!compassNbt.contains("grave_pos")) return;  // Not a grave compass
+
         BlockPos closestPos = findClosest(holderId, worldKey, pos);
         if (closestPos != null) {
             compassNbt.put("grave_pos", NbtHelper.fromBlockPos(closestPos));
@@ -88,6 +90,34 @@ public class GraveCompassHelper {
         }
     }
 
+    public static void setClaimed(RegistryKey<World> worldKey, BlockPos gravePos) {
+        KDNode root = GRAVE_POSITIONS.get(worldKey);
+        if (root == null) {
+            return;
+        }
+
+        int[] pos = new int[] { gravePos.getX(), gravePos.getY(), gravePos.getZ() };
+
+        setClaimed(root, pos, 0);
+    }
+    private static void setClaimed(KDNode node, int[] pos, int depth) {
+        if (node == null) {
+            return;
+        }
+
+        if (node.pos[0] == pos[0] && node.pos[1] == pos[1] && node.pos[2] == pos[2]) {
+            node.isUnclaimed = false;
+            return;
+        }
+
+        int cmp = depth % 3;
+        if (node.pos[cmp] < pos[cmp]) {
+            setClaimed(node.right, pos, depth + 1);
+        } else {
+            setClaimed(node.left, pos, depth + 1);
+        }
+    }
+
     public static @Nullable BlockPos findClosest(UUID ownerId, RegistryKey<World> worldKey, BlockPos pos) {
         GraveCompassConfig config = YigdConfig.getConfig().extraFeatures.graveCompass;
         if (config.pointToClosest == GraveCompassConfig.CompassGraveTarget.DISABLED) return null;  // What how are we here?
@@ -104,14 +134,14 @@ public class GraveCompassHelper {
         return closest == null ? null : new BlockPos(closest[0], closest[1], closest[2]);
     }
     private static int[] findClosest(KDNode node, UUID ownerId, int[] pos, int depth, GraveCompassConfig config) {
-        if (node == null) {
+        if (node == null || depth > 100) {
             return null;
         }
 
         int cmp = depth % 3;
         int[] closest = null;
         // If not all, it's player specific. If not that, it's disabled, and won't reach this
-        if (config.pointToClosest == GraveCompassConfig.CompassGraveTarget.ALL || node.ownerId.equals(ownerId)) {
+        if ((config.pointToClosest == GraveCompassConfig.CompassGraveTarget.ALL || node.ownerId.equals(ownerId)) && node.isUnclaimed) {
             closest = node.pos;
         }
 
@@ -144,6 +174,7 @@ public class GraveCompassHelper {
     private static class KDNode {
         @NotNull
         private final UUID ownerId;
+        private boolean isUnclaimed = true;
         private final int @NotNull [] pos;
         @Nullable
         private KDNode left;

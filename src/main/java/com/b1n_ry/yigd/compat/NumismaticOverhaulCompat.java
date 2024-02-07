@@ -1,6 +1,5 @@
 package com.b1n_ry.yigd.compat;
 
-import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
@@ -16,7 +15,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.function.Predicate;
 
@@ -155,10 +153,6 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
         @Override
         public CompatComponent<Long> filterInv(Predicate<DropRule> predicate) {
-//            if (predicate.test(YigdConfig.getConfig().compatConfig.defaultNumismaticDropRule)) {
-//                return new NumismaticCompatComponent(this.inventory, this.dropValue, this.keepValue, this.destroyValue, this.graveValue);
-//            }
-
             long totalValue = 0;
             if (predicate.test(DropRule.DROP))
                 totalValue += this.dropValue;

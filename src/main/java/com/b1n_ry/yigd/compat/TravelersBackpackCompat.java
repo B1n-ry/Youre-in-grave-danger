@@ -85,11 +85,7 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         public DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player) {
             if (this.inventory.getLeft().isEmpty()) return DefaultedList.of();
 
-            ITravelersBackpackComponent component = ComponentUtils.getComponent(player);
-
-            component.setWearable(this.inventory.getLeft());
-            component.setContents(this.inventory.getLeft());
-            component.sync();
+            ComponentUtils.equipBackpack(player, this.inventory.getLeft());
 
             return DefaultedList.of();
         }

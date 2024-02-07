@@ -385,6 +385,7 @@ public class YigdConfig implements ConfigData {
             public boolean deleteWhenUnlinked = true;
             public boolean cloneRecoveryCompassWithGUI = false;
             @ConfigEntry.Gui.RequiresRestart
+            @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public CompassGraveTarget pointToClosest = CompassGraveTarget.DISABLED;
             public enum CompassGraveTarget {
                 DISABLED, PLAYER, ALL

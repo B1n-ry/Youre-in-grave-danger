@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveKeyConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.data.ListMode;
+import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
@@ -97,17 +98,23 @@ public class YigdServerEventHandler {
 
             YigdConfig config = YigdConfig.getConfig();
 
-            if (config.extraFeatures.graveCompass.consumeOnUse) {
+            if (config.extraFeatures.graveCompass.consumeOnUse || config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
                 PlayerInventory inventory = player.getInventory();
                 for (int i = 0; i < inventory.size(); i++) {
                     ItemStack stack = inventory.getStack(i);
-                    NbtCompound stackNbt = stack.getNbt();
-                    if (stack.isOf(Items.COMPASS) && stackNbt != null && stackNbt.contains("linked_grave")) {
-                        UUID graveId = stackNbt.getUuid("linked_grave");
-                        if (graveId.equals(grave.getGraveId())) {
-                            stack.setCount(0);
-                            break;
+                    if (!stack.isOf(Items.COMPASS)) continue;
+
+                    if (config.extraFeatures.graveCompass.consumeOnUse) {
+                        NbtCompound stackNbt = stack.getNbt();
+                        if (stack.isOf(Items.COMPASS) && stackNbt != null && stackNbt.contains("linked_grave")) {
+                            UUID graveId = stackNbt.getUuid("linked_grave");
+                            if (graveId.equals(grave.getGraveId())) {
+                                stack.setCount(0);
+                                break;
+                            }
                         }
+                    } else {  // Redirect closest grave pointer
+                        GraveCompassHelper.updateClosestNbt(world.getRegistryKey(), player.getBlockPos(), player.getUuid(), stack);
                     }
                 }
             }

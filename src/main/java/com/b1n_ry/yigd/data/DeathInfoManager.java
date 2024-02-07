@@ -96,7 +96,8 @@ public class DeathInfoManager extends PersistentState {
             }
         }
 
-        if (config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
+        if (config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED
+                && component.getStatus() == GraveStatus.UNCLAIMED) {
             GraveCompassHelper.addGravePosition(component.getWorldRegistryKey(), component.getPos(), profile.getId());
         }
     }

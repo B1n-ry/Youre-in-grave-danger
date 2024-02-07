@@ -11,6 +11,7 @@ import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.b1n_ry.yigd.packets.LightGraveData;
 import com.b1n_ry.yigd.util.DropRule;
+import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -154,6 +155,10 @@ public class GraveComponent {
         DeathInfoManager.INSTANCE.markDirty();
     }
     public void setStatus(GraveStatus status) {
+        if (this.status == GraveStatus.UNCLAIMED
+                && YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
+            GraveCompassHelper.setClaimed(this.worldRegistryKey, this.pos);
+        }
         this.status = status;
         DeathInfoManager.INSTANCE.markDirty();
     }
@@ -381,8 +386,7 @@ public class GraveComponent {
             }
         }
 
-        this.status = GraveStatus.CLAIMED;
-        DeathInfoManager.INSTANCE.markDirty();
+        this.setStatus(GraveStatus.CLAIMED);
 
         if (thisIsARobbery && config.graveConfig.graveRobbing.notifyWhenRobbed) {
             MinecraftServer server = world.getServer();
