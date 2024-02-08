@@ -49,6 +49,8 @@ public class GraveCompassHelper {
     }
 
     public static void updateClosestNbt(RegistryKey<World> worldKey, BlockPos pos, UUID holderId, ItemStack compass) {
+        if (YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest == GraveCompassConfig.CompassGraveTarget.DISABLED) return;
+
         NbtCompound compassNbt = compass.getNbt();
         if (compassNbt == null) return;
 

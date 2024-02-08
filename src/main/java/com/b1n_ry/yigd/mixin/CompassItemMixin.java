@@ -27,7 +27,7 @@ public class CompassItemMixin {
         NbtCompound itemNbt = stack.getNbt();
         if (itemNbt == null) return;
 
-        if (world.getTime() % 1200 == 0) {
+        if (world.getTime() % 200 == 0) {
             GraveCompassHelper.updateClosestNbt(world.getRegistryKey(), entity.getBlockPos(), entity.getUuid(), stack);
         }
 
