@@ -149,7 +149,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
             int slotsHigh = (this.invPanel.getHeight() - (panelInsets.bottom() + panelInsets.top())) / SLOT_SIZE;
 
             // If any extra, those slots go here (included modded inventories, non-empty slots)
-            this.addItemSlot(extraItemsPanel, collectiveSize, sizeDiff, items, i -> new Point((i / slotsHigh) * SLOT_SIZE, i * SLOT_SIZE));
+            this.addItemSlot(extraItemsPanel, collectiveSize, sizeDiff, items, i -> new Point((i / slotsHigh) * SLOT_SIZE, (i % slotsHigh) * SLOT_SIZE));
 
             int width = extraItemsPanel.getWidth();
             int height = extraItemsPanel.getHeight();

@@ -3,6 +3,10 @@
 ### Changes
 * Added `/yigd whitelist list` command to list all whitelisted/blacklisted players
 
+### Fixes
+* Columns of items added by mod inventories that are shown in the grave overview GUI,
+will now be rendered on the same row as the other columns
+
 ---
 
 # You're in Grave Danger 2.0.0-beta.8
