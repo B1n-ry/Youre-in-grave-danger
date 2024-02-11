@@ -72,7 +72,9 @@ public class YigdCommands {
                                         .then(argument("target", EntityArgumentType.players())
                                                 .executes(context -> removeFromList(context, EntityArgumentType.getPlayers(context, "target")))))
                                 .then(literal("toggle")
-                                        .executes(YigdCommands::toggleListType)))
+                                        .executes(YigdCommands::toggleListType))
+                                .then(literal("list")
+                                        .executes(YigdCommands::showList)))
         ));
     }
 
@@ -237,6 +239,18 @@ public class YigdCommands {
         DeathInfoManager.INSTANCE.setGraveListMode(newMode);
         DeathInfoManager.INSTANCE.markDirty();
         context.getSource().sendMessage(Text.translatable("text.yigd.command.whitelist.toggle", newMode.name()));
+
+        return 1;
+    }
+    private static int showList(CommandContext<ServerCommandSource> context) {
+        ListMode listMode = DeathInfoManager.INSTANCE.getGraveListMode();
+        Set<GameProfile> affectedPlayers = DeathInfoManager.INSTANCE.getAffectedPlayers();
+
+        StringJoiner joiner = new StringJoiner(", ");
+        for (GameProfile profile : affectedPlayers) {
+            joiner.add(profile.getName());
+        }
+        context.getSource().sendMessage(Text.literal(listMode.name() + ": %s" + joiner));
 
         return 1;
     }

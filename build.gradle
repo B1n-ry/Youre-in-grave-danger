@@ -38,6 +38,8 @@ publishMods {
 	}
 
 	github {
+		displayName = project.mod_version
+
 		accessToken = providers.environmentVariable("GITHUB_TOKEN")
 		repository = "B1n-ry/Youre-in-grave-danger"
 		commitish = "1.20"

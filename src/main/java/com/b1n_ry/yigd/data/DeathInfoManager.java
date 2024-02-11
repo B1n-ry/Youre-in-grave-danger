@@ -40,6 +40,10 @@ public class DeathInfoManager extends PersistentState {
         this.affectedPlayers.clear();
     }
 
+    public Set<GameProfile> getAffectedPlayers() {
+        return affectedPlayers;
+    }
+
     /**
      * Tries to delete a grave based on its grave ID
      * @param graveId the ID of the grave
