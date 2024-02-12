@@ -358,7 +358,7 @@ public class GraveComponent {
         ItemStack graveItem = new ItemStack(Yigd.GRAVE_BLOCK.asItem());
         boolean addGraveItem = config.graveConfig.dropGraveBlock;
         if (config.graveConfig.dropOnRetrieve == DropType.IN_INVENTORY) {
-            this.applyToPlayer(player, world, pos, !thisIsARobbery);
+            this.applyToPlayer(player, world, pos.toCenterPos(), !thisIsARobbery);
 
             if (addGraveItem)
                 player.giveItemStack(graveItem);
@@ -484,10 +484,10 @@ public class GraveComponent {
         }
     }
 
-    public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, BlockPos pos, boolean isGraveOwner) {
+    public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, Vec3d pos, boolean isGraveOwner) {
         this.applyToPlayer(player, world, pos, isGraveOwner, dropRule -> dropRule == DropRule.PUT_IN_GRAVE);
     }
-    public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, BlockPos pos, boolean isGraveOwner, Predicate<DropRule> itemFilter) {
+    public void applyToPlayer(ServerPlayerEntity player, ServerWorld world, Vec3d pos, boolean isGraveOwner, Predicate<DropRule> itemFilter) {
         YigdConfig config = YigdConfig.getConfig();
 
         this.expComponent.applyToPlayer(player);
@@ -518,9 +518,11 @@ public class GraveComponent {
         }
 
         for (ItemStack stack : extraItems) {
-            int x = pos.getX();
-            int y = pos.getY();
-            int z = pos.getZ();
+            if (player.giveItemStack(stack))
+                continue;
+            double x = pos.getX();
+            double y = pos.getY();
+            double z = pos.getZ();
             InventoryComponent.dropItemIfToBeDropped(stack, x, y, z, world);
         }
     }

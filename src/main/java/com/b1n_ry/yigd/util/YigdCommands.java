@@ -171,7 +171,7 @@ public class YigdCommands {
         return -1;
     }
     private static int restore(CommandContext<ServerCommandSource> context, ServerPlayerEntity target, GraveComponent component) {
-        component.applyToPlayer(target, target.getServerWorld(), target.getBlockPos(), true);
+        component.applyToPlayer(target, target.getServerWorld(), target.getPos(), true);
         component.setStatus(GraveStatus.CLAIMED);
 
         component.removeGraveBlock();
@@ -199,7 +199,7 @@ public class YigdCommands {
         ServerPlayerEntity player = context.getSource().getPlayer();
         if (player == null) return -1;
 
-        component.applyToPlayer(player, context.getSource().getWorld(), player.getBlockPos(), false);
+        component.applyToPlayer(player, context.getSource().getWorld(), player.getPos(), false);
         component.setStatus(GraveStatus.CLAIMED);
 
         component.removeGraveBlock();

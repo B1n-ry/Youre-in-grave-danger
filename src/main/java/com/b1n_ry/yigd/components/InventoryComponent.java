@@ -290,6 +290,7 @@ public class InventoryComponent {
                     if (!currentStack.isEmpty()) extraItems.add(currentStack);
 
                     this.items.set(currentComponentIndex, EMPTY_ITEM_PAIR);  // Item will get put here later
+                    currentStack = this.items.get(currentComponentIndex).getLeft();
                 }
             }
             if (config.graveConfig.mergeStacksOnRetrieve) {

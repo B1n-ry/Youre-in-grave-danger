@@ -48,7 +48,7 @@ public class ServerPacketHandler {
                         return;
                     }
 
-                    component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getBlockPos(), true, dropRule -> switch (dropRule) {
+                    component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getPos(), true, dropRule -> switch (dropRule) {
                         case KEEP -> itemsKept;
                         case DESTROY -> itemsDeleted;
                         case DROP -> itemsDropped;
@@ -80,7 +80,7 @@ public class ServerPacketHandler {
             server.execute(() -> {
                 Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
                 maybeComponent.ifPresentOrElse(component -> {
-                    component.applyToPlayer(player, player.getServerWorld(), player.getBlockPos(), false, dropRule -> switch (dropRule) {
+                    component.applyToPlayer(player, player.getServerWorld(), player.getPos(), false, dropRule -> switch (dropRule) {
                         case KEEP -> itemsKept;
                         case DESTROY -> itemsDeleted;
                         case DROP -> itemsDropped;

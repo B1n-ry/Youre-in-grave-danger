@@ -2,10 +2,16 @@
 
 ### Changes
 * Added `/yigd whitelist list` command to list all whitelisted/blacklisted players
+* Improved precision of player position when dropping items that couldn't fit in
+player inventory after merge of grave and player inventory, when using commands
+* Now adds items in inventory after inventory merge, if they can fit, instead of
+dropping them from the grave
 
 ### Fixes
 * Columns of items added by mod inventories that are shown in the grave overview GUI,
 will now be rendered on the same row as the other columns
+* Fixed curse of binding now being stuck when claiming a grave, (unless the cursed
+  item is in the grave)
 
 ---
 
