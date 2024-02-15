@@ -16,6 +16,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -107,7 +108,7 @@ public class GraveCompassHelper {
             return;
         }
 
-        if (node.pos[0] == pos[0] && node.pos[1] == pos[1] && node.pos[2] == pos[2]) {
+        if (Arrays.equals(node.pos, pos)) {
             node.isUnclaimed = false;
             return;
         }

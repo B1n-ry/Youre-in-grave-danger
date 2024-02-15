@@ -232,6 +232,17 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         super.afterBreak(world, player, pos, state, blockEntity, tool);
     }
 
+    @Override
+    @SuppressWarnings("deprecation")
+    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.getComponent() != null
+                && grave.getComponent().getStatus() != GraveStatus.CLAIMED
+                && !YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
+            return 0;
+        }
+        return super.calcBlockBreakingDelta(state, player, world, pos);
+    }
+
     public static void reloadShapeFromJson(JsonObject json) throws IllegalStateException {
         List<VoxelShape> voxelShapesNorth = new ArrayList<>();
         List<VoxelShape> voxelShapesSouth = new ArrayList<>();
