@@ -225,6 +225,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(grave.getGraveId());
                     component.ifPresent(graveBlockEntity::setComponent);
 
+                    world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+
                     return;
                 }
             }
