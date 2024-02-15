@@ -85,7 +85,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
         matrices.multiply(RotationAxis.POSITIVE_Y.rotation(rotation), .5f, .5f, .5f);
 
-        if (config.useGlowingEffect && !entity.isClaimed()) {
+        if (config.useGlowingEffect && entity.isUnclaimed()) {
             // Get the actual outline vertex consumer, instead of the normal one
             OutlineVertexConsumerProvider consumerProvider = ((WorldRendererAccessor) this.client.worldRenderer).getBufferBuilders().getOutlineVertexConsumers();
             this.renderGlowingOutline(entity, tickDelta, matrices, consumerProvider, light, overlay);

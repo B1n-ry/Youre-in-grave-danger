@@ -19,6 +19,8 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -38,6 +40,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.tick.OrderedTick;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -50,6 +54,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     public GraveBlock(Settings settings) {
         super(settings);
+        this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.WATERLOGGED, false));
     }
 
     @Override
@@ -73,7 +78,23 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         Direction dir = ctx.getHorizontalPlayerFacing().getOpposite();  // Have the grave facing you, not away from you
         BlockState state = this.getDefaultState();
-        return state.with(Properties.HORIZONTAL_FACING, dir);
+        FluidState fluidState = ctx.getWorld().getFluidState(ctx.getBlockPos());
+        return state.with(Properties.HORIZONTAL_FACING, dir).with(Properties.WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+        if (state.get(Properties.WATERLOGGED)) {
+            world.getFluidTickScheduler().scheduleTick(OrderedTick.create(Fluids.WATER, pos));
+        }
+        return direction.getAxis().isHorizontal() ? state : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.get(Properties.WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
 
     @Override
@@ -225,7 +246,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(grave.getGraveId());
                     component.ifPresent(graveBlockEntity::setComponent);
 
-                    world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+                    Yigd.END_OF_TICK.add(() -> {  // Required because it might take a tick for the game to realize the block is replaced
+                        graveBlockEntity.markDirty();
+                        world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+                    });
 
                     return;
                 }
@@ -237,8 +261,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     @SuppressWarnings("deprecation")
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.getComponent() != null
-                && grave.getComponent().getStatus() != GraveStatus.CLAIMED
+        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.isUnclaimed()
                 && !YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
             return 0;
         }

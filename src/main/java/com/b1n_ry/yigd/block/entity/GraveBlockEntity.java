@@ -76,8 +76,8 @@ public class GraveBlockEntity extends BlockEntity {
     public @Nullable BlockState getPreviousState() {
         return this.previousState;
     }
-    public boolean isClaimed() {
-        return this.claimed;
+    public boolean isUnclaimed() {
+        return !this.claimed;
     }
     public void setClaimed(boolean claimed) {
         this.claimed = claimed;

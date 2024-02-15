@@ -85,7 +85,7 @@ public class DeathHandler {
             assert graveWorld != null;  // Should never be able to be null on server
 
             Direction direction = dirGravePos.dir();
-            boolean waterlogged = graveWorld.getFluidState(gravePos).equals(Fluids.WATER.getDefaultState());  // Grave generated in full water block (submerged)
+            boolean waterlogged = graveWorld.getFluidState(gravePos).isOf(Fluids.WATER);  // Grave generated in full water block (submerged)
             BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState()
                     .with(Properties.HORIZONTAL_FACING, direction)
                     .with(Properties.WATERLOGGED, waterlogged);
