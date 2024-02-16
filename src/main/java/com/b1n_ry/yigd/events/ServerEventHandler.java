@@ -44,7 +44,9 @@ public class ServerEventHandler {
                 if (!graves.isEmpty()) {
                     GraveComponent latest = graves.get(graves.size() - 1);
                     BlockPos gravePos = latest.getPos();
-                    newPlayer.sendMessage(Text.translatable("text.yigd.message.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ(), latest.getWorldRegistryKey().getValue()));
+                    newPlayer.sendMessage(Text.translatable("text.yigd.message.grave_location",
+                            gravePos.getX(), gravePos.getY(), gravePos.getZ(),
+                            latest.getWorldRegistryKey().getValue().toString()));
                 }
             }
         });
@@ -70,7 +72,7 @@ public class ServerEventHandler {
                 BlockPos lastGravePos = component.getPos();
                 server.sendMessage(Text.translatable("text.yigd.message.sellout_player",
                         loggedOffProfile.getName(), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
-                        component.getWorldRegistryKey().getValue()));
+                        component.getWorldRegistryKey().getValue().toString()));
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

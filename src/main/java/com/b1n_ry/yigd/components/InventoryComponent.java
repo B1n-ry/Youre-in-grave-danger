@@ -250,10 +250,9 @@ public class InventoryComponent {
      * @param mergingComponent Inventory component to merge with. This will be added to existing component
      * @return All items that wouldn't fit in inventory
      */
-    public DefaultedList<ItemStack> merge(InventoryComponent mergingComponent) {
+    public DefaultedList<ItemStack> merge(InventoryComponent mergingComponent, ServerPlayerEntity merger) {
         YigdConfig config = YigdConfig.getConfig();
         DefaultedList<ItemStack> extraItems = DefaultedList.of();
-
 
         for (int i = 0; i < mergingComponent.items.size(); i++) {
             // Make sure to only add items from respective section to correct group. E.g. no sword should end up in the chest-plate slot
@@ -314,7 +313,7 @@ public class InventoryComponent {
             CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
             CompatComponent<?> mergingCompatComponent = mergingComponent.modInventoryItems.get(modName);
 
-            DefaultedList<ItemStack> extraModItems = compatComponent.merge(mergingCompatComponent);
+            DefaultedList<ItemStack> extraModItems = compatComponent.merge(mergingCompatComponent, merger);
             extraItems.addAll(extraModItems);
         }
 
@@ -349,9 +348,10 @@ public class InventoryComponent {
 
     /**
      * Pull all curse of binding items from component (that would get stuck) and deletes them from component
+     * @param playerRef Player reference for some modded inventories to know if an item can be unequipped or not
      * @return all curse of binding items in armor slots
      */
-    public DefaultedList<ItemStack> pullBindingCurseItems() {
+    public DefaultedList<ItemStack> pullBindingCurseItems(ServerPlayerEntity playerRef) {
         DefaultedList<ItemStack> bindingItems = DefaultedList.of();
         for (int i = 0; i < this.armorSize; i++) {
             ItemStack armorStack = this.items.get(this.mainSize + i).getLeft();  // Current armor item
@@ -359,6 +359,9 @@ public class InventoryComponent {
                 bindingItems.add(armorStack);
                 this.items.set(this.mainSize + i, EMPTY_ITEM_PAIR);  // Moving the item in  this slot
             }
+        }
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            bindingItems.addAll(compatComponent.pullBindingCurseItems(playerRef));
         }
         return bindingItems;
     }

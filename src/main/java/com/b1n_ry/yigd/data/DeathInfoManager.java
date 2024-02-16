@@ -186,9 +186,9 @@ public class DeathInfoManager extends PersistentState {
                 GraveComponent component = GraveComponent.fromNbt((NbtCompound) grave, server);
                 INSTANCE.addBackup(user, component);
 
+                // If the grave is still in the world, set the component
                 ServerWorld world = component.getWorld();
-                if (component.getStatus() == GraveStatus.UNCLAIMED && world != null
-                        && world.getBlockEntity(component.getPos()) instanceof GraveBlockEntity be
+                if (world != null && world.getBlockEntity(component.getPos()) instanceof GraveBlockEntity be
                         && be.getGraveId() != null
                         && be.getGraveId().equals(component.getGraveId())) {
                     be.setComponent(component);

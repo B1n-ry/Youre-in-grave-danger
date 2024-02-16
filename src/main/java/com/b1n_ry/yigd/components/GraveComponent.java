@@ -507,13 +507,13 @@ public class GraveComponent {
 
         // Move curse of binding items from equipped in grave, so they can't get stuck to the player even after death
         if (config.graveConfig.treatBindingCurse) {
-            extraItems.addAll(graveInv.pullBindingCurseItems());
+            extraItems.addAll(graveInv.pullBindingCurseItems(player));
         }
         if (priority == ClaimPriority.GRAVE) {
-            extraItems.addAll(graveInv.merge(currentPlayerInv));
+            extraItems.addAll(graveInv.merge(currentPlayerInv, player));
             extraItems.addAll(graveInv.applyToPlayer(player));
         } else {
-            extraItems.addAll(currentPlayerInv.merge(graveInv));
+            extraItems.addAll(currentPlayerInv.merge(graveInv, player));
             extraItems.addAll(currentPlayerInv.applyToPlayer(player));
         }
 

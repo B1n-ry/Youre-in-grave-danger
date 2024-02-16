@@ -26,13 +26,23 @@ public abstract class CompatComponent<T> {
     public abstract T getInventory(ServerPlayerEntity player);
 
     /**
+     * If curse of binding has any effect in this inventory, this method should be overwritten to remove those items
+     * @param playerRef Player reference to check items that can or can't be unequipped
+     * @return The removed curse of binding items
+     */
+    public DefaultedList<ItemStack> pullBindingCurseItems(ServerPlayerEntity playerRef) {
+        return DefaultedList.of();
+    }
+
+    /**
      * Slaps the merging component on top of the current one. If any item is occupied in current component, merging
      * component should add the item that would've gone in that slot to the returning list
      * Component should be filtered based on drop rule before calling this, so different drop rules on items does not matter in this method
      * @param mergingComponent Component that will merge. REQUIRED TO BE OF SAME INSTANCE AS THIS COMPONENT
+     * @param merger The player that is merging the components. DO NOT MODIFY THE PLAYER INVENTORY IN THIS METHOD
      * @return A list with all items that couldn't be merged from merging component
      */
-    public abstract DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent);
+    public abstract DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger);
     public abstract DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player);
 
     /**

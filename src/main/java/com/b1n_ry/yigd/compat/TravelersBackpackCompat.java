@@ -62,7 +62,7 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent) {
+        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
             @SuppressWarnings("unchecked")

@@ -11,7 +11,9 @@ dropping them from the grave
 * Columns of items added by mod inventories that are shown in the grave overview GUI,
 will now be rendered on the same row as the other columns
 * Fixed curse of binding now being stuck when claiming a grave, (unless the cursed
-  item is in the grave)
+item is in the grave)
+* Curse of binding trinkets will now be removed from its slot in a grave when dying,
+as well as stay in the player inventory when claiming a grave
 
 ---
 

@@ -91,8 +91,9 @@ public class GraveBlockEntity extends BlockEntity {
 
         Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(this.graveId);
         component.ifPresent(grave -> {
-            if (grave.getStatus() == GraveStatus.UNCLAIMED)
+            if (grave.getStatus() == GraveStatus.UNCLAIMED) {
                 grave.setStatus(GraveStatus.DESTROYED);
+            }
         });
     }
 

@@ -93,7 +93,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent) {
+        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
             @SuppressWarnings("unchecked")

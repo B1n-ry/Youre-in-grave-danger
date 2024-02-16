@@ -5,19 +5,18 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
-import dev.emi.trinkets.api.SlotReference;
-import dev.emi.trinkets.api.TrinketEnums;
-import dev.emi.trinkets.api.TrinketInventory;
-import dev.emi.trinkets.api.TrinketsApi;
+import dev.emi.trinkets.api.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class TrinketsCompat implements InvModCompat<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> {
@@ -129,8 +128,48 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent) {
+        public DefaultedList<ItemStack> pullBindingCurseItems(ServerPlayerEntity playerRef) {
+            DefaultedList<ItemStack> noUnequipItems = DefaultedList.of();
+
+            if (!YigdConfig.getConfig().graveConfig.treatBindingCurse) return noUnequipItems;
+
+            Optional<TrinketComponent> trinketComponent = TrinketsApi.getTrinketComponent(playerRef);
+            if (trinketComponent.isPresent()) {
+                Map<String, Map<String, TrinketInventory>> trinketInventory = trinketComponent.get().getInventory();
+
+                for (Map.Entry<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> group : this.inventory.entrySet()) {
+                    Map<String, TrinketInventory> componentSlots = trinketInventory.get(group.getKey());
+                    if (componentSlots == null) continue;
+
+                    for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> slot : group.getValue().entrySet()) {
+                        TrinketInventory trinketSlot = componentSlots.get(slot.getKey());
+                        if (trinketSlot == null) continue;
+
+                        DefaultedList<Pair<ItemStack, DropRule>> slotItems = slot.getValue();
+                        for (int i = 0; i < slotItems.size(); i++) {
+                            Pair<ItemStack, DropRule> pair = slotItems.get(i);
+                            ItemStack item = pair.getLeft();
+                            if (item.isEmpty()) {
+                                continue;
+                            }
+                            SlotReference ref = new SlotReference(trinketSlot, i);
+                            if (TrinketsApi.getTrinket(item.getItem()).canUnequip(item, ref, playerRef)) {
+                                noUnequipItems.add(item.copy());
+                                slotItems.set(i, InventoryComponent.EMPTY_ITEM_PAIR);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return noUnequipItems;
+        }
+
+        @Override
+        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
+
+            Optional<TrinketComponent> trinketComponent = TrinketsApi.getTrinketComponent(merger);
 
             @SuppressWarnings("unchecked")
             Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> mergingInventory = (Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>) mergingComponent.inventory;
@@ -161,6 +200,12 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         ItemStack mergingStack = pair.getLeft().copy();  // Solves the issue where the itemstacks are the same instance
 
                         Pair<ItemStack, DropRule> currentPair = stacks.get(i);
+                        if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !this.canUnequip(trinketComponent.orElse(null), slotName, groupName, i, mergingStack, merger)) {
+                            extraItems.add(currentPair.getLeft());  // Add the current item to extraItems (as it's being replaced)
+                            stacks.set(i, new Pair<>(mergingStack, pair.getRight()));  // Can't be unequipped, so it's prioritized
+                            continue;  // Already set the item, so we can skip the rest
+                        }
+
                         if (stacks.size() <= i || !currentPair.getLeft().isEmpty()) {
                             extraItems.add(mergingStack);
                             continue;
@@ -173,6 +218,17 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
             extraItems.removeIf(ItemStack::isEmpty);
             return extraItems;
+        }
+        private boolean canUnequip(@Nullable TrinketComponent component, String slot, String group, int index, ItemStack item, ServerPlayerEntity player) {
+            if (component == null) return true;
+            Map<String, TrinketInventory> trinketGroup = component.getInventory().get(group);
+            if (trinketGroup == null) return true;
+            TrinketInventory trinketInventory = trinketGroup.get(slot);
+            if (trinketInventory == null || trinketInventory.size() <= index) return true;
+
+            if (item.isEmpty()) return true;
+            SlotReference ref = new SlotReference(trinketInventory, index);
+            return TrinketsApi.getTrinket(item.getItem()).canUnequip(item, ref, player);
         }
 
         @Override
