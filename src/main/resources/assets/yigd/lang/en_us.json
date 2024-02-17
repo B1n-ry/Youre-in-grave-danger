@@ -25,7 +25,6 @@
   "button.yigd.gui.hide_deleted_items": "Hiding Destroyed Items",
   "text.yigd.gui.graves_of": "Graves of %s",
   "text.yigd.gui.grave_location": "X: %d / Y: %d / Z: %d",
-  "text.yigd.gui.grave_dim": "%s",
   "text.yigd.gui.item_count": "%d items",
   "text.yigd.gui.level_count": "%d levels",
   "button.yigd.gui.viewing_claimed": "Viewing claimed graves",
@@ -73,10 +72,12 @@
   "text.yigd.message.grave_location": "Your grave is located at X: %d / Y: %d / Z: %d / %s",
   "text.yigd.message.on_day": " on day %d",
   "text.yigd.message.irl_time": " (%d %s, %d, %d:%d%s)",
+  "text.yigd.message.grave_destroyed": "Your grave has been destroyed due to a bug. With proper permissions graves can be restored by using /yigd commands",
 
   "text.yigd.dimension.name.minecraft:overworld": "The Overworld",
   "text.yigd.dimension.name.minecraft:the_nether": "The Nether",
   "text.yigd.dimension.name.minecraft:the_end": "The End",
+  "text.yigd.dimension.name.the_bumblezone:the_bumblezone": "The Bumblezone",
 
   "text.autoconfig.yigd.option.inventoryConfig": "Inventory Component Config",
   "text.autoconfig.yigd.option.inventoryConfig.dropPlayerHead": "Drop Player Head",
@@ -148,6 +149,7 @@
   "text.autoconfig.yigd.option.graveConfig.useSoftBlockWhitelist": "Use Replacement Whitelist (soft)",
   "text.autoconfig.yigd.option.graveConfig.useStrictBlockBlacklist": "Use Replacement Blacklist (strict)",
   "text.autoconfig.yigd.option.graveConfig.replaceOldWhenClaimed": "Replace Previously Occupied Block When Claimed",
+  "text.autoconfig.yigd.option.graveConfig.dropItemsIfDestroyed": "Drop Contents of Grave When Destroyed",
   "text.autoconfig.yigd.option.graveConfig.persistentGraves": "Persistent Graves",
   "text.autoconfig.yigd.option.graveConfig.persistentGraves.enabled": "Persistent Graves",
   "text.autoconfig.yigd.option.graveConfig.persistentGraves.showDeathDay": "Show Death Day",

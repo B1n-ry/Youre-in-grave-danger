@@ -49,9 +49,10 @@ public class GraveSelectionGui extends LightweightGuiDescription {
             wCardButton.setOverlayColor(lightGraveData.status().getTransparentColor());
 
             BlockPos gravePos = lightGraveData.pos();
+            String dimensionName = lightGraveData.registryKey().getValue().toString();
             wCardButton.setTooltipText(List.of(
                     Text.translatable("text.yigd.gui.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ()),
-                    Text.translatable("text.yigd.gui.grave_dim", lightGraveData.registryKey().getValue()),
+                    Text.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName),
                     Text.translatable("text.yigd.gui.item_count", lightGraveData.itemCount()),
                     Text.translatable("text.yigd.gui.level_count", lightGraveData.xpPoints())
             ));

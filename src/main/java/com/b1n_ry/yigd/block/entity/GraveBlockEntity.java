@@ -92,7 +92,7 @@ public class GraveBlockEntity extends BlockEntity {
         Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(this.graveId);
         component.ifPresent(grave -> {
             if (grave.getStatus() == GraveStatus.UNCLAIMED) {
-                grave.setStatus(GraveStatus.DESTROYED);
+                grave.onDestroyed();
             }
         });
     }
@@ -164,6 +164,8 @@ public class GraveBlockEntity extends BlockEntity {
         long timePassed = world.getTime() - be.component.getCreationTime().getTime();
         final int ticksPerSecond = 20;
         if (timeoutConfig.timeUnit.toSeconds(timeoutConfig.afterTime) * ticksPerSecond <= timePassed) {
+            // Not technically destroyed, but a status has to be set to not trigger the "onDestroyed" grave component method
+            be.component.setStatus(GraveStatus.DESTROYED);
             BlockState newState = Blocks.AIR.getDefaultState();
             if (cachedConfig.graveConfig.replaceOldWhenClaimed) {
                 newState = be.previousState;

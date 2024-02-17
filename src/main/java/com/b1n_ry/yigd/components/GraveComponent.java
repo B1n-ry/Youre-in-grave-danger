@@ -28,6 +28,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -530,6 +531,21 @@ public class GraveComponent {
     public void dropAll() {
         this.inventoryComponent.dropAll(this.world, this.pos.toCenterPos());
         this.expComponent.dropAll(this.world, this.pos.toCenterPos());
+    }
+
+    public void onDestroyed() {
+        this.setStatus(GraveStatus.DESTROYED);
+
+        if (this.world == null) return;  // Should not be the case. But this is instead of an assert that could crash the game if another mod used this method incorrectly
+        PlayerManager playerManager = this.world.getServer().getPlayerManager();
+        ServerPlayerEntity owner = playerManager.getPlayer(this.owner.getId());
+        if (owner == null) return;
+
+        owner.sendMessage(Text.translatable("text.yigd.message.grave_destroyed"));
+
+        if (YigdConfig.getConfig().graveConfig.dropItemsIfDestroyed) {
+            this.dropAll();
+        }
     }
 
     public LightGraveData toLightData() {
