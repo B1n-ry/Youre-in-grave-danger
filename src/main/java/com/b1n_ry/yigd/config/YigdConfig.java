@@ -183,6 +183,7 @@ public class YigdConfig implements ConfigData {
         // replace old block when claimed
         public boolean replaceOldWhenClaimed = true;
         public boolean dropItemsIfDestroyed = false;
+        public boolean notifyOwnerIfDestroyed = true;
         // Keep grave after it's looted
         @Comment("If true, graves will persist when claiming them, and right clicking on them after that will let you know when and how they died. Can also then be mined")
         @ConfigEntry.Gui.CollapsibleObject

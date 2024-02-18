@@ -541,7 +541,11 @@ public class GraveComponent {
         ServerPlayerEntity owner = playerManager.getPlayer(this.owner.getId());
         if (owner == null) return;
 
-        owner.sendMessage(Text.translatable("text.yigd.message.grave_destroyed"));
+        YigdConfig config = YigdConfig.getConfig();
+
+        if (config.graveConfig.notifyOwnerIfDestroyed) {
+            owner.sendMessage(Text.translatable("text.yigd.message.grave_destroyed"));
+        }
 
         if (YigdConfig.getConfig().graveConfig.dropItemsIfDestroyed) {
             this.dropAll();

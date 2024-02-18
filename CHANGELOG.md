@@ -7,7 +7,7 @@ player inventory after merge of grave and player inventory, when using commands
 * Now adds items in inventory after inventory merge, if they can fit, instead of
 dropping them from the grave
 * If a grave would happen to be destroyed due to a bug, the game will let that player
-know, and give directions to how to restore it
+know, and give directions to how to restore it (can be disabled through config)
 * Added a new config option to drop all contents of a grave when it's destroyed
 (false by default, as this includes breaking graves in creative mode)
 * Added translation for "the bumblezone" dimension in grave GUI

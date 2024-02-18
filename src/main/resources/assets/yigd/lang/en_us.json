@@ -150,6 +150,7 @@
   "text.autoconfig.yigd.option.graveConfig.useStrictBlockBlacklist": "Use Replacement Blacklist (strict)",
   "text.autoconfig.yigd.option.graveConfig.replaceOldWhenClaimed": "Replace Previously Occupied Block When Claimed",
   "text.autoconfig.yigd.option.graveConfig.dropItemsIfDestroyed": "Drop Contents of Grave When Destroyed",
+  "text.autoconfig.yigd.option.graveConfig.notifyOwnerIfDestroyed": "Notify Owner If Destroyed",
   "text.autoconfig.yigd.option.graveConfig.persistentGraves": "Persistent Graves",
   "text.autoconfig.yigd.option.graveConfig.persistentGraves.enabled": "Persistent Graves",
   "text.autoconfig.yigd.option.graveConfig.persistentGraves.showDeathDay": "Show Death Day",
