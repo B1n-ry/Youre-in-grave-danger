@@ -153,7 +153,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                                 continue;
                             }
                             SlotReference ref = new SlotReference(trinketSlot, i);
-                            if (TrinketsApi.getTrinket(item.getItem()).canUnequip(item, ref, playerRef)) {
+                            if (!TrinketsApi.getTrinket(item.getItem()).canUnequip(item, ref, playerRef)) {
                                 noUnequipItems.add(item.copy());
                                 slotItems.set(i, InventoryComponent.EMPTY_ITEM_PAIR);
                             }
