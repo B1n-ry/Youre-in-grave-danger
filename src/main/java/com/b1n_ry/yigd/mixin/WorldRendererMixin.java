@@ -14,7 +14,6 @@ public abstract class WorldRendererMixin {
      * I feel like this is kinda cursed if this is the case, but I don't know how else to do it ¯\_(ツ)_/¯
      * Also it seems to work, as long as the rendering on the outline render layer is an actual outline vertex consumer
      */
-    @SuppressWarnings("InvalidInjectorMethodSignature")
     @ModifyVariable(method = "render", at = @At(value = "CONSTANT", args = "stringValue=blockentities", ordinal = 0), ordinal = 3)
     private boolean modify(boolean value) {
         boolean res = value || GraveBlockEntityRenderer.renderOutlineShader;

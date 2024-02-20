@@ -1,7 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
-	id "me.modmuss50.mod-publish-plugin" version "0.4.5"
+	id "me.modmuss50.mod-publish-plugin" version "0.5.1"
 }
 
 version = project.mod_version
@@ -30,11 +30,13 @@ publishMods {
 			end = project.minecraft_version
 		}
 
+		javaVersions.add(JavaVersion.VERSION_17)
+
+		clientRequired = true
+		serverRequired = true
+
 		projectSlug = project.archives_base_name;
-		requires {
-			slug = "fabric-api"
-			slug = "cloth-config"
-		}
+		requires("fabric-api", "cloth-config")
 	}
 
 	github {
@@ -55,22 +57,18 @@ publishMods {
 			end = project.minecraft_version
 		}
 
-		requires {
-			slug = "fabric-api"
-			slug = "cloth-config"
-		}
+		requires("fabric-api", "cloth-config")
 	}
 }
 
 repositories {
 	maven { url "https://maven.shedaniel.me/" }  // cloth_config
 	maven { url "https://maven.terraformersmc.com/" }  // mod_menu, trinkets
-	maven { url "https://maven.ladysnake.org/releases"	}  // cardinal_components
+	maven { url "https://maven.ladysnake.org/releases"	}  // Apoli dependency
 	maven { url "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }  // Permission API
 	maven { url "https://jitpack.io" }  // Apoli
 	maven { url "https://maven.nucleoid.xyz/" }  // Common Protection API
-	maven { url 'https://maven.wispforest.io' }  // owo
 	maven {  // Inventorio, travelers backpack, numismatic overhaul, levelz (curseforge maven)
 		url "https://cursemaven.com"
 		content { includeGroup "curse.maven" }
@@ -104,13 +102,6 @@ dependencies {
 	modCompileOnly "curse.maven:numismaticoverhaul-${project.numismatic_version}"
 	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"
 	modCompileOnly "curse.maven:levelz-${project.levelz_version}"
-
-	// Dev dependencies
-//	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
-//	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
-//	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}"
-//	modImplementation ""maven.modrinth:libz:${project.libz_version}""
-//	modImplementation "io.wispforest:owo-lib:${project.owo_version}"
 }
 
 processResources {
