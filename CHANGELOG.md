@@ -19,6 +19,7 @@ will now be rendered on the same row as the other columns
 item is in the grave)
 * Curse of binding trinkets will now be removed from its slot in a grave when dying,
 as well as stay in the player inventory when claiming a grave
+* Curse of binding soulbounded will no longer be stuck in the same slot upon respawn
 
 ---
 

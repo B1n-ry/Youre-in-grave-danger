@@ -50,7 +50,8 @@ public class RespawnComponent {
 
     public void apply(ServerPlayerEntity player) {
         if (this.soulboundInventory != null) {
-            DefaultedList<ItemStack> extraItems = this.soulboundInventory.applyToPlayer(player);
+            DefaultedList<ItemStack> extraItems = this.soulboundInventory.pullBindingCurseItems(player);
+            extraItems.addAll(this.soulboundInventory.applyToPlayer(player));
 
             double x = player.getX();
             double y = player.getY();

@@ -30,7 +30,7 @@ publishMods {
 			end = project.minecraft_version
 		}
 
-		javaVersions.add(JavaVersion.VERSION_17)
+		javaVersions.add(java.sourceCompatibility)
 
 		clientRequired = true
 		serverRequired = true
