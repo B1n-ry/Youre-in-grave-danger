@@ -90,6 +90,25 @@ public abstract class CompatComponent<T> {
             if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
         }
         return false;
-    };
+    }
+
+    /**
+     * Check if the component contains at least one item that matches the predicate. Will stop at first match
+     * @param predicate Predicate to test items against
+     * @return Whether the component contains at least one item that matches the predicate
+     */
+    public boolean containsAny(Predicate<ItemStack> predicate) {
+        for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
+            if (predicate.test(pair.getLeft())) return true;
+        }
+        return false;
+    }
+    public void setDropRules(Predicate<ItemStack> predicate, DropRule dropRule) {
+        for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
+            if (predicate.test(pair.getLeft())) {
+                pair.setRight(dropRule);
+            }
+        }
+    }
     public abstract NbtCompound writeNbt();
 }

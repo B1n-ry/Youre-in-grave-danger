@@ -38,7 +38,7 @@ public class ServerEventHandler {
             Optional<RespawnComponent> respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newProfile);
             respawnComponent.ifPresent(component -> component.apply(newPlayer));
 
-            if (YigdConfig.getConfig().graveConfig.informGraveLocation) {
+            if (YigdConfig.getConfig().graveConfig.informGraveLocation && respawnComponent.isPresent() && respawnComponent.get().wasGraveGenerated()) {
                 List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(newProfile));
                 graves.removeIf(grave -> grave.getStatus() != GraveStatus.UNCLAIMED);
                 if (!graves.isEmpty()) {

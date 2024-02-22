@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.DirectionalPos;
 import com.b1n_ry.yigd.data.TranslatableDeathMessage;
 import com.b1n_ry.yigd.events.AllowGraveGenerationEvent;
@@ -89,6 +90,8 @@ public class DeathHandler {
                     .with(Properties.HORIZONTAL_FACING, direction)
                     .with(Properties.WATERLOGGED, waterlogged);
 
+            respawnComponent.setGraveGenerated(true);  // Not guaranteed yet, but only errors can stop it from generating after this point
+            DeathInfoManager.INSTANCE.markDirty();  // Make sure respawn component is updated
 
             // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
             Yigd.END_OF_TICK.add(() -> {

@@ -27,6 +27,8 @@ public class RespawnComponent {
     private ExpComponent soulboundExp;
     private final EffectComponent respawnEffects;
 
+    private boolean graveGenerated = false;
+
     public RespawnComponent(ServerPlayerEntity player) {
         this.respawnEffects = new EffectComponent(player);
     }
@@ -41,6 +43,13 @@ public class RespawnComponent {
     }
     public void setSoulboundExp(@NotNull ExpComponent component) {
         this.soulboundExp = component;
+    }
+
+    public void setGraveGenerated(boolean graveGenerated) {
+        this.graveGenerated = graveGenerated;
+    }
+    public boolean wasGraveGenerated() {
+        return this.graveGenerated;
     }
 
     public void primeForRespawn(GameProfile profile) {

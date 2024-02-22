@@ -370,6 +370,8 @@ public class GraveComponent {
                 InventoryComponent.dropItemIfToBeDropped(graveItem, this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.world);
         }
 
+        this.setStatus(GraveStatus.CLAIMED);
+
         if (!config.graveConfig.persistentGraves.enabled) {
             if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
                 world.setBlockState(pos, previousState);
@@ -386,8 +388,6 @@ public class GraveComponent {
                 world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
             }
         }
-
-        this.setStatus(GraveStatus.CLAIMED);
 
         if (thisIsARobbery && config.graveConfig.graveRobbing.notifyWhenRobbed) {
             MinecraftServer server = world.getServer();

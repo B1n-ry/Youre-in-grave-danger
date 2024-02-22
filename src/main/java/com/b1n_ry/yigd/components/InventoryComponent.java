@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.compat.CompatComponent;
 import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.events.AdjustDropRuleEvent;
 import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
@@ -167,6 +168,8 @@ public class InventoryComponent {
             CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
             compatComponent.handleDropRules(context);
         }
+
+        AdjustDropRuleEvent.EVENT.invoker().adjustDropRule(this, context);
     }
 
     public void applyLoss() {
@@ -410,6 +413,47 @@ public class InventoryComponent {
             }
         }
         return -1;
+    }
+
+    /**
+     * Allows for checking for specific items in specific slots and inventories
+     * @param itemPredicate Predicate to check for items
+     * @param modPredicate Predicate to check for mod name ("vanilla" for vanilla)
+     * @param slotPredicate Predicate to check for slot index (only applies to vanilla inventory)
+     * @return Whether any item in the component matches the predicates
+     */
+    public boolean containsAny(Predicate<ItemStack> itemPredicate, Predicate<String> modPredicate, Predicate<Integer> slotPredicate) {
+        if (modPredicate.test("vanilla")) {
+            for (int i = 0; i < this.items.size(); i++) {
+                Pair<ItemStack, DropRule> pair = this.items.get(i);
+                if (slotPredicate.test(i) && itemPredicate.test(pair.getLeft())) return true;
+            }
+        }
+        for (Map.Entry<String, CompatComponent<?>> entry : this.modInventoryItems.entrySet()) {
+            CompatComponent<?> compatComponent = entry.getValue();
+            if (modPredicate.test(entry.getKey()) && compatComponent.containsAny(itemPredicate)) return true;  // Modded inventories don't use slot IDs
+        }
+        return false;
+    }
+
+    /**
+     * Set drop rules for items in the component based on filters/predicates
+     * @param itemPredicate Items matching this are affected
+     * @param modPredicate Mods matching this are affected ("vanilla" for vanilla inventory)
+     * @param slotPredicate Slots matching this are affected (only applies to vanilla inventory)
+     * @param dropRule Drop rule to set
+     */
+    public void setDropRules(Predicate<ItemStack> itemPredicate, Predicate<String> modPredicate, Predicate<Integer> slotPredicate, DropRule dropRule) {
+        if (modPredicate.test("vanilla")) {
+            for (int i = 0; i < this.items.size(); i++) {
+                Pair<ItemStack, DropRule> pair = this.items.get(i);
+                if (slotPredicate.test(i) && itemPredicate.test(pair.getLeft())) pair.setRight(dropRule);
+            }
+        }
+        for (Map.Entry<String, CompatComponent<?>> entry : this.modInventoryItems.entrySet()) {
+            CompatComponent<?> compatComponent = entry.getValue();
+            if (modPredicate.test(entry.getKey())) compatComponent.setDropRules(itemPredicate, dropRule);
+        }
     }
 
     /**
