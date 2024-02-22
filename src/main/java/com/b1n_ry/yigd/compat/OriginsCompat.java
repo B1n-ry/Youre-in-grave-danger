@@ -229,14 +229,6 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
         }
 
         @Override
-        public boolean containsGraveItems() {
-            for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
-                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
-            }
-            return false;
-        }
-
-        @Override
         public NbtCompound writeNbt() {
             NbtCompound nbt = new NbtCompound();
             for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> entry : this.inventory.entrySet()) {

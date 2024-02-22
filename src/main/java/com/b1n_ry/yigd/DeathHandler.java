@@ -66,8 +66,7 @@ public class DeathHandler {
 
         // Check storage options first, in case that will lead to empty graves
         if (!config.graveConfig.storeItems) {
-            inventoryComponent.dropAll(world, pos);
-            graveComponent.getInventoryComponent().clear();
+            inventoryComponent.dropGraveItems(world, pos);
         }
         if (!config.graveConfig.storeXp) {
             expComponent.dropAll(world, pos);
@@ -75,7 +74,7 @@ public class DeathHandler {
         }
 
         if (!AllowGraveGenerationEvent.EVENT.invoker().allowGeneration(context, graveComponent)) {
-            inventoryComponent.dropAll(world, pos);
+            inventoryComponent.dropGraveItems(world, pos);
             expComponent.dropAll(world, pos);
         } else {
             DirectionalPos dirGravePos = graveComponent.findGravePos(player.getHorizontalFacing());

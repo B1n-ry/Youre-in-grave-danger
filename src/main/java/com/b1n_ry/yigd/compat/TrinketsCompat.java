@@ -367,15 +367,6 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public boolean containsGraveItems() {
-            for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
-                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
-            }
-
-            return false;
-        }
-
-        @Override
         public NbtCompound writeNbt() {
             NbtCompound nbt = new NbtCompound();
 

@@ -185,7 +185,7 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
         @Override
         public boolean containsGraveItems() {
-            return this.inventory != 0L;
+            return this.graveValue != 0L;
         }
 
         @Override

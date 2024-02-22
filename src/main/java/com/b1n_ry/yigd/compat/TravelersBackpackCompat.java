@@ -138,11 +138,6 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         }
 
         @Override
-        public boolean containsGraveItems() {
-            return !this.inventory.getLeft().isEmpty() && this.inventory.getRight() == DropRule.PUT_IN_GRAVE;
-        }
-
-        @Override
         public NbtCompound writeNbt() {
             NbtCompound nbt = new NbtCompound();
             this.inventory.getLeft().writeNbt(nbt);

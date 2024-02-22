@@ -179,15 +179,6 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
         }
 
         @Override
-        public boolean containsGraveItems() {
-            for (Pair<ItemStack, DropRule> pair : this.inventory) {
-                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
-            }
-
-            return false;
-        }
-
-        @Override
         public NbtCompound writeNbt() {
             return InventoryComponent.listToNbt(this.inventory, pair -> {
                 NbtCompound itemNbt = new NbtCompound();

@@ -235,13 +235,24 @@ public class InventoryComponent {
     public void dropAll(ServerWorld world, Vec3d pos) {
         for (Pair<ItemStack, DropRule> pair : this.items) {
             ItemStack stack = pair.getLeft();
-            if (stack.isEmpty() || pair.getRight() == DropRule.KEEP || pair.getRight() == DropRule.DESTROY) continue;
-            pair.setRight(DropRule.DROP);  // Make sure item are marked as dropped, and not in a non-existent grave
+            if (stack.isEmpty()) continue;
             InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
         }
 
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
             compatComponent.dropItems(world, pos);
+        }
+    }
+    public void dropGraveItems(ServerWorld world, Vec3d pos) {
+        for (Pair<ItemStack, DropRule> pair : this.items) {
+            ItemStack stack = pair.getLeft();
+            if (stack.isEmpty() || pair.getRight() != DropRule.PUT_IN_GRAVE) continue;
+            pair.setRight(DropRule.DROP);  // Make sure item are marked as dropped, and not in a non-existent grave
+            InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
+        }
+
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            compatComponent.dropGraveItems(world, pos);
         }
     }
 
@@ -401,13 +412,17 @@ public class InventoryComponent {
         return -1;
     }
 
+    /**
+     * Checks if the grave is empty, meaning no items are stored to be retrieved from the grave when it's opened
+     * @return Whether the grave is empty
+     */
     public boolean isGraveEmpty() {
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
             if (compatComponent.containsGraveItems()) return false;
         }
 
         for (Pair<ItemStack, DropRule> pair : this.items) {
-            if (!pair.getLeft().isEmpty())
+            if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE)
                 return false;
         }
         return true;

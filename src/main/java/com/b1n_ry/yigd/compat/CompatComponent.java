@@ -63,6 +63,19 @@ public abstract class CompatComponent<T> {
     public void dropItems(ServerWorld world, Vec3d pos) {
         DefaultedList<Pair<ItemStack, DropRule>> items = this.getAsStackDropList();
         for (Pair<ItemStack, DropRule> pair : items) {
+            ItemStack stack = pair.getLeft();
+            if (stack.isEmpty()) continue;
+
+            InventoryComponent.dropItemIfToBeDropped(pair.getLeft(), pos.x, pos.y, pos.z, world);
+        }
+    }
+    public void dropGraveItems(ServerWorld world, Vec3d pos) {
+        DefaultedList<Pair<ItemStack, DropRule>> items = this.getAsStackDropList();
+        for (Pair<ItemStack, DropRule> pair : items) {
+            ItemStack stack = pair.getLeft();
+            if (stack.isEmpty() || pair.getRight() == DropRule.KEEP || pair.getRight() == DropRule.DESTROY) continue;
+            pair.setRight(DropRule.DROP);  // Make sure item are marked as dropped, and not in a non-existent grave
+
             InventoryComponent.dropItemIfToBeDropped(pair.getLeft(), pos.x, pos.y, pos.z, world);
         }
     }
@@ -72,6 +85,11 @@ public abstract class CompatComponent<T> {
      * Check if the component contains any items that should be placed in a grave (according to drop rules)
      * @return Whether the component contains any items that should be placed in a grave
      */
-    public abstract boolean containsGraveItems();
+    public boolean containsGraveItems() {
+        for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
+            if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
+        }
+        return false;
+    };
     public abstract NbtCompound writeNbt();
 }
