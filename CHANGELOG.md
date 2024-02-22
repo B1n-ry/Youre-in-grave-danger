@@ -11,6 +11,7 @@ know, and give directions to how to restore it (can be disabled through config)
 * Added a new config option to drop all contents of a grave when it's destroyed
 (false by default, as this includes breaking graves in creative mode)
 * Added translation for "the bumblezone" dimension in grave GUI
+* Added compatibility with orpheus' "orpheus lyre"
 
 ### Fixes
 * Columns of items added by mod inventories that are shown in the grave overview GUI,
@@ -20,6 +21,7 @@ item is in the grave)
 * Curse of binding trinkets will now be removed from its slot in a grave when dying,
 as well as stay in the player inventory when claiming a grave
 * Curse of binding soulbounded will no longer be stuck in the same slot upon respawn
+* Theoretically fixed duplication when standard drop rule was set to DROP (untested)
 
 ---
 
