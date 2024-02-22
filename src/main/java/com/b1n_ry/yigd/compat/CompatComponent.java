@@ -11,6 +11,7 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public abstract class CompatComponent<T> {
@@ -103,10 +104,10 @@ public abstract class CompatComponent<T> {
         }
         return false;
     }
-    public void setDropRules(Predicate<ItemStack> predicate, DropRule dropRule) {
+    public void handleItemPairs(Predicate<ItemStack> predicate, Consumer<Pair<ItemStack, DropRule>> modification) {
         for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
             if (predicate.test(pair.getLeft())) {
-                pair.setRight(dropRule);
+                modification.accept(pair);
             }
         }
     }

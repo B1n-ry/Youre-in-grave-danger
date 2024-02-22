@@ -1,4 +1,4 @@
-package com.b1n_ry.yigd.compat.miscCompatMods;
+package com.b1n_ry.yigd.compat.misc_compat_mods;
 
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.AllowBlockUnderGraveGenerationEvent;

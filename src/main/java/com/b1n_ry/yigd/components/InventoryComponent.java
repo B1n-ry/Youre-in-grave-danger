@@ -26,6 +26,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -437,22 +438,23 @@ public class InventoryComponent {
     }
 
     /**
-     * Set drop rules for items in the component based on filters/predicates
+     * Executes code to modify items in the component based on predicate filters
      * @param itemPredicate Items matching this are affected
      * @param modPredicate Mods matching this are affected ("vanilla" for vanilla inventory)
      * @param slotPredicate Slots matching this are affected (only applies to vanilla inventory)
-     * @param dropRule Drop rule to set
+     * @param modification Modification done to pair
      */
-    public void setDropRules(Predicate<ItemStack> itemPredicate, Predicate<String> modPredicate, Predicate<Integer> slotPredicate, DropRule dropRule) {
+    public void handleItemPairs(Predicate<ItemStack> itemPredicate, Predicate<String> modPredicate,
+                                Predicate<Integer> slotPredicate, Consumer<Pair<ItemStack, DropRule>> modification) {
         if (modPredicate.test("vanilla")) {
             for (int i = 0; i < this.items.size(); i++) {
                 Pair<ItemStack, DropRule> pair = this.items.get(i);
-                if (slotPredicate.test(i) && itemPredicate.test(pair.getLeft())) pair.setRight(dropRule);
+                if (slotPredicate.test(i) && itemPredicate.test(pair.getLeft()))modification.accept(pair);
             }
         }
         for (Map.Entry<String, CompatComponent<?>> entry : this.modInventoryItems.entrySet()) {
             CompatComponent<?> compatComponent = entry.getValue();
-            if (modPredicate.test(entry.getKey())) compatComponent.setDropRules(itemPredicate, dropRule);
+            if (modPredicate.test(entry.getKey())) compatComponent.handleItemPairs(itemPredicate, modification);
         }
     }
 

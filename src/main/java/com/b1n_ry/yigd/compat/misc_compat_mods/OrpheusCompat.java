@@ -1,4 +1,4 @@
-package com.b1n_ry.yigd.compat.miscCompatMods;
+package com.b1n_ry.yigd.compat.misc_compat_mods;
 
 import com.b1n_ry.yigd.events.AdjustDropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
@@ -13,7 +13,7 @@ public class OrpheusCompat {
             if (!orpheusLyrePower.equals("keep") && !orpheusLyrePower.equals("both")) return;
 
             if (inventory.containsAny(stack -> stack.isOf(ItemsRegistry.ORPHEUS_LYRE.get()), s -> true, i -> true)) {
-                inventory.setDropRules(stack -> true, s -> true, i -> true, DropRule.KEEP);
+                inventory.handleItemPairs(stack -> true, s -> true, i -> true, pair -> pair.setRight(DropRule.KEEP));
             }
         });
     }
