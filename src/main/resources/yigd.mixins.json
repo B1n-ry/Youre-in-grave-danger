@@ -4,6 +4,7 @@
   "package": "com.b1n_ry.yigd.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "BeansBackpacksTrinketMixin",
     "CompassItemMixin",
     "ServerPlayerEntityMixin",
     "TravelersBackpackTrinketMixin",

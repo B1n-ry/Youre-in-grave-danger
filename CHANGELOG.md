@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.0-beta.10
+
+### Changes
+* Added compatibility with beans backpacks
+
+---
+
 # You're in Grave Danger 2.0.0-beta.9
 
 ### Changes

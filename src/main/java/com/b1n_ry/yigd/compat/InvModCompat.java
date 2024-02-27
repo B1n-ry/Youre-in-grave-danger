@@ -28,6 +28,8 @@ public interface InvModCompat<T> {
             invCompatMods.add(new NumismaticOverhaulCompat());
         if (compatConfig.enableOriginsInventoryCompat && loader.isModLoaded("apoli"))
             invCompatMods.add(new OriginsCompat());
+        if (compatConfig.enableBeansBackpacksCompat && loader.isModLoaded("beansbackpacks"))
+            invCompatMods.add(new BeansBackpacksCompat());
 
         if (loader.isModLoaded("common-protection-api"))
             CommonProtectionApiCompat.init();

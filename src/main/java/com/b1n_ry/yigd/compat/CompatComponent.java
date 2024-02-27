@@ -61,6 +61,12 @@ public abstract class CompatComponent<T> {
     public abstract DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList();
     public abstract CompatComponent<T> filterInv(Predicate<DropRule> predicate);
     public abstract boolean removeItem(Predicate<ItemStack> predicate, int itemCount);
+
+    /**
+     * Drop all items in the component to the world
+     * @param world The world to drop items in
+     * @param pos The position to drop items at
+     */
     public void dropItems(ServerWorld world, Vec3d pos) {
         DefaultedList<Pair<ItemStack, DropRule>> items = this.getAsStackDropList();
         for (Pair<ItemStack, DropRule> pair : items) {
@@ -70,6 +76,12 @@ public abstract class CompatComponent<T> {
             InventoryComponent.dropItemIfToBeDropped(pair.getLeft(), pos.x, pos.y, pos.z, world);
         }
     }
+
+    /**
+     * Drop all items in the component to the world, but only items that should be placed in a grave or dropped anyway
+     * @param world The world to drop items in
+     * @param pos The position to drop items at
+     */
     public void dropGraveItems(ServerWorld world, Vec3d pos) {
         DefaultedList<Pair<ItemStack, DropRule>> items = this.getAsStackDropList();
         for (Pair<ItemStack, DropRule> pair : items) {

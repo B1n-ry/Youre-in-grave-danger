@@ -288,6 +288,10 @@ public class YigdConfig implements ConfigData {
         @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropRule defaultTrinketsDropRule = DropRule.PUT_IN_GRAVE;
+        public boolean enableBeansBackpacksCompat = true;
+        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropRule defaultBeansBackpacksDropRule = DropRule.PUT_IN_GRAVE;
     }
 
     public static class CommandConfig {
