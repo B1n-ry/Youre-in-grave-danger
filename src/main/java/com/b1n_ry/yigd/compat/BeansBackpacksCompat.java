@@ -102,7 +102,13 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
 
             ItemStack backpack = this.inventory.getBackpack();
             DefaultedList<ItemStack> backpackContents = this.inventory.getBackpackContents();
-            if (backpack.isEmpty()) return extraItems;
+            if (backpack.isEmpty()) {
+                for (ItemStack extra : backpackContents) {
+                    if (!extra.isEmpty())
+                        extraItems.add(extra);
+                }
+                return extraItems;
+            }
 
             BackData backData = BackData.get(player);
             backData.set(backpack);
@@ -124,13 +130,16 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
 
         @Override
         public void handleDropRules(DeathContext context) {
-            if (this.inventory.getBackpack().isEmpty()) return;
-
             YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
             DropRule defaultDropRule = compatConfig.defaultBeansBackpacksDropRule;
 
+            if (this.inventory.getBackpack().isEmpty()) {
+                this.inventory.setDropRule(defaultDropRule);
+                return;
+            }
+
             if (defaultDropRule == DropRule.PUT_IN_GRAVE)
-                this.inventory.dropRule = DropRuleEvent.EVENT.invoker().getDropRule(this.inventory.getBackpack(), -1, context, true);
+                this.inventory.setDropRule(DropRuleEvent.EVENT.invoker().getDropRule(this.inventory.getBackpack(), -1, context, true));
         }
 
         @Override
@@ -190,6 +199,10 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
 
             BeansBackpackInv mergingInventory = (BeansBackpackInv) mergingComponent.inventory;
             if (this.inventory.getBackpack().isEmpty()) {
+                for (ItemStack withoutBackpack : this.inventory.getBackpackContents()) {
+                    if (!withoutBackpack.isEmpty())
+                        extraItems.add(withoutBackpack);
+                }
                 this.inventory.setBackpack(mergingInventory.getBackpack());
                 this.inventory.setDropRule(mergingInventory.getDropRule());
                 this.inventory.setBackpackContents(mergingInventory.getBackpackContents());
