@@ -325,8 +325,17 @@ public class InventoryComponent {
 
         for (InvModCompat<?> modCompat : InvModCompat.invCompatMods) {
             String modName = modCompat.getModName();
-            CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
+            if (!mergingComponent.modInventoryItems.containsKey(modName)) continue;
+
             CompatComponent<?> mergingCompatComponent = mergingComponent.modInventoryItems.get(modName);
+            if (!this.modInventoryItems.containsKey(modName)) {
+                for (Pair<ItemStack, DropRule> pair : mergingCompatComponent.getAsStackDropList()) {
+                    ItemStack item = pair.getLeft();
+                    if (!item.isEmpty())
+                        extraItems.add(item);
+                }
+            }
+            CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
 
             DefaultedList<ItemStack> extraModItems = compatComponent.merge(mergingCompatComponent, merger);
             extraItems.addAll(extraModItems);
@@ -531,7 +540,9 @@ public class InventoryComponent {
 
         // Set mod inventories
         for (InvModCompat<?> modCompat : InvModCompat.invCompatMods) {
-            DefaultedList<ItemStack> extraModItems = this.modInventoryItems.get(modCompat.getModName()).storeToPlayer(player);
+            String modName = modCompat.getModName();
+            if (!this.modInventoryItems.containsKey(modName)) continue;
+            DefaultedList<ItemStack> extraModItems = this.modInventoryItems.get(modName).storeToPlayer(player);
             extraItems.addAll(extraModItems);
         }
 
@@ -551,6 +562,7 @@ public class InventoryComponent {
         Map<String, CompatComponent<?>> filteredModInventories = new HashMap<>();
         for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
             String modName = compatMod.getModName();
+            if (!this.modInventoryItems.containsKey(modName)) continue;
             CompatComponent<?> compatInv = this.modInventoryItems.get(modName);
             CompatComponent<?> filteredCompatInv = compatInv.filterInv(filter);
             filteredModInventories.put(modName, filteredCompatInv);
@@ -584,6 +596,8 @@ public class InventoryComponent {
         NbtCompound modInventoriesNbt = new NbtCompound();
         for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
             String modName = compatMod.getModName();
+            if (!this.modInventoryItems.containsKey(modName)) continue;
+
             CompatComponent<?> compatInv = this.modInventoryItems.get(modName);
             modInventoriesNbt.put(modName, compatInv.writeNbt());
         }
@@ -613,6 +627,7 @@ public class InventoryComponent {
         Map<String, CompatComponent<?>> compatComponents = new HashMap<>();
         for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
             String modName = compatMod.getModName();
+            if (!modInventoriesNbt.contains(modName)) continue;
             NbtCompound modNbt = modInventoriesNbt.getCompound(modName);
             compatComponents.put(modName, compatMod.readNbt(modNbt));
         }
