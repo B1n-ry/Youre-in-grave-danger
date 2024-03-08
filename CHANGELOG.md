@@ -1,3 +1,12 @@
+# You're in Grave Danger 2.0.0-beta.11
+
+### Fixes
+* Fixed mod clearing player inventory when trying to claim a grave that had generated
+before removing a compatible inventory mod
+* 
+
+---
+
 # You're in Grave Danger 2.0.0-beta.10
 
 ### Changes

@@ -37,7 +37,7 @@ public class InventoryComponent {
     public final int armorSize;
     public final int offHandSize;
 
-    private final Random random = new Random();
+    private static final Random RANDOM = new Random();
     public static final Pair<ItemStack, DropRule> EMPTY_ITEM_PAIR = new Pair<>(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule);
 
     public InventoryComponent(ServerPlayerEntity player) {
@@ -224,7 +224,7 @@ public class InventoryComponent {
 
         if (itemSlots.isEmpty()) return;
 
-        int random = this.random.nextInt(itemSlots.size());
+        int random = this.RANDOM.nextInt(itemSlots.size());
 
         int slot = itemSlots.get(random);
         if (itemLoss.affectStacks) {
@@ -334,6 +334,7 @@ public class InventoryComponent {
                     if (!item.isEmpty())
                         extraItems.add(item);
                 }
+                continue;
             }
             CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
 

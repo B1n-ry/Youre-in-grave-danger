@@ -10,8 +10,10 @@ import com.beansgalaxy.backpacks.platform.Services;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.function.Predicate;
 
@@ -25,7 +27,7 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
     public void clear(ServerPlayerEntity player) {
         BackData backData = BackData.get(player);
 
-        backData.update(ItemStack.EMPTY);
+        backData.set(ItemStack.EMPTY);
         backData.backpackInventory.clear();
     }
 
@@ -88,7 +90,7 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         @Override
         public BeansBackpackInv getInventory(ServerPlayerEntity player) {
             BackData backData = BackData.get(player);
-            ItemStack stack = backData.backSlot.getStack().copy();
+            ItemStack stack = backData.getStack().copy();
             DefaultedList<ItemStack> backpackContents = DefaultedList.of();
             for (ItemStack item : backData.backpackInventory.getItemStacks()) {
                 backpackContents.add(item.copy());
@@ -183,6 +185,15 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         }
 
         // TODO: If it becomes possible, implement drop to drop the backpack entities
+
+        @Override
+        public void dropItems(ServerWorld world, Vec3d pos) {
+            super.dropItems(world, pos);
+        }
+        @Override
+        public void dropGraveItems(ServerWorld world, Vec3d pos) {
+            super.dropGraveItems(world, pos);
+        }
 
         @Override
         public CompatComponent<BeansBackpackInv> filterInv(Predicate<DropRule> predicate) {
