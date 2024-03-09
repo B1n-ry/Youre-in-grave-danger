@@ -89,11 +89,13 @@ public class GraveBlockEntity extends BlockEntity {
     public void onBroken() {
         if (this.world == null || this.world.isClient) return;
 
-        Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(this.graveId);
-        component.ifPresent(grave -> {
-            if (grave.getStatus() == GraveStatus.UNCLAIMED) {
-                grave.onDestroyed();
-            }
+        Yigd.END_OF_TICK.add(() -> {
+            Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(this.graveId);
+            component.ifPresent(grave -> {
+                if (grave.getStatus() == GraveStatus.UNCLAIMED) {
+                    grave.onDestroyed();
+                }
+            });
         });
     }
 

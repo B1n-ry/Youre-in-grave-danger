@@ -185,7 +185,6 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         }
 
         // TODO: If it becomes possible, implement drop to drop the backpack entities
-
         @Override
         public void dropItems(ServerWorld world, Vec3d pos) {
             super.dropItems(world, pos);

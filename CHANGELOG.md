@@ -3,7 +3,8 @@
 ### Fixes
 * Fixed mod clearing player inventory when trying to claim a grave that had generated
 before removing a compatible inventory mod
-* 
+* Improved compat and fixed issues from update of Beans Backpacks
+* No longer sending error message to player when claiming the grave by breaking it
 
 ---
 
