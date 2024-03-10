@@ -224,7 +224,7 @@ public class InventoryComponent {
 
         if (itemSlots.isEmpty()) return;
 
-        int random = this.RANDOM.nextInt(itemSlots.size());
+        int random = RANDOM.nextInt(itemSlots.size());
 
         int slot = itemSlots.get(random);
         if (itemLoss.affectStacks) {

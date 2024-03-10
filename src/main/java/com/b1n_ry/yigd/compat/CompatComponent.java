@@ -78,7 +78,7 @@ public abstract class CompatComponent<T> {
     }
 
     /**
-     * Drop all items in the component to the world, but only items that should be placed in a grave or dropped anyway
+     * Drop items in the component to the world, but only items that should be placed in a grave or dropped anyway
      * @param world The world to drop items in
      * @param pos The position to drop items at
      */
