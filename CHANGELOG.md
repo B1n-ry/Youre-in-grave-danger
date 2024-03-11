@@ -3,8 +3,13 @@
 ### Fixes
 * Fixed mod clearing player inventory when trying to claim a grave that had generated
 before removing a compatible inventory mod
-* Improved compat and fixed crash with Beans Backpacks
+* Fixed crash with Beans Backpacks
 * No longer sending error message to player when claiming the grave by breaking it
+* Default trinket drop rule will now actually be default
+
+### Changes
+* Improved compatibility with Beans Backpacks, by dropping the backpack instead of the
+items inside it when it's supposed to be dropped
 
 ---
 

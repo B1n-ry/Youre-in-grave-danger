@@ -93,7 +93,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
             return switch (dropRule) {
                 case KEEP -> DropRule.KEEP;
                 case DESTROY -> DropRule.DESTROY;
-                default -> DropRule.PUT_IN_GRAVE;
+                default -> YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
             };
         }
 

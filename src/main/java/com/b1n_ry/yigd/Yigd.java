@@ -78,7 +78,7 @@ public class Yigd implements ModInitializer {
             Registry.register(Registries.ENCHANTMENT, new Identifier(MOD_ID, "death_sight"), DEATH_SIGHT_ENCHANTMENT);
         }
         if (config.extraFeatures.deathScroll.enabled) {
-            DEATH_SCROLL_ITEM = new DeathScrollItem(new FabricItemSettings());
+            DEATH_SCROLL_ITEM = new DeathScrollItem(new FabricItemSettings().requires());
             Registry.register(Registries.ITEM, new Identifier(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
         }
         if (config.extraFeatures.graveKeys.enabled) {
