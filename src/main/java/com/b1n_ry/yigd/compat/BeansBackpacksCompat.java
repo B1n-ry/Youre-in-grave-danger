@@ -5,7 +5,6 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
-import com.beansgalaxy.backpacks.data.BackData;
 import com.beansgalaxy.backpacks.platform.services.CompatHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -124,14 +123,11 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
 
             CompatHelper.setBackStack(player, backpack);
 
-            BackData backData = CompatHelper.getBackData(player);
-            backData.backpackInventory.clear();
+            DefaultedList<ItemStack> backpackInventory = CompatHelper.getBackpackInventory(player);
+            backpackInventory.clear();
             for (ItemStack stack : backpackContents) {
                 if (!stack.isEmpty()) {
-                    ItemStack leftOver = backData.backpackInventory.insertItemSilent(stack, stack.getCount());
-                    if (!leftOver.isEmpty()) {
-                        extraItems.add(leftOver);
-                    }
+                    backpackInventory.add(stack);
                 }
             }
 

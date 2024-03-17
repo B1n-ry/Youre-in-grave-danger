@@ -6,6 +6,8 @@ before removing a compatible inventory mod
 * Fixed crash with Beans Backpacks
 * No longer sending error message to player when claiming the grave by breaking it
 * Default trinket drop rule will now actually be default
+* Fixed adaptive grave renderer, so it renders the grave properly (still not perfect adaptive rendering though)
+* Fixed issues where grave robbing didn't work outside very specific conditions
 
 ### Changes
 * Improved compatibility with Beans Backpacks, by dropping the backpack instead of the

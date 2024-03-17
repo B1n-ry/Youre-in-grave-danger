@@ -162,12 +162,17 @@ public class YigdServerEventHandler {
             if (!robConfig.enabled) return false;
 
             final int tps = 20;  // ticks per second
-            if (!grave.hasExistedMs(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) {
+            if (!grave.hasExistedTicks(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) {
                 player.sendMessage(Text.translatable("text.yigd.message.rob.too_early", grave.getTimeUntilRobbable()), true);
                 return false;
             }
 
-            return robConfig.onlyMurderer && player.getUuid().equals(grave.getKillerId());
+            if (robConfig.onlyMurderer && !player.getUuid().equals(grave.getKillerId())) {
+                player.sendMessage(Text.translatable("text.yigd.message.rob_not_killer", grave.getOwner().getName()), true);
+                return false;
+            }
+
+            return true;
         });
 
         AllowGraveGenerationEvent.EVENT.register((context, grave) -> {

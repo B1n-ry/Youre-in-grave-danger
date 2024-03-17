@@ -64,6 +64,7 @@
   "text.yigd.command.whitelist.toggle": "Toggled list to %s",
   "text.yigd.command.whitelist.set_mode": "Set list to %s",
   "text.yigd.message.rob.too_early": "You can not rob this grave until in %s",
+  "text.yigd.message.rob_not_killer": "You can't rob this grave as you did not kill %s",
   "text.yigd.message.missing_key": "You do not have the proper key to unlock this grave",
   "text.yigd.message.no_shovel": "You need a shovel to loot this grave",
   "text.yigd.message.sellout_player": "%s logged off, and they have a grave at X: %d / Y: %d / Z: %d / %s",

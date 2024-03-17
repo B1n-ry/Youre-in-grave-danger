@@ -15,10 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.model.*;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.OutlineVertexConsumerProvider;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
@@ -32,7 +29,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -166,13 +162,19 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                     BlockState blockUnder = entity.getWorld().getBlockState(underPos);
 
                     if (blockUnder != null && blockUnder.isOpaqueFullCube(world, underPos)) {
-                        ModelPart.Cuboid cuboidPart = part.getRandomCuboid(Random.create());  // Only contains 1 cuboid, so we'll get that one
+                        ModelPart.Cuboid cuboidPart = part.getRandomCuboid(world.random);  // Only contains 1 cuboid, so we'll get that one
                         float scaleX = cuboidPart.maxX - cuboidPart.minX;
                         float scaleZ = cuboidPart.maxZ - cuboidPart.minZ;
 
+                        matrices.push();
+
                         matrices.translate(cuboidPart.minX / 16f + .0005f, cuboidPart.maxY / 16f - 1f, cuboidPart.minZ / 16f + .0005f);
-                        matrices.scale(.999f * (scaleX / 16f), 1, .999f * (scaleZ / 16f));
-                        this.client.getBlockRenderManager().renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(RenderLayer.getCutout()), true, world.getRandom());
+                        matrices.scale(.999f * (scaleX / 16f), 1f, .999f * (scaleZ / 16f));
+
+                        this.client.getBlockRenderManager()
+                                .renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(
+                                        RenderLayer.getCutout()), true, world.random);
+                        matrices.pop();
 
                         continue;
                     }

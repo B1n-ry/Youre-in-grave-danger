@@ -323,10 +323,10 @@ public class GraveComponent {
         DeathInfoManager.INSTANCE.markDirty();
     }
 
-    public boolean hasExistedMs(long time) {
+    public boolean hasExistedTicks(long time) {
         if (this.world == null) return false;
 
-        return this.world.getTime() - this.creationTime.getTime() < time;
+        return this.world.getTime() - this.creationTime.getTime() >= time;
     }
 
     /**
@@ -336,10 +336,11 @@ public class GraveComponent {
      */
     public String getTimeUntilRobbable() {
         if (this.world == null) return "0";
+        final int tps = 20;
         YigdConfig.GraveConfig.GraveRobbing robConfig = YigdConfig.getConfig().graveConfig.graveRobbing;
-        long delay = robConfig.timeUnit.toSeconds(robConfig.afterTime);
+        long delay = robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps;
 
-        long timePassed = this.creationTime.getTime() - this.world.getTime() + delay;
+        long timePassed = (this.creationTime.getTime() - this.world.getTime() + delay) / tps;
         long seconds = timePassed % 60;
         long minutes = (timePassed / 60) % 60;
         long hours = timePassed / 3600;
