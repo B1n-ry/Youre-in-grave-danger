@@ -343,7 +343,7 @@ public class YigdConfig implements ConfigData {
                 this.isAvailableForRandomSelection = isAvailableForRandomSelection;
             }
         }
-        public static class DeathSightConfig /* extends EnchantmentConfig */ {
+        public static class DeathSightConfig {
             public boolean enabled = false;
             public boolean isTreasure = true;
             public boolean isAvailableForEnchantedBookOffer = true;
@@ -351,13 +351,6 @@ public class YigdConfig implements ConfigData {
             public double range = 64;
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public GraveTargets targets = GraveTargets.PLAYER_GRAVES;
-
-            /*
-            Reimplement when https://github.com/shedaniel/cloth-config/pull/236 is merged
-            public DeathSightConfig() {
-                super(false, true, true, false);
-            }
-            */
 
             public enum GraveTargets {
                 OWN_GRAVES, PLAYER_GRAVES, ALL_GRAVES
@@ -381,6 +374,7 @@ public class YigdConfig implements ConfigData {
             public boolean receiveOnRespawn = false;
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public ClickFunction clickFunction = ClickFunction.VIEW_CONTENTS;
+            public boolean consumeOnUse = false;
             public enum ClickFunction {
                 RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION
             }

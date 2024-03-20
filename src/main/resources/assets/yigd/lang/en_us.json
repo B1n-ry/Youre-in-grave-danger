@@ -245,6 +245,7 @@
   "text.autoconfig.yigd.option.extraFeatures.deathScroll.rebindable": "Rebindable",
   "text.autoconfig.yigd.option.extraFeatures.deathScroll.receiveOnRespawn": "Receive on Respawn",
   "text.autoconfig.yigd.option.extraFeatures.deathScroll.clickFunction": "Executed When Used",
+  "text.autoconfig.yigd.option.extraFeatures.deathScroll.consumeOnUse": "Consume When Use",
   "text.autoconfig.yigd.option.extraFeatures.graveCompass": "Grave Compass",
   "text.autoconfig.yigd.option.extraFeatures.graveCompass.receiveOnRespawn": "Receive on Respawn",
   "text.autoconfig.yigd.option.extraFeatures.graveCompass.consumeOnUse": "Consume on Use",

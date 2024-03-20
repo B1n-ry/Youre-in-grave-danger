@@ -44,8 +44,8 @@ public class Yigd implements ModInitializer {
 
 
     // Optional registries
-    public static DeathScrollItem DEATH_SCROLL_ITEM;
-    public static GraveKeyItem GRAVE_KEY_ITEM;
+    public static DeathScrollItem DEATH_SCROLL_ITEM = new DeathScrollItem(new FabricItemSettings());
+    public static GraveKeyItem GRAVE_KEY_ITEM = new GraveKeyItem(new FabricItemSettings());
     public static SoulboundEnchantment SOULBOUND_ENCHANTMENT;
     public static DeathSightEnchantment DEATH_SIGHT_ENCHANTMENT;
 
@@ -77,22 +77,14 @@ public class Yigd implements ModInitializer {
             DEATH_SIGHT_ENCHANTMENT = new DeathSightEnchantment(Enchantment.Rarity.RARE, EquipmentSlot.HEAD);
             Registry.register(Registries.ENCHANTMENT, new Identifier(MOD_ID, "death_sight"), DEATH_SIGHT_ENCHANTMENT);
         }
-        if (config.extraFeatures.deathScroll.enabled) {
-            DEATH_SCROLL_ITEM = new DeathScrollItem(new FabricItemSettings().requires());
-            Registry.register(Registries.ITEM, new Identifier(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
-        }
-        if (config.extraFeatures.graveKeys.enabled) {
-            GRAVE_KEY_ITEM = new GraveKeyItem(new FabricItemSettings());
-            Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave_key"), GRAVE_KEY_ITEM);
-        }
+        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
+        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave_key"), GRAVE_KEY_ITEM);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(entries -> {
             entries.add(GRAVE_BLOCK.asItem());
 
-            if (config.extraFeatures.deathScroll.enabled)
-                entries.add(DEATH_SCROLL_ITEM.getDefaultStack());
-            if (config.extraFeatures.graveKeys.enabled)
-                entries.add(GRAVE_KEY_ITEM.getDefaultStack());
+            entries.add(DEATH_SCROLL_ITEM.getDefaultStack());
+            entries.add(GRAVE_KEY_ITEM.getDefaultStack());
         });
 
         InvModCompat.initModCompat();

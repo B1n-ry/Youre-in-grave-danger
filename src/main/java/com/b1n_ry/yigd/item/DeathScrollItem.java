@@ -11,6 +11,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -37,6 +38,11 @@ public class DeathScrollItem extends Item {
     }
 
     @Override
+    public boolean isEnabled(FeatureSet enabledFeatures) {
+        return YigdConfig.getConfig().extraFeatures.deathScroll.enabled;
+    }
+
+    @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (world.isClient) return super.use(world, user, hand);
 
@@ -54,8 +60,11 @@ public class DeathScrollItem extends Item {
             case RESTORE_CONTENTS -> this.restoreContent(scroll, player);
             case TELEPORT_TO_LOCATION -> this.teleport(scroll, player);
         };
-        if (res.getResult() == ActionResult.PASS)
+        if (res.getResult() != ActionResult.PASS) {  // If the action was successful/failed or something other than 'standard'
+            if (YigdConfig.getConfig().extraFeatures.deathScroll.consumeOnUse && res.getResult() != ActionResult.CONSUME)
+                scroll.decrement(1);
             return res;
+        }
 
         return super.use(world, user, hand);
     }

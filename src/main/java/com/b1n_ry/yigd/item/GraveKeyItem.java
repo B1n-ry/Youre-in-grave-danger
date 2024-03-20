@@ -10,6 +10,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -28,6 +29,11 @@ public class GraveKeyItem extends Item {
             this.bindStackToLatestGrave(player, stack);
         }
         super.onCraft(stack, world, player);
+    }
+
+    @Override
+    public boolean isEnabled(FeatureSet enabledFeatures) {
+        return YigdConfig.getConfig().extraFeatures.graveKeys.enabled;
     }
 
     @Override
