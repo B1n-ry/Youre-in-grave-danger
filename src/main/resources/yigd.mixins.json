@@ -6,6 +6,7 @@
   "mixins": [
     "BeansBackpacksTrinketMixin",
     "CompassItemMixin",
+    "LivingEntityMixin",
     "ServerPlayerEntityMixin",
     "TravelersBackpackTrinketMixin",
     "WorldChunkMixin"

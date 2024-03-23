@@ -31,20 +31,20 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityImpl {
         this.youre_in_grave_danger$lastGroundPos = player.getPos();
     }
 
-    @Inject(method = "onDeath", at = @At(value = "HEAD"))
-    private void onDeath(DamageSource damageSource, CallbackInfo ci) {
-        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-
-        ServerWorld world = player.getServerWorld();
-
-        if (!player.isDead()) return;  // If some weird shit happens, this is a failsafe
-        if (player.isSpectator()) return;  // Spectators don't generate graves
-
-        if (world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;  // KeepInv should be handled by vanilla. No need to complicate things
-
-        DeathHandler deathHandler = new DeathHandler();
-        deathHandler.onPlayerDeath(player, world, player.getPos(), damageSource);
-    }
+//    @Inject(method = "onDeath", at = @At(value = "HEAD"))
+//    private void onDeath(DamageSource damageSource, CallbackInfo ci) {
+//        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+//
+//        ServerWorld world = player.getServerWorld();
+//
+//        if (!player.isDead()) return;  // If some weird shit happens, this is a failsafe
+//        if (player.isSpectator()) return;  // Spectators don't generate graves
+//
+//        if (world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) return;  // KeepInv should be handled by vanilla. No need to complicate things
+//
+//        DeathHandler deathHandler = new DeathHandler();
+//        deathHandler.onPlayerDeath(player, world, player.getPos(), damageSource);
+//    }
 
     @Redirect(method = "createEndSpawnPlatform", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"))
     private boolean createEndSpawnPlatform(ServerWorld world, BlockPos blockPos, BlockState blockState) {

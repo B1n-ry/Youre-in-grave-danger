@@ -22,7 +22,9 @@
   "entrypoints": {
     "main": [ "com.b1n_ry.yigd.Yigd" ],
     "client": [ "com.b1n_ry.yigd.client.YigdClient" ],
-    "modmenu": [ "com.b1n_ry.yigd.compat.YigdModMenu" ]
+    "modmenu": [
+      "com.b1n_ry.yigd.compat.misc_compat_mods.YigdModMenu"
+    ]
   },
   "mixins": [
     "yigd.mixins.json"
