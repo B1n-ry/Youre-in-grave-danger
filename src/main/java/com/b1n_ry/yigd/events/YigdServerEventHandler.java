@@ -215,6 +215,7 @@ public class YigdServerEventHandler {
             }
             return true;
         });
+        DropItemEvent.EVENT.register((stack, x, y, z, world) -> !stack.isEmpty());
     }
 
     /**

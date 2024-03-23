@@ -28,7 +28,7 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
     public void clear(ServerPlayerEntity player) {
         CurrencyComponent component = ModComponents.CURRENCY.get(player);
         long value = component.getValue();
-        component.modify(-value);
+        component.silentModify(-value);
     }
 
     @Override
@@ -120,6 +120,10 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
                         this.inventory -= itemValue;
                         this.keepValue += itemValue;
                     }
+                    case PUT_IN_GRAVE -> {
+                        this.inventory -= itemValue;
+                        this.graveValue += itemValue;
+                    }
                 }
             }
         }
@@ -154,16 +158,29 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
         @Override
         public CompatComponent<Long> filterInv(Predicate<DropRule> predicate) {
             long totalValue = 0;
-            if (predicate.test(DropRule.DROP))
-                totalValue += this.dropValue;
-            if (predicate.test(DropRule.KEEP))
-                totalValue += this.keepValue;
-            if (predicate.test(DropRule.DESTROY))
-                totalValue += this.destroyValue;
-            if (predicate.test(DropRule.PUT_IN_GRAVE))
-                totalValue += this.graveValue;
+            long dropValue = 0;
+            long keepValue = 0;
+            long destroyValue = 0;
+            long graveValue = 0;
 
-            return new NumismaticCompatComponent(totalValue, this.dropValue, this.keepValue, this.destroyValue, this.graveValue);
+            if (predicate.test(DropRule.DROP)) {
+                totalValue += this.dropValue;
+                dropValue = this.dropValue;
+            }
+            if (predicate.test(DropRule.KEEP)) {
+                totalValue += this.keepValue;
+                keepValue = this.keepValue;
+            }
+            if (predicate.test(DropRule.DESTROY)) {
+                totalValue += this.destroyValue;
+                destroyValue = this.destroyValue;
+            }
+            if (predicate.test(DropRule.PUT_IN_GRAVE)) {
+                totalValue += this.graveValue;
+                graveValue = this.graveValue;
+            }
+
+            return new NumismaticCompatComponent(totalValue, dropValue, keepValue, destroyValue, graveValue);
         }
 
         @Override

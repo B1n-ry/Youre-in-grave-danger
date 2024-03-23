@@ -106,7 +106,7 @@ dependencies {
 	modCompileOnly "dev.emi:trinkets:${project.trinkets_version}"
 	modCompileOnly "curse.maven:inventorio-${project.inventorio_version}"
 	modCompileOnly "curse.maven:travelersbackpack-${project.travelers_backpack_version}"
-	modCompileOnly "curse.maven:numismaticoverhaul-${project.numismatic_version}"
+	modCompileOnly "maven.modrinth:numismatic-overhaul:${project.numismatic_version}"
 	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"
 	modCompileOnly "curse.maven:levelz-${project.levelz_version}"
 	modCompileOnly "maven.modrinth:beans-backpacks:${project.beans_backpacks_version}"
