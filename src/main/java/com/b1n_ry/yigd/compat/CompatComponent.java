@@ -105,6 +105,10 @@ public abstract class CompatComponent<T> {
         return false;
     }
 
+    public boolean isEmpty() {
+        return !this.containsAny(stack -> !stack.isEmpty());
+    }
+
     /**
      * Check if the component contains at least one item that matches the predicate. Will stop at first match
      * @param predicate Predicate to test items against

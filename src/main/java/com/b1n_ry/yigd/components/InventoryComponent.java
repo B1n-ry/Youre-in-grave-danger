@@ -600,7 +600,8 @@ public class InventoryComponent {
             if (!this.modInventoryItems.containsKey(modName)) continue;
 
             CompatComponent<?> compatInv = this.modInventoryItems.get(modName);
-            modInventoriesNbt.put(modName, compatInv.writeNbt());
+            if (!compatInv.isEmpty())
+                modInventoriesNbt.put(modName, compatInv.writeNbt());
         }
 
         nbt.put("vanilla", vanillaInventoryNbt);
