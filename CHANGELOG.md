@@ -11,8 +11,6 @@ before removing a compatible inventory mod
 * Numismatic overhaul coins should no longer be duplicated when dying
 
 ### Changes
-* Improved compatibility with Beans Backpacks, by dropping the backpack instead of the
-items inside it when it's supposed to be dropped
 * Added config to consume death scroll on use
 * Removed conditional registration of items, causing servers to be in control of weather
 the items are enabled or not, without having to change client configs
