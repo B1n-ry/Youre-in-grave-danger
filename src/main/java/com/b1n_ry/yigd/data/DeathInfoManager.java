@@ -13,6 +13,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.PersistentState;
 import org.jetbrains.annotations.NotNull;
 
@@ -188,7 +189,8 @@ public class DeathInfoManager extends PersistentState {
 
                 // If the grave is still in the world, set the component
                 ServerWorld world = component.getWorld();
-                if (world != null && world.getBlockEntity(component.getPos()) instanceof GraveBlockEntity be
+                if (world != null && world.isChunkLoaded(new ChunkPos(component.getPos()).toLong())
+                        && world.getBlockEntity(component.getPos()) instanceof GraveBlockEntity be
                         && be.getGraveId() != null
                         && be.getGraveId().equals(component.getGraveId())) {
                     be.setComponent(component);

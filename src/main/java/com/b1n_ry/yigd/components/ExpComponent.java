@@ -47,7 +47,7 @@ public class ExpComponent {
         } else {
             totalExperience = Math.pow(currentLevel, 2) + 6 * currentLevel;
         }
-        totalExperience += player.experienceProgress;
+        totalExperience += player.getNextLevelExperience() * player.experienceProgress;
         return totalExperience;
     }
 

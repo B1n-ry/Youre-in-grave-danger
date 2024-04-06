@@ -1,3 +1,15 @@
+# You're in Grave Danger 2.0.0-beta.12
+
+### Changes
+* Improved compatibility with Beans Backpacks, by dropping the backpack instead of the
+items inside it when it's supposed to be dropped
+
+### Fixes
+* When using drop percent for XP, XP returned is no longer rounded down to nearest level
+* Game no longer crash if there's a grave in a dimension that is reset
+
+---
+
 # You're in Grave Danger 2.0.0-beta.11
 
 ### Fixes

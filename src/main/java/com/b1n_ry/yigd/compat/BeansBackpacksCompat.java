@@ -5,8 +5,6 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
-import com.beansgalaxy.backpacks.data.BackData;
-import com.beansgalaxy.backpacks.platform.Services;
 import com.beansgalaxy.backpacks.platform.services.CompatHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -28,10 +26,8 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
 
     @Override
     public void clear(ServerPlayerEntity player) {
-        BackData.get(player).set(ItemStack.EMPTY);
-        BackData.get(player).backpackInventory.clear();
-//        CompatHelper.setBackStack(player, ItemStack.EMPTY);
-//        CompatHelper.getBackpackInventory(player).clear();
+        CompatHelper.setBackStack(player, ItemStack.EMPTY);
+        CompatHelper.getBackpackInventory(player).clear();
     }
 
     @Override
@@ -105,12 +101,8 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
 
         @Override
         public BeansBackpackInv getInventory(ServerPlayerEntity player) {
-//            ItemStack stack = CompatHelper.getBackStack(player).copy();
-//            DefaultedList<ItemStack> backpackContents = CompatHelper.getBackpackInventory(player);
-            ItemStack stack = BackData.get(player).getStack();
-            DefaultedList<ItemStack> backpackContents = DefaultedList.of();
-            backpackContents.addAll(BackData.get(player).backpackInventory.getItemStacks());
-
+            ItemStack stack = CompatHelper.getBackStack(player).copy();
+            DefaultedList<ItemStack> backpackContents = CompatHelper.getBackpackInventory(player);
 
             return new BeansBackpackInv(stack, DropRule.PUT_IN_GRAVE, backpackContents, player.getUuid(),
                     player.headYaw, player.getHorizontalFacing());
@@ -130,10 +122,9 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
                 return extraItems;
             }
 
-//            CompatHelper.setBackStack(player, backpack);
-            BackData.get(player).set(backpack);
+            CompatHelper.setBackStack(player, backpack);
 
-            DefaultedList<ItemStack> backpackInventory = BackData.get(player).backpackInventory.getItemStacks();// CompatHelper.getBackpackInventory(player);
+            DefaultedList<ItemStack> backpackInventory = CompatHelper.getBackpackInventory(player);
             backpackInventory.clear();
             for (ItemStack stack : backpackContents) {
                 if (!stack.isEmpty()) {
@@ -141,8 +132,7 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
                 }
             }
 
-//            CompatHelper.updateBackpackInventory2C(player);
-            Services.NETWORK.backpackInventory2C(player);
+            CompatHelper.updateBackpackInventory2C(player);
 
             return extraItems;
         }
@@ -205,21 +195,21 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
             return false;
         }
 
-//        @Override
-//        public void dropItems(ServerWorld world, Vec3d pos) {
-//            CompatHelper.createBackpackEntity(this.inventory.getBackpack(), (int) pos.x, (int) pos.y, (int) pos.z,
-//                    this.inventory.yaw, true, this.inventory.direction, world,
-//                    this.inventory.ownerId, this.inventory.getBackpackContents());
-//        }
-//        @Override
-//        public void dropGraveItems(ServerWorld world, Vec3d pos) {
-//            if (this.inventory.getDropRule() == DropRule.KEEP || this.inventory.getDropRule() == DropRule.DESTROY) return;
-//
-//            this.inventory.setDropRule(DropRule.DROP);
-//            CompatHelper.createBackpackEntity(this.inventory.getBackpack(), (int) pos.x, (int) pos.y, (int) pos.z,
-//                    this.inventory.yaw, true, this.inventory.direction, world,
-//                    this.inventory.ownerId, this.inventory.getBackpackContents());
-//        }
+        @Override
+        public void dropItems(ServerWorld world, Vec3d pos) {
+            CompatHelper.createBackpackEntity(this.inventory.getBackpack(), (int) pos.x, (int) pos.y, (int) pos.z,
+                    this.inventory.yaw, true, this.inventory.direction, world,
+                    this.inventory.ownerId, this.inventory.getBackpackContents());
+        }
+        @Override
+        public void dropGraveItems(ServerWorld world, Vec3d pos) {
+            if (this.inventory.getDropRule() == DropRule.KEEP || this.inventory.getDropRule() == DropRule.DESTROY) return;
+
+            this.inventory.setDropRule(DropRule.DROP);
+            CompatHelper.createBackpackEntity(this.inventory.getBackpack(), (int) pos.x, (int) pos.y, (int) pos.z,
+                    this.inventory.yaw, true, this.inventory.direction, world,
+                    this.inventory.ownerId, this.inventory.getBackpackContents());
+        }
 
         @Override
         public CompatComponent<BeansBackpackInv> filterInv(Predicate<DropRule> predicate) {
