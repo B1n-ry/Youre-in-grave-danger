@@ -7,6 +7,10 @@ items inside it when it's supposed to be dropped
 ### Fixes
 * When using drop percent for XP, XP returned is no longer rounded down to nearest level
 * Game no longer crash if there's a grave in a dimension that is reset
+* Random-spawn UUID is no longer treated as a string, but a UUID nbt object, meaning
+skulls should now render properly
+* Graves can no longer generate where block entities are placed
+* Dropped items will now remain in GUI
 
 ---
 

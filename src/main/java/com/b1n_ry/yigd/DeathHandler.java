@@ -103,7 +103,7 @@ public class DeathHandler {
                 if (!placed) {
                     Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(placedPos.getX(), placedPos.getY(), placedPos.getZ(), graveWorld.getRegistryKey().getValue()));
                     Yigd.LOGGER.info("Dropping items on ground instead of in grave");
-                    graveComponent.getInventoryComponent().dropAll(graveWorld, Vec3d.of(placedPos));
+                    graveComponent.getInventoryComponent().dropGraveItems(graveWorld, Vec3d.of(placedPos));
                     graveComponent.getExpComponent().dropAll(graveWorld, Vec3d.of(placedPos));
                     return;
                 }

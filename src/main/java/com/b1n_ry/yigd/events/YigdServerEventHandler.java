@@ -203,6 +203,8 @@ public class YigdServerEventHandler {
         GraveGenerationEvent.EVENT.register((world, pos, nthTry) -> {
             BlockState state = world.getBlockState(pos);
             YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
+            if (world.getBlockEntity(pos) != null)  // Block entities should NOT be replaced by graves
+                return false;
             switch (nthTry) {
                 case 0 -> {
                     if (!config.useSoftBlockWhitelist) return false;

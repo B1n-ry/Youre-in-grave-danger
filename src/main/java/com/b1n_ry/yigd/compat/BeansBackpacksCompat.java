@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
+import com.beansgalaxy.backpacks.platform.FabricCompatHelper;
 import com.beansgalaxy.backpacks.platform.services.CompatHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -19,6 +20,10 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.BeansBackpackInv> {
+    public BeansBackpacksCompat() {
+        FabricCompatHelper.OnDeathCallback.EVENT.register(FabricCompatHelper.Context::cancel);
+    }
+
     @Override
     public String getModName() {
         return "beansbackpacks";
@@ -103,8 +108,12 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         public BeansBackpackInv getInventory(ServerPlayerEntity player) {
             ItemStack stack = CompatHelper.getBackStack(player).copy();
             DefaultedList<ItemStack> backpackContents = CompatHelper.getBackpackInventory(player);
+            DefaultedList<ItemStack> copied = DefaultedList.of();
+            for (ItemStack i : backpackContents) {
+                copied.add(i.copy());
+            }
 
-            return new BeansBackpackInv(stack, DropRule.PUT_IN_GRAVE, backpackContents, player.getUuid(),
+            return new BeansBackpackInv(stack, DropRule.PUT_IN_GRAVE, copied, player.getUuid(),
                     player.headYaw, player.getHorizontalFacing());
         }
 

@@ -677,7 +677,7 @@ public class InventoryComponent {
 
     public static void dropItemIfToBeDropped(ItemStack stack, double x, double y, double z, ServerWorld world) {
         if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
-            ItemScatterer.spawn(world, x, y, z, stack);
+            ItemScatterer.spawn(world, x, y, z, stack.copy());
     }
 
     public static void clearPlayer(ServerPlayerEntity player) {

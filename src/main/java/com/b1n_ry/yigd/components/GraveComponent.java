@@ -23,6 +23,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -432,11 +433,14 @@ public class GraveComponent {
 
     private void handleRandomSpawn(YigdConfig.GraveConfig.RandomSpawn config, ServerWorld world, GameProfile looter) {
         if (config.percentSpawnChance <= world.random.nextInt(100)) return;  // Using world's random (from world seed)
+        NbtIntArray ownerIdNbt = NbtHelper.fromUuid(this.owner.getId());
+        NbtIntArray looterIdNbt = NbtHelper.fromUuid(looter.getId());
+
         String summonNbt = config.spawnNbt
                 .replaceAll("\\$\\{owner\\.name}", this.owner.getName())
-                .replaceAll("\\$\\{owner\\.uuid}", this.owner.getId().toString())
+                .replaceAll("\\$\\{owner\\.uuid}", ownerIdNbt.asString())
                 .replaceAll("\\$\\{looter\\.name}", looter.getName())
-                .replaceAll("\\$\\{looter\\.uuid}", looter.getId().toString());
+                .replaceAll("\\$\\{looter\\.uuid}", looterIdNbt.asString());
 
         // While the nbt string has an item to add (text contains "${item[i]}")
         Matcher nbtMatcher;
@@ -600,7 +604,7 @@ public class GraveComponent {
         if (server != null) {
             ServerWorld world = server.getWorld(worldKey);
             if (world == null) {
-                Yigd.LOGGER.error("World " + worldKey.toString() + " not recognized. Loading grave component without world");
+                Yigd.LOGGER.error("World {} not recognized. Loading grave component without world", worldKey.toString());
             } else {
                 return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status, locked, creationTime, killerId);
             }
