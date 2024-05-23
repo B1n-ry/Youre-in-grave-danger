@@ -55,8 +55,8 @@ import java.util.regex.Pattern;
 
 public class GraveComponent {
     private final GameProfile owner;
-    private final InventoryComponent inventoryComponent;
-    private final ExpComponent expComponent;
+    private InventoryComponent inventoryComponent;
+    private ExpComponent expComponent;
     /**
      * world should never be null while on server, but only on client.
      * If this is compromised, the mod might crash
@@ -115,11 +115,18 @@ public class GraveComponent {
     public InventoryComponent getInventoryComponent() {
         return this.inventoryComponent;
     }
+    public void setInventoryComponent(InventoryComponent inventoryComponent) {
+        this.inventoryComponent = inventoryComponent;
+        DeathInfoManager.INSTANCE.markDirty();
+    }
 
     public ExpComponent getExpComponent() {
         return this.expComponent;
     }
-
+    public void setExpComponent(ExpComponent expComponent) {
+        this.expComponent = expComponent;
+        DeathInfoManager.INSTANCE.markDirty();
+    }
     /**
      * While on server, this will never return null
      * @return the world the component belongs to. Null if on client

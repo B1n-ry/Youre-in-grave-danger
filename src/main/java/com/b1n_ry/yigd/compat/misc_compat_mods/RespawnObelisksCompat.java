@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.events.BeforeSoulboundEvent;
 import com.b1n_ry.yigd.events.DelayGraveGenerationEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
@@ -13,7 +14,6 @@ import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.ObeliskUtils;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -36,6 +36,13 @@ public class RespawnObelisksCompat {
                 return true;
             }
 
+            InventoryComponent changedInventory = grave.getInventoryComponent().filteredInv(dropRule -> true);  // Will create a copy of the inventory
+            ExpComponent defaultExp = grave.getExpComponent();
+            ExpComponent changedExp = defaultExp.copy();
+
+            ExpComponent defaultSoulboundExp = respawnComponent.getSoulboundExp();
+            ExpComponent changedSoulboundExp = defaultSoulboundExp == null ? null : defaultSoulboundExp.copy();
+
             if (
                     player.getSpawnPointPosition() != null &&
                     player.getServerWorld().getBlockEntity(player.getSpawnPointPosition()) instanceof RespawnObeliskBlockEntity be &&
@@ -43,13 +50,12 @@ public class RespawnObelisksCompat {
                     be.getCharge(player) >= RespawnObelisksConfig.INSTANCE.respawnPerks.minKeepItemRadiance &&
                     (RespawnObelisksConfig.INSTANCE.respawnPerks.allowCursedItemKeeping || !player.hasStatusEffect(IMMORTALITY_CURSE))
             ) {
-                InventoryComponent inventoryComponent = grave.getInventoryComponent();
-                int mainSize = inventoryComponent.mainSize;
-                int armorSize = inventoryComponent.armorSize;
-                int offHandSize = inventoryComponent.offHandSize;
+                int mainSize = changedInventory.mainSize;
+                int armorSize = changedInventory.armorSize;
+                int offHandSize = changedInventory.offHandSize;
 
                 // Save appropriate hotbar items
-                inventoryComponent.handleItemPairs(mod -> mod.equals("vanilla"), (item, i, pair) -> {
+                changedInventory.handleItemPairs(mod -> mod.equals("vanilla"), (item, i, pair) -> {
                     if (item.isEmpty()) return;
 
                     boolean keep;
@@ -77,49 +83,53 @@ public class RespawnObelisksCompat {
                 });
 
                 // Save trinkets
-                inventoryComponent.handleItemPairs(mod -> mod.equals("trinkets"), (item, i, pair) -> {
+                changedInventory.handleItemPairs(mod -> mod.equals("trinkets"), (item, i, pair) -> {
                     if (ObeliskUtils.shouldSaveItem(RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmor, RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmorChance, item)) {
                         pair.setRight(DropRule.KEEP);
                     }
                 });
 
                 // Save experience
-                if (RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperience) changeExp:{
-                    ExpComponent graveXp = grave.getExpComponent();
-                    double xp = graveXp.getOriginalXp();
-                    ExpComponent expComponent = respawnComponent.getSoulboundExp();
-                    if (expComponent == null)
+                if (RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperience) changeExp: {
+                    double xp = changedExp.getOriginalXp();
+                    if (changedSoulboundExp == null)
                         break changeExp;  // Break out of if statement, if no exp component is found
 
                     int newStoredXp = (int) (xp * (RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperiencePercent / 100D));
-                    expComponent.setStoredXp(newStoredXp);
+                    changedSoulboundExp.setStoredXp(newStoredXp);
 
                     // Make sure total XP doesn't increase
-                    if (xp - newStoredXp < graveXp.getStoredXp()) {
-                        graveXp.setStoredXp((int) xp - newStoredXp);
+                    if (xp - newStoredXp < changedExp.getStoredXp()) {
+                        changedExp.setStoredXp((int) xp - newStoredXp);
                     }
                 }
-
-                // Reset soulbound inventory to also contain items that Respawn Obelisks would keep
-                respawnComponent.setSoulboundInventory(inventoryComponent.filteredInv(dropRule -> dropRule == DropRule.KEEP));
             }
 
-            GRAVE_GENERATION_DATA.put(player.getUuid(), new GraveGenerationData(grave, direction, context, respawnComponent));
+            GRAVE_GENERATION_DATA.put(player.getUuid(), new GraveGenerationData(grave, direction, context,
+                    respawnComponent, changedInventory, changedExp, changedSoulboundExp));
 
             return true;
         });
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            if (alive) return;
-
+        BeforeSoulboundEvent.EVENT.register((oldPlayer, newPlayer) -> {
             GraveGenerationData data = GRAVE_GENERATION_DATA.remove(oldPlayer.getUuid());
             if (data == null) return;
 
-            GraveComponent grave = data.grave();
-            grave.generateOrDrop(data.direction(), data.context(), data.respawnComponent());
+            if (
+                    oldPlayer.getSpawnPointPosition() != null &&
+                    oldPlayer.getServerWorld().getBlockEntity(oldPlayer.getSpawnPointPosition()) instanceof RespawnObeliskBlockEntity
+            ) {
+                data.respawnComponent.setSoulboundInventory(data.changedInventory.filteredInv(dropRule -> dropRule == DropRule.KEEP));
+                data.respawnComponent.setSoulboundExp(data.changedSoulboundExp);
+                data.grave.setInventoryComponent(data.changedInventory);
+                data.grave.setExpComponent(data.changedExp);
+            }
+
+            data.grave.generateOrDrop(data.direction(), data.context(), data.respawnComponent());
         });
     }
 
     private record GraveGenerationData(GraveComponent grave, Direction direction, DeathContext context,
-                                       RespawnComponent respawnComponent) {}
+                                       RespawnComponent respawnComponent, InventoryComponent changedInventory,
+                                       ExpComponent changedExp, ExpComponent changedSoulboundExp) {}
 }

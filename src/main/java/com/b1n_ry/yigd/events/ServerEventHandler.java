@@ -34,6 +34,8 @@ public class ServerEventHandler {
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             if (alive) return;
 
+            BeforeSoulboundEvent.EVENT.invoker().beforeSoulbound(oldPlayer, newPlayer);
+
             GameProfile newProfile = newPlayer.getGameProfile();
             Optional<RespawnComponent> respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newProfile);
             respawnComponent.ifPresent(component -> component.apply(newPlayer));

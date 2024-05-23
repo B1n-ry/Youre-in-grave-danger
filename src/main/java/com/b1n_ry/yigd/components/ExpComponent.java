@@ -122,4 +122,8 @@ public class ExpComponent {
         player.experienceLevel = 0;
         player.experienceProgress = 0;
     }
+
+    public ExpComponent copy() {
+        return new ExpComponent(this.storedXp, this.originalXp);
+    }
 }
