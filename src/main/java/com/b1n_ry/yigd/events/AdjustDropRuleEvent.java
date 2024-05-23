@@ -8,9 +8,9 @@ import net.fabricmc.fabric.api.event.EventFactory;
 public interface AdjustDropRuleEvent {
     Event<AdjustDropRuleEvent> EVENT = EventFactory.createArrayBacked(AdjustDropRuleEvent.class, events -> (inventory, context) -> {
         for (AdjustDropRuleEvent event : events) {
-            event.adjustDropRule(inventory, context);
+            event.adjustDropRules(inventory, context);
         }
     });
 
-    void adjustDropRule(InventoryComponent inventoryComponent, DeathContext context);
+    void adjustDropRules(InventoryComponent inventoryComponent, DeathContext context);
 }

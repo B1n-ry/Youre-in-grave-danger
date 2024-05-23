@@ -201,6 +201,7 @@
   "text.autoconfig.yigd.option.compatConfig.defaultTrinketsDropRule": "Default Drop Rule for All Trinkets",
   "text.autoconfig.yigd.option.compatConfig.enableBeansBackpacksCompat": "Load Beans Backpacks Compat?",
   "text.autoconfig.yigd.option.compatConfig.defaultBeansBackpacksDropRule": "Default Drop Rule for All Beans Backpacks Items",
+  "text.autoconfig.yigd.option.compatConfig.enableRespawnObelisksCompat": "Load Respawn Obelisks Compat?",
   "text.autoconfig.yigd.option.commandConfig": "Command Config",
   "text.autoconfig.yigd.option.commandConfig.mainCommand": "Mod Core Command",
   "text.autoconfig.yigd.option.commandConfig.basePermissionLevel": "Base Permission Level",

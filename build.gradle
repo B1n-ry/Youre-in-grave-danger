@@ -101,6 +101,7 @@ dependencies {
 
 	// Extra soulbound/droprule modification mods
 	modCompileOnly "curse.maven:orpheus-${project.orpheus_version}"
+	modCompileOnly "curse.maven:respawn-obelisks-${project.respawn_obelisks_version}"
 
 	// Inventory Mods
 	modCompileOnly "dev.emi:trinkets:${project.trinkets_version}"

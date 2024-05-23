@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.util.DropRule;
+import com.b1n_ry.yigd.util.PairModificationConsumer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -11,7 +12,6 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public abstract class CompatComponent<T> {
@@ -120,11 +120,9 @@ public abstract class CompatComponent<T> {
         }
         return false;
     }
-    public void handleItemPairs(Predicate<ItemStack> predicate, Consumer<Pair<ItemStack, DropRule>> modification) {
+    public void handleItemPairs(PairModificationConsumer modification) {
         for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
-            if (predicate.test(pair.getLeft())) {
-                modification.accept(pair);
-            }
+            modification.accept(pair.getLeft(), -1, pair);
         }
     }
     public abstract NbtCompound writeNbt();

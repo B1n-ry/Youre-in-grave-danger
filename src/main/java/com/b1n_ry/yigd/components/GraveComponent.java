@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.config.DropType;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.*;
 import com.b1n_ry.yigd.events.AllowBlockUnderGraveGenerationEvent;
+import com.b1n_ry.yigd.events.AllowGraveGenerationEvent;
 import com.b1n_ry.yigd.events.GraveClaimEvent;
 import com.b1n_ry.yigd.events.GraveGenerationEvent;
 import com.b1n_ry.yigd.packets.LightGraveData;
@@ -20,6 +21,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
@@ -32,6 +34,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
@@ -196,7 +199,6 @@ public class GraveComponent {
                     return new DirectionalPos(iPos, defaultDirection);
                 }
             }
-            i++;
         }
         return new DirectionalPos(this.pos, defaultDirection);
     }
@@ -285,7 +287,71 @@ public class GraveComponent {
         return this.world.setBlockState(this.pos, state);
     }
 
-    void placeBlockUnder() {
+    public void placeAndLoad(Direction direction, DeathContext context, BlockPos pos, RespawnComponent respawnComponent) {
+        YigdConfig config = YigdConfig.getConfig();
+
+        ServerWorld world = context.world();
+        Vec3d deathPos = context.deathPos();
+
+        // Check storage options first, in case that will lead to empty graves
+        if (!config.graveConfig.storeItems) {
+            this.inventoryComponent.dropGraveItems(world, deathPos);
+        }
+        if (!config.graveConfig.storeXp) {
+            this.expComponent.dropAll(world, deathPos);
+            this.getExpComponent().clear();
+        }
+
+        boolean waterlogged = world.getFluidState(pos).isOf(Fluids.WATER);  // Grave generated in full water block (submerged)
+        BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState()
+                .with(net.minecraft.state.property.Properties.HORIZONTAL_FACING, direction)
+                .with(Properties.WATERLOGGED, waterlogged);
+
+        respawnComponent.setGraveGenerated(true);  // Not guaranteed yet, but only errors can stop it from generating after this point
+        DeathInfoManager.INSTANCE.markDirty();  // Make sure respawn component is updated
+
+        // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
+        Yigd.END_OF_TICK.add(() -> {
+            BlockState previousState = world.getBlockState(pos);
+
+            boolean placed = this.tryPlaceGraveAt(pos, graveBlock);
+            BlockPos placedPos = this.getPos();
+
+            if (!placed) {
+                Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(
+                        placedPos.getX(), placedPos.getY(), placedPos.getZ(), world.getRegistryKey().getValue()));
+                Yigd.LOGGER.info("Dropping items on ground instead of in grave");
+                this.getInventoryComponent().dropGraveItems(world, Vec3d.of(placedPos));
+                this.getExpComponent().dropAll(world, Vec3d.of(placedPos));
+                return;
+            }
+
+            GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(placedPos);
+            if (be == null) return;
+            be.setPreviousState(previousState);
+            be.setComponent(this);
+        });
+    }
+
+    public void generateOrDrop(Direction playerDirection, DeathContext context, RespawnComponent respawnComponent) {
+        ServerWorld world = context.world();
+        Vec3d pos = context.deathPos();
+        if (!AllowGraveGenerationEvent.EVENT.invoker().allowGeneration(context, this)) {
+            this.inventoryComponent.dropGraveItems(world, pos);
+            this.expComponent.dropAll(world, pos);
+        } else {
+            DirectionalPos dirGravePos = this.findGravePos(playerDirection);
+            BlockPos gravePos = dirGravePos.pos();
+            Direction direction = dirGravePos.dir();
+
+            ServerWorld graveWorld = this.getWorld();
+            assert graveWorld != null;  // Shouldn't use assert in production, but I want to avoid warnings. Since we're on server side, this always passes
+
+            this.placeAndLoad(direction, context, gravePos, respawnComponent);
+        }
+    }
+
+    private void placeBlockUnder() {
         if (this.world == null) {
             Yigd.LOGGER.error("Tried to place block under a grave but world was null");
             return;

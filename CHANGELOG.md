@@ -3,6 +3,7 @@
 ### Changes
 * Improved compatibility with Beans Backpacks, by dropping the backpack instead of the
 items inside it when it's supposed to be dropped
+* Added compatibility with "Respawn Obelisks" mod
 
 ### Fixes
 * When using drop percent for XP, XP returned is no longer rounded down to nearest level

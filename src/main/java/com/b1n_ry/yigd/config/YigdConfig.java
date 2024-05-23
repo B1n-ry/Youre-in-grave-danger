@@ -78,15 +78,15 @@ public class YigdConfig implements ConfigData {
         @Comment("On respawn, all players will receive these effects")
         public List<EffectConfig> respawnEffects = new ArrayList<>();
         @Comment("HP given to player at respawn. If 0 or negative, default health will apply")
-        public int respawnHealth = 20;
+        public int respawnHealth = -1;
         @Comment("If false, player will respawn with the same hunger level as when they died")
         public boolean resetHunger = true;
         @Comment("Hunger given to player at respawn. If negative, default hunger will apply")
-        public int respawnHunger = 20;
+        public int respawnHunger = -1;
         @Comment("If false, player will respawn with the same saturation level as when they died")
         public boolean resetSaturation = true;
         @Comment("Saturation given to player at respawn. If negative, default saturation will apply")
-        public float respawnSaturation = 20f;
+        public float respawnSaturation = -1f;
         @Comment("Extra items that will be given to player once respawned")
         public List<ExtraItemDrop> extraItemDrops = new ArrayList<>();
 
@@ -292,6 +292,7 @@ public class YigdConfig implements ConfigData {
         @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public DropRule defaultBeansBackpacksDropRule = DropRule.PUT_IN_GRAVE;
+        public boolean enableRespawnObelisksCompat = true;
     }
 
     public static class CommandConfig {

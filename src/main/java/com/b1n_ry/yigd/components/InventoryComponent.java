@@ -9,6 +9,7 @@ import com.b1n_ry.yigd.events.DropItemEvent;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
+import com.b1n_ry.yigd.util.PairModificationConsumer;
 import com.b1n_ry.yigd.util.YigdTags;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
@@ -26,7 +27,6 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -127,7 +127,7 @@ public class InventoryComponent {
         return modInventories;
     }
 
-    public void onDeath(RespawnComponent respawnComponent, DeathContext context) {
+    public void onDeath(DeathContext context) {
         YigdConfig config = YigdConfig.getConfig();
         if (config.inventoryConfig.dropPlayerHead) {
             ItemStack playerHead = new ItemStack(Items.PLAYER_HEAD);
@@ -137,10 +137,6 @@ public class InventoryComponent {
         }
 
         this.handleDropRules(context);
-
-        // Set kept items as soulbound in respawn component
-        InventoryComponent soulboundInventory = this.filteredInv(dropRule -> dropRule == DropRule.KEEP);
-        respawnComponent.setSoulboundInventory(soulboundInventory);
 
         // Drop all dropped items
         InventoryComponent dropInventory = this.filteredInv(dropRule -> dropRule == DropRule.DROP);
@@ -170,7 +166,7 @@ public class InventoryComponent {
             compatComponent.handleDropRules(context);
         }
 
-        AdjustDropRuleEvent.EVENT.invoker().adjustDropRule(this, context);
+        AdjustDropRuleEvent.EVENT.invoker().adjustDropRules(this, context);
     }
 
     public void applyLoss() {
@@ -449,22 +445,20 @@ public class InventoryComponent {
 
     /**
      * Executes code to modify items in the component based on predicate filters
-     * @param itemPredicate Items matching this are affected
-     * @param modPredicate Mods matching this are affected ("vanilla" for vanilla inventory)
-     * @param slotPredicate Slots matching this are affected (only applies to vanilla inventory)
+     * @param modPredicate Mods matching this are affected ("vanilla" for vanilla inventory). This is used as a separate
+     *                     predicate instead of inside the consumer, to optimize performance
      * @param modification Modification done to pair
      */
-    public void handleItemPairs(Predicate<ItemStack> itemPredicate, Predicate<String> modPredicate,
-                                Predicate<Integer> slotPredicate, Consumer<Pair<ItemStack, DropRule>> modification) {
+    public void handleItemPairs(Predicate<String> modPredicate, PairModificationConsumer modification) {
         if (modPredicate.test("vanilla")) {
             for (int i = 0; i < this.items.size(); i++) {
                 Pair<ItemStack, DropRule> pair = this.items.get(i);
-                if (slotPredicate.test(i) && itemPredicate.test(pair.getLeft()))modification.accept(pair);
+                modification.accept(pair.getLeft(), i, pair);
             }
         }
         for (Map.Entry<String, CompatComponent<?>> entry : this.modInventoryItems.entrySet()) {
             CompatComponent<?> compatComponent = entry.getValue();
-            if (modPredicate.test(entry.getKey())) compatComponent.handleItemPairs(itemPredicate, modification);
+            if (modPredicate.test(entry.getKey())) compatComponent.handleItemPairs(modification);
         }
     }
 

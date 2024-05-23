@@ -1,25 +1,19 @@
 package com.b1n_ry.yigd;
 
-import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.ExpComponent;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
-import com.b1n_ry.yigd.data.DeathInfoManager;
-import com.b1n_ry.yigd.data.DirectionalPos;
 import com.b1n_ry.yigd.data.TranslatableDeathMessage;
-import com.b1n_ry.yigd.events.AllowGraveGenerationEvent;
+import com.b1n_ry.yigd.events.DelayGraveGenerationEvent;
 import com.b1n_ry.yigd.impl.ServerPlayerEntityImpl;
+import com.b1n_ry.yigd.util.DropRule;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.fluid.Fluids;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
@@ -46,11 +40,18 @@ public class DeathHandler {
         InventoryComponent.clearPlayer(player);  // No use for actual inventory when inventory component is created
         ExpComponent.clearXp(player);  // No use for actual exp when exp component is created
 
-        // Here would be an if statement for keepInventory if vanilla didn't handle keepInventory
+        // Here would be an if statement for keepInventory, if the mod didn't let vanilla handle keepInventory
         // There once was code here, but is no more since removing it was the easiest fix a duplication bug
 
-        inventoryComponent.onDeath(respawnComponent, context);
-        expComponent.onDeath(respawnComponent, context);
+        // Handle drop rules
+        inventoryComponent.onDeath(context);
+
+        // Set kept items as soulbound in respawn component
+        InventoryComponent soulboundInventory = inventoryComponent.filteredInv(dropRule -> dropRule == DropRule.KEEP);
+        respawnComponent.setSoulboundInventory(soulboundInventory);
+        // Keep XP
+        ExpComponent keepExp = expComponent.getSoulboundExp();
+        respawnComponent.setSoulboundExp(keepExp);
 
 
         if (config.inventoryConfig.itemLoss.enabled) {
@@ -65,54 +66,11 @@ public class DeathHandler {
         graveComponent.backUp();
         respawnComponent.primeForRespawn(profile);
 
-        // Check storage options first, in case that will lead to empty graves
-        if (!config.graveConfig.storeItems) {
-            inventoryComponent.dropGraveItems(world, pos);
-        }
-        if (!config.graveConfig.storeXp) {
-            expComponent.dropAll(world, pos);
-            graveComponent.getExpComponent().clear();
-        }
+        Direction playerDirection = player.getHorizontalFacing();
 
-        if (!AllowGraveGenerationEvent.EVENT.invoker().allowGeneration(context, graveComponent)) {
-            inventoryComponent.dropGraveItems(world, pos);
-            expComponent.dropAll(world, pos);
-        } else {
-            DirectionalPos dirGravePos = graveComponent.findGravePos(player.getHorizontalFacing());
-            BlockPos gravePos = dirGravePos.pos();
-
-            ServerWorld graveWorld = graveComponent.getWorld();
-            assert graveWorld != null;  // Should never be able to be null on server
-
-            Direction direction = dirGravePos.dir();
-            boolean waterlogged = graveWorld.getFluidState(gravePos).isOf(Fluids.WATER);  // Grave generated in full water block (submerged)
-            BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState()
-                    .with(Properties.HORIZONTAL_FACING, direction)
-                    .with(Properties.WATERLOGGED, waterlogged);
-
-            respawnComponent.setGraveGenerated(true);  // Not guaranteed yet, but only errors can stop it from generating after this point
-            DeathInfoManager.INSTANCE.markDirty();  // Make sure respawn component is updated
-
-            // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
-            Yigd.END_OF_TICK.add(() -> {
-                BlockState previousState = graveWorld.getBlockState(gravePos);
-
-                boolean placed = graveComponent.tryPlaceGraveAt(gravePos, graveBlock);
-                BlockPos placedPos = graveComponent.getPos();
-
-                if (!placed) {
-                    Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(placedPos.getX(), placedPos.getY(), placedPos.getZ(), graveWorld.getRegistryKey().getValue()));
-                    Yigd.LOGGER.info("Dropping items on ground instead of in grave");
-                    graveComponent.getInventoryComponent().dropGraveItems(graveWorld, Vec3d.of(placedPos));
-                    graveComponent.getExpComponent().dropAll(graveWorld, Vec3d.of(placedPos));
-                    return;
-                }
-
-                GraveBlockEntity be = (GraveBlockEntity) graveWorld.getBlockEntity(placedPos);
-                if (be == null) return;
-                be.setPreviousState(previousState);
-                be.setComponent(graveComponent);
-            });
+        if (!DelayGraveGenerationEvent.EVENT.invoker()
+                .skipGenerationCall(graveComponent, playerDirection, context, respawnComponent, "vanilla")) {
+            graveComponent.generateOrDrop(playerDirection, context, respawnComponent);
         }
     }
 }

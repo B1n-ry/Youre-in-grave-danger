@@ -44,6 +44,9 @@ public class RespawnComponent {
     public void setSoulboundExp(@NotNull ExpComponent component) {
         this.soulboundExp = component;
     }
+    public @Nullable ExpComponent getSoulboundExp() {
+        return this.soulboundExp;
+    }
 
     public void setGraveGenerated(boolean graveGenerated) {
         this.graveGenerated = graveGenerated;

@@ -1,7 +1,6 @@
 package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.data.DeathContext;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -9,17 +8,27 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 
 public class ExpComponent {
+    private final double originalXp;
     private int storedXp;
 
     public ExpComponent(ServerPlayerEntity player) {
+        this.originalXp = this.getTotalExperience(player);
         this.storedXp = this.getXpDropAmount(player);
     }
-    private ExpComponent(int storedXp) {
+    private ExpComponent(int storedXp, double originalXp) {
+        this.storedXp = storedXp;
+        this.originalXp = originalXp;
+    }
+
+    public void setStoredXp(int storedXp) {
         this.storedXp = storedXp;
     }
 
     public int getStoredXp() {
         return this.storedXp;
+    }
+    public double getOriginalXp() {
+        return this.originalXp;
     }
 
     public int getXpDropAmount(ServerPlayerEntity player) {
@@ -68,16 +77,11 @@ public class ExpComponent {
         return i - 1;
     }
 
-    public void onDeath(RespawnComponent respawnComponent, DeathContext ignoredContext) {
-        ExpComponent keepExp = this.getSoulboundExp();
-        respawnComponent.setSoulboundExp(keepExp);
-    }
-
     public boolean isEmpty() {
         return this.storedXp == 0;
     }
 
-    private ExpComponent getSoulboundExp() {
+    public ExpComponent getSoulboundExp() {
         YigdConfig config = YigdConfig.getConfig();
         float soulboundFactor = config.expConfig.keepPercentage / 100f;
         int keepXp = (int) (this.storedXp * soulboundFactor);
@@ -85,7 +89,7 @@ public class ExpComponent {
 
         if (this.storedXp < 0) this.storedXp = 0;
 
-        return new ExpComponent(keepXp);
+        return new ExpComponent(keepXp, this.originalXp);
     }
 
     public void dropAll(ServerWorld world, Vec3d pos) {
@@ -103,12 +107,14 @@ public class ExpComponent {
     public NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
         nbt.putInt("value", this.storedXp);
+        nbt.putDouble("original", this.originalXp);
         return nbt;
     }
 
     public static ExpComponent fromNbt(NbtCompound nbt) {
         int xpToDrop = nbt.getInt("value");
-        return new ExpComponent(xpToDrop);
+        double originalXp = nbt.contains("original") ? nbt.getDouble("original") : xpToDrop;
+        return new ExpComponent(xpToDrop, originalXp);
     }
 
     public static void clearXp(ServerPlayerEntity player) {
