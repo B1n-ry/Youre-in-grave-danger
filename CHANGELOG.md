@@ -1,7 +1,14 @@
+# You're in Grave Danger 2.0.0-beta.14
+
+### Changes
+* Death Scroll item click functionality can now be overwritten with NBT
+
+---
+
 # You're in Grave Danger 2.0.0-beta.13
 
 ### Fixes
-* Fixes crash when extraItemsReceived config in the respawn component is changed
+* Fixed crash when extraItemsReceived config in the respawn component is changed
 
 ---
 

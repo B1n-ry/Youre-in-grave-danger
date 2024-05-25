@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.item;
 
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.ScrollConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
@@ -10,7 +11,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -46,16 +46,23 @@ public class DeathScrollItem extends Item {
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (world.isClient) return super.use(world, user, hand);
 
-        YigdConfig.ExtraFeatures.ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
+        ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
 
         ServerPlayerEntity player = (ServerPlayerEntity) user;
         ItemStack scroll = player.getStackInHand(hand);
-        if (scrollConfig.rebindable && player.isSneaking()) {
+        NbtCompound scrollNbt = scroll.getNbt();
+        // Rebind if the player is sneaking (and it can be rebound), or if the scroll is unbound
+        if ((scrollConfig.rebindable && player.isSneaking()) || scrollNbt == null || scrollNbt.getUuid("grave") == null) {
             if (this.bindStackToLatestDeath(player, scroll))
                 return TypedActionResult.success(scroll, true);
         }
 
-        TypedActionResult<ItemStack> res = switch (scrollConfig.clickFunction) {
+        ScrollConfig.ClickFunction clickFunction = scrollConfig.clickFunction;
+        if (scrollNbt != null && scrollNbt.contains("clickFunction") && !scrollNbt.getString("clickFunction").equals("default")) {
+            clickFunction = ScrollConfig.ClickFunction.valueOf(scrollNbt.getString("clickFunction"));
+        }
+
+        TypedActionResult<ItemStack> res = switch (clickFunction) {
             case VIEW_CONTENTS -> this.viewContent(scroll, player);
             case RESTORE_CONTENTS -> this.restoreContent(scroll, player);
             case TELEPORT_TO_LOCATION -> this.teleport(scroll, player);
@@ -70,6 +77,8 @@ public class DeathScrollItem extends Item {
     }
 
     public boolean bindStackToLatestDeath(ServerPlayerEntity player, ItemStack scroll) {
+        if (player == null) return false;  // Idk how some mods do auto-crafting, but this could fix some issues if they just pass null
+
         GameProfile playerProfile = player.getGameProfile();
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(playerProfile));
         graves.removeIf(component -> component.getStatus() != GraveStatus.UNCLAIMED);
@@ -77,7 +86,9 @@ public class DeathScrollItem extends Item {
         int size = graves.size();
         if (size >= 1) {
             GraveComponent component = graves.get(size - 1);
-            scroll.setSubNbt("grave", NbtHelper.fromUuid(component.getGraveId()));
+            NbtCompound scrollNbt = scroll.getOrCreateNbt();
+            scrollNbt.putUuid("grave", component.getGraveId());
+            scrollNbt.putString("clickFunction", "default");
             return true;
         }
         return false;
