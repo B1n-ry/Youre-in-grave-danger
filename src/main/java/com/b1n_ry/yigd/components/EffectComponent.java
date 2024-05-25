@@ -85,10 +85,10 @@ public class EffectComponent {
 
     private void loadEffectsFromConfig(YigdConfig.RespawnConfig rConfig) {
         for (YigdConfig.RespawnConfig.EffectConfig effect : rConfig.respawnEffects) {
-            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(new Identifier(effect.effectName()));
+            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(new Identifier(effect.effectName));
             if (statusEffect == null) continue;
 
-            StatusEffectInstance effectInstance = new StatusEffectInstance(statusEffect, effect.effectTime(), effect.effectLevel() - 1, false, effect.showBubbles());
+            StatusEffectInstance effectInstance = new StatusEffectInstance(statusEffect, effect.effectTime, effect.effectLevel - 1, false, effect.showBubbles);
             this.effects.add(effectInstance);
         }
     }

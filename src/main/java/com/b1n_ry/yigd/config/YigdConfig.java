@@ -90,18 +90,32 @@ public class YigdConfig implements ConfigData {
         @Comment("Extra items that will be given to player once respawned")
         public List<ExtraItemDrop> extraItemDrops = new ArrayList<>();
 
-        public record EffectConfig(String effectName, int effectLevel, int effectTime, boolean showBubbles) {
+        public static class EffectConfig {
+            public String effectName;
+            public int effectLevel;
+            public int effectTime;
+            public boolean showBubbles;
+
             // Constructor required for the config gui to work
             @SuppressWarnings("unused")
             public EffectConfig() {
-                this("", 0, 0, true);
+                this.effectName = "";
+                this.effectLevel = 0;
+                this.effectTime = 0;
+                this.showBubbles = false;
             }
         }
-        public record ExtraItemDrop(String itemId, int count, String itemNbt) {
+        public static class ExtraItemDrop {
+            public String itemId;
+            public int count;
+            public String itemNbt;
+
             // Constructor required for the config gui to work
             @SuppressWarnings("unused")
             public ExtraItemDrop() {
-                this("", 0, "");
+                this.itemId = "";
+                this.count = 0;
+                this.itemNbt = "";
             }
         }
     }

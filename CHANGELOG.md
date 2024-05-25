@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.0-beta.13
+
+### Fixes
+* Fixes crash when extraItemsReceived config in the respawn component is changed
+
+---
+
 # You're in Grave Danger 2.0.0-beta.12
 
 ### Changes

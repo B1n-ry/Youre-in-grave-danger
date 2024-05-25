@@ -96,16 +96,16 @@ public class RespawnComponent {
         }
 
         for (YigdConfig.RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {
-            Item item = Registries.ITEM.get(new Identifier(extraItemDrop.itemId()));
-            ItemStack stack = new ItemStack(item, extraItemDrop.count());
+            Item item = Registries.ITEM.get(new Identifier(extraItemDrop.itemId));
+            ItemStack stack = new ItemStack(item, extraItemDrop.count);
             try {
-                stack.setNbt(NbtHelper.fromNbtProviderString(extraItemDrop.itemNbt()));
-
-                player.giveItemStack(stack);
+                if (!extraItemDrop.itemNbt.isEmpty())
+                    stack.setNbt(NbtHelper.fromNbtProviderString(extraItemDrop.itemNbt));
             }
             catch (CommandSyntaxException e) {
-                Yigd.LOGGER.error("Could not give an item with NBT to player on respawn. Invalid NBT");
+                Yigd.LOGGER.error("Could not give an item with NBT to player on respawn. Invalid NBT. Falling back to item without NBT");
             }
+            player.giveItemStack(stack);
         }
 
         if (this.soulboundExp != null)
