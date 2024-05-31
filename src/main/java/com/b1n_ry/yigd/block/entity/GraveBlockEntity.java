@@ -10,6 +10,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.listener.ClientPlayPacketListener;
@@ -18,8 +20,12 @@ import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -153,7 +159,7 @@ public class GraveBlockEntity extends BlockEntity {
         }
     }
 
-    public static void tick(World world, BlockPos blockPos, BlockState ignoredState, GraveBlockEntity be) {
+    public static void tick(World world, BlockPos ignoredPos, BlockState ignoredState, GraveBlockEntity be) {
         if (world.isClient) return;
 
         if (be.component == null) return;
@@ -168,11 +174,14 @@ public class GraveBlockEntity extends BlockEntity {
         if (timeoutConfig.timeUnit.toSeconds(timeoutConfig.afterTime) * ticksPerSecond <= timePassed) {
             // Not technically destroyed, but a status has to be set to not trigger the "onDestroyed" grave component method
             be.component.setStatus(GraveStatus.DESTROYED);
+
+
             BlockState newState = Blocks.AIR.getDefaultState();
-            if (cachedConfig.graveConfig.replaceOldWhenClaimed) {
-                newState = be.previousState;
+            BlockState previousState = be.getPreviousState();
+            if (YigdConfig.getConfig().graveConfig.replaceOldWhenClaimed && previousState != null) {
+                newState = previousState;
             }
-            world.setBlockState(blockPos, newState);
+            be.component.replaceWithOld(newState);
 
             if (timeoutConfig.dropContentsOnTimeout) {
                 be.component.dropAll();

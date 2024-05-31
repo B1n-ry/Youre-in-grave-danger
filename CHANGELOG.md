@@ -3,6 +3,9 @@
 ### Changes
 * Death Scroll item click functionality can now be overwritten with NBT
 
+### Fixes
+* Doors will no longer be halved if dying inside of them
+
 ---
 
 # You're in Grave Danger 2.0.0-beta.13

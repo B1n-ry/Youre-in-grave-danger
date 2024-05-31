@@ -19,6 +19,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.fluid.Fluids;
@@ -30,6 +31,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -38,6 +40,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -392,6 +395,40 @@ public class GraveComponent {
         }
     }
 
+    /**
+     * Replaces the grave with the block that was there before the grave was placed (or air if feature is disabled)
+     * @param newState The block that should be placed instead of the grave (previous state)
+     * @return Weather or not the block was replaced
+     */
+    public boolean replaceWithOld(BlockState newState) {
+        if (this.world == null) return false;
+
+        if (newState.contains(Properties.DOUBLE_BLOCK_HALF)) placeOtherHalf: {
+            DoubleBlockHalf half = newState.get(Properties.DOUBLE_BLOCK_HALF);
+            BlockPos otherHalfPos = this.pos.offset(Direction.UP, half == DoubleBlockHalf.LOWER ? 1 : -1);
+
+            if (!this.world.getBlockState(otherHalfPos).isAir()) {
+                // Drop the block as an item if it can not be fully placed
+                if (!newState.isIn(BlockTags.REPLACEABLE)) {  // Works as an "importance filter"
+                    ItemScatterer.spawn(this.world, this.pos.getX(), this.pos.getY(), this.pos.getZ(),
+                            new ItemStack(newState.getBlock().asItem()));
+                }
+                break placeOtherHalf;
+            }
+
+            // Place full block (both parts)
+            boolean placedFirst = this.world.setBlockState(this.pos, newState);
+            boolean placedSecond = this.world.setBlockState(otherHalfPos, newState.with(Properties.DOUBLE_BLOCK_HALF,
+                    half == DoubleBlockHalf.LOWER ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER));
+
+            return placedFirst && placedSecond;
+        } else {
+            return this.world.setBlockState(this.pos, newState);  // Place the block
+        }
+
+        return false;  // For when if case is broken out of
+    }
+
     public void backUp() {
         DeathInfoManager.INSTANCE.addBackup(this.owner, this);
         DeathInfoManager.INSTANCE.markDirty();
@@ -449,7 +486,7 @@ public class GraveComponent {
 
         if (!config.graveConfig.persistentGraves.enabled) {
             if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
-                world.setBlockState(pos, previousState);
+                this.replaceWithOld(previousState);
             } else {
                 world.removeBlock(pos, false);
             }
@@ -500,7 +537,7 @@ public class GraveComponent {
         if (previousState == null) {
             return this.world.removeBlock(this.pos, false);
         } else {
-            return this.world.setBlockState(this.pos, previousState);
+            return this.replaceWithOld(previousState);
         }
     }
 
