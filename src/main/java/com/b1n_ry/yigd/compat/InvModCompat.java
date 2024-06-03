@@ -23,21 +23,21 @@ public interface InvModCompat<T> {
             invCompatMods.add(new InventorioCompat());
         if (compatConfig.enableTravelersBackpackCompat && loader.isModLoaded("travelersbackpack"))
             invCompatMods.add(new TravelersBackpackCompat());
-        if (compatConfig.enableLevelzCompat && loader.isModLoaded("levelz"))
-            invCompatMods.add(new LevelzCompat());
+//        if (compatConfig.enableLevelzCompat && loader.isModLoaded("levelz"))
+//            invCompatMods.add(new LevelzCompat());
         if (compatConfig.enableNumismaticOverhaulCompat && loader.isModLoaded("numismatic-overhaul"))
             invCompatMods.add(new NumismaticOverhaulCompat());
         if (compatConfig.enableOriginsInventoryCompat && loader.isModLoaded("apoli"))
             invCompatMods.add(new OriginsCompat());
-        if (compatConfig.enableBeansBackpacksCompat && loader.isModLoaded("beansbackpacks"))
-            invCompatMods.add(new BeansBackpacksCompat());
+//        if (compatConfig.enableBeansBackpacksCompat && loader.isModLoaded("beansbackpacks"))
+//            invCompatMods.add(new BeansBackpacksCompat());
 
         if (loader.isModLoaded("common-protection-api"))
             CommonProtectionApiCompat.init();
         if (loader.isModLoaded("orpheus"))
             OrpheusCompat.init();
-        if (compatConfig.enableRespawnObelisksCompat && loader.isModLoaded("respawnobelisks"))
-            RespawnObelisksCompat.init();
+//        if (compatConfig.enableRespawnObelisksCompat && loader.isModLoaded("respawnobelisks"))
+//            RespawnObelisksCompat.init();
     }
 
     String getModName();

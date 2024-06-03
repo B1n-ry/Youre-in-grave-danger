@@ -16,6 +16,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -125,7 +126,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return checkType(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
+        return validateTicker(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
     }
 
     @SuppressWarnings("deprecation")
@@ -179,14 +180,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
         ItemStack stack = player.getStackInHand(hand);
         NbtCompound nbt = stack.getNbt();
-        NbtElement skullOwnerNbt;
-        if (stack.isOf(Items.PLAYER_HEAD) && nbt != null && (skullOwnerNbt = nbt.get("SkullOwner")) != null) {
-            byte nbtType = skullOwnerNbt.getType();
-            GameProfile profile = switch (nbtType) {
-                case NbtElement.STRING_TYPE -> new GameProfile(null, skullOwnerNbt.asString());
-                case NbtElement.COMPOUND_TYPE -> NbtHelper.toGameProfile((NbtCompound) skullOwnerNbt);
-                default -> null;
-            };
+        if (stack.isOf(Items.PLAYER_HEAD) && nbt != null) {
+            GameProfile profile = SkullBlockEntity.getProfile(nbt);
 
             grave.setGraveSkull(profile);  // Works since profile is nullable
             grave.markDirty();

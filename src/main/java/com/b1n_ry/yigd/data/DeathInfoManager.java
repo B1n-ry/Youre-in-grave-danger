@@ -45,6 +45,10 @@ public class DeathInfoManager extends PersistentState {
         return affectedPlayers;
     }
 
+    public static PersistentState.Type<DeathInfoManager> getPersistentStateType(MinecraftServer server) {
+        return new PersistentState.Type<>(DeathInfoManager::new, (nbt) -> DeathInfoManager.fromNbt(nbt, server), null);
+    }
+
     /**
      * Tries to delete a grave based on its grave ID
      * @param graveId the ID of the grave
@@ -170,7 +174,7 @@ public class DeathInfoManager extends PersistentState {
         return nbt;
     }
 
-    public static PersistentState fromNbt(NbtCompound nbt, MinecraftServer server) {
+    public static DeathInfoManager fromNbt(NbtCompound nbt, MinecraftServer server) {
         INSTANCE.clear();
 
         NbtList respawnNbt = nbt.getList("respawns", NbtElement.COMPOUND_TYPE);

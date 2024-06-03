@@ -136,7 +136,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         // Main slots
         this.addItemSlot(this.invPanel, SLOTS_PER_LINE, this.visibleInventoryComponent.mainSize - SLOTS_PER_LINE, items,
                 i -> new Point((i % SLOTS_PER_LINE) * SLOT_SIZE,
-                        (int) ((generateArmorAndOffhandFrom + 1.5 + (i / SLOTS_PER_LINE)) * SLOT_SIZE)));
+                        (int) ((generateArmorAndOffhandFrom + 1.5 + (double) (i / SLOTS_PER_LINE)) * SLOT_SIZE)));
 
         int collectiveSize = this.visibleInventoryComponent.mainSize + this.visibleInventoryComponent.armorSize + this.visibleInventoryComponent.offHandSize;
         int sizeDiff = items.size() - collectiveSize;
