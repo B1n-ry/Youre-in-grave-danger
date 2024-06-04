@@ -15,7 +15,7 @@ publishMods {
 	file = remapJar.archiveFile
 
 	changelog = file("CHANGELOG.md").text.split("\n---")[0]
-	type = BETA
+	type = STABLE
 
 	displayName = "You're in Grave Danger " + project.mod_version
 	modLoaders.add("fabric")
