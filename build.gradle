@@ -25,7 +25,10 @@ publishMods {
 
 		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
 
-		minecraftVersions.add("1.20.2")
+		minecraftVersionRange {
+			start = "1.20"
+			end = project.minecraft_version
+		}
 
 		javaVersions.add(java.sourceCompatibility)
 
@@ -41,7 +44,7 @@ publishMods {
 
 		accessToken = providers.environmentVariable("GITHUB_TOKEN")
 		repository = "B1n-ry/Youre-in-grave-danger"
-		commitish = "1.20"
+		commitish = "1.20-fabric"
 		tagName = project.minecraft_version + "-" + project.mod_version
 	}
 
@@ -49,7 +52,10 @@ publishMods {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		projectId = "HnD1GX6e"
 
-		minecraftVersions.add("1.20.2")
+		minecraftVersionRange {
+			start = "1.20"
+			end = project.minecraft_version
+		}
 
 		requires("fabric-api", "cloth-config")
 	}

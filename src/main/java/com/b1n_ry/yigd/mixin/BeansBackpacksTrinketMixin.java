@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Pseudo
 @Mixin(targets = "com/beansgalaxy/backpacks/compat/TrinketsRegistry$1")
 public class BeansBackpacksTrinketMixin {
+    // TODO: Test if this is still required. Either I forgot to remove it, or it's actually important
     @Inject(method = "getDropRule", at = @At("HEAD"), cancellable = true)
     private void changeDropRule(ItemStack stack, SlotReference slot, LivingEntity entity, CallbackInfoReturnable<TrinketEnums.DropRule> cir) {
         cir.setReturnValue(TrinketEnums.DropRule.DEFAULT);
