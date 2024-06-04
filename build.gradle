@@ -15,7 +15,7 @@ publishMods {
 	file = remapJar.archiveFile
 
 	changelog = file("CHANGELOG.md").text.split("\n---")[0]
-	type = BETA
+	type = STABLE
 
 	displayName = "You're in Grave Danger " + project.mod_version
 	modLoaders.add("fabric")
@@ -25,10 +25,7 @@ publishMods {
 
 		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
 
-		minecraftVersionRange {
-			start = "1.20"
-			end = project.minecraft_version
-		}
+		minecraftVersions.add("1.20.2")
 
 		javaVersions.add(java.sourceCompatibility)
 
@@ -52,10 +49,7 @@ publishMods {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		projectId = "HnD1GX6e"
 
-		minecraftVersionRange {
-			start = "1.20"
-			end = project.minecraft_version
-		}
+		minecraftVersions.add("1.20.2")
 
 		requires("fabric-api", "cloth-config")
 	}

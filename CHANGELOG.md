@@ -1,4 +1,11 @@
-# You're in Grave Danger 2.0.0-beta.14
+# You're in Grave Danger 2.1.0
+
+### Changes
+* Updated to 1.20.2
+
+---
+
+# You're in Grave Danger 2.0.0
 
 ### Changes
 * Death Scroll item click functionality can now be overwritten with NBT
