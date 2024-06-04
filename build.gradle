@@ -76,19 +76,8 @@ repositories {
 		}
 	}
 
-	exclusiveContent {
-		forRepository {
-			maven {
-				url = 'https://jitpack.io'
-			}
-		}
-		filter {
-			includeGroup "com.github.apace100"
-		}
-	}
-
 	maven { url 'https://maven.ladysnake.org/releases' }  // Trinkets, cca
-//	maven { url 'https://jitpack.io' }  // Origins??
+	maven { url 'https://jitpack.io' }  // Apoli
 	maven { url "https://maven.shedaniel.me/" }  // Cloth config
 	maven { url "https://maven.terraformersmc.com/releases/" }  // Cloth config, mod menu, trinkets, origins
 	maven { url "https://server.bbkr.space/artifactory/libs-release" }  // LibGUI
@@ -110,12 +99,20 @@ dependencies {
 	}
 
 	// Bundled
-	modImplementation include("io.github.cottonmc:LibGui:${project.lib_gui_version}")  // libGUI
-	modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_version}")  // permissions API
+	modImplementation include("io.github.cottonmc:LibGui:${project.lib_gui_version}") {  // libGUI
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	modImplementation include("me.lucko:fabric-permissions-api:${project.permissions_version}") {  // permissions API
+		exclude(group: "net.fabricmc.fabric-api")
+	}
 
 	// Compat mods
-	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"  // modmenu
-	modImplementation "eu.pb4:common-protection-api:${project.protection_api_version}"  // protection API
+	modImplementation ("com.terraformersmc:modmenu:${project.modmenu_version}") {  // modmenu
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	modImplementation ("eu.pb4:common-protection-api:${project.protection_api_version}") {  // protection API
+		exclude(group: "net.fabricmc.fabric-api")
+	}
 
 	// Extra soulbound/droprule modification mods
 	modCompileOnly "maven.modrinth:orpheus:${project.orpheus_version}" // orpheus

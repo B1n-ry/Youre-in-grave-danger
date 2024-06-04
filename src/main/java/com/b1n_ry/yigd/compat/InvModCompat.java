@@ -2,7 +2,6 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.compat.misc_compat_mods.CommonProtectionApiCompat;
 import com.b1n_ry.yigd.compat.misc_compat_mods.OrpheusCompat;
-import com.b1n_ry.yigd.compat.misc_compat_mods.RespawnObelisksCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.NbtCompound;
