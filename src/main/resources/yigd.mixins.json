@@ -8,7 +8,8 @@
     "LivingEntityMixin",
     "ServerPlayerEntityMixin",
     "TravelersBackpackTrinketMixin",
-    "WorldChunkMixin"
+    "WorldChunkMixin",
+    "accessor.DamageTrackerAccessor"
   ],
   "client": [
     "AbstractConfigScreenMixin",

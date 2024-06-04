@@ -24,11 +24,11 @@ public class GraveKeyItem extends Item {
         super(settings);
     }
     @Override
-    public void onCraft(ItemStack stack, World world, PlayerEntity player) {
+    public void onCraftByPlayer(ItemStack stack, World world, PlayerEntity player) {
         if (!world.isClient) {
             this.bindStackToLatestGrave(player, stack);
         }
-        super.onCraft(stack, world, player);
+        super.onCraftByPlayer(stack, world, player);
     }
 
     @Override

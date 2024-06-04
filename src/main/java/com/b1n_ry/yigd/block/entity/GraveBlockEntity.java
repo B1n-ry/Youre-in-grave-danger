@@ -105,7 +105,7 @@ public class GraveBlockEntity extends BlockEntity {
         if (this.graveSkull != null)
             nbt.put("skull", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
         if (this.graveText != null)
-            nbt.putString("text", Text.Serializer.toJson(this.graveText));
+            nbt.putString("text", Text.Serialization.toJsonString(this.graveText));
         nbt.putBoolean("claimed", this.claimed);
 
         return nbt;
@@ -121,7 +121,7 @@ public class GraveBlockEntity extends BlockEntity {
     protected void writeNbt(NbtCompound nbt) {
         nbt.putBoolean("claimed", this.claimed);
         if (this.graveText != null)
-            nbt.putString("text", Text.Serializer.toJson(this.graveText));
+            nbt.putString("text", Text.Serialization.toJsonString(this.graveText));
         if (this.graveSkull != null)
             nbt.put("skull", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
         if (this.graveId != null)
@@ -136,7 +136,7 @@ public class GraveBlockEntity extends BlockEntity {
             this.graveSkull = NbtHelper.toGameProfile(nbt.getCompound("skull"));
 
         if (nbt.contains("text"))
-            this.graveText = Text.Serializer.fromJson(nbt.getString("text"));
+            this.graveText = Text.Serialization.fromJson(nbt.getString("text"));
 
         this.claimed = nbt.getBoolean("claimed");
 

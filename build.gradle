@@ -25,10 +25,7 @@ publishMods {
 
 		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
 
-		minecraftVersionRange {
-			start = "1.20"
-			end = project.minecraft_version
-		}
+		minecraftVersions.add("1.20.4")
 
 		javaVersions.add(java.sourceCompatibility)
 
@@ -44,7 +41,7 @@ publishMods {
 
 		accessToken = providers.environmentVariable("GITHUB_TOKEN")
 		repository = "B1n-ry/Youre-in-grave-danger"
-		commitish = "1.20"
+		commitish = "1.20.4-fabric"
 		tagName = project.minecraft_version + "-" + project.mod_version
 	}
 
@@ -52,10 +49,7 @@ publishMods {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		projectId = "HnD1GX6e"
 
-		minecraftVersionRange {
-			start = "1.20"
-			end = project.minecraft_version
-		}
+		minecraftVersions.add("1.20.4")
 
 		requires("fabric-api", "cloth-config")
 	}
@@ -115,7 +109,7 @@ dependencies {
 	}
 
 	// Extra soulbound/droprule modification mods
-	modCompileOnly "maven.modrinth:orpheus:${project.orpheus_version}" // orpheus
+//	modCompileOnly "maven.modrinth:orpheus:${project.orpheus_version}" // orpheus
 //	modCompileOnly "curse.maven:respawn-obelisks-${project.respawn_obelisks_version}"
 
 	// Inventory Mods
@@ -123,12 +117,12 @@ dependencies {
 	modCompileOnly "maven.modrinth:inventorio:${project.inventorio_version}" // inventorio
 	modCompileOnly "maven.modrinth:travelersbackpack:${project.travelers_backpack_version}"  // travelers backpack
 	modCompileOnly "maven.modrinth:numismatic-overhaul:${project.numismatic_version}"  // numismatic overhaul
-	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"  // origins/apoli
+//	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"  // origins/apoli
 //	modCompileOnly "maven.modrinth:levelz:${project.levelz_version}"
 //	modCompileOnly "maven.modrinth:beans-backpacks:${project.beans_backpacks_version}"
 
 	// Dev dependencies
-	modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
+//	modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
 }
 
 processResources {

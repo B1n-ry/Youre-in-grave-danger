@@ -14,7 +14,7 @@ public class TranslatableDeathMessage {
     private final String killedDisplayName;
     @Nullable private final String sourceDisplayName;
     @Nullable private final String attackerDisplayName;
-    @Nullable private String itemDisplayName;
+    @Nullable private final String itemDisplayName;
     @Nullable private final String primeAdversaryDisplayName;
 
     public TranslatableDeathMessage(DamageSource deathSource, LivingEntity killed) {
@@ -24,13 +24,14 @@ public class TranslatableDeathMessage {
         Entity attacker = deathSource.getAttacker();
         this.sourceDisplayName = source != null ? source.getDisplayName().getString() : null;
         this.attackerDisplayName = attacker != null ? attacker.getDisplayName().getString() : null;
-        this.itemDisplayName = null;
+        String itemDisplayName = null;
         if (attacker instanceof LivingEntity livingAttacker) {
             ItemStack killingWeapon = livingAttacker.getMainHandStack();
             if (!killingWeapon.isEmpty() && killingWeapon.hasCustomName()) {
-                this.itemDisplayName = livingAttacker.getMainHandStack().toHoverableText().getString();
+                itemDisplayName = livingAttacker.getMainHandStack().toHoverableText().getString();
             }
         }
+        this.itemDisplayName = itemDisplayName;
         this.primeAdversaryDisplayName = killed.getPrimeAdversary() != null ? killed.getPrimeAdversary().getDisplayName().getString() : null;
     }
     public TranslatableDeathMessage(String damageTypeId, String killedDisplayName, @Nullable String sourceDisplayName, @Nullable String attackerDisplayName, @Nullable String itemDisplayName, @Nullable String primeAdversaryDisplayName) {

@@ -30,11 +30,11 @@ public class DeathScrollItem extends Item {
     }
 
     @Override
-    public void onCraft(ItemStack stack, World world, PlayerEntity player) {
+    public void onCraftByPlayer(ItemStack stack, World world, PlayerEntity player) {
         if (!world.isClient) {
             this.bindStackToLatestDeath((ServerPlayerEntity) player, stack);
         }
-        super.onCraft(stack, world, player);
+        super.onCraftByPlayer(stack, world, player);
     }
 
     @Override
