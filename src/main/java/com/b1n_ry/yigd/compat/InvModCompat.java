@@ -25,8 +25,8 @@ public interface InvModCompat<T> {
 //            invCompatMods.add(new LevelzCompat());
         if (compatConfig.enableNumismaticOverhaulCompat && loader.isModLoaded("numismatic-overhaul"))
             invCompatMods.add(new NumismaticOverhaulCompat());
-        if (compatConfig.enableOriginsInventoryCompat && loader.isModLoaded("apoli"))
-            invCompatMods.add(new OriginsCompat());
+//        if (compatConfig.enableOriginsInventoryCompat && loader.isModLoaded("apoli"))
+//            invCompatMods.add(new OriginsCompat());
 //        if (compatConfig.enableBeansBackpacksCompat && loader.isModLoaded("beansbackpacks"))
 //            invCompatMods.add(new BeansBackpacksCompat());
 
