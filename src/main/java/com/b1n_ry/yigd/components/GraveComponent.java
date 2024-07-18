@@ -264,7 +264,7 @@ public class GraveComponent {
         if (config.generateGraveInVoid && attemptedPos.getY() <= lowerAcceptableY) {
             y = lowerAcceptableY;
         }
-        int topY = this.world.getTopY();
+        int topY = this.world.getTopY() - 1;  // Can't actually place blocks at top Y
         if (y > topY) {
             y = topY;
         }
@@ -274,11 +274,11 @@ public class GraveComponent {
         if (config.generateOnlyWithinBorder) {
             WorldBorder border = this.world.getWorldBorder();
             if (!border.contains(x, z)) {
-                x = (int) Math.max(x, border.getBoundEast());
-                x = (int) Math.min(x, border.getBoundWest());
+                x = (int) Math.max(x, border.getBoundWest());
+                x = (int) Math.min(x, border.getBoundEast());
 
-                z = (int) Math.max(z, border.getBoundSouth());
-                z = (int) Math.min(z, border.getBoundNorth());
+                z = (int) Math.max(z, border.getBoundNorth());
+                z = (int) Math.min(z, border.getBoundSouth());
             }
         }
 
@@ -554,7 +554,7 @@ public class GraveComponent {
 
             // Package item as NBT, and put inside NBT summon string
             ItemStack item = items.get(itemNumber).getLeft();
-            NbtCompound itemNbt = (NbtCompound) item.encode(world.getRegistryManager());  // TODO: Test if this works
+            NbtCompound itemNbt = (NbtCompound) item.encode(world.getRegistryManager());
 
             boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
 

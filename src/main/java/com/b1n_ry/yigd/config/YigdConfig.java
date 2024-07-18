@@ -252,7 +252,7 @@ public class YigdConfig implements ConfigData {
         public static class RandomSpawn {
             public int percentSpawnChance = 0;
             public String spawnEntity = "minecraft:zombie";
-            public String spawnNbt = "{ArmorItems:[{},{},{},{id:\"minecraft:player_head\",tag:{SkullOwner:{Name:\"${owner.name}\",Id:\"${owner.uuid}\"}},Count:1b}]}";
+            public String spawnNbt = "{ArmorItems:[{},{},{},{id:\"minecraft:player_head\",components:{\"minecraft:profile\":{name:\"${owner.name}\",id:${owner.uuid}}}}]}";
         }
 
         public static class Range {

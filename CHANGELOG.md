@@ -3,6 +3,9 @@
 ### Changes
 * Updated to 1.20.6
 
+### Fixes
+* `generateOnlyWithinBorder` config now actually works
+
 ---
 
 # You're in Grave Danger 2.0.0-beta.14
