@@ -7,9 +7,7 @@
     "CompassItemMixin",
     "LivingEntityMixin",
     "ServerPlayerEntityMixin",
-    "TravelersBackpackTrinketMixin",
-    "WorldChunkMixin",
-    "accessor.DamageTrackerAccessor"
+    "WorldChunkMixin"
   ],
   "client": [
     "AbstractConfigScreenMixin",

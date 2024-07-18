@@ -8,6 +8,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
@@ -73,10 +74,7 @@ public class EffectComponent {
 
         NbtList nbtEffects = new NbtList();
         for (StatusEffectInstance instance : this.effects) {
-            NbtCompound effectNbt = new NbtCompound();
-            instance.writeNbt(effectNbt);
-
-            nbtEffects.add(effectNbt);
+            nbtEffects.add(instance.writeNbt());
         }
         nbtCompound.put("effects", nbtEffects);
 
@@ -88,7 +86,8 @@ public class EffectComponent {
             StatusEffect statusEffect = Registries.STATUS_EFFECT.get(new Identifier(effect.effectName));
             if (statusEffect == null) continue;
 
-            StatusEffectInstance effectInstance = new StatusEffectInstance(statusEffect, effect.effectTime, effect.effectLevel - 1, false, effect.showBubbles);
+            RegistryEntry<StatusEffect> effectRegistryEntry = Registries.STATUS_EFFECT.getEntry(statusEffect);
+            StatusEffectInstance effectInstance = new StatusEffectInstance(effectRegistryEntry, effect.effectTime, effect.effectLevel - 1, false, effect.showBubbles);
             this.effects.add(effectInstance);
         }
     }

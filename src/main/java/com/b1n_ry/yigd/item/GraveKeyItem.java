@@ -4,12 +4,14 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
-import com.mojang.authlib.GameProfile;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -52,7 +54,7 @@ public class GraveKeyItem extends Item {
     }
 
     public boolean bindStackToLatestGrave(PlayerEntity player, ItemStack key) {
-        GameProfile playerProfile = player.getGameProfile();
+        ProfileComponent playerProfile = new ProfileComponent(player.getGameProfile());
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(playerProfile));
         graves.removeIf(component -> component.getStatus() != GraveStatus.UNCLAIMED);
 
@@ -64,8 +66,10 @@ public class GraveKeyItem extends Item {
         }
         return false;
     }
-    public void bindStackToGrave(UUID graveId, GameProfile playerProfile, ItemStack key) {
-        key.setSubNbt("grave", NbtHelper.fromUuid(graveId));
-        key.setSubNbt("user", NbtHelper.writeGameProfile(new NbtCompound(), playerProfile));
+    public void bindStackToGrave(UUID graveId, ProfileComponent playerProfile, ItemStack key) {
+        key.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbtCompound -> {
+            nbtCompound.put("grave", NbtHelper.fromUuid(graveId));
+            nbtCompound.put("user", ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, playerProfile).getOrThrow());
+        }));
     }
 }

@@ -5,8 +5,10 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.ScrollConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
-import com.b1n_ry.yigd.packets.ServerPacketHandler;
-import com.mojang.authlib.GameProfile;
+import com.b1n_ry.yigd.networking.ServerPacketHandler;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -50,7 +52,8 @@ public class DeathScrollItem extends Item {
 
         ServerPlayerEntity player = (ServerPlayerEntity) user;
         ItemStack scroll = player.getStackInHand(hand);
-        NbtCompound scrollNbt = scroll.getNbt();
+        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
+        NbtCompound scrollNbt = scrollNbtComponent != null ? scrollNbtComponent.copyNbt() : null;
         // Rebind if the player is sneaking (and it can be rebound), or if the scroll is unbound
         if ((scrollConfig.rebindable && player.isSneaking()) || scrollNbt == null || scrollNbt.getUuid("grave") == null) {
             if (this.bindStackToLatestDeath(player, scroll))
@@ -79,24 +82,27 @@ public class DeathScrollItem extends Item {
     public boolean bindStackToLatestDeath(ServerPlayerEntity player, ItemStack scroll) {
         if (player == null) return false;  // Idk how some mods do auto-crafting, but this could fix some issues if they just pass null
 
-        GameProfile playerProfile = player.getGameProfile();
+        ProfileComponent playerProfile = new ProfileComponent(player.getGameProfile());
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(playerProfile));
         graves.removeIf(component -> component.getStatus() != GraveStatus.UNCLAIMED);
 
         int size = graves.size();
         if (size >= 1) {
             GraveComponent component = graves.get(size - 1);
-            NbtCompound scrollNbt = scroll.getOrCreateNbt();
-            scrollNbt.putUuid("grave", component.getGraveId());
-            scrollNbt.putString("clickFunction", "default");
+            scroll.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbtCompound -> {
+                nbtCompound.putUuid("grave", component.getGraveId());
+                nbtCompound.putString("clickFunction", "default");
+            }));
             return true;
         }
         return false;
     }
 
     private TypedActionResult<ItemStack> viewContent(ItemStack scroll, ServerPlayerEntity player) {
-        NbtCompound scrollNbt = scroll.getNbt();
-        if (scrollNbt == null) return TypedActionResult.pass(scroll);
+        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
+        if (scrollNbtComponent == null) return TypedActionResult.pass(scroll);
+
+        NbtCompound scrollNbt = scrollNbtComponent.copyNbt();
 
         UUID graveId = scrollNbt.getUuid("grave");
         Optional<GraveComponent> optional = DeathInfoManager.INSTANCE.getGrave(graveId);
@@ -108,8 +114,10 @@ public class DeathScrollItem extends Item {
         return TypedActionResult.success(scroll);
     }
     private TypedActionResult<ItemStack> restoreContent(ItemStack scroll, ServerPlayerEntity player) {
-        NbtCompound scrollNbt = scroll.getNbt();
-        if (scrollNbt == null) return TypedActionResult.pass(scroll);
+        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
+        if (scrollNbtComponent == null) return TypedActionResult.pass(scroll);
+
+        NbtCompound scrollNbt = scrollNbtComponent.copyNbt();
 
         UUID graveId = scrollNbt.getUuid("grave");
         Optional<GraveComponent> optional = DeathInfoManager.INSTANCE.getGrave(graveId);
@@ -121,8 +129,10 @@ public class DeathScrollItem extends Item {
         return TypedActionResult.pass(scroll);
     }
     private TypedActionResult<ItemStack> teleport(ItemStack scroll, ServerPlayerEntity player) {
-        NbtCompound scrollNbt = scroll.getNbt();
-        if (scrollNbt == null) return TypedActionResult.pass(scroll);
+        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
+        if (scrollNbtComponent == null) return TypedActionResult.pass(scroll);
+
+        NbtCompound scrollNbt = scrollNbtComponent.copyNbt();
 
         UUID graveId = scrollNbt.getUuid("grave");
         Optional<GraveComponent> optional = DeathInfoManager.INSTANCE.getGrave(graveId);

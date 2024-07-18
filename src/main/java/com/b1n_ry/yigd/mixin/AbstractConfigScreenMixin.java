@@ -2,7 +2,7 @@ package com.b1n_ry.yigd.mixin;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.packets.ClientPacketHandler;
+import com.b1n_ry.yigd.networking.ClientPacketHandler;
 import me.shedaniel.clothconfig2.gui.AbstractConfigScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

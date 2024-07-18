@@ -56,7 +56,7 @@ public class YigdResourceHandler {
                     Yigd.LOGGER.info("Grave model and shape reload successful (client)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from resource pack `%s`".formatted(resourceLocation, resource.getResourcePackName()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from resource pack `%s`".formatted(resourceLocation, resource.getPackId()), e);
                 }
             }
         }
@@ -81,7 +81,7 @@ public class YigdResourceHandler {
                     Yigd.LOGGER.info("Grave model and shape reload successful (server)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getResourcePackName()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getPackId()), e);
                 }
             }
         }
@@ -106,7 +106,7 @@ public class YigdResourceHandler {
                     Yigd.LOGGER.info("Graveyard data successfully reloaded (server)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getResourcePackName()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getPackId()), e);
                 }
             }
         }
@@ -130,7 +130,7 @@ public class YigdResourceHandler {
                     Yigd.LOGGER.info("Grave area overrides successfully reloaded (server)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getResourcePackName()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getPackId()), e);
                 }
             }
         }

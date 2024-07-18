@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.6-SNAPSHOT'
+	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
 	id "me.modmuss50.mod-publish-plugin" version "0.5.1"
 }
@@ -25,7 +25,7 @@ publishMods {
 
 		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
 
-		minecraftVersions.add("1.20.4")
+		minecraftVersions.add(project.minecraft_version)
 
 		javaVersions.add(java.sourceCompatibility)
 
@@ -41,7 +41,7 @@ publishMods {
 
 		accessToken = providers.environmentVariable("GITHUB_TOKEN")
 		repository = "B1n-ry/Youre-in-grave-danger"
-		commitish = "1.20.4-fabric"
+		commitish = "1.20.6-fabric"
 		tagName = project.minecraft_version + "-" + project.mod_version
 	}
 
@@ -49,7 +49,7 @@ publishMods {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		projectId = "HnD1GX6e"
 
-		minecraftVersions.add("1.20.4")
+		minecraftVersions.add(project.minecraft_version)
 
 		requires("fabric-api", "cloth-config")
 	}
@@ -114,9 +114,9 @@ dependencies {
 
 	// Inventory Mods
 	modCompileOnly "dev.emi:trinkets:${project.trinkets_version}" // trinkets
-	modCompileOnly "maven.modrinth:inventorio:${project.inventorio_version}" // inventorio
+//	modCompileOnly "maven.modrinth:inventorio:${project.inventorio_version}" // inventorio
 	modCompileOnly "maven.modrinth:travelersbackpack:${project.travelers_backpack_version}"  // travelers backpack
-	modCompileOnly "maven.modrinth:numismatic-overhaul:${project.numismatic_version}"  // numismatic overhaul
+//	modCompileOnly "maven.modrinth:numismatic-overhaul:${project.numismatic_version}"  // numismatic overhaul
 //	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"  // origins/apoli
 //	modCompileOnly "maven.modrinth:levelz:${project.levelz_version}"
 //	modCompileOnly "maven.modrinth:beans-backpacks:${project.beans_backpacks_version}"
@@ -134,7 +134,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+	it.options.release = 21
 }
 
 java {
@@ -143,8 +143,8 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
@@ -156,7 +156,8 @@ jar {
 // configure the maven publication
 publishing {
 	publications {
-		mavenJava(MavenPublication) {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
 			from components.java
 		}
 	}

@@ -11,14 +11,16 @@ import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.b1n_ry.yigd.util.PairModificationConsumer;
 import com.b1n_ry.yigd.util.YigdTags;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ItemScatterer;
@@ -131,8 +133,8 @@ public class InventoryComponent {
         YigdConfig config = YigdConfig.getConfig();
         if (config.inventoryConfig.dropPlayerHead) {
             ItemStack playerHead = new ItemStack(Items.PLAYER_HEAD);
-            NbtCompound profileNbt = NbtHelper.writeGameProfile(new NbtCompound(), context.player().getGameProfile());
-            playerHead.setSubNbt("SkullOwner", profileNbt);
+            playerHead.set(DataComponentTypes.PROFILE, new ProfileComponent(context.player().getGameProfile()));
+
             this.items.add(new Pair<>(playerHead, GraveOverrideAreas.INSTANCE.defaultDropRule));  // Drop rules should not yet be handled, so default one is used
         }
 
@@ -346,7 +348,7 @@ public class InventoryComponent {
     private int findMatchingStackSlot(ItemStack stack) {
         for (int i = 0; i < this.mainSize; i++) {
             ItemStack iStack = this.items.get(i).getLeft();
-            if (ItemStack.canCombine(stack, iStack) && iStack.isStackable() && iStack.getMaxCount() > iStack.getCount()) {
+            if (ItemStack.areItemsAndComponentsEqual(stack, iStack) && iStack.isStackable() && iStack.getMaxCount() > iStack.getCount()) {
                 return i;
             }
         }
@@ -390,7 +392,7 @@ public class InventoryComponent {
     private void addStacksToMain(DefaultedList<ItemStack> extraItems) {
         YigdConfig config = YigdConfig.getConfig();
         while (!extraItems.isEmpty()) {
-            ItemStack stack = extraItems.get(0);
+            ItemStack stack = extraItems.getFirst();
 
             int addToSlot = -1;
             if (config.graveConfig.mergeStacksOnRetrieve) {
@@ -403,11 +405,11 @@ public class InventoryComponent {
             ItemStack addToStack = this.items.get(addToSlot).getLeft();
             if (addToStack.isEmpty()) {
                 this.items.set(addToSlot, new Pair<>(stack, GraveOverrideAreas.INSTANCE.defaultDropRule));
-                extraItems.remove(0);
+                extraItems.removeFirst();
             } else {
                 this.mergeItemInSlot(stack, addToSlot);
                 if (stack.isEmpty()) {
-                    extraItems.remove(0);
+                    extraItems.removeFirst();
                 }
             }
         }
@@ -574,11 +576,10 @@ public class InventoryComponent {
         }
     }
 
-    public NbtCompound toNbt() {
+    public NbtCompound toNbt(RegistryWrapper.WrapperLookup lookupRegistry) {
         NbtCompound nbt = new NbtCompound();
         NbtCompound vanillaInventoryNbt = listToNbt(this.items, pair -> {
-            NbtCompound itemNbt = new NbtCompound();
-            pair.getLeft().writeNbt(itemNbt);
+            NbtCompound itemNbt = (NbtCompound) pair.getLeft().encode(lookupRegistry);
             itemNbt.putString("dropRule", pair.getRight().name());
 
             return itemNbt;
@@ -595,7 +596,7 @@ public class InventoryComponent {
 
             CompatComponent<?> compatInv = this.modInventoryItems.get(modName);
             if (!compatInv.isEmpty())
-                modInventoriesNbt.put(modName, compatInv.writeNbt());
+                modInventoriesNbt.put(modName, compatInv.writeNbt(lookupRegistry));
         }
 
         nbt.put("vanilla", vanillaInventoryNbt);
@@ -604,10 +605,10 @@ public class InventoryComponent {
         return nbt;
     }
 
-    public static InventoryComponent fromNbt(NbtCompound nbt) {
+    public static InventoryComponent fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookupRegistry) {
         NbtCompound vanillaInvNbt = nbt.getCompound("vanilla");
         DefaultedList<Pair<ItemStack, DropRule>> items = listFromNbt(vanillaInvNbt, itemNbt -> {
-            ItemStack stack = ItemStack.fromNbt(itemNbt);
+            ItemStack stack = ItemStack.fromNbtOrEmpty(lookupRegistry, itemNbt);
             DropRule dropRule = GraveOverrideAreas.INSTANCE.defaultDropRule;
             if (itemNbt.contains("dropRule")) {
                 dropRule = DropRule.valueOf(itemNbt.getString("dropRule"));
@@ -625,7 +626,7 @@ public class InventoryComponent {
             String modName = compatMod.getModName();
             if (!modInventoriesNbt.contains(modName)) continue;
             NbtCompound modNbt = modInventoriesNbt.getCompound(modName);
-            compatComponents.put(modName, compatMod.readNbt(modNbt));
+            compatComponents.put(modName, compatMod.readNbt(modNbt, lookupRegistry));
         }
 
         return new InventoryComponent(items, compatComponents, mainSize, armorSize, offHandSize);

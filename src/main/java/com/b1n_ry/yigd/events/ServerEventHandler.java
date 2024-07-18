@@ -6,11 +6,11 @@ import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
-import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -36,7 +36,7 @@ public class ServerEventHandler {
 
             BeforeSoulboundEvent.EVENT.invoker().beforeSoulbound(oldPlayer, newPlayer);
 
-            GameProfile newProfile = newPlayer.getGameProfile();
+            ProfileComponent newProfile = new ProfileComponent(newPlayer.getGameProfile());
             Optional<RespawnComponent> respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newProfile);
             respawnComponent.ifPresent(component -> component.apply(newPlayer));
 
@@ -44,7 +44,7 @@ public class ServerEventHandler {
                 List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(newProfile));
                 graves.removeIf(grave -> grave.getStatus() != GraveStatus.UNCLAIMED);
                 if (!graves.isEmpty()) {
-                    GraveComponent latest = graves.get(graves.size() - 1);
+                    GraveComponent latest = graves.getLast();
                     BlockPos gravePos = latest.getPos();
                     newPlayer.sendMessage(Text.translatable("text.yigd.message.grave_location",
                             gravePos.getX(), gravePos.getY(), gravePos.getZ(),
@@ -65,15 +65,15 @@ public class ServerEventHandler {
             YigdConfig config = YigdConfig.getConfig();
             if (!config.graveConfig.sellOutOfflinePeople) return;
 
-            GameProfile loggedOffProfile = handler.player.getGameProfile();
+            ProfileComponent loggedOffProfile = new ProfileComponent(handler.player.getGameProfile());
             List<GraveComponent> loggedOffGraves = DeathInfoManager.INSTANCE.getBackupData(loggedOffProfile);
             List<GraveComponent> loggedOffUnclaimed = new ArrayList<>(loggedOffGraves);
             loggedOffGraves.removeIf(c -> c.getStatus() == GraveStatus.UNCLAIMED);
             if (!loggedOffUnclaimed.isEmpty()) {
-                GraveComponent component = loggedOffUnclaimed.get(0);
+                GraveComponent component = loggedOffUnclaimed.getFirst();
                 BlockPos lastGravePos = component.getPos();
                 server.sendMessage(Text.translatable("text.yigd.message.sellout_player",
-                        loggedOffProfile.getName(), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
+                        loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
                         component.getWorldRegistryKey().getValue().toString()));
             }
         });

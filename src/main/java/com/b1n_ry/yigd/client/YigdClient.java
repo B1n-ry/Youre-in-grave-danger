@@ -4,7 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.YigdClientEventHandler;
-import com.b1n_ry.yigd.packets.ClientPacketHandler;
+import com.b1n_ry.yigd.networking.ClientPacketHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;

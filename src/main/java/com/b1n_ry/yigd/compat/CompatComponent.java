@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.PairModificationConsumer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Pair;
@@ -125,5 +126,5 @@ public abstract class CompatComponent<T> {
             modification.accept(pair.getLeft(), -1, pair);
         }
     }
-    public abstract NbtCompound writeNbt();
+    public abstract NbtCompound writeNbt(RegistryWrapper.WrapperLookup lookupRegistry);
 }

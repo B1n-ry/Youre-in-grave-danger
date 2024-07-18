@@ -5,15 +5,15 @@ import com.b1n_ry.yigd.client.gui.widget.WCardButton;
 import com.b1n_ry.yigd.client.gui.widget.WFilterableListPanel;
 import com.b1n_ry.yigd.client.gui.widget.WHoverToggleButton;
 import com.b1n_ry.yigd.data.GraveStatus;
-import com.b1n_ry.yigd.packets.ClientPacketHandler;
-import com.b1n_ry.yigd.packets.LightGraveData;
-import com.mojang.authlib.GameProfile;
+import com.b1n_ry.yigd.networking.ClientPacketHandler;
+import com.b1n_ry.yigd.networking.LightGraveData;
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
 import io.github.cottonmc.cotton.gui.widget.*;
 import io.github.cottonmc.cotton.gui.widget.data.Insets;
 import io.github.cottonmc.cotton.gui.widget.icon.ItemIcon;
 import io.github.cottonmc.cotton.gui.widget.icon.TextureIcon;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -23,7 +23,7 @@ import java.util.List;
 public class GraveSelectionGui extends LightweightGuiDescription {
     private final List<LightGraveData> data;
     private final Screen previousScreen;
-    public GraveSelectionGui(List<LightGraveData> data, GameProfile profile, Screen previousScreen) {
+    public GraveSelectionGui(List<LightGraveData> data, ProfileComponent profile, Screen previousScreen) {
         this.data = data;
         this.previousScreen = previousScreen;
 
@@ -32,7 +32,7 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         root.setInsets(Insets.ROOT_PANEL);
         root.setGaps(2, 5);
 
-        WLabel title = new WLabel(Text.translatable("text.yigd.gui.graves_of", profile.getName()));
+        WLabel title = new WLabel(Text.translatable("text.yigd.gui.graves_of", profile.name().orElse("PLAYER_NOT_FOUND")));
         root.add(title, 0, 0);
 
         WFilterableListPanel<LightGraveData, WCardButton> listPanel = this.addGraveList(root);
@@ -45,7 +45,7 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         ItemIcon icon = new ItemIcon(Yigd.GRAVE_BLOCK.asItem());
         WFilterableListPanel<LightGraveData, WCardButton> listPanel = new WFilterableListPanel<>(this.data,
                 () -> new WCardButton(icon), (lightGraveData, wCardButton) -> {
-            wCardButton.setCardText(lightGraveData.deathMessage().getDeathMessage());
+            wCardButton.setCardText(lightGraveData.deathMessage());
             wCardButton.setOverlayColor(lightGraveData.status().getTransparentColor());
 
             BlockPos gravePos = lightGraveData.pos();

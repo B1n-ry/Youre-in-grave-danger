@@ -10,32 +10,22 @@
           "name": "yigd:grave",
           "functions": [
             {
-              "function": "minecraft:copy_nbt",
-              "source": "block_entity",
-              "ops": [
-                {
-                  "source": "",
-                  "target": "BlockEntityTag",
-                  "op": "replace"
-                },
-                {
-                  "source": "text",
-                  "target": "display.Name",
-                  "op": "replace"
-                }
+              "function": "minecraft:copy_components",
+              "include": [
+                "minecraft:profile",
+                "minecraft:custom_name",
+                "yigd:grave_id"
               ],
+              "source": "block_entity",
               "conditions": [
                 {
                   "condition": "minecraft:match_tool",
                   "predicate": {
-                    "enchantments": [
-                      {
-                        "enchantment": "minecraft:silk_touch",
-                        "levels": {
-                          "min": 1
-                        }
+                    "components": {
+                      "minecraft:enchantments": {
+                        "minecraft:silk_touch": 1
                       }
-                    ]
+                    }
                   }
                 }
               ]

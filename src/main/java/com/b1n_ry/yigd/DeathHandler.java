@@ -6,11 +6,10 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
-import com.b1n_ry.yigd.data.TranslatableDeathMessage;
 import com.b1n_ry.yigd.events.DelayGraveGenerationEvent;
 import com.b1n_ry.yigd.impl.ServerPlayerEntityImpl;
 import com.b1n_ry.yigd.util.DropRule;
-import com.mojang.authlib.GameProfile;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -58,11 +57,11 @@ public class DeathHandler {
             inventoryComponent.applyLoss();
         }
 
+        ProfileComponent profile = new ProfileComponent(player.getGameProfile());
         Vec3d graveGenerationPos = !config.graveConfig.generateOnLastGroundPos ? pos : ((ServerPlayerEntityImpl) player).youre_in_grave_danger$getLastGroundPos();
-        GraveComponent graveComponent = new GraveComponent(player.getGameProfile(), inventoryComponent, expComponent,
-                world, graveGenerationPos.add(0D, .5D, 0D), new TranslatableDeathMessage(deathSource, player), killerId);  // Will keep track of player grave (if enabled)
+        GraveComponent graveComponent = new GraveComponent(profile, inventoryComponent, expComponent,
+                world, graveGenerationPos.add(0D, .5D, 0D), deathSource.getDeathMessage(player), killerId);  // Will keep track of player grave (if enabled)
 
-        GameProfile profile = player.getGameProfile();
         graveComponent.backUp();
         respawnComponent.primeForRespawn(profile);
 

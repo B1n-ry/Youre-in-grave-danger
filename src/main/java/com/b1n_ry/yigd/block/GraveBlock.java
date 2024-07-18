@@ -11,13 +11,13 @@ import com.b1n_ry.yigd.data.TimePoint;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.entity.SkullBlockEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -26,7 +26,6 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -73,7 +72,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
-        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && itemStack.hasCustomName()) {
+        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && itemStack.contains(DataComponentTypes.CUSTOM_NAME)) {
             if (grave.getComponent() == null) {
                 grave.setGraveText(itemStack.getName());
                 grave.markDirty();
@@ -91,7 +90,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         return state.with(Properties.HORIZONTAL_FACING, dir).with(Properties.WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
         if (state.get(Properties.WATERLOGGED)) {
@@ -100,7 +98,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         return direction.getAxis().isHorizontal() ? state : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public FluidState getFluidState(BlockState state) {
         return state.get(Properties.WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
@@ -119,7 +116,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         Direction direction = state.get(Properties.HORIZONTAL_FACING);
 
@@ -137,10 +133,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         return validateTicker(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         YigdConfig config = YigdConfig.getConfig();
+        Hand hand = player.getActiveHand();  // Maybe?
         if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave && config.graveConfig.retrieveMethods.onClick) {
             GraveComponent graveComponent = grave.getComponent();
 
@@ -159,7 +155,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             }
 
             if (config.graveConfig.persistentGraves.enabled && graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
-                MutableText message = graveComponent.getDeathMessage().getDeathMessage();
+                MutableText message = graveComponent.getDeathMessage().copy();
 
                 TimePoint creationTime = graveComponent.getCreationTime();
                 if (config.graveConfig.persistentGraves.showDeathDay)
@@ -187,10 +183,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         if (player.isSneaking()) return ActionResult.FAIL;
 
         ItemStack stack = player.getStackInHand(hand);
-        NbtCompound nbt = stack.getNbt();
-        if (stack.isOf(Items.PLAYER_HEAD) && nbt != null) {
-            GameProfile profile = SkullBlockEntity.getProfile(nbt);
+        if (stack.isOf(Items.PLAYER_HEAD) && stack.contains(DataComponentTypes.PROFILE)) {
+            ProfileComponent profile = stack.get(DataComponentTypes.PROFILE);
 
+            if (profile == null) return ActionResult.PASS;
             grave.setGraveSkull(profile);  // Works since profile is nullable
             grave.markDirty();
             world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
@@ -262,7 +258,6 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.isUnclaimed()
                 && !YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
@@ -272,10 +267,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
 
     public static void reloadShapeFromJson(JsonObject json) throws IllegalStateException {
-        List<VoxelShape> voxelShapesNorth = new ArrayList<>();
-        List<VoxelShape> voxelShapesSouth = new ArrayList<>();
-        List<VoxelShape> voxelShapesEast = new ArrayList<>();
-        List<VoxelShape> voxelShapesWest = new ArrayList<>();
+        VoxelShape voxelShapeNorth = VoxelShapes.empty();
+        VoxelShape voxelShapeSouth = VoxelShapes.empty();
+        VoxelShape voxelShapeEast = VoxelShapes.empty();
+        VoxelShape voxelShapeWest = VoxelShapes.empty();
 
         JsonArray elements = json.getAsJsonArray("elements");
         for (JsonElement element : elements) {
@@ -290,21 +285,16 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             double y2 = to.get(1).getAsDouble() / 16D;
             double z2 = to.get(2).getAsDouble() / 16D;
 
-            voxelShapesNorth.add(VoxelShapes.cuboid(x1, y1, z1, x2, y2, z2));
-            voxelShapesEast.add(VoxelShapes.cuboid(1 - z2, y1, x1, 1 - z1, y2, x2));
-            voxelShapesSouth.add(VoxelShapes.cuboid(1 - x2, y1, 1 - z2, 1 - x1, y2, 1 - z1));
-            voxelShapesWest.add(VoxelShapes.cuboid(z1, y1, 1 - x2, z2, y2, 1 - x1));
+            voxelShapeNorth = VoxelShapes.union(voxelShapeNorth, VoxelShapes.cuboid(x1, y1, z1, x2, y2, z2));
+            voxelShapeEast = VoxelShapes.union(voxelShapeEast, VoxelShapes.cuboid(1 - z2, y1, x1, 1 - z1, y2, x2));
+            voxelShapeSouth = VoxelShapes.union(voxelShapeSouth, VoxelShapes.cuboid(1 - x2, y1, 1 - z2, 1 - x1, y2, 1 - z1));
+            voxelShapeWest = VoxelShapes.union(voxelShapeWest, VoxelShapes.cuboid(z1, y1, 1 - x2, z2, y2, 1 - x1));
         }
 
-        if (voxelShapesNorth.isEmpty()) return;  // This should never happen. If it does, we have a problem. Although here we just make the problem not happen
-        SHAPE_NORTH = voxelShapesNorth.remove(0);
-        SHAPE_EAST = voxelShapesEast.remove(0);
-        SHAPE_SOUTH = voxelShapesSouth.remove(0);
-        SHAPE_WEST = voxelShapesWest.remove(0);
-        voxelShapesNorth.forEach(shape -> SHAPE_NORTH = VoxelShapes.union(SHAPE_NORTH, shape));
-        voxelShapesEast.forEach(shape -> SHAPE_EAST = VoxelShapes.union(SHAPE_EAST, shape));
-        voxelShapesSouth.forEach(shape -> SHAPE_SOUTH = VoxelShapes.union(SHAPE_SOUTH, shape));
-        voxelShapesWest.forEach(shape -> SHAPE_WEST = VoxelShapes.union(SHAPE_WEST, shape));
+        SHAPE_NORTH = voxelShapeNorth;
+        SHAPE_EAST = voxelShapeEast;
+        SHAPE_SOUTH = voxelShapeSouth;
+        SHAPE_WEST = voxelShapeWest;
     }
 
     static {

@@ -3,7 +3,7 @@ package com.b1n_ry.yigd.events;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.DeathSightConfig;
-import com.mojang.authlib.GameProfile;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
@@ -13,14 +13,14 @@ public class YigdClientEventHandler {
         RenderGlowingGraveEvent.EVENT.register((be, player) -> {
             YigdConfig config = YigdConfig.getConfig();
 
-            GameProfile graveOwner = be.getGraveSkull();
+            ProfileComponent graveOwner = be.getGraveSkull();
 
             double distance = config.graveRendering.glowingDistance;
-            boolean isOwner = graveOwner != null && graveOwner.equals(player.getGameProfile());
+            boolean isOwner = graveOwner != null && graveOwner.gameProfile().equals(player.getGameProfile());
             DeathSightConfig deathSightConfig = config.extraFeatures.deathSightEnchant;
             if (deathSightConfig.enabled) {
                 ItemStack headStack = player.getEquippedStack(EquipmentSlot.HEAD);
-                if (!headStack.isEmpty() && EnchantmentHelper.get(headStack).containsKey(Yigd.DEATH_SIGHT_ENCHANTMENT)) {
+                if (!headStack.isEmpty() && EnchantmentHelper.getEnchantments(headStack).getLevel(Yigd.DEATH_SIGHT_ENCHANTMENT) > 0) {
                     distance = deathSightConfig.range;
 
                     // This doesn't actually mean that the user is the grave owner, but that the graves should light up

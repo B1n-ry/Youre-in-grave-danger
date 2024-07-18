@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
 import net.minecraft.client.MinecraftClient;
@@ -22,6 +21,7 @@ import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
 import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
@@ -97,7 +97,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     }
 
     private void renderOwnerSkull(GraveBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        GameProfile skullOwner = entity.getGraveSkull();
+        ProfileComponent skullOwner = entity.getGraveSkull();
         if (skullOwner == null) return;
 
         SkullBlock.SkullType type = SkullBlock.Type.PLAYER;

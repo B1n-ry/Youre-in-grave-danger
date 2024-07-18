@@ -8,6 +8,7 @@ import com.b1n_ry.yigd.util.DropRule;
 import com.tiviacz.travelersbackpack.component.ComponentUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
@@ -26,8 +27,8 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
     }
 
     @Override
-    public CompatComponent<Pair<ItemStack, DropRule>> readNbt(NbtCompound nbt) {
-        ItemStack stack = ItemStack.fromNbt(nbt);
+    public CompatComponent<Pair<ItemStack, DropRule>> readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        ItemStack stack = ItemStack.fromNbt(registryLookup, nbt).orElse(ItemStack.EMPTY);
 
         DropRule dropRule;
         if (nbt.contains("dropRule")) {
@@ -138,9 +139,8 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         }
 
         @Override
-        public NbtCompound writeNbt() {
-            NbtCompound nbt = new NbtCompound();
-            this.inventory.getLeft().writeNbt(nbt);
+        public NbtCompound writeNbt(RegistryWrapper.WrapperLookup registryLookup) {
+            NbtCompound nbt = (NbtCompound) this.inventory.getLeft().encode(registryLookup);
 
             nbt.putString("dropRule", this.inventory.getRight().name());
             return nbt;

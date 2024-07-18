@@ -8,6 +8,7 @@ import com.b1n_ry.yigd.util.DropRule;
 import dev.emi.trinkets.api.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
@@ -38,7 +39,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
     }
 
     @Override
-    public CompatComponent<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> readNbt(NbtCompound nbt) {
+    public CompatComponent<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> inventory = new HashMap<>();
 
         for (String groupName : nbt.getKeys()) {
@@ -48,7 +49,10 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
             for (String slotName : groupNbt.getKeys()) {
                 NbtCompound slotNbt = groupNbt.getCompound(slotName);
                 DefaultedList<Pair<ItemStack, DropRule>> items = InventoryComponent.listFromNbt(slotNbt, itemNbt -> {
-                    ItemStack stack = ItemStack.fromNbt(itemNbt);
+                    Optional<ItemStack> oStack = ItemStack.fromNbt(registryLookup, itemNbt);
+                    if (oStack.isEmpty()) return InventoryComponent.EMPTY_ITEM_PAIR;
+
+                    ItemStack stack = oStack.get();
                     DropRule dropRule;
                     if (itemNbt.contains("dropRule")) {
                         // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
@@ -367,7 +371,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public NbtCompound writeNbt() {
+        public NbtCompound writeNbt(RegistryWrapper.WrapperLookup registryLookup) {
             NbtCompound nbt = new NbtCompound();
 
             // Traverse through groups
@@ -379,8 +383,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     DefaultedList<Pair<ItemStack, DropRule>> slotItems = slot.getValue();
 
                     NbtCompound slotNbt = InventoryComponent.listToNbt(slotItems, pair -> {
-                        NbtCompound itemNbt = new NbtCompound();
-                        pair.getLeft().writeNbt(itemNbt);
+                        NbtCompound itemNbt = (NbtCompound) pair.getLeft().encode(registryLookup);
                         itemNbt.putString("dropRule", pair.getRight().name());
 
                         return itemNbt;

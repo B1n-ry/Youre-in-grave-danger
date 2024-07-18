@@ -5,16 +5,16 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.data.ListMode;
-import com.b1n_ry.yigd.packets.LightGraveData;
-import com.b1n_ry.yigd.packets.LightPlayerData;
-import com.b1n_ry.yigd.packets.ServerPacketHandler;
-import com.mojang.authlib.GameProfile;
+import com.b1n_ry.yigd.networking.LightGraveData;
+import com.b1n_ry.yigd.networking.LightPlayerData;
+import com.b1n_ry.yigd.networking.ServerPacketHandler;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -86,7 +86,7 @@ public class YigdCommands {
         if (player == null) {
             return -1;
         }
-        List<GraveComponent> components = DeathInfoManager.INSTANCE.getBackupData(player.getGameProfile());
+        List<GraveComponent> components = DeathInfoManager.INSTANCE.getBackupData(new ProfileComponent(player.getGameProfile()));
         List<GraveComponent> unClaimedGraves = new ArrayList<>(components);
         unClaimedGraves.removeIf(graveComponent -> graveComponent.getStatus() != GraveStatus.UNCLAIMED);
         if (unClaimedGraves.isEmpty()) {
@@ -94,7 +94,7 @@ public class YigdCommands {
             return -1;
         }
 
-        ServerPacketHandler.sendGraveOverviewPacket(player, unClaimedGraves.get(0));
+        ServerPacketHandler.sendGraveOverviewPacket(player, unClaimedGraves.getFirst());
         return 1;
     }
     private static int viewSelf(CommandContext<ServerCommandSource> context) {
@@ -107,7 +107,7 @@ public class YigdCommands {
         ServerPlayerEntity player = context.getSource().getPlayer();
         if (user == null) return -1;
 
-        GameProfile profile = user.getGameProfile();
+        ProfileComponent profile = new ProfileComponent(user.getGameProfile());
 
         List<GraveComponent> components = DeathInfoManager.INSTANCE.getBackupData(profile);
 
@@ -122,7 +122,7 @@ public class YigdCommands {
     private static int viewAll(CommandContext<ServerCommandSource> context) {
         ServerPlayerEntity player = context.getSource().getPlayer();
 
-        Map<GameProfile, List<GraveComponent>> players = DeathInfoManager.INSTANCE.getPlayerGraves();
+        Map<ProfileComponent, List<GraveComponent>> players = DeathInfoManager.INSTANCE.getPlayerGraves();
 
         List<LightPlayerData> lightPlayerData = new ArrayList<>();
         players.forEach((profile, components) -> {
@@ -149,7 +149,7 @@ public class YigdCommands {
         return restore(context, player);
     }
     private static int restore(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) {
-        GameProfile profile = target.getGameProfile();
+        ProfileComponent profile = new ProfileComponent(target.getGameProfile());
 
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(profile));
         graves.removeIf(graveComponent -> graveComponent.getStatus() == GraveStatus.CLAIMED);
@@ -159,7 +159,7 @@ public class YigdCommands {
         return restore(context, target, graves.get(size - 1));
     }
     private static int restore(CommandContext<ServerCommandSource> context, ServerPlayerEntity target, BlockPos pos) {
-        GameProfile profile = target.getGameProfile();
+        ProfileComponent profile = new ProfileComponent(target.getGameProfile());
 
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(profile));
         graves.removeIf(graveComponent -> graveComponent.getStatus() == GraveStatus.CLAIMED);
@@ -181,7 +181,7 @@ public class YigdCommands {
     }
 
     private static int rob(CommandContext<ServerCommandSource> context, ServerPlayerEntity victim) {
-        GameProfile profile = victim.getGameProfile();
+        ProfileComponent profile = new ProfileComponent(victim.getGameProfile());
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(profile));
         graves.removeIf(graveComponent -> graveComponent.getStatus() != GraveStatus.UNCLAIMED);
 
@@ -215,7 +215,7 @@ public class YigdCommands {
     private static int addToList(CommandContext<ServerCommandSource> context, Collection<ServerPlayerEntity> players) {
         int i = 0;
         for (ServerPlayerEntity player : players) {
-            DeathInfoManager.INSTANCE.addToList(player.getGameProfile());
+            DeathInfoManager.INSTANCE.addToList(new ProfileComponent(player.getGameProfile()));
             ++i;
         }
         DeathInfoManager.INSTANCE.markDirty();
@@ -226,7 +226,7 @@ public class YigdCommands {
     private static int removeFromList(CommandContext<ServerCommandSource> context, Collection<ServerPlayerEntity> players) {
         int i = 0;
         for (ServerPlayerEntity player : players) {
-            if (DeathInfoManager.INSTANCE.removeFromList(player.getGameProfile()))
+            if (DeathInfoManager.INSTANCE.removeFromList(new ProfileComponent(player.getGameProfile())))
                 ++i;
         }
 
@@ -244,11 +244,11 @@ public class YigdCommands {
     }
     private static int showList(CommandContext<ServerCommandSource> context) {
         ListMode listMode = DeathInfoManager.INSTANCE.getGraveListMode();
-        Set<GameProfile> affectedPlayers = DeathInfoManager.INSTANCE.getAffectedPlayers();
+        Set<ProfileComponent> affectedPlayers = DeathInfoManager.INSTANCE.getAffectedPlayers();
 
         StringJoiner joiner = new StringJoiner(", ");
-        for (GameProfile profile : affectedPlayers) {
-            joiner.add(profile.getName());
+        for (ProfileComponent profile : affectedPlayers) {
+            joiner.add(profile.name().orElse("PLAYER_NOT_FOUND"));
         }
         context.getSource().sendMessage(Text.literal(listMode.name() + ": %s" + joiner));
 

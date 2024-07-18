@@ -6,7 +6,7 @@ import com.b1n_ry.yigd.client.gui.widget.WHoverToggleButton;
 import com.b1n_ry.yigd.client.gui.widget.WItemStack;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
-import com.b1n_ry.yigd.packets.ClientPacketHandler;
+import com.b1n_ry.yigd.networking.ClientPacketHandler;
 import com.b1n_ry.yigd.util.DropRule;
 import io.github.cottonmc.cotton.gui.client.BackgroundPainter;
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
@@ -68,7 +68,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
         int slightlyRight = (int) (1.1 * SLOT_SIZE);
 
-        WLabel title = new WLabel(this.graveComponent.getDeathMessage().getDeathMessage());
+        WLabel title = new WLabel(this.graveComponent.getDeathMessage());
         this.invPanel.add(title, slightlyRight, 0);
 
         this.addCoordinates(slightlyRight);

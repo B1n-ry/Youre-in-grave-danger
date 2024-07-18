@@ -4,9 +4,8 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.client.gui.widget.WCardButton;
 import com.b1n_ry.yigd.client.gui.widget.WFilterableListPanel;
 import com.b1n_ry.yigd.client.gui.widget.WHoverButton;
-import com.b1n_ry.yigd.packets.ClientPacketHandler;
-import com.b1n_ry.yigd.packets.LightPlayerData;
-import com.mojang.authlib.GameProfile;
+import com.b1n_ry.yigd.networking.ClientPacketHandler;
+import com.b1n_ry.yigd.networking.LightPlayerData;
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
 import io.github.cottonmc.cotton.gui.widget.WCardPanel;
 import io.github.cottonmc.cotton.gui.widget.WGridPanel;
@@ -16,10 +15,10 @@ import io.github.cottonmc.cotton.gui.widget.data.Insets;
 import io.github.cottonmc.cotton.gui.widget.icon.ItemIcon;
 import io.github.cottonmc.cotton.gui.widget.icon.TextureIcon;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -47,7 +46,7 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         WTextField searchField = new WTextField();
         root.add(searchField, 0, 1, 11, 1);
         searchField.setChangedListener(s -> listPanel.setFilter("filter",
-                playerData -> !s.isEmpty() && playerData.playerProfile().getName().toLowerCase().startsWith(s.toLowerCase())));
+                playerData -> !s.isEmpty() && playerData.playerProfile().name().orElse("PLAYER_NOT_FOUND").toLowerCase().startsWith(s.toLowerCase())));
 
         this.addFilterButton(root, listPanel);
 
@@ -58,15 +57,14 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         ItemIcon defaultIcon = new ItemIcon(Items.PLAYER_HEAD.asItem());
         WFilterableListPanel<LightPlayerData, WCardButton> listPanel = new WFilterableListPanel<>(this.data,
                 () -> new WCardButton(defaultIcon), (playerData, wCardButton) -> {
-            GameProfile profile = playerData.playerProfile();
+            ProfileComponent profile = playerData.playerProfile();
             ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
-            NbtCompound profileNbt = new NbtCompound();
-            NbtHelper.writeGameProfile(profileNbt, profile);
-            skull.setSubNbt("SkullOwner", profileNbt);
+
+            skull.set(DataComponentTypes.PROFILE, profile);
 
             ItemIcon icon = new ItemIcon(skull);
             wCardButton.setIcon(icon);
-            wCardButton.setCardText(Text.translatable("text.yigd.gui.player_name", profile.getName()));
+            wCardButton.setCardText(Text.translatable("text.yigd.gui.player_name", profile.name().orElse("PLAYER_NOT_FOUND")));
             wCardButton.setTooltipText(List.of(
                     Text.translatable("text.yigd.gui.unclaimed_count", playerData.unclaimedCount()),
                     Text.translatable("text.yigd.gui.destroyed_count", playerData.destroyedCount()),

@@ -5,13 +5,17 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.ComponentMap;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
@@ -32,13 +36,13 @@ public class GraveBlockEntity extends BlockEntity {
     @Nullable
     private UUID graveId = null;
     @Nullable
-    private GameProfile graveSkull = null;
+    private ProfileComponent graveSkull = null;
     @Nullable
     private Text graveText = null;
     @Nullable
     private BlockState previousState = null;
 
-    private boolean claimed = false;
+    private boolean claimed = true;
 
     private static YigdConfig cachedConfig = YigdConfig.getConfig();
 
@@ -46,12 +50,28 @@ public class GraveBlockEntity extends BlockEntity {
         super(Yigd.GRAVE_BLOCK_ENTITY, pos, state);
     }
 
+    @Override
+    protected void addComponents(ComponentMap.Builder componentMapBuilder) {
+        super.addComponents(componentMapBuilder);
+        componentMapBuilder.add(DataComponentTypes.PROFILE, this.graveSkull);
+        componentMapBuilder.add(DataComponentTypes.CUSTOM_NAME, this.graveText);
+        componentMapBuilder.add(GraveComponent.GRAVE_ID, this.graveId);
+    }
+
+    @Override
+    protected void readComponents(ComponentsAccess components) {
+        super.readComponents(components);
+        this.setGraveSkull(components.get(DataComponentTypes.PROFILE));
+        this.setGraveText(components.get(DataComponentTypes.CUSTOM_NAME));
+        this.graveId = components.get(GraveComponent.GRAVE_ID);
+    }
+
     public void setComponent(GraveComponent component) {
         this.component = component;
+        this.setClaimed(component.getStatus() == GraveStatus.CLAIMED);
         this.graveSkull = component.getOwner();
         this.graveId = component.getGraveId();
-        // noinspection ConstantConditions
-        this.graveText = Text.of(this.graveSkull.getName());  // graveSkull is never null in this case as it's not nullable in the grave component
+        this.graveSkull.name().ifPresent(name -> GraveBlockEntity.this.graveText = Text.of(name));
         this.markDirty();
     }
     public void setPreviousState(@Nullable BlockState previousState) {
@@ -64,10 +84,10 @@ public class GraveBlockEntity extends BlockEntity {
     public @Nullable UUID getGraveId() {
         return this.graveId;
     }
-    public @Nullable GameProfile getGraveSkull() {
+    public @Nullable ProfileComponent getGraveSkull() {
         return this.graveSkull;
     }
-    public void setGraveSkull(@Nullable GameProfile skull) {
+    public void setGraveSkull(@Nullable ProfileComponent skull) {
         this.graveSkull = skull;
     }
     public @Nullable GraveComponent getComponent() {
@@ -100,12 +120,14 @@ public class GraveBlockEntity extends BlockEntity {
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt() {
-        NbtCompound nbt = this.createNbt();
-        if (this.graveSkull != null)
-            nbt.put("skull", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
+    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registryLookup) {
+        NbtCompound nbt = this.createNbt(registryLookup);
+        if (this.graveSkull != null) {
+            ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, this.graveSkull).resultOrPartial()
+                    .ifPresent(nbtElement -> nbt.put("skull", nbtElement));
+        }
         if (this.graveText != null)
-            nbt.putString("text", Text.Serialization.toJsonString(this.graveText));
+            nbt.putString("text", Text.Serialization.toJsonString(this.graveText, registryLookup));
         nbt.putBoolean("claimed", this.claimed);
 
         return nbt;
@@ -118,12 +140,12 @@ public class GraveBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
+    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         nbt.putBoolean("claimed", this.claimed);
         if (this.graveText != null)
-            nbt.putString("text", Text.Serialization.toJsonString(this.graveText));
+            nbt.putString("text", Text.Serialization.toJsonString(this.graveText, registryLookup));
         if (this.graveSkull != null)
-            nbt.put("skull", NbtHelper.writeGameProfile(new NbtCompound(), this.graveSkull));
+            nbt.put("skull", ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, this.graveSkull).getOrThrow());
         if (this.graveId != null)
             nbt.putUuid("graveId", this.graveId);
         if (this.previousState != null)
@@ -131,23 +153,25 @@ public class GraveBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         if (nbt.contains("skull"))
-            this.graveSkull = NbtHelper.toGameProfile(nbt.getCompound("skull"));
+            ProfileComponent.CODEC.parse(NbtOps.INSTANCE, nbt.get("skull"))
+                    .resultOrPartial(s -> Yigd.LOGGER.error("Failed to load grave skull"))
+                    .ifPresent(this::setGraveSkull);
 
         if (nbt.contains("text"))
-            this.graveText = Text.Serialization.fromJson(nbt.getString("text"));
+            this.graveText = Text.Serialization.fromJson(nbt.getString("text"), registryLookup);
 
         this.claimed = nbt.getBoolean("claimed");
 
         if (nbt.contains("graveId")) {
             this.graveId = nbt.getUuid("graveId");
-            if (this.component == null) {
+            if (this.component == null && this.world != null && !this.world.isClient) {
                 DeathInfoManager.INSTANCE.getGrave(this.graveId).ifPresent(this::setComponent);
             }
         }
 
-        if (nbt.contains("previousState")) {
+        if (nbt.contains("previousState", NbtElement.COMPOUND_TYPE)) {
             RegistryWrapper<Block> registryEntryLookup = this.world != null ? this.world.createCommandRegistryWrapper(RegistryKeys.BLOCK) : Registries.BLOCK.getReadOnlyWrapper();
             this.previousState = NbtHelper.toBlockState(registryEntryLookup, nbt.getCompound("previousState"));
         }

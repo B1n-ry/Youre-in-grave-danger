@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.2.0
+
+### Changes
+* Updated to 1.20.6
+
+---
+
 # You're in Grave Danger 2.0.0-beta.14
 
 ### Changes

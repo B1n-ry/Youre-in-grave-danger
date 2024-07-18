@@ -1,17 +1,18 @@
 package com.b1n_ry.yigd.util;
 
-import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveCompassConfig;
+import net.minecraft.component.DataComponentType;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,44 +24,37 @@ import java.util.UUID;
 
 public class GraveCompassHelper {
     private static final Map<RegistryKey<World>, KDNode> GRAVE_POSITIONS = new HashMap<>();
+    public static final DataComponentType<GlobalPos> GRAVE_LOCATION = DataComponentType.<GlobalPos>builder().codec(GlobalPos.CODEC).packetCodec(GlobalPos.PACKET_CODEC).build();
+
     public static void giveCompass(ServerPlayerEntity player, UUID graveId, BlockPos gravePos, RegistryKey<World> worldKey) {
         ItemStack compass = Items.COMPASS.getDefaultStack();
-        NbtCompound compassNbt = new NbtCompound();
 
         BlockPos closestPos = null;
-        RegistryKey<World> playerWorld = player.getServerWorld().getRegistryKey();
         if (YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest != GraveCompassConfig.CompassGraveTarget.DISABLED) {
-            closestPos = findClosest(player.getUuid(), playerWorld, player.getBlockPos());
+            closestPos = findClosest(player.getUuid(), worldKey, player.getBlockPos());
         }
         if (closestPos != null) {  // Point to closest not disabled and a grave was found
-            compassNbt.put("grave_pos", NbtHelper.fromBlockPos(closestPos));
-            World.CODEC.encodeStart(NbtOps.INSTANCE, playerWorld).resultOrPartial(Yigd.LOGGER::error).ifPresent(worldNbt -> compassNbt.put("grave_dimension", worldNbt));
+            compass.set(GRAVE_LOCATION, new GlobalPos(worldKey, closestPos));
         } else {
             // Standard grave compass
-            compassNbt.putUuid("linked_grave", graveId);  // Speed up the process of identifying the grave server side
+            compass.set(GraveComponent.GRAVE_ID, graveId);  // Speed up the process of identifying the grave server side
 
             // Make clients read the grave position
-            compassNbt.put("grave_pos", NbtHelper.fromBlockPos(gravePos));
-            World.CODEC.encodeStart(NbtOps.INSTANCE, worldKey).resultOrPartial(Yigd.LOGGER::error).ifPresent(worldNbt -> compassNbt.put("grave_dimension", worldNbt));
+            compass.set(GRAVE_LOCATION, new GlobalPos(worldKey, gravePos));
         }
 
-        compass.setNbt(compassNbt);
-        compass.setCustomName(Text.translatable("item.yigd.grave_compass").styled(style -> style.withItalic(false)));
+        compass.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.yigd.grave_compass").styled(style -> style.withItalic(false)));
         player.giveItemStack(compass);
     }
 
     public static void updateClosestNbt(RegistryKey<World> worldKey, BlockPos pos, UUID holderId, ItemStack compass) {
         if (YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest == GraveCompassConfig.CompassGraveTarget.DISABLED) return;
 
-        NbtCompound compassNbt = compass.getNbt();
-        if (compassNbt == null) return;
-
-        if (!compassNbt.contains("grave_pos")) return;  // Not a grave compass
+        if (!compass.contains(GRAVE_LOCATION)) return;  // Not a grave compass
 
         BlockPos closestPos = findClosest(holderId, worldKey, pos);
         if (closestPos != null) {
-            compassNbt.put("grave_pos", NbtHelper.fromBlockPos(closestPos));
-            World.CODEC.encodeStart(NbtOps.INSTANCE, worldKey).resultOrPartial(Yigd.LOGGER::error).ifPresent(worldNbt -> compassNbt.put("grave_dimension", worldNbt));
+            compass.set(GRAVE_LOCATION, new GlobalPos(worldKey, closestPos));
         }
     }
     public static void addGravePosition(RegistryKey<World> worldKey, BlockPos gravePos, UUID ownerId) {

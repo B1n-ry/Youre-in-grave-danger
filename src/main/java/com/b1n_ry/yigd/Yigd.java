@@ -3,6 +3,7 @@ package com.b1n_ry.yigd;
 import com.b1n_ry.yigd.block.GraveBlock;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.compat.InvModCompat;
+import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
@@ -11,22 +12,26 @@ import com.b1n_ry.yigd.events.ServerEventHandler;
 import com.b1n_ry.yigd.events.YigdServerEventHandler;
 import com.b1n_ry.yigd.item.DeathScrollItem;
 import com.b1n_ry.yigd.item.GraveKeyItem;
+import com.b1n_ry.yigd.networking.packets.*;
+import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.b1n_ry.yigd.util.YigdCommands;
-import com.b1n_ry.yigd.packets.ServerPacketHandler;
+import com.b1n_ry.yigd.networking.ServerPacketHandler;
 import com.b1n_ry.yigd.util.YigdResourceHandler;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +43,13 @@ public class Yigd implements ModInitializer {
 
     public static Logger LOGGER = LoggerFactory.getLogger("YIGD");
 
-    public static GraveBlock GRAVE_BLOCK = new GraveBlock(FabricBlockSettings.create().strength(0.8f, 3600000.0f).nonOpaque());
+    public static GraveBlock GRAVE_BLOCK = new GraveBlock(AbstractBlock.Settings.create().strength(0.8f, 3600000.0f).nonOpaque());
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
 
     // Optional registries
-    public static DeathScrollItem DEATH_SCROLL_ITEM = new DeathScrollItem(new FabricItemSettings());
-    public static GraveKeyItem GRAVE_KEY_ITEM = new GraveKeyItem(new FabricItemSettings());
+    public static DeathScrollItem DEATH_SCROLL_ITEM = new DeathScrollItem(new Item.Settings());
+    public static GraveKeyItem GRAVE_KEY_ITEM = new GraveKeyItem(new Item.Settings());
     public static SoulboundEnchantment SOULBOUND_ENCHANTMENT;
     public static DeathSightEnchantment DEATH_SIGHT_ENCHANTMENT;
 
@@ -65,15 +70,22 @@ public class Yigd implements ModInitializer {
         GRAVE_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, new Identifier(MOD_ID, "grave_block_entity"), BlockEntityType.Builder.create(GraveBlockEntity::new, GRAVE_BLOCK).build());
 
         Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "grave"), GRAVE_BLOCK);
-        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new FabricItemSettings()));
+        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new Item.Settings()));
+
+        Registry.register(Registries.DATA_COMPONENT_TYPE, new Identifier(Yigd.MOD_ID, "grave_location"), GraveCompassHelper.GRAVE_LOCATION);
+        Registry.register(Registries.DATA_COMPONENT_TYPE, new Identifier(Yigd.MOD_ID, "grave_id"), GraveComponent.GRAVE_ID);
 
         YigdConfig config = YigdConfig.getConfig();
         if (config.extraFeatures.soulboundEnchant.enabled) {
-            SOULBOUND_ENCHANTMENT = new SoulboundEnchantment(Enchantment.Rarity.VERY_RARE);
+            SOULBOUND_ENCHANTMENT = new SoulboundEnchantment(Enchantment.properties(ItemTags.DURABILITY_ENCHANTABLE,
+                    12, 1, Enchantment.leveledCost(25, 25),
+                    Enchantment.leveledCost(75, 25), 4, EquipmentSlot.values()));
             Registry.register(Registries.ENCHANTMENT, new Identifier(MOD_ID, "soulbound"), SOULBOUND_ENCHANTMENT);
         }
         if (config.extraFeatures.deathSightEnchant.enabled) {
-            DEATH_SIGHT_ENCHANTMENT = new DeathSightEnchantment(Enchantment.Rarity.RARE, EquipmentSlot.HEAD);
+            DEATH_SIGHT_ENCHANTMENT = new DeathSightEnchantment(Enchantment.properties(ItemTags.HEAD_ARMOR,
+                    6, 1, Enchantment.leveledCost(10, 10),
+                    Enchantment.leveledCost(25, 10), 2, EquipmentSlot.HEAD));
             Registry.register(Registries.ENCHANTMENT, new Identifier(MOD_ID, "death_sight"), DEATH_SIGHT_ENCHANTMENT);
         }
         Registry.register(Registries.ITEM, new Identifier(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
@@ -85,6 +97,20 @@ public class Yigd implements ModInitializer {
             entries.add(DEATH_SCROLL_ITEM.getDefaultStack());
             entries.add(GRAVE_KEY_ITEM.getDefaultStack());
         });
+
+        PayloadTypeRegistry.playC2S().register(DeleteGraveC2SPacket.ID, DeleteGraveC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(GraveOverviewRequestC2SPacket.ID, GraveOverviewRequestC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(GraveSelectionRequestC2SPacket.ID, GraveSelectionRequestC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(LockGraveC2SPacket.ID, LockGraveC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(RequestCompassC2SPacket.ID, RequestCompassC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(RequestKeyC2SPacket.ID, RequestKeyC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(RestoreGraveC2SPacket.ID, RestoreGraveC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(RobGraveC2SPacket.ID, RobGraveC2SPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(UpdateConfigC2SPacket.ID, UpdateConfigC2SPacket.CODEC);
+
+        PayloadTypeRegistry.playS2C().register(GraveOverviewS2CPacket.ID, GraveOverviewS2CPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(GraveSelectionS2CPacket.ID, GraveSelectionS2CPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(PlayerSelectionS2CPacket.ID, PlayerSelectionS2CPacket.CODEC);
 
         InvModCompat.initModCompat();
 
