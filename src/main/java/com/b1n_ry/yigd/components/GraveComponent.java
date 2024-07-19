@@ -693,9 +693,7 @@ public class GraveComponent {
 
         if (server != null) {
             ServerWorld world = server.getWorld(worldKey);
-            if (world == null) {
-                Yigd.LOGGER.error("World {} not recognized. Loading grave component without world", worldKey.toString());
-            } else {
+            if (world != null) {
                 return new GraveComponent(owner, inventoryComponent, expComponent, world, pos.orElse(BlockPos.ORIGIN), deathMessage, graveId, status, locked, creationTime, killerId);
             }
         }
