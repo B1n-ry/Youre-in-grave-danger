@@ -1,17 +1,15 @@
-# You're in Grave Danger 2.1.0
-
-### Changes
-* Updated to 1.20.2
-
----
-
 # You're in Grave Danger 2.0.0
 
 ### Changes
 * Death Scroll item click functionality can now be overwritten with NBT
+* Graves without any data is no longer stored
 
 ### Fixes
 * Doors will no longer be halved if dying inside of them
+* `generateOnlyWithinBorder` config now works as intended
+* Dying above world height will now place a grave
+* Fixed graves seemingly not generating when revive timer
+went to 0 (from the mod [revive](https://modrinth.com/mod/revive))
 
 ---
 

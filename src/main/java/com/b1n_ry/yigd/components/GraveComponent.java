@@ -175,8 +175,11 @@ public class GraveComponent {
         DeathInfoManager.INSTANCE.markDirty();
     }
 
-    public boolean isEmpty() {
+    public boolean isGraveEmpty() {
         return this.inventoryComponent.isGraveEmpty() && this.expComponent.isEmpty();
+    }
+    public boolean isEmpty() {
+        return this.inventoryComponent.isEmpty() && this.expComponent.isEmpty();
     }
 
     /**
@@ -262,7 +265,7 @@ public class GraveComponent {
         if (config.generateGraveInVoid && attemptedPos.getY() <= lowerAcceptableY) {
             y = lowerAcceptableY;
         }
-        int topY = this.world.getTopY();
+        int topY = this.world.getTopY() - 1;
         if (y > topY) {
             y = topY;
         }
@@ -272,11 +275,11 @@ public class GraveComponent {
         if (config.generateOnlyWithinBorder) {
             WorldBorder border = this.world.getWorldBorder();
             if (!border.contains(x, z)) {
-                x = (int) Math.max(x, border.getBoundEast());
-                x = (int) Math.min(x, border.getBoundWest());
+                x = (int) Math.max(x, border.getBoundWest());
+                x = (int) Math.min(x, border.getBoundEast());
 
-                z = (int) Math.max(z, border.getBoundSouth());
-                z = (int) Math.min(z, border.getBoundNorth());
+                z = (int) Math.max(z, border.getBoundNorth());
+                z = (int) Math.min(z, border.getBoundSouth());
             }
         }
 
@@ -691,9 +694,7 @@ public class GraveComponent {
 
         if (server != null) {
             ServerWorld world = server.getWorld(worldKey);
-            if (world == null) {
-                Yigd.LOGGER.error("World {} not recognized. Loading grave component without world", worldKey.toString());
-            } else {
+            if (world != null) {
                 return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status, locked, creationTime, killerId);
             }
         }

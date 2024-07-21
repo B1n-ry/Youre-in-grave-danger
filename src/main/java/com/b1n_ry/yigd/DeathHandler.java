@@ -62,6 +62,8 @@ public class DeathHandler {
         GraveComponent graveComponent = new GraveComponent(player.getGameProfile(), inventoryComponent, expComponent,
                 world, graveGenerationPos.add(0D, .5D, 0D), new TranslatableDeathMessage(deathSource, player), killerId);  // Will keep track of player grave (if enabled)
 
+        if (graveComponent.isEmpty() && respawnComponent.isEmpty()) return;  // There is literally no information worth saving
+
         GameProfile profile = player.getGameProfile();
         graveComponent.backUp();
         respawnComponent.primeForRespawn(profile);
