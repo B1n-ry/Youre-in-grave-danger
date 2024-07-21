@@ -10,6 +10,8 @@
 * Dying above world height will now place a grave
 * Fixed graves seemingly not generating when revive timer
 went to 0 (from the mod [revive](https://modrinth.com/mod/revive))
+* Having onBreak claim config active won't allow players to
+destroy other's graves no more
 
 ---
 
