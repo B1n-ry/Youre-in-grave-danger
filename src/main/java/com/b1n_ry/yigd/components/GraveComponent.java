@@ -63,7 +63,7 @@ public class GraveComponent {
      */
     @Nullable
     private ServerWorld world;
-    private final RegistryKey<World> worldRegistryKey;
+    private RegistryKey<World> worldRegistryKey;
     private BlockPos pos;
     private final TranslatableDeathMessage deathMessage;
     private final UUID graveId;
@@ -165,6 +165,14 @@ public class GraveComponent {
     public void setLocked(boolean locked) {
         this.locked = locked;
         DeathInfoManager.INSTANCE.markDirty();
+    }
+    public void setPos(BlockPos pos) {
+        this.pos = pos;
+        DeathInfoManager.INSTANCE.markDirty();
+    }
+    public void setWorld(ServerWorld world) {
+        this.world = world;
+        this.worldRegistryKey = world.getRegistryKey();
     }
     public void setStatus(GraveStatus status) {
         if (this.status == GraveStatus.UNCLAIMED

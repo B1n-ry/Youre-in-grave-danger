@@ -3,6 +3,8 @@
 ### Changes
 * Death Scroll item click functionality can now be overwritten with NBT
 * Graves without any data is no longer stored
+* Graves will detect when they are being moved, and notify
+the owner (for example if someone moves them with [Carry On](https://modrinth.com/mod/carry-on))
 
 ### Fixes
 * Doors will no longer be halved if dying inside of them
