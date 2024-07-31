@@ -14,6 +14,7 @@ import com.b1n_ry.yigd.packets.LightGraveData;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
+import com.b1n_ry.yigd.util.YigdTags;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.Block;
@@ -410,6 +411,7 @@ public class GraveComponent {
      */
     public boolean replaceWithOld(BlockState newState) {
         if (this.world == null) return false;
+        if (newState.isIn(YigdTags.REPLACE_GRAVE_BLACKLIST)) return false;
 
         boolean placed = this.world.setBlockState(this.pos, newState);  // Place the block
         // Although no player placed the block, we still need to update it in case the block is multipart
@@ -512,7 +514,7 @@ public class GraveComponent {
 
     /**
      * Will remove the grave block associated with the component (if it exists)
-     * __DO NOTE__: Unless status for the grave is changed from UNCLAIMED *before* called, status will be set to DESTROYED
+     * <u>DO NOTE</u>: Unless status for the grave is changed from UNCLAIMED *before* called, status will be set to DESTROYED
      * @return Weather or not a grave block was removed
      */
     public boolean removeGraveBlock() {
