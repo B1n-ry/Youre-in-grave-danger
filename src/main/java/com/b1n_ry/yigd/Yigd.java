@@ -17,6 +17,7 @@ import com.b1n_ry.yigd.util.YigdResourceHandler;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -87,7 +88,8 @@ public class Yigd implements ModInitializer {
             entries.add(GRAVE_KEY_ITEM.getDefaultStack());
         });
 
-        InvModCompat.initModCompat();
+        // Makes sure proper mod compatibilities are loaded (on world load to check mods' config)
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> InvModCompat.initModCompat());
 
         YigdServerEventHandler.registerEventCallbacks();
         ServerEventHandler.registerEvents();

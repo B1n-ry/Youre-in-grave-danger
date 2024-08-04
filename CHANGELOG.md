@@ -14,6 +14,8 @@ the owner (for example if someone moves them with [Carry On](https://modrinth.co
 went to 0 (from the mod [revive](https://modrinth.com/mod/revive))
 * Having onBreak claim config active won't allow players to
 destroy other's graves no more
+* Stabilized compatibility when mods compatible with (but not
+dependent on) trinkets have their trinket integration active
 
 ---
 

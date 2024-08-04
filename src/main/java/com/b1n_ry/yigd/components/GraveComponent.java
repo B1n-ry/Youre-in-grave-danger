@@ -513,8 +513,8 @@ public class GraveComponent {
     }
 
     /**
-     * Will remove the grave block associated with the component (if it exists)
-     * <u>DO NOTE</u>: Unless status for the grave is changed from UNCLAIMED *before* called, status will be set to DESTROYED
+     * Will remove the grave block associated with the component (if it exists)<br>
+     * <u>DO NOTE</u>: Unless status for the grave is changed from UNCLAIMED <i>before</i> called, status will be set to DESTROYED
      * @return Weather or not a grave block was removed
      */
     public boolean removeGraveBlock() {
