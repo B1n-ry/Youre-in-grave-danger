@@ -18,6 +18,9 @@ import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -153,13 +156,18 @@ public class GraveBlockEntity extends BlockEntity {
         }
     }
 
-    public static void tick(World world, BlockPos ignoredPos, BlockState ignoredState, GraveBlockEntity be) {
+    public static void tick(World world, BlockPos pos, BlockState ignoredState, GraveBlockEntity be) {
         if (world.isClient) return;
 
         if (be.component == null) return;
         if (world.getTime() % 2400 == 0) cachedConfig = YigdConfig.getConfig();  // Reloads the config every 60 seconds
 
         YigdConfig.GraveConfig.GraveTimeout timeoutConfig = cachedConfig.graveConfig.graveTimeout;
+
+        if (!pos.equals(be.component.getPos())
+                || (!be.component.getWorldRegistryKey().equals(world.getRegistryKey()))) {
+            be.updatePosition((ServerWorld) world, pos);
+        }
 
         if (!timeoutConfig.enabled || be.component.getStatus() != GraveStatus.UNCLAIMED) return;
 
@@ -179,6 +187,22 @@ public class GraveBlockEntity extends BlockEntity {
 
             if (timeoutConfig.dropContentsOnTimeout) {
                 be.component.dropAll();
+            }
+        }
+    }
+
+    private void updatePosition(ServerWorld world, BlockPos pos) {
+        if (this.component == null) return;
+
+        this.component.setPos(pos);
+        this.component.setWorld(world);
+        if (this.component.getStatus() == GraveStatus.DESTROYED || !this.claimed) {
+            this.component.setStatus(GraveStatus.UNCLAIMED);
+            PlayerManager playerManager = world.getServer().getPlayerManager();
+            GameProfile owner = this.component.getOwner();
+            ServerPlayerEntity player = owner.getId() != null ? playerManager.getPlayer(owner.getId()) : playerManager.getPlayer(owner.getName());
+            if (player != null) {
+                player.sendMessage(Text.translatable("text.yigd.message.grave_relocated", pos.getX(), pos.getY(), pos.getZ(), world.getRegistryKey().getValue().toString()));
             }
         }
     }
