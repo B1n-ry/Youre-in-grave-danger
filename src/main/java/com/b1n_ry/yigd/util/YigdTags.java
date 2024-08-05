@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 public interface YigdTags {
     TagKey<Block> REPLACE_SOFT_WHITELIST = TagKey.of(RegistryKeys.BLOCK, new Identifier(Yigd.MOD_ID, "replace_soft_whitelist"));
     TagKey<Block> KEEP_STRICT_BLACKLIST = TagKey.of(RegistryKeys.BLOCK, new Identifier(Yigd.MOD_ID, "keep_strict_blacklist"));
-
+    TagKey<Block> REPLACE_GRAVE_BLACKLIST = TagKey.of(RegistryKeys.BLOCK, new Identifier(Yigd.MOD_ID, "replace_grave_blacklist"));
 
     TagKey<Item> NATURAL_SOULBOUND = TagKey.of(RegistryKeys.ITEM, new Identifier(Yigd.MOD_ID, "natural_soulbound"));
     TagKey<Item> NATURAL_VANISHING = TagKey.of(RegistryKeys.ITEM, new Identifier(Yigd.MOD_ID, "natural_vanishing"));

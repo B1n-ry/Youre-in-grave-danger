@@ -198,7 +198,7 @@ public class YigdServerEventHandler {
                     && DeathInfoManager.INSTANCE.isInList(new ProfileComponent(context.player().getGameProfile())))
                 return false;
 
-            if (!graveConfig.generateEmptyGraves && grave.isEmpty()) return false;
+            if (!graveConfig.generateEmptyGraves && grave.isGraveEmpty()) return false;
 
             if (graveConfig.dimensionBlacklist.contains(grave.getWorldRegistryKey().getValue().toString())) return false;
 

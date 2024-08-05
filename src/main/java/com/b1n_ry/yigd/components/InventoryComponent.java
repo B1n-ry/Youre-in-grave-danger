@@ -480,6 +480,19 @@ public class InventoryComponent {
         return true;
     }
 
+    public boolean isEmpty() {
+        for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+            if (!compatComponent.isEmpty())
+                return false;
+        }
+
+        for (Pair<ItemStack, DropRule> pair : this.items) {
+            if (!pair.getLeft().isEmpty())
+                return false;
+        }
+        return true;
+    }
+
     /**
      * Get the number of occupied slots with drop rule PUT_IN_GRAVE
      * @return Number of occupied slots with drop rule PUT_IN_GRAVE

@@ -63,6 +63,11 @@ public class RespawnComponent {
         DeathInfoManager.INSTANCE.markDirty();
     }
 
+    public boolean isEmpty() {
+        return (this.soulboundInventory == null || this.soulboundInventory.isEmpty())
+                && (this.soulboundExp == null || this.soulboundExp.isEmpty());
+    }
+
     public void apply(ServerPlayerEntity player) {
         if (this.soulboundInventory != null) {
             DefaultedList<ItemStack> extraItems = this.soulboundInventory.pullBindingCurseItems(player);

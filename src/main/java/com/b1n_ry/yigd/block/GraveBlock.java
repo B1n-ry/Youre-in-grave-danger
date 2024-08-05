@@ -73,7 +73,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && itemStack.contains(DataComponentTypes.CUSTOM_NAME)) {
-            if (grave.getComponent() == null) {
+            GraveComponent graveComponent = grave.getComponent();
+            if (graveComponent == null) {
                 grave.setGraveText(itemStack.getName());
                 grave.markDirty();
             }
@@ -138,7 +139,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         YigdConfig config = YigdConfig.getConfig();
         Hand hand = player.getActiveHand();  // Maybe?
         if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
-        if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave && config.graveConfig.retrieveMethods.onClick) {
+        if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
             GraveComponent graveComponent = grave.getComponent();
 
             if (graveComponent == null) {
@@ -176,7 +177,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             }
 
             // If it's not on the client side, player and world should safely be able to be cast into their serverside counterpart classes
-            return graveComponent.claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
+            if (config.graveConfig.retrieveMethods.onClick)
+                return graveComponent.claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
         }
         return ActionResult.FAIL;
     }
@@ -234,25 +236,25 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
         YigdConfig config = YigdConfig.getConfig();
         if (!world.isClient && blockEntity instanceof GraveBlockEntity grave && grave.getComponent() != null && grave.getComponent().getStatus() != GraveStatus.CLAIMED) {
             if (config.graveConfig.retrieveMethods.onBreak) {
-                grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, tool);
-                return;
-            } else {
-                world.setBlockState(pos, state);
-                Optional<GraveBlockEntity> be = world.getBlockEntity(pos, Yigd.GRAVE_BLOCK_ENTITY);
-                if (be.isPresent()) {
-                    GraveBlockEntity graveBlockEntity = be.get();
-
-                    graveBlockEntity.setPreviousState(grave.getPreviousState());
-                    Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(grave.getGraveId());
-                    component.ifPresent(graveBlockEntity::setComponent);
-
-                    Yigd.END_OF_TICK.add(() -> {  // Required because it might take a tick for the game to realize the block is replaced
-                        graveBlockEntity.markDirty();
-                        world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
-                    });
-
+                ActionResult claimResult = grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, tool);
+                if (claimResult != ActionResult.FAIL)
                     return;
-                }
+            }
+            world.setBlockState(pos, state);
+            Optional<GraveBlockEntity> be = world.getBlockEntity(pos, Yigd.GRAVE_BLOCK_ENTITY);
+            if (be.isPresent()) {
+                GraveBlockEntity graveBlockEntity = be.get();
+
+                graveBlockEntity.setPreviousState(grave.getPreviousState());
+                Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(grave.getGraveId());
+                component.ifPresent(graveBlockEntity::setComponent);
+
+                Yigd.END_OF_TICK.add(() -> {  // Required because it might take a tick for the game to realize the block is replaced
+                    graveBlockEntity.markDirty();
+                    world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+                });
+
+                return;
             }
         }
         super.afterBreak(world, player, pos, state, blockEntity, tool);
@@ -261,7 +263,8 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.isUnclaimed()
-                && !YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
+                && (!YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak
+                || !player.getGameProfile().equals(grave.getGraveSkull()))) {
             return 0;
         }
         return super.calcBlockBreakingDelta(state, player, world, pos);

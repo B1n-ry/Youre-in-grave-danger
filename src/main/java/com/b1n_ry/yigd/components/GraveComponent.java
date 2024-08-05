@@ -14,6 +14,7 @@ import com.b1n_ry.yigd.networking.LightGraveData;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
+import com.b1n_ry.yigd.util.YigdTags;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.Block;
@@ -63,7 +64,7 @@ public class GraveComponent {
      */
     @Nullable
     private ServerWorld world;
-    private final RegistryKey<World> worldRegistryKey;
+    private RegistryKey<World> worldRegistryKey;
     private BlockPos pos;
     private final Text deathMessage;
     private final UUID graveId;
@@ -167,6 +168,14 @@ public class GraveComponent {
         this.locked = locked;
         DeathInfoManager.INSTANCE.markDirty();
     }
+    public void setPos(BlockPos pos) {
+        this.pos = pos;
+        DeathInfoManager.INSTANCE.markDirty();
+    }
+    public void setWorld(ServerWorld world) {
+        this.world = world;
+        this.worldRegistryKey = world.getRegistryKey();
+    }
     public void setStatus(GraveStatus status) {
         if (this.status == GraveStatus.UNCLAIMED
                 && YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
@@ -176,8 +185,11 @@ public class GraveComponent {
         DeathInfoManager.INSTANCE.markDirty();
     }
 
-    public boolean isEmpty() {
+    public boolean isGraveEmpty() {
         return this.inventoryComponent.isGraveEmpty() && this.expComponent.isEmpty();
+    }
+    public boolean isEmpty() {
+        return this.inventoryComponent.isEmpty() && this.expComponent.isEmpty();
     }
 
     /**
@@ -401,6 +413,7 @@ public class GraveComponent {
      */
     public boolean replaceWithOld(BlockState newState) {
         if (this.world == null) return false;
+        if (newState.isIn(YigdTags.REPLACE_GRAVE_BLACKLIST)) return false;
 
         boolean placed = this.world.setBlockState(this.pos, newState);  // Place the block
         // Although no player placed the block, we still need to update it in case the block is multipart
@@ -503,7 +516,7 @@ public class GraveComponent {
     }
 
     /**
-     * Will remove the grave block associated with the component (if it exists)
+     * Will remove the grave block associated with the component (if it exists)<br>
      * <u>DO NOTE</u>: Unless status for the grave is changed from UNCLAIMED <i>before</i> called, status will be set to DESTROYED
      * @return Weather or not a grave block was removed
      */
