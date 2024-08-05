@@ -14,6 +14,7 @@ import com.b1n_ry.yigd.packets.LightGraveData;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
+import com.b1n_ry.yigd.util.YigdTags;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.Block;
@@ -63,7 +64,7 @@ public class GraveComponent {
      */
     @Nullable
     private ServerWorld world;
-    private final RegistryKey<World> worldRegistryKey;
+    private RegistryKey<World> worldRegistryKey;
     private BlockPos pos;
     private final TranslatableDeathMessage deathMessage;
     private final UUID graveId;
@@ -166,6 +167,14 @@ public class GraveComponent {
         this.locked = locked;
         DeathInfoManager.INSTANCE.markDirty();
     }
+    public void setPos(BlockPos pos) {
+        this.pos = pos;
+        DeathInfoManager.INSTANCE.markDirty();
+    }
+    public void setWorld(ServerWorld world) {
+        this.world = world;
+        this.worldRegistryKey = world.getRegistryKey();
+    }
     public void setStatus(GraveStatus status) {
         if (this.status == GraveStatus.UNCLAIMED
                 && YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
@@ -175,8 +184,11 @@ public class GraveComponent {
         DeathInfoManager.INSTANCE.markDirty();
     }
 
-    public boolean isEmpty() {
+    public boolean isGraveEmpty() {
         return this.inventoryComponent.isGraveEmpty() && this.expComponent.isEmpty();
+    }
+    public boolean isEmpty() {
+        return this.inventoryComponent.isEmpty() && this.expComponent.isEmpty();
     }
 
     /**
@@ -262,7 +274,7 @@ public class GraveComponent {
         if (config.generateGraveInVoid && attemptedPos.getY() <= lowerAcceptableY) {
             y = lowerAcceptableY;
         }
-        int topY = this.world.getTopY();
+        int topY = this.world.getTopY() - 1;
         if (y > topY) {
             y = topY;
         }
@@ -272,11 +284,11 @@ public class GraveComponent {
         if (config.generateOnlyWithinBorder) {
             WorldBorder border = this.world.getWorldBorder();
             if (!border.contains(x, z)) {
-                x = (int) Math.max(x, border.getBoundEast());
-                x = (int) Math.min(x, border.getBoundWest());
+                x = (int) Math.max(x, border.getBoundWest());
+                x = (int) Math.min(x, border.getBoundEast());
 
-                z = (int) Math.max(z, border.getBoundSouth());
-                z = (int) Math.min(z, border.getBoundNorth());
+                z = (int) Math.max(z, border.getBoundNorth());
+                z = (int) Math.min(z, border.getBoundSouth());
             }
         }
 
@@ -399,6 +411,7 @@ public class GraveComponent {
      */
     public boolean replaceWithOld(BlockState newState) {
         if (this.world == null) return false;
+        if (newState.isIn(YigdTags.REPLACE_GRAVE_BLACKLIST)) return false;
 
         boolean placed = this.world.setBlockState(this.pos, newState);  // Place the block
         // Although no player placed the block, we still need to update it in case the block is multipart
@@ -500,8 +513,8 @@ public class GraveComponent {
     }
 
     /**
-     * Will remove the grave block associated with the component (if it exists)
-     * __DO NOTE__: Unless status for the grave is changed from UNCLAIMED *before* called, status will be set to DESTROYED
+     * Will remove the grave block associated with the component (if it exists)<br>
+     * <u>DO NOTE</u>: Unless status for the grave is changed from UNCLAIMED <i>before</i> called, status will be set to DESTROYED
      * @return Weather or not a grave block was removed
      */
     public boolean removeGraveBlock() {
@@ -691,9 +704,7 @@ public class GraveComponent {
 
         if (server != null) {
             ServerWorld world = server.getWorld(worldKey);
-            if (world == null) {
-                Yigd.LOGGER.error("World {} not recognized. Loading grave component without world", worldKey.toString());
-            } else {
+            if (world != null) {
                 return new GraveComponent(owner, inventoryComponent, expComponent, world, pos, deathMessage, graveId, status, locked, creationTime, killerId);
             }
         }

@@ -24,6 +24,10 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         FabricCompatHelper.OnDeathCallback.EVENT.register(FabricCompatHelper.Context::cancel);
     }
 
+    public static void prepForTrinkets() {
+        FabricCompatHelper.OnDeathCallback.EVENT.register(FabricCompatHelper.Context::cancel);
+    }
+
     @Override
     public String getModName() {
         return "beansbackpacks";

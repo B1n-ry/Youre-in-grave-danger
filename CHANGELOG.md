@@ -1,3 +1,24 @@
+# You're in Grave Danger 2.1.0
+
+### Changes
+* Death Scroll item click functionality can now be overwritten with NBT
+* Graves without any data is no longer stored
+* Graves will detect when they are being moved, and notify
+the owner (for example if someone moves them with [Carry On](https://modrinth.com/mod/carry-on))
+
+### Fixes
+* Doors will no longer be halved if dying inside of them
+* `generateOnlyWithinBorder` config now works as intended
+* Dying above world height will now place a grave
+* Fixed graves seemingly not generating when revive timer
+went to 0 (from the mod [revive](https://modrinth.com/mod/revive))
+* Having onBreak claim config active won't allow players to
+* Stabilized compatibility when mods compatible with (but not
+dependent on) trinkets have their trinket integration active
+destroy other's graves no more
+
+---
+
 # You're in Grave Danger 2.0.0-beta.14
 
 ### Changes

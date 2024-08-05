@@ -182,7 +182,7 @@ public class YigdServerEventHandler {
             if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) return false;
             if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST && DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) return false;
 
-            if (!graveConfig.generateEmptyGraves && grave.isEmpty()) return false;
+            if (!graveConfig.generateEmptyGraves && grave.isGraveEmpty()) return false;
 
             if (graveConfig.dimensionBlacklist.contains(grave.getWorldRegistryKey().getValue().toString())) return false;
 
