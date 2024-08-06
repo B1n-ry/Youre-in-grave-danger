@@ -2,6 +2,10 @@
   "replace": false,
   "values": [
     {
+      "id": "yigd:soulbound",
+      "required": false
+    },
+    {
       "id": "yigd:death_sight",
       "required": false
     }

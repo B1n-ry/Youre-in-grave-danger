@@ -1,6 +1,9 @@
 {
   "replace": false,
   "values": [
-    "yigd:soulbound"
+    {
+      "id": "yigd:soulbound",
+      "required": false
+    }
   ]
 }
