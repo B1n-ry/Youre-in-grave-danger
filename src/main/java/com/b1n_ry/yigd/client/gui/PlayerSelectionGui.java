@@ -80,9 +80,9 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
     }
     private void addFilterButton(WGridPanel root, WFilterableListPanel<LightPlayerData, WCardButton> filterableList) {
         ItemIcon allIcon = new ItemIcon(Items.BARRIER.asItem());
-        TextureIcon claimedIcon = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave.png"));
-        TextureIcon unclaimedIcon = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"));
-        TextureIcon destroyedIcon = new TextureIcon(new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"));
+        TextureIcon claimedIcon = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/claimed_grave.png"));
+        TextureIcon unclaimedIcon = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"));
+        TextureIcon destroyedIcon = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"));
 
         WCardPanel cardPanel = new WCardPanel();
         WHoverButton showAllButton = new WHoverButton(allIcon, Text.translatable("button.yigd.gui.showing_with_data"));

@@ -13,7 +13,6 @@ import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.enchantment.Enchantment;
@@ -40,7 +39,7 @@ public class YigdServerEventHandler {
         DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
             YigdConfig config = YigdConfig.getConfig();
 
-            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(new Identifier("amethyst_imbuement", "soulbinding"));
+            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(Identifier.of("amethyst_imbuement", "soulbinding"));
             RegistryEntry<StatusEffect> statusEffectEntry = Registries.STATUS_EFFECT.getEntry(statusEffect);
 
             if (config.inventoryConfig.soulboundSlots.contains(slot)) return DropRule.KEEP;
@@ -74,29 +73,23 @@ public class YigdServerEventHandler {
             else
                 dropRule = GraveOverrideAreas.INSTANCE.defaultDropRule;
 
-            // TODO: Maybe make this into an enchantment tag?
-            // Get drop rule from enchantment. This is set up so that the first drop rule related enchantment will take effect, no matter what more enchantments there are
-            ItemEnchantmentsComponent enchantments = item.getEnchantments();
-            for (RegistryEntry<Enchantment> enchantment : enchantments.getEnchantments()) {
 
-                String id = enchantment.getIdAsString();
-                if (config.inventoryConfig.vanishingEnchantments.contains(id))
-                    return DropRule.DESTROY;
+            // Get drop rule from enchantment
+            if (EnchantmentHelper.hasAnyEnchantmentsIn(item, YigdTags.VANISHING))
+                return DropRule.DESTROY;
 
-                if (!config.inventoryConfig.soulboundEnchantments.contains(id))
-                    continue;
+            if (EnchantmentHelper.hasAnyEnchantmentsIn(item, YigdTags.SOULBOUND)) {
+                if (config.inventoryConfig.loseSoulboundLevelOnDeath) {
+                    for (RegistryEntry<Enchantment> enchantmentRegistryEntry : EnchantmentHelper.getEnchantments(item).getEnchantments()) {
+                        if (!enchantmentRegistryEntry.isIn(YigdTags.SOULBOUND))
+                            continue;
 
-                int level = enchantments.getLevel(enchantment.value());
-                if (config.inventoryConfig.loseSoulboundLevelOnDeath && modify) {
-                    EnchantmentHelper.apply(item, builder -> {
-                        if (level > 1)
-                            builder.set(enchantment.value(), level - 1);
-                        else
-                            builder.remove(enchantmentRegistryEntry -> enchantmentRegistryEntry.equals(enchantment));
-                    });
+                        int level = EnchantmentHelper.getLevel(enchantmentRegistryEntry, item);
+                        if (level > 1) EnchantmentHelper.apply(item, builder -> builder.set(enchantmentRegistryEntry, level - 1));
+                        else EnchantmentHelper.apply(item, builder -> builder.remove(enchant -> enchant.equals(enchantmentRegistryEntry)));
+                    }
                 }
-                dropRule = DropRule.KEEP;  // Do not return value, since enchantment might have to be deleted if it was level 1 and should be deleted
-                break; // Break the loop. This way if 2 soulbound enchantments are on the item, only one is "consumed"
+                return DropRule.KEEP;
             }
 
             return dropRule;
@@ -205,7 +198,7 @@ public class YigdServerEventHandler {
             if (!graveConfig.generateGraveInVoid && grave.getPos().getY() < 0) return false;
 
             if (graveConfig.requireItem) {
-                Item item = Registries.ITEM.get(new Identifier(graveConfig.requiredItem));
+                Item item = Registries.ITEM.get(Identifier.of(graveConfig.requiredItem));
                 if (!grave.getInventoryComponent().removeItem(stack -> stack.isOf(item), 1)) {
                     return false;
                 }

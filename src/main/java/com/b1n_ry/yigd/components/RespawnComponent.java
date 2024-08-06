@@ -104,7 +104,7 @@ public class RespawnComponent {
         }
 
         for (YigdConfig.RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {
-            Item item = Registries.ITEM.get(new Identifier(extraItemDrop.itemId));
+            Item item = Registries.ITEM.get(Identifier.of(extraItemDrop.itemId));
             ItemStack stack = new ItemStack(item, extraItemDrop.count);
             try {
                 if (!extraItemDrop.itemNbt.isEmpty())

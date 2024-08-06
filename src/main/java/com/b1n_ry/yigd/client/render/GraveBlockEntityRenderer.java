@@ -249,7 +249,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             if (nameIds.containsKey(textureName)) {
                 textureName = nameIds.get(textureName);
             }
-            Identifier texture = new Identifier(textureName);
+            Identifier texture = Identifier.of(textureName);
             SpriteIdentifier sprite = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, texture);
 
             CUBOID_SPRITES.put(name, sprite);
@@ -299,7 +299,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     static {
         graveModel = getGraveModel();
-        OUTLINE_RENDER_LAYER = RenderLayer.getOutline(new Identifier("textures/misc/white.png"));
+        OUTLINE_RENDER_LAYER = RenderLayer.getOutline(Identifier.of("textures/misc/white.png"));
     }
 
     private record TextRenderInfo(float depth, float height, float width) { }

@@ -41,7 +41,7 @@ publishMods {
 
 		accessToken = providers.environmentVariable("GITHUB_TOKEN")
 		repository = "B1n-ry/Youre-in-grave-danger"
-		commitish = "1.20.6-fabric"
+		commitish = "1.21-fabric"
 		tagName = project.minecraft_version + "-" + project.mod_version
 	}
 

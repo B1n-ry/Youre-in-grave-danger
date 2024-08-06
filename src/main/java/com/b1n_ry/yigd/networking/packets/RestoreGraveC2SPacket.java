@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public record RestoreGraveC2SPacket(UUID graveId, boolean itemsInGrave, boolean itemsDeleted, boolean itemsKept,
                                     boolean itemsDropped) implements CustomPayload {
-    public static final Id<RestoreGraveC2SPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "restore_grave_request"));
+    public static final Id<RestoreGraveC2SPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "restore_grave_request"));
     public static final PacketCodec<RegistryByteBuf, RestoreGraveC2SPacket> CODEC = PacketCodec.of(RestoreGraveC2SPacket::write, RestoreGraveC2SPacket::new);
 
     @Override

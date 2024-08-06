@@ -1,21 +1,24 @@
-# You're in Grave Danger 2.3.0
+# You're in Grave Danger 2.4.0
 
 ### Changes
 * Death Scroll item click functionality can now be overwritten with NBT
 * Graves without any data is no longer stored
 * Graves will detect when they are being moved, and notify
-  the owner (for example if someone moves them with [Carry On](https://modrinth.com/mod/carry-on))
+the owner (for example if someone moves them with [Carry On](https://modrinth.com/mod/carry-on))
+* Soulbound and vanishing enchantments now use enchantment tags
+* Soulbound and Death Sight enchantments are now (mostly) data driven,
+but can still be toggled though the configs
 
 ### Fixes
 * Doors will no longer be halved if dying inside of them
 * `generateOnlyWithinBorder` config now works as intended
 * Dying above world height will now place a grave
 * Fixed graves seemingly not generating when revive timer
-  went to 0 (from the mod [revive](https://modrinth.com/mod/revive))
+went to 0 (from the mod [revive](https://modrinth.com/mod/revive))
 * Having onBreak claim config active won't allow players to
 * Stabilized compatibility when mods compatible with (but not
-  dependent on) trinkets have their trinket integration active
-  destroy other's graves no more
+dependent on) trinkets have their trinket integration active
+destroy other's graves no more
 
 ---
 

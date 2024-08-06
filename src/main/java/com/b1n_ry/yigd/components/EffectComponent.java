@@ -83,7 +83,7 @@ public class EffectComponent {
 
     private void loadEffectsFromConfig(YigdConfig.RespawnConfig rConfig) {
         for (YigdConfig.RespawnConfig.EffectConfig effect : rConfig.respawnEffects) {
-            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(new Identifier(effect.effectName));
+            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(Identifier.of(effect.effectName));
             if (statusEffect == null) continue;
 
             RegistryEntry<StatusEffect> effectRegistryEntry = Registries.STATUS_EFFECT.getEntry(statusEffect);

@@ -12,7 +12,7 @@ public class GraveyardData {
     @SerializedName("point2point")
     public boolean point2point = false;
     @SerializedName("dimension")
-    public Identifier dimensionId = new Identifier("overworld");
+    public Identifier dimensionId = Identifier.of("overworld");
     @SerializedName("use_closest")
     public boolean useClosest = false;
     @SerializedName("coordinates")

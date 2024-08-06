@@ -20,7 +20,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.component.DataComponentType;
+import net.minecraft.component.ComponentType;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -74,7 +74,7 @@ public class GraveComponent {
     private final UUID killerId;
 
     public static GraveyardData graveyardData = null;
-    public static final DataComponentType<UUID> GRAVE_ID = DataComponentType.<UUID>builder().codec(Uuids.CODEC).packetCodec(Uuids.PACKET_CODEC).build();
+    public static final ComponentType<UUID> GRAVE_ID = ComponentType.<UUID>builder().codec(Uuids.CODEC).packetCodec(Uuids.PACKET_CODEC).build();
 
     public GraveComponent(ProfileComponent owner, InventoryComponent inventoryComponent, ExpComponent expComponent, ServerWorld world, Vec3d pos, Text deathMessage, UUID killerId) {
         this(owner, inventoryComponent, expComponent, world, BlockPos.ofFloored(pos), deathMessage, UUID.randomUUID(), GraveStatus.UNCLAIMED, true, new TimePoint(world), killerId);
@@ -398,7 +398,7 @@ public class GraveComponent {
             return;
         }
 
-        Block blockUnder = Registries.BLOCK.get(new Identifier(blockName));
+        Block blockUnder = Registries.BLOCK.get(Identifier.of(blockName));
         boolean placed = this.world.setBlockState(this.pos.down(), blockUnder.getDefaultState());
         if (!placed) {
             Yigd.LOGGER.warn("Didn't place supporting block under grave in %s, at %d, %d, %d. Block placement failed"
@@ -716,7 +716,7 @@ public class GraveComponent {
         String registry = nbt.getString("registry");
         String value = nbt.getString("value");
 
-        RegistryKey<Registry<World>> r = RegistryKey.ofRegistry(new Identifier(registry));
-        return RegistryKey.of(r, new Identifier(value));
+        RegistryKey<Registry<World>> r = RegistryKey.ofRegistry(Identifier.of(registry));
+        return RegistryKey.of(r, Identifier.of(value));
     }
 }

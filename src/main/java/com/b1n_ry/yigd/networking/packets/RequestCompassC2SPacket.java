@@ -9,7 +9,7 @@ import net.minecraft.util.Identifier;
 import java.util.UUID;
 
 public record RequestCompassC2SPacket(UUID graveId) implements CustomPayload {
-    public static final Id<RequestCompassC2SPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "request_grave_compass"));
+    public static final Id<RequestCompassC2SPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "request_grave_compass"));
     public static final PacketCodec<RegistryByteBuf, RequestCompassC2SPacket> CODEC = PacketCodec.of(RequestCompassC2SPacket::write, RequestCompassC2SPacket::new);
 
     @Override

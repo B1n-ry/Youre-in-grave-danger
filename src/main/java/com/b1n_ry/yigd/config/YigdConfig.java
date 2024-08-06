@@ -48,10 +48,6 @@ public class YigdConfig implements ConfigData {
         public boolean dropPlayerHead = false;
         @ConfigEntry.Gui.CollapsibleObject
         public ItemLossConfig itemLoss = new ItemLossConfig();
-        // delete enchantments
-        public List<String> vanishingEnchantments = new ArrayList<>() {{ add("minecraft:vanishing_curse"); }};
-        // soulbinding enchantments
-        public List<String> soulboundEnchantments = new ArrayList<>() {{ add("yigd:soulbound"); }};
         // loose soulbound level
         public boolean loseSoulboundLevelOnDeath = false;
         // void slots
@@ -335,7 +331,7 @@ public class YigdConfig implements ConfigData {
 
     public static class ExtraFeatures {
         @ConfigEntry.Gui.CollapsibleObject
-        public EnchantmentConfig soulboundEnchant = new EnchantmentConfig(true, true, true, false);
+        public boolean enableSoulbound = true;
         @ConfigEntry.Gui.CollapsibleObject
         public DeathSightConfig deathSightEnchant = new DeathSightConfig();
         @ConfigEntry.Gui.CollapsibleObject
@@ -345,24 +341,8 @@ public class YigdConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public GraveCompassConfig graveCompass = new GraveCompassConfig();
 
-        public static class EnchantmentConfig {
-            public boolean enabled;
-            public boolean isTreasure;
-            public boolean isAvailableForEnchantedBookOffer;
-            public boolean isAvailableForRandomSelection;
-
-            public EnchantmentConfig(boolean enabled, boolean isTreasure, boolean isAvailableForEnchantedBookOffer, boolean isAvailableForRandomSelection) {
-                this.enabled = enabled;
-                this.isTreasure = isTreasure;
-                this.isAvailableForEnchantedBookOffer = isAvailableForEnchantedBookOffer;
-                this.isAvailableForRandomSelection = isAvailableForRandomSelection;
-            }
-        }
         public static class DeathSightConfig {
             public boolean enabled = false;
-            public boolean isTreasure = true;
-            public boolean isAvailableForEnchantedBookOffer = true;
-            public boolean isAvailableForRandomSelection = false;
             public double range = 64;
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public GraveTargets targets = GraveTargets.PLAYER_GRAVES;

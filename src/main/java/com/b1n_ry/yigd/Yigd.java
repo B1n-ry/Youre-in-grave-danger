@@ -6,14 +6,11 @@ import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.ClaimPriority;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.enchantment.DeathSightEnchantment;
-import com.b1n_ry.yigd.enchantment.SoulboundEnchantment;
 import com.b1n_ry.yigd.events.ServerEventHandler;
 import com.b1n_ry.yigd.events.YigdServerEventHandler;
 import com.b1n_ry.yigd.item.DeathScrollItem;
 import com.b1n_ry.yigd.item.GraveKeyItem;
 import com.b1n_ry.yigd.networking.PacketInitializer;
-import com.b1n_ry.yigd.networking.packets.*;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.b1n_ry.yigd.util.YigdCommands;
 import com.b1n_ry.yigd.networking.ServerPacketHandler;
@@ -23,17 +20,14 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +46,6 @@ public class Yigd implements ModInitializer {
     // Optional registries
     public static DeathScrollItem DEATH_SCROLL_ITEM = new DeathScrollItem(new Item.Settings());
     public static GraveKeyItem GRAVE_KEY_ITEM = new GraveKeyItem(new Item.Settings());
-    public static SoulboundEnchantment SOULBOUND_ENCHANTMENT;
-    public static DeathSightEnchantment DEATH_SIGHT_ENCHANTMENT;
 
     /**
      * Any runnable added to this list will be executed on the end of the current server tick.
@@ -69,29 +61,16 @@ public class Yigd implements ModInitializer {
     public void onInitialize() {
         AutoConfig.register(YigdConfig.class, GsonConfigSerializer::new);
 
-        GRAVE_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, new Identifier(MOD_ID, "grave_block_entity"), BlockEntityType.Builder.create(GraveBlockEntity::new, GRAVE_BLOCK).build());
+        GRAVE_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(MOD_ID, "grave_block_entity"), BlockEntityType.Builder.create(GraveBlockEntity::new, GRAVE_BLOCK).build());
 
-        Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "grave"), GRAVE_BLOCK);
-        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new Item.Settings()));
+        Registry.register(Registries.BLOCK, Identifier.of(MOD_ID, "grave"), GRAVE_BLOCK);
+        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new Item.Settings()));
 
-        Registry.register(Registries.DATA_COMPONENT_TYPE, new Identifier(Yigd.MOD_ID, "grave_location"), GraveCompassHelper.GRAVE_LOCATION);
-        Registry.register(Registries.DATA_COMPONENT_TYPE, new Identifier(Yigd.MOD_ID, "grave_id"), GraveComponent.GRAVE_ID);
+        Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(Yigd.MOD_ID, "grave_location"), GraveCompassHelper.GRAVE_LOCATION);
+        Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(Yigd.MOD_ID, "grave_id"), GraveComponent.GRAVE_ID);
 
-        YigdConfig config = YigdConfig.getConfig();
-        if (config.extraFeatures.soulboundEnchant.enabled) {
-            SOULBOUND_ENCHANTMENT = new SoulboundEnchantment(Enchantment.properties(ItemTags.DURABILITY_ENCHANTABLE,
-                    12, 1, Enchantment.leveledCost(25, 25),
-                    Enchantment.leveledCost(75, 25), 4, EquipmentSlot.values()));
-            Registry.register(Registries.ENCHANTMENT, new Identifier(MOD_ID, "soulbound"), SOULBOUND_ENCHANTMENT);
-        }
-        if (config.extraFeatures.deathSightEnchant.enabled) {
-            DEATH_SIGHT_ENCHANTMENT = new DeathSightEnchantment(Enchantment.properties(ItemTags.HEAD_ARMOR,
-                    6, 1, Enchantment.leveledCost(10, 10),
-                    Enchantment.leveledCost(25, 10), 2, EquipmentSlot.HEAD));
-            Registry.register(Registries.ENCHANTMENT, new Identifier(MOD_ID, "death_sight"), DEATH_SIGHT_ENCHANTMENT);
-        }
-        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
-        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "grave_key"), GRAVE_KEY_ITEM);
+        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
+        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "grave_key"), GRAVE_KEY_ITEM);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(entries -> {
             entries.add(GRAVE_BLOCK.asItem());

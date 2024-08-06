@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
     /**
-     * It just works  - Tod Howard
+     * It just works  -Tod Howard
      * I *think* this will render the block entities on the entity rendering profile, allowing them to have entity outlines
      * I feel like this is kinda cursed if this is the case, but I don't know how else to do it ¯\_(ツ)_/¯
      * Also it seems to work, as long as the rendering on the outline render layer is an actual outline vertex consumer

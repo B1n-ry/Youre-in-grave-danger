@@ -11,7 +11,7 @@ import net.minecraft.util.Identifier;
 import java.util.List;
 
 public record GraveSelectionS2CPacket(List<LightGraveData> data, ProfileComponent owner) implements CustomPayload {
-    public static final Id<GraveSelectionS2CPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "grave_selection"));
+    public static final Id<GraveSelectionS2CPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "grave_selection"));
     public static final PacketCodec<RegistryByteBuf, GraveSelectionS2CPacket> CODEC = PacketCodec.of(GraveSelectionS2CPacket::write, GraveSelectionS2CPacket::new);
 
     @Override

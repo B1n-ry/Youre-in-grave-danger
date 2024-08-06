@@ -36,7 +36,7 @@ public class ExpComponent {
 
         double totalExperience = this.getTotalExperience(player);
         int percentageDrop = (int) ((config.expConfig.dropPercentage / 100f) * totalExperience);
-        int vanillaDrop = player.getXpToDrop();
+        int vanillaDrop = player.getXpToDrop(player.getServerWorld(), null);
         return switch (config.expConfig.dropBehaviour) {
             case BEST_OF_BOTH -> Math.max(vanillaDrop, percentageDrop);
             case WORST_OF_BOTH -> Math.min(vanillaDrop, percentageDrop);

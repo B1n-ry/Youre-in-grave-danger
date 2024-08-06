@@ -21,7 +21,7 @@ import java.util.List;
 
 public class YigdResourceHandler {
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Identifier.class, (JsonDeserializer<Identifier>) (elem, type, context) -> new Identifier(elem.getAsString()))
+            .registerTypeAdapter(Identifier.class, (JsonDeserializer<Identifier>) (elem, type, context) -> Identifier.of(elem.getAsString()))
             .registerTypeAdapter(Vec3i.class, (JsonDeserializer<Vec3i>) (elem, type, context) -> new Vec3i(
                     elem.getAsJsonArray().get(0).getAsInt(),
                     elem.getAsJsonArray().get(1).getAsInt(),
@@ -38,12 +38,12 @@ public class YigdResourceHandler {
     private static class GraveResourceLoader implements SimpleSynchronousResourceReloadListener {
         @Override
         public Identifier getFabricId() {
-            return new Identifier(Yigd.MOD_ID, "custom_grave_model");
+            return Identifier.of(Yigd.MOD_ID, "custom_grave_model");
         }
 
         @Override
         public void reload(ResourceManager manager) {
-            Identifier resourceLocation = new Identifier(Yigd.MOD_ID, "models/block/grave.json");
+            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "models/block/grave.json");
             List<Resource> resources = manager.getAllResources(resourceLocation);
 
             for (Resource resource : resources) {
@@ -64,12 +64,12 @@ public class YigdResourceHandler {
     private static class GraveServerModelLoader implements SimpleSynchronousResourceReloadListener {
         @Override
         public Identifier getFabricId() {
-            return new Identifier(Yigd.MOD_ID, "custom_server_grave_shape");
+            return Identifier.of(Yigd.MOD_ID, "custom_server_grave_shape");
         }
 
         @Override
         public void reload(ResourceManager manager) {
-            Identifier resourceLocation = new Identifier(Yigd.MOD_ID, "custom/grave_shape.json");
+            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "custom/grave_shape.json");
             List<Resource> resources = manager.getAllResources(resourceLocation);
 
             for (Resource resource : resources) {
@@ -89,12 +89,12 @@ public class YigdResourceHandler {
     private static class GraveyardDataLoader implements SimpleSynchronousResourceReloadListener {
         @Override
         public Identifier getFabricId() {
-            return new Identifier(Yigd.MOD_ID, "graveyard");
+            return Identifier.of(Yigd.MOD_ID, "graveyard");
         }
 
         @Override
         public void reload(ResourceManager manager) {
-            Identifier resourceLocation = new Identifier(Yigd.MOD_ID, "custom/graveyard.json");
+            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "custom/graveyard.json");
             List<Resource> resources = manager.getAllResources(resourceLocation);
 
             for (Resource resource : resources) {
@@ -114,12 +114,12 @@ public class YigdResourceHandler {
     private static class GraveAreaOverrideLoader implements SimpleSynchronousResourceReloadListener {
         @Override
         public Identifier getFabricId() {
-            return new Identifier(Yigd.MOD_ID, "grave_area_override");
+            return Identifier.of(Yigd.MOD_ID, "grave_area_override");
         }
 
         @Override
         public void reload(ResourceManager manager) {
-            Identifier resourceLocation = new Identifier(Yigd.MOD_ID, "custom/grave_areas.json");
+            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "custom/grave_areas.json");
             List<Resource> resources = manager.getAllResources(resourceLocation);
 
             for (Resource resource : resources) {

@@ -14,12 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = LivingEntity.class, priority = 500)
 public class LivingEntityMixin {
     @Inject(method = "drop", at = @At("HEAD"))
-    private void drop(DamageSource damageSource, CallbackInfo ci) {
+    private void drop(ServerWorld world, DamageSource damageSource, CallbackInfo ci) {
         LivingEntity e = (LivingEntity) (Object) this;
 
         if (!(e instanceof ServerPlayerEntity player)) return;
-
-        ServerWorld world = player.getServerWorld();
 
         if (!player.isDead()) return;  // If some weird shit happens, this is a failsafe
         if (player.isSpectator()) return;  // Spectators don't generate graves

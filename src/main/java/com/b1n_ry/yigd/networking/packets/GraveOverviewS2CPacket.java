@@ -9,7 +9,7 @@ import net.minecraft.util.Identifier;
 
 public record GraveOverviewS2CPacket(GraveComponent component, boolean canRestore, boolean canRob, boolean canDelete,
                                      boolean canUnlock, boolean obtainableKeys, boolean obtainableCompass) implements CustomPayload {
-    public static final Id<GraveOverviewS2CPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "grave_overview"));
+    public static final Id<GraveOverviewS2CPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "grave_overview"));
     public static final PacketCodec<RegistryByteBuf, GraveOverviewS2CPacket> CODEC = PacketCodec.of(GraveOverviewS2CPacket::write, GraveOverviewS2CPacket::new);
 
     @Override

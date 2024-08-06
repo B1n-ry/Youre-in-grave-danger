@@ -8,7 +8,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 public record GraveSelectionRequestC2SPacket(ProfileComponent profile) implements CustomPayload {
-    public static final Id<GraveSelectionRequestC2SPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "grave_selection_request"));
+    public static final Id<GraveSelectionRequestC2SPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "grave_selection_request"));
     public static final PacketCodec<RegistryByteBuf, GraveSelectionRequestC2SPacket> CODEC = PacketCodec.of(GraveSelectionRequestC2SPacket::write, GraveSelectionRequestC2SPacket::new);
 
     @Override

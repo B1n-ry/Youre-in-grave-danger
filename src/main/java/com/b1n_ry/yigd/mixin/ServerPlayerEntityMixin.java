@@ -28,16 +28,6 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityImpl {
         this.youre_in_grave_danger$lastGroundPos = player.getPos();
     }
 
-    @Redirect(method = "createEndSpawnPlatform", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"))
-    private boolean createEndSpawnPlatform(ServerWorld world, BlockPos blockPos, BlockState blockState) {
-        if (world.getBlockEntity(blockPos) instanceof GraveBlockEntity grave) {
-            GraveComponent component = grave.getComponent();
-            if (component != null)
-                return false;
-        }
-        return world.setBlockState(blockPos, blockState);
-    }
-
     @Override
     public Vec3d youre_in_grave_danger$getLastGroundPos() {
         return this.youre_in_grave_danger$lastGroundPos;

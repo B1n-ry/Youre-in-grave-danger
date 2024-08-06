@@ -8,7 +8,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 public record UpdateConfigC2SPacket(ClaimPriority claiming, ClaimPriority robbing) implements CustomPayload {
-    public static final Id<UpdateConfigC2SPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "update_config"));
+    public static final Id<UpdateConfigC2SPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "update_config"));
     public static final PacketCodec<RegistryByteBuf, UpdateConfigC2SPacket> CODEC = PacketCodec.of(UpdateConfigC2SPacket::write, UpdateConfigC2SPacket::new);
 
     @Override

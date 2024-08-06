@@ -9,7 +9,7 @@ import net.minecraft.util.Identifier;
 import java.util.UUID;
 
 public record DeleteGraveC2SPacket(UUID graveId) implements CustomPayload {
-    public static final Id<DeleteGraveC2SPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "delete_grave_request"));
+    public static final Id<DeleteGraveC2SPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "delete_grave_request"));
     public static final PacketCodec<RegistryByteBuf, DeleteGraveC2SPacket> CODEC = PacketCodec.of(DeleteGraveC2SPacket::write, DeleteGraveC2SPacket::new);
 
     @Override

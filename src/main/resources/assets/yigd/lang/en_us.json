@@ -99,8 +99,6 @@
   "text.autoconfig.yigd.option.inventoryConfig.itemLoss.lossRangeTo": "Range To",
   "text.autoconfig.yigd.option.inventoryConfig.itemLoss.percentChanceOfLoss": "% Chance of Loss Per Item",
   "text.autoconfig.yigd.option.inventoryConfig.itemLoss.canLoseSoulbound": "Can Affect Soulbound",
-  "text.autoconfig.yigd.option.inventoryConfig.vanishingEnchantments": "Vanishing Enchantments",
-  "text.autoconfig.yigd.option.inventoryConfig.soulboundEnchantments": "Soulbound Enchantments",
   "text.autoconfig.yigd.option.inventoryConfig.loseSoulboundLevelOnDeath": "Lose Soulbound Level on Death",
   "text.autoconfig.yigd.option.inventoryConfig.vanishingSlots": "\"Trash Slots\"",
   "text.autoconfig.yigd.option.inventoryConfig.soulboundSlots": "Soulbound Slots",

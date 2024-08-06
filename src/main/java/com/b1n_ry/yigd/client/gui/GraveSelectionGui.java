@@ -65,24 +65,24 @@ public class GraveSelectionGui extends LightweightGuiDescription {
     }
     private void addFilterButtons(WGridPanel root, WFilterableListPanel<LightGraveData, WCardButton> filterableList) {
         WHoverToggleButton viewClaimed = this.addToggleButton(
-                new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/claimed_grave.png"),
                 "button.yigd.gui.viewing_claimed",
-                new Identifier(Yigd.MOD_ID, "textures/gui/claimed_grave_cross.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/claimed_grave_cross.png"),
                 "button.yigd.gui.hiding_claimed");
         WHoverToggleButton viewUnclaimed = this.addToggleButton(
-                new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"),
                 "button.yigd.gui.viewing_unclaimed",
-                new Identifier(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png"),
                 "button.yigd.gui.hiding_unclaimed");
         WHoverToggleButton viewDestroyed = this.addToggleButton(
-                new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"),
                 "button.yigd.gui.viewing_destroyed",
-                new Identifier(Yigd.MOD_ID, "textures/gui/destroyed_grave_cross.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/destroyed_grave_cross.png"),
                 "button.yigd.gui.hiding_destroyed");
         WHoverToggleButton showStatus = this.addToggleButton(
-                new Identifier(Yigd.MOD_ID, "textures/gui/show_status.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/show_status.png"),
                 "button.yigd.gui.showing_status",
-                new Identifier(Yigd.MOD_ID, "textures/gui/hide_status.png"),
+                Identifier.of(Yigd.MOD_ID, "textures/gui/hide_status.png"),
                 "button.yigd.gui.hiding_status");
 
         // a == b && bool <=> a == b if bool, else a != b

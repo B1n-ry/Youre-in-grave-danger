@@ -66,7 +66,7 @@ public record LightGraveData(int itemCount, BlockPos pos, int xpPoints, Registry
         String registry = nbt.getString("registry");
         String value = nbt.getString("value");
 
-        RegistryKey<Registry<World>> r = RegistryKey.ofRegistry(new Identifier(registry));
-        return RegistryKey.of(r, new Identifier(value));
+        RegistryKey<Registry<World>> r = RegistryKey.ofRegistry(Identifier.of(registry));
+        return RegistryKey.of(r, Identifier.of(value));
     }
 }

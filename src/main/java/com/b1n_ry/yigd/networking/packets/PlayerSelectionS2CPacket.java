@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 import java.util.List;
 
 public record PlayerSelectionS2CPacket(List<LightPlayerData> data) implements CustomPayload {
-    public static final Id<PlayerSelectionS2CPacket> ID = new Id<>(new Identifier(Yigd.MOD_ID, "player_selection"));
+    public static final Id<PlayerSelectionS2CPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "player_selection"));
     public static final PacketCodec<RegistryByteBuf, PlayerSelectionS2CPacket> CODEC = PacketCodec.of(PlayerSelectionS2CPacket::write, PlayerSelectionS2CPacket::new);
 
     @Override

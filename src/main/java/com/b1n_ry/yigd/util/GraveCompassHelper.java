@@ -3,14 +3,13 @@ package com.b1n_ry.yigd.util;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveCompassConfig;
-import net.minecraft.component.DataComponentType;
+import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
@@ -24,7 +23,7 @@ import java.util.UUID;
 
 public class GraveCompassHelper {
     private static final Map<RegistryKey<World>, KDNode> GRAVE_POSITIONS = new HashMap<>();
-    public static final DataComponentType<GlobalPos> GRAVE_LOCATION = DataComponentType.<GlobalPos>builder().codec(GlobalPos.CODEC).packetCodec(GlobalPos.PACKET_CODEC).build();
+    public static final ComponentType<GlobalPos> GRAVE_LOCATION = ComponentType.<GlobalPos>builder().codec(GlobalPos.CODEC).packetCodec(GlobalPos.PACKET_CODEC).build();
 
     public static void giveCompass(ServerPlayerEntity player, UUID graveId, BlockPos gravePos, RegistryKey<World> worldKey) {
         ItemStack compass = Items.COMPASS.getDefaultStack();

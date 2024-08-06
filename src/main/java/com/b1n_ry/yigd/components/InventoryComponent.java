@@ -12,8 +12,10 @@ import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.b1n_ry.yigd.util.PairModificationConsumer;
 import com.b1n_ry.yigd.util.YigdTags;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.EnchantmentEffectComponentTypes;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -296,11 +298,10 @@ public class InventoryComponent {
             ItemStack currentStack = this.items.get(currentComponentIndex).getLeft();
 
             if (config.graveConfig.treatBindingCurse && i >= mergingComponent.mainSize && i < mergingComponent.mainSize + mergingComponent.armorSize) {  // If merging stack is armor, check for curse of binding
-                if (EnchantmentHelper.hasBindingCurse(mergingStack)) {  // If merging stack has curse of binding, force in that slot
+                if (EnchantmentHelper.hasAnyEnchantmentsWith(mergingStack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE)) {  // If merging stack has curse of binding, force in that slot
                     // If grave inventory got all curse of binding items pulled, only the player equipped ones should be forced on the player (because that makes sense)
                     // This is done by clearing the current slot, moving the item to extraItems, and the curse of binding item will be applied in the slot later
                     if (!currentStack.isEmpty()) extraItems.add(currentStack);
-
                     this.items.set(currentComponentIndex, EMPTY_ITEM_PAIR);  // Item will get put here later
                     currentStack = this.items.get(currentComponentIndex).getLeft();
                 }
@@ -378,7 +379,7 @@ public class InventoryComponent {
         DefaultedList<ItemStack> bindingItems = DefaultedList.of();
         for (int i = 0; i < this.armorSize; i++) {
             ItemStack armorStack = this.items.get(this.mainSize + i).getLeft();  // Current armor item
-            if (EnchantmentHelper.hasBindingCurse(armorStack)) {
+            if (EnchantmentHelper.hasAnyEnchantmentsWith(armorStack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE)) {
                 bindingItems.add(armorStack);
                 this.items.set(this.mainSize + i, EMPTY_ITEM_PAIR);  // Moving the item in  this slot
             }
