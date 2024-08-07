@@ -133,6 +133,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         YigdConfig config = YigdConfig.getConfig();
+        if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
         if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
             GraveComponent graveComponent = grave.getComponent();
 

@@ -20,9 +20,11 @@ public interface InvModCompat<T> {
 
         boolean accessoriesLoaded = compatConfig.enableAccessoriesCompat && loader.isModLoaded("accessories");
 
-        boolean trinketsPresent = compatConfig.enableTrinketsCompat && loader.isModLoaded("trinkets") && !loader.isModLoaded("tclayer");
+        boolean trinketsPresent = compatConfig.enableTrinketsCompat && loader.isModLoaded("trinkets");
 
-        if (trinketsPresent)
+        if (accessoriesLoaded)
+            invCompatMods.add(new AccessoriesCompat());
+        if (trinketsPresent && !loader.isModLoaded("tclayer"))
             invCompatMods.add(new TrinketsCompat());
         if (compatConfig.enableInventorioCompat && loader.isModLoaded("inventorio"))
             invCompatMods.add(new InventorioCompat());

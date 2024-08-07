@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.1
+
+### Changes
+* Added compat with Accessories
+
+---
+
 # You're in Grave Danger 2.0.0
 
 ### Changes
