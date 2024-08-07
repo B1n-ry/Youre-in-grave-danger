@@ -1,7 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
-	id "me.modmuss50.mod-publish-plugin" version "0.5.1"
+	id "me.modmuss50.mod-publish-plugin" version "0.6.3"
 }
 
 version = project.mod_version
@@ -78,6 +78,8 @@ repositories {
 	maven { url "https://maven.nucleoid.xyz/" }  // Protection API
 	maven { url "https://maven.jamieswhiteshirt.com/libs-release" }
 	maven { url "https://maven.quiltmc.org/repository/release" }
+	maven { url 'https://maven.wispforest.io/releases' }  // Accessories
+	maven { url 'https://maven.su5ed.dev/releases' }  // Accessories
 }
 
 dependencies {
@@ -116,6 +118,7 @@ dependencies {
 	modCompileOnly "dev.emi:trinkets:${project.trinkets_version}" // trinkets
 //	modCompileOnly "maven.modrinth:inventorio:${project.inventorio_version}" // inventorio
 	modCompileOnly "maven.modrinth:travelersbackpack:${project.travelers_backpack_version}"  // travelers backpack
+	modCompileOnly "io.wispforest:accessories-fabric:${project.accessories_version}"  // accessories
 //	modCompileOnly "maven.modrinth:numismatic-overhaul:${project.numismatic_version}"  // numismatic overhaul
 //	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"  // origins/apoli
 //	modCompileOnly "maven.modrinth:levelz:${project.levelz_version}"
