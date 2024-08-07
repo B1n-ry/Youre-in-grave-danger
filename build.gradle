@@ -1,7 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
-	id "me.modmuss50.mod-publish-plugin" version "0.5.1"
+	id "me.modmuss50.mod-publish-plugin" version "0.6.3"
 }
 
 version = project.mod_version
@@ -69,6 +69,8 @@ repositories {
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }  // Permission API
 	maven { url "https://jitpack.io" }  // Apoli
 	maven { url "https://maven.nucleoid.xyz/" }  // Common Protection API
+	maven { url 'https://maven.wispforest.io/releases' }  // Accessories
+	maven { url 'https://maven.su5ed.dev/releases' }  // Accessories
 	maven {  // Inventorio, travelers backpack, numismatic overhaul, levelz (curseforge maven)
 		url "https://cursemaven.com"
 		content { includeGroup "curse.maven" }
@@ -111,6 +113,7 @@ dependencies {
 	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"
 	modCompileOnly "maven.modrinth:levelz:${project.levelz_version}"
 	modCompileOnly "maven.modrinth:beans-backpacks:${project.beans_backpacks_version}"
+	modCompileOnly "io.wispforest:accessories-fabric:${project.accessories_version}"
 }
 
 processResources {

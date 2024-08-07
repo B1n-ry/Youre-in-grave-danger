@@ -18,7 +18,9 @@ public interface InvModCompat<T> {
         FabricLoader loader = FabricLoader.getInstance();
         YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
-        boolean trinketsPresent = compatConfig.enableTrinketsCompat && loader.isModLoaded("trinkets");
+        boolean accessoriesLoaded = compatConfig.enableAccessoriesCompat && loader.isModLoaded("accessories");
+
+        boolean trinketsPresent = compatConfig.enableTrinketsCompat && loader.isModLoaded("trinkets") && !loader.isModLoaded("tclayer");
 
         if (trinketsPresent)
             invCompatMods.add(new TrinketsCompat());
