@@ -28,7 +28,7 @@ public interface InvModCompat<T> {
 /*        if (compatConfig.enableInventorioCompat && loader.isModLoaded("inventorio"))
             invCompatMods.add(new InventorioCompat());*/
         if (loader.isModLoaded("travelersbackpack")) {
-            if (compatConfig.enableTravelersBackpackCompat && !TravelersBackpackCompat.isTrinketIntegrationEnabled())
+            if (compatConfig.enableTravelersBackpackCompat && accessoriesPresent && !TravelersBackpackCompat.isAccessoriesIntegrationEnabled())
                 invCompatMods.add(new TravelersBackpackCompat());
         }
 //        if (compatConfig.enableLevelzCompat && loader.isModLoaded("levelz"))

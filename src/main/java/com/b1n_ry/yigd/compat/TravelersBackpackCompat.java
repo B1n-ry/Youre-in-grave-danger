@@ -17,8 +17,8 @@ import net.minecraft.util.collection.DefaultedList;
 import java.util.function.Predicate;
 
 public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, DropRule>> {
-    public static boolean isTrinketIntegrationEnabled() {
-        return TravelersBackpackConfig.getConfig().backpackSettings.trinketsIntegration;
+    public static boolean isAccessoriesIntegrationEnabled() {
+        return TravelersBackpackConfig.getConfig().backpackSettings.accessoriesIntegration;
     }
 
     @Override

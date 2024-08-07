@@ -9,7 +9,6 @@
     "LivingEntityMixin",
     "RegistryLoaderMixin",
     "ServerPlayerEntityMixin",
-    "TravelersBackpackTrinketMixin",
     "WorldChunkMixin"
   ],
   "client": [
