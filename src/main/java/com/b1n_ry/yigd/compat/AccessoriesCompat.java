@@ -9,7 +9,6 @@ import com.b1n_ry.yigd.compat.AccessoriesCompat.AccessoriesInventorySlot;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.item.ItemStack;
@@ -32,11 +31,10 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
     @Override
     public void clear(ServerPlayerEntity player) {
-        AccessoriesCapability.getOptionally(player).ifPresent(inv -> {
-            for (SlotEntryReference ref : inv.getAllEquipped()) {
-                ref.reference().setStack(ItemStack.EMPTY);
-            }
-        });
+        AccessoriesCapability.getOptionally(player).ifPresent(inv -> inv.getContainers().forEach((s, accessoriesContainer) -> {
+            accessoriesContainer.getAccessories().clear();
+            accessoriesContainer.getCosmeticAccessories().clear();
+        }));
     }
 
     @Override

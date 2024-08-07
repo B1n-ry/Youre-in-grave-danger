@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.2
+
+### Fixes
+* Stopped cosmetic accessories from duplicating
+
+---
+
 # You're in Grave Danger 2.0.1
 
 ### Changes
