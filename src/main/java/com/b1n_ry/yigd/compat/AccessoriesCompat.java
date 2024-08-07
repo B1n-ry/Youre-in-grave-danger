@@ -33,11 +33,10 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
     @Override
     public void clear(ServerPlayerEntity player) {
-        AccessoriesCapability.getOptionally(player).ifPresent(inv -> {
-            for (SlotEntryReference ref : inv.getAllEquipped()) {
-                ref.reference().setStack(ItemStack.EMPTY);
-            }
-        });
+        AccessoriesCapability.getOptionally(player).ifPresent(inv -> inv.getContainers().forEach((s, accessoriesContainer) -> {
+            accessoriesContainer.getAccessories().clear();
+            accessoriesContainer.getCosmeticAccessories().clear();
+        }));
     }
 
     @Override
