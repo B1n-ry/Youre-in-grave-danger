@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.4.3
+
+### Fixes
+* Tags are now located in the correct directories/folders,
+meaning they work
+
+---
+
 # You're in Grave Danger 2.4.2
 
 ### Fixes

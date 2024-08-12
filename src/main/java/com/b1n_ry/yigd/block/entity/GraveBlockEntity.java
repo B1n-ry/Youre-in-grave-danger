@@ -180,6 +180,8 @@ public class GraveBlockEntity extends BlockEntity {
         }
     }
 
+
+
     public static void tick(World world, BlockPos pos, BlockState ignoredState, GraveBlockEntity be) {
         if (world.isClient) return;
 

@@ -325,7 +325,7 @@ public class GraveComponent {
 
         boolean waterlogged = world.getFluidState(pos).isOf(Fluids.WATER);  // Grave generated in full water block (submerged)
         BlockState graveBlock = Yigd.GRAVE_BLOCK.getDefaultState()
-                .with(net.minecraft.state.property.Properties.HORIZONTAL_FACING, direction)
+                .with(Properties.HORIZONTAL_FACING, direction)
                 .with(Properties.WATERLOGGED, waterlogged);
 
         respawnComponent.setGraveGenerated(true);  // Not guaranteed yet, but only errors can stop it from generating after this point
