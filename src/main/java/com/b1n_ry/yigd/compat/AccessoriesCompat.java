@@ -285,6 +285,24 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
                     pair.setRight(dropRule);
                 }
+                for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
+                    Pair<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
+                    ItemStack stack = pair.getLeft();
+                    DropRule dropRule = switch(AccessoriesAPI.getOrDefaultAccessory(stack)
+                            .getDropRule(stack, SlotReference.of(context.player(), key, i), context.deathSource())) {
+                        case DESTROY -> DropRule.DESTROY;
+                        case KEEP -> DropRule.KEEP;
+                        default -> {
+                            DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultAccessoriesDropRule;
+                            if (defaultDropRule == DropRule.PUT_IN_GRAVE)
+                                yield DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
+                            else
+                                yield defaultDropRule;
+                        }
+                    };
+
+                    pair.setRight(dropRule);
+                }
             }
         }
 
