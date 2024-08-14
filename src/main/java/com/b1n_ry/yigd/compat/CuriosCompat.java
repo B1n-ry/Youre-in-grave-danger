@@ -16,6 +16,8 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.NeoForge;
 import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
@@ -147,7 +149,13 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                     ItemStack mergingStack = mergingTuple.getA();
                     if (mergingStack.isEmpty()) continue;
 
-                    ItemStack thisStack = thisSlot.normal.get(i).getA();
+                    Tuple<ItemStack, DropRule> currentPair = thisSlot.normal.get(i);
+                    ItemStack thisStack = currentPair.getA();
+                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && this.blockUnequip(mergingStack, key, i, merger, false)) {
+                        extraItems.add(currentPair.getA());  // Add the current item to extraItems (as it's being replaced)
+                        thisSlot.normal.set(i, new Tuple<>(mergingStack, mergingTuple.getB()));  // Can't be unequipped, so it's prioritized
+                        continue;  // Already set the item, so we can skip the rest
+                    }
                     if (!thisStack.isEmpty()) {
                         extraItems.add(mergingStack);
                         continue;
@@ -160,7 +168,13 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                     ItemStack mergingStack = mergingTuple.getA();
                     if (mergingStack.isEmpty()) continue;
 
-                    ItemStack thisStack = thisSlot.cosmetic.get(i).getA();
+                    Tuple<ItemStack, DropRule> currentPair = thisSlot.cosmetic.get(i);
+                    ItemStack thisStack = currentPair.getA();
+                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && this.blockUnequip(mergingStack, key, i, merger, true)) {
+                        extraItems.add(currentPair.getA());  // Add the current item to extraItems (as it's being replaced)
+                        thisSlot.cosmetic.set(i, new Tuple<>(mergingStack, mergingTuple.getB()));  // Can't be unequipped, so it's prioritized
+                        continue;  // Already set the item, so we can skip the rest
+                    }
                     if (!thisStack.isEmpty()) {
                         extraItems.add(mergingStack);
                         continue;
@@ -170,6 +184,42 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                 }
             }
             return extraItems;
+        }
+
+        @Override
+        public NonNullList<ItemStack> pullBindingCurseItems(ServerPlayer playerRef) {
+            NonNullList<ItemStack> noUnequipItems = NonNullList.create();
+
+            if (!YigdConfig.getConfig().graveConfig.treatBindingCurse) return noUnequipItems;
+
+            for (Map.Entry<String, CuriosSlotEntry> entry : this.inventory.entrySet()) {
+                CuriosSlotEntry inventorySlot = entry.getValue();
+                for (int i = 0; i < inventorySlot.normal.size(); i++) {
+                    Tuple<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
+                    ItemStack stack = pair.getA();
+                    boolean isBound = this.blockUnequip(stack, entry.getKey(), i, playerRef, false);
+                    if (isBound) {
+                        noUnequipItems.add(stack);
+                        pair.setA(ItemStack.EMPTY);
+                    }
+                }
+                for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
+                    Tuple<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
+                    ItemStack stack = pair.getA();
+                    boolean isBound = this.blockUnequip(stack, entry.getKey(), i, playerRef, true);
+                    if (isBound) {
+                        noUnequipItems.add(stack);
+                        pair.setA(ItemStack.EMPTY);
+                    }
+                }
+            }
+
+            return noUnequipItems;
+        }
+
+        private boolean blockUnequip(ItemStack stack, String key, int index, ServerPlayer playerRef, boolean cosmetic) {
+            Optional<ICurio> iCurio = CuriosApi.getCurio(stack);
+            return iCurio.map(curio -> curio.canUnequip(new SlotContext(key, playerRef, index, cosmetic, false))).orElse(true);
         }
 
         @Override
