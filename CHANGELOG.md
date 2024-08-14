@@ -1,3 +1,14 @@
+# You're in Grave Danger 2.4.5
+
+### Changes
+* Accessories compat checks if accessories can't be unequipped, and
+handles such items accordingly
+
+### Fixes
+* Travelers backpack compat can now load without accessories being installed
+
+---
+
 # You're in Grave Danger 2.4.4
 
 ### Fixes
