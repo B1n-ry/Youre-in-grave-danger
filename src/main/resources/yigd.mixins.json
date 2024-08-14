@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.b1n_ry.yigd.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BackpackUtilsMixin",
+    "CompassItemMixin",
+    "EndPlatformFeatureMixin",
+    "LevelChunkMixin",
+    "RegistryDataLoaderMixin"
+  ],
+  "client": [
+    "CompassModelMixin"
+  ],
+  "server": [
+    "DedicatedServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

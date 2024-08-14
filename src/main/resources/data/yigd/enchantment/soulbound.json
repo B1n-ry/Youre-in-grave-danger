@@ -1,0 +1,21 @@
+{
+  "anvil_cost": 6,
+  "exclusive_set": "minecraft:vanishing_curse",
+  "supported_items": "#yigd:soulbindable",
+  "description": {
+    "translate": "enchantment.yigd.soulbound"
+  },
+  "max_cost": {
+    "base": 75,
+    "per_level_above_first": 25
+  },
+  "max_level": 1,
+  "min_cost": {
+    "base": 25,
+    "per_level_above_first": 25
+  },
+  "weight": 5,
+  "slots": [
+    "any"
+  ]
+}
