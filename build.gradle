@@ -25,7 +25,10 @@ publishMods {
 
 		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
 
-		minecraftVersions.add(project.minecraft_version)
+		minecraftVersionRange {
+			start = "1.20"
+			end = "1.21.1"
+		}
 
 		javaVersions.add(java.sourceCompatibility)
 
@@ -49,7 +52,10 @@ publishMods {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		projectId = "HnD1GX6e"
 
-		minecraftVersions.add(project.minecraft_version)
+		minecraftVersionRange {
+			start = "1.20"
+			end = "1.21.1"
+		}
 
 		requires("fabric-api", "cloth-config")
 	}
