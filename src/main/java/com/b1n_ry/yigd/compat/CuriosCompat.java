@@ -6,8 +6,6 @@ import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.YigdEvents;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.compat.CuriosCompat.CuriosSlotEntry;
-import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -58,12 +56,12 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
                     String dropRuleString = itemNbt.getString("dropRule");
                     if (dropRuleString.equals("DEFAULT")) {
-                        dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                        dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                     } else {
                         dropRule = DropRule.valueOf(dropRuleString);
                     }
                 } else {
-                    dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                    dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                 }
 
                 return new Tuple<>(stack, dropRule);
@@ -75,12 +73,12 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
                     String dropRuleString = itemNbt.getString("dropRule");
                     if (dropRuleString.equals("DEFAULT")) {
-                        dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                        dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                     } else {
                         dropRule = DropRule.valueOf(dropRuleString);
                     }
                 } else {
-                    dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                    dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                 }
 
                 return new Tuple<>(stack, dropRule);
@@ -219,7 +217,7 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
 
         private boolean blockUnequip(ItemStack stack, String key, int index, ServerPlayer playerRef, boolean cosmetic) {
             Optional<ICurio> iCurio = CuriosApi.getCurio(stack);
-            return iCurio.map(curio -> curio.canUnequip(new SlotContext(key, playerRef, index, cosmetic, false))).orElse(true);
+            return !iCurio.map(curio -> curio.canUnequip(new SlotContext(key, playerRef, index, cosmetic, false))).orElse(true);
         }
 
         @Override
@@ -260,6 +258,11 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
             return extraItems;
         }
 
+        private ICurio.DropRule getDropRule(ItemStack stack, String key, int index, DeathContext context, boolean cosmetic) {
+            Optional<ICurio> iCurio = CuriosApi.getCurio(stack);
+            return iCurio.map(curio -> curio.getDropRule(new SlotContext(key, context.player(), index, cosmetic, false), context.deathSource(), 0, true)).orElse(ICurio.DropRule.DEFAULT);
+        }
+
         @Override
         public void handleDropRules(DeathContext context) {
             for (Map.Entry<String, CuriosSlotEntry> entry : this.inventory.entrySet()) {
@@ -268,12 +271,28 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
                     ItemStack stack = pair.getA();
-                    DropRule dropRule = switch(AccessoriesAPI.getOrDefaultAccessory(stack)
-                            .getDropRule(stack, SlotReference.of(context.player(), key, i), context.deathSource())) {
+                    DropRule dropRule = switch(this.getDropRule(stack, key, i, context, false)) {
                         case DESTROY -> DropRule.DESTROY;
-                        case KEEP -> DropRule.KEEP;
+                        case ALWAYS_KEEP -> DropRule.KEEP;
                         default -> {
-                            DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultAccessoriesDropRule;
+                            DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
+                            if (defaultDropRule == DropRule.PUT_IN_GRAVE)
+                                yield NeoForge.EVENT_BUS.post(new YigdEvents.DropRuleEvent(stack, -1, context, true)).getDropRule();
+                            else
+                                yield defaultDropRule;
+                        }
+                    };
+
+                    pair.setB(dropRule);
+                }
+                for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
+                    Tuple<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
+                    ItemStack stack = pair.getA();
+                    DropRule dropRule = switch(this.getDropRule(stack, key, i, context, true)) {
+                        case DESTROY -> DropRule.DESTROY;
+                        case ALWAYS_KEEP -> DropRule.KEEP;
+                        default -> {
+                            DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                             if (defaultDropRule == DropRule.PUT_IN_GRAVE)
                                 yield NeoForge.EVENT_BUS.post(new YigdEvents.DropRuleEvent(stack, -1, context, true)).getDropRule();
                             else

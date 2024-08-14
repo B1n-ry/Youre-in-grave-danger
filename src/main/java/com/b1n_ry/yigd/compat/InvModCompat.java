@@ -24,7 +24,7 @@ public interface InvModCompat<T> {
         if (curiosPresent && !modList.isLoaded("cclayer"))
             invCompatMods.add(new CuriosCompat());
         if (modList.isLoaded("travelersbackpack")) {
-            if (compatConfig.enableTravelersBackpackCompat && accessoriesPresent && !TravelersBackpackCompat.isAccessoriesIntegrationEnabled())
+            if (compatConfig.enableTravelersBackpackCompat && !(accessoriesPresent && TravelersBackpackCompat.isAccessoriesIntegrationEnabled()))
                 invCompatMods.add(new TravelersBackpackCompat());
         }
     }

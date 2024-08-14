@@ -53,12 +53,12 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
                     String dropRuleString = itemNbt.getString("dropRule");
                     if (dropRuleString.equals("DEFAULT")) {
-                        dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                        dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                     } else {
                         dropRule = DropRule.valueOf(dropRuleString);
                     }
                 } else {
-                    dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                    dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                 }
 
                 return new Tuple<>(stack, dropRule);
@@ -70,12 +70,12 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
                     String dropRuleString = itemNbt.getString("dropRule");
                     if (dropRuleString.equals("DEFAULT")) {
-                        dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                        dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                     } else {
                         dropRule = DropRule.valueOf(dropRuleString);
                     }
                 } else {
-                    dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                    dropRule = YigdConfig.getConfig().compatConfig.defaultCuriosDropRule;
                 }
 
                 return new Tuple<>(stack, dropRule);
@@ -204,7 +204,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     Tuple<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
                     ItemStack stack = pair.getA();
                     Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
-                    boolean isBound = accessory.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
+                    boolean isBound = !accessory.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
                     if (isBound) {
                         noUnequipItems.add(stack);
                         pair.setA(ItemStack.EMPTY);
@@ -271,6 +271,24 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 AccessoriesInventorySlot inventorySlot = entry.getValue();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
+                    ItemStack stack = pair.getA();
+                    DropRule dropRule = switch(AccessoriesAPI.getOrDefaultAccessory(stack)
+                            .getDropRule(stack, SlotReference.of(context.player(), key, i), context.deathSource())) {
+                        case DESTROY -> DropRule.DESTROY;
+                        case KEEP -> DropRule.KEEP;
+                        default -> {
+                            DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultAccessoriesDropRule;
+                            if (defaultDropRule == DropRule.PUT_IN_GRAVE)
+                                yield NeoForge.EVENT_BUS.post(new YigdEvents.DropRuleEvent(stack, -1, context, true)).getDropRule();
+                            else
+                                yield defaultDropRule;
+                        }
+                    };
+
+                    pair.setB(dropRule);
+                }
+                for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
+                    Tuple<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
                     ItemStack stack = pair.getA();
                     DropRule dropRule = switch(AccessoriesAPI.getOrDefaultAccessory(stack)
                             .getDropRule(stack, SlotReference.of(context.player(), key, i), context.deathSource())) {
