@@ -31,7 +31,10 @@ publishMods {
 
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
 
-        minecraftVersions.add(project.minecraft_version)
+        minecraftVersionRange {
+            start = minecraft_version_range.split(",")[0].replace("[", "")
+            end = minecraft_version_range.split(",")[1].replace(")", "")
+        }
 
         javaVersions.add(java.sourceCompatibility)
 
@@ -39,7 +42,7 @@ publishMods {
         serverRequired = true
 
         projectSlug = project.archives_base_name;
-        requires("fabric-api", "cloth-config")
+        requires("cloth-config")
     }
 
     github {
@@ -55,7 +58,10 @@ publishMods {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = "HnD1GX6e"
 
-        minecraftVersions.add(project.minecraft_version)
+        minecraftVersionRange {
+            start = minecraft_version_range.split(",")[0].replace("[", "")
+            end = minecraft_version_range.split(",")[1].replace(")", "")
+        }
 
         requires("cloth-config")
     }
