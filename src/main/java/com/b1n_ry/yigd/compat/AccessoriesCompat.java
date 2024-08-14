@@ -9,6 +9,7 @@ import com.b1n_ry.yigd.compat.AccessoriesCompat.AccessoriesInventorySlot;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.item.ItemStack;
@@ -152,7 +153,13 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     ItemStack mergingStack = mergingPair.getLeft();
                     if (mergingStack.isEmpty()) continue;
 
-                    ItemStack thisStack = thisSlot.normal.get(i).getLeft();
+                    Pair<ItemStack, DropRule> currentPair = thisSlot.normal.get(i);
+                    ItemStack thisStack = currentPair.getLeft();
+                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !AccessoriesAPI.getOrDefaultAccessory(mergingStack).canUnequip(mergingStack, SlotReference.of(merger, key, i))) {
+                        extraItems.add(currentPair.getLeft());  // Add the current item to extraItems (as it's being replaced)
+                        thisSlot.normal.set(i, new Pair<>(mergingStack, mergingPair.getRight()));  // Can't be unequipped, so it's prioritized
+                        continue;  // Already set the item, so we can skip the rest
+                    }
                     if (!thisStack.isEmpty()) {
                         extraItems.add(mergingStack);
                         continue;
@@ -165,7 +172,13 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     ItemStack mergingStack = mergingPair.getLeft();
                     if (mergingStack.isEmpty()) continue;
 
-                    ItemStack thisStack = thisSlot.cosmetic.get(i).getLeft();
+                    Pair<ItemStack, DropRule> currentPair = thisSlot.cosmetic.get(i);
+                    ItemStack thisStack = currentPair.getLeft();
+                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !AccessoriesAPI.getOrDefaultAccessory(mergingStack).canUnequip(mergingStack, SlotReference.of(merger, key, i))) {
+                        extraItems.add(currentPair.getLeft());  // Add the current item to extraItems (as it's being replaced)
+                        thisSlot.cosmetic.set(i, new Pair<>(mergingStack, mergingPair.getRight()));  // Can't be unequipped, so it's prioritized
+                        continue;  // Already set the item, so we can skip the rest
+                    }
                     if (!thisStack.isEmpty()) {
                         extraItems.add(mergingStack);
                         continue;
@@ -175,6 +188,39 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 }
             }
             return extraItems;
+        }
+
+        @Override
+        public DefaultedList<ItemStack> pullBindingCurseItems(ServerPlayerEntity playerRef) {
+            DefaultedList<ItemStack> noUnequipItems = DefaultedList.of();
+
+            if (!YigdConfig.getConfig().graveConfig.treatBindingCurse) return noUnequipItems;
+
+            for (Map.Entry<String, AccessoriesInventorySlot> entry : this.inventory.entrySet()) {
+                AccessoriesInventorySlot inventorySlot = entry.getValue();
+                for (int i = 0; i < inventorySlot.normal.size(); i++) {
+                    Pair<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
+                    ItemStack stack = pair.getLeft();
+                    Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                    boolean isBound = accessory.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
+                    if (isBound) {
+                        noUnequipItems.add(stack);
+                        pair.setLeft(ItemStack.EMPTY);
+                    }
+                }
+                for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
+                    Pair<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
+                    ItemStack stack = pair.getLeft();
+                    Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                    boolean isBound = !accessory.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
+                    if (isBound) {
+                        noUnequipItems.add(stack);
+                        pair.setLeft(ItemStack.EMPTY);
+                    }
+                }
+            }
+
+            return noUnequipItems;
         }
 
         @Override
