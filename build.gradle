@@ -21,7 +21,7 @@ publishMods {
     file = jar.archiveFile
 
     changelog = file("CHANGELOG.md").text.split("\n---")[0]
-    type = STABLE
+    type = BETA
 
     displayName = "You're in Grave Danger " + project.mod_version
     modLoaders.add("neoforge")
