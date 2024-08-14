@@ -23,7 +23,7 @@ publishMods {
     changelog = file("CHANGELOG.md").text.split("\n---")[0]
     type = BETA
 
-    displayName = "You're in Grave Danger " + project.mod_version
+    displayName = "You're in Grave Danger " + mod_version
     modLoaders.add("neoforge")
 
     curseforge {
@@ -41,12 +41,11 @@ publishMods {
         clientRequired = true
         serverRequired = true
 
-        projectSlug = project.archives_base_name;
         requires("cloth-config")
     }
 
     github {
-        displayName = project.mod_version
+        displayName = mod_version + "-neoforge"
 
         accessToken = providers.environmentVariable("GITHUB_TOKEN")
         repository = "B1n-ry/Youre-in-grave-danger"
