@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.4.4
+
+### Fixes
+* Loot table for grave blocks are now loaded correctly
+
+---
+
 # You're in Grave Danger 2.4.3
 
 ### Fixes
