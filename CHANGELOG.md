@@ -1,3 +1,15 @@
+# You're in Grave Danger 2.0.4
+
+### Changes
+* Accessories compat now checks if items can't be unequipped, and handle
+such items accordingly
+
+### Fixes
+* Fixed how travelers backpack compat was only loaded if trinkets was
+also loaded (now it will load by itself)
+
+---
+
 # You're in Grave Danger 2.0.3
 
 ### Fixes
