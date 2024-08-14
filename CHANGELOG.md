@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.3
+
+### Fixes
+* Cosmetic graves (placed by players) can now be broken
+
+---
+
 # You're in Grave Danger 2.0.2
 
 ### Fixes

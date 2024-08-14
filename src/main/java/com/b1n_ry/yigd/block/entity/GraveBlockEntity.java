@@ -41,7 +41,7 @@ public class GraveBlockEntity extends BlockEntity {
     @Nullable
     private BlockState previousState = null;
 
-    private boolean claimed = false;
+    private boolean claimed = true;
 
     private static YigdConfig cachedConfig = YigdConfig.getConfig();
 
@@ -51,6 +51,7 @@ public class GraveBlockEntity extends BlockEntity {
 
     public void setComponent(GraveComponent component) {
         this.component = component;
+        this.setClaimed(component.getStatus() == GraveStatus.CLAIMED);
         this.graveSkull = component.getOwner();
         this.graveId = component.getGraveId();
         // noinspection ConstantConditions

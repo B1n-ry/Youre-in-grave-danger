@@ -265,8 +265,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @SuppressWarnings("deprecation")
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.isUnclaimed()
-                && (!YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak
-                || !player.getGameProfile().equals(grave.getGraveSkull()))) {
+                && !YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
             return 0;
         }
         return super.calcBlockBreakingDelta(state, player, world, pos);
