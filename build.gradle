@@ -17,7 +17,7 @@ publishMods {
 	changelog = file("CHANGELOG.md").text.split("\n---")[0]
 	type = STABLE
 
-	displayName = "You're in Grave Danger " + project.mod_version
+	displayName = "You're in Grave Danger [Fabric] " + project.mod_version
 	modLoaders.add("fabric")
 
 	curseforge {
