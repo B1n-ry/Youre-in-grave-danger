@@ -23,7 +23,7 @@ publishMods {
     changelog = file("CHANGELOG.md").text.split("\n---")[0]
     type = BETA
 
-    displayName = "You're in Grave Danger " + mod_version
+    displayName = "You're in Grave Danger [NeoForge] " + mod_version
     modLoaders.add("neoforge")
 
     curseforge {
