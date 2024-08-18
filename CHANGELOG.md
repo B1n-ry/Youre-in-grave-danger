@@ -1,5 +1,9 @@
 # You're in Grave Danger 2.0.5
 
+### Fixes
+* Fixed issue with graves clearing inventories if the player had more trinkets equipped
+in the grave than when claiming a grave
+
 ---
 
 # You're in Grave Danger 2.0.4

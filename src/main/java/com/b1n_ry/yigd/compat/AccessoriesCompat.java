@@ -150,8 +150,13 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
                 for (int i = 0; i < mergingSlot.normal.size(); i++) {
                     Pair<ItemStack, DropRule> mergingPair = mergingSlot.normal.get(i);
-                    ItemStack mergingStack = mergingPair.getLeft();
+                    ItemStack mergingStack = mergingPair.getLeft().copy();
                     if (mergingStack.isEmpty()) continue;
+
+                    if (thisSlot.normal.size() <= i) {
+                        extraItems.add(mergingStack);
+                        continue;
+                    }
 
                     Pair<ItemStack, DropRule> currentPair = thisSlot.normal.get(i);
                     ItemStack thisStack = currentPair.getLeft();
@@ -171,6 +176,11 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     Pair<ItemStack, DropRule> mergingPair = mergingSlot.cosmetic.get(i);
                     ItemStack mergingStack = mergingPair.getLeft();
                     if (mergingStack.isEmpty()) continue;
+
+                    if (thisSlot.normal.size() <= i) {
+                        extraItems.add(mergingStack);
+                        continue;
+                    }
 
                     Pair<ItemStack, DropRule> currentPair = thisSlot.cosmetic.get(i);
                     ItemStack thisStack = currentPair.getLeft();
@@ -245,6 +255,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     Pair<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
                     if (i > normalAccessories.size()) {
                         extraItems.add(pair.getLeft());
+                        continue;
                     }
 
                     normalAccessories.setStack(i, pair.getLeft());
@@ -253,6 +264,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     Pair<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
                     if (i > cosmeticAccessories.size()) {
                         extraItems.add(pair.getLeft());
+                        continue;
                     }
 
                     cosmeticAccessories.setStack(i, pair.getLeft());
