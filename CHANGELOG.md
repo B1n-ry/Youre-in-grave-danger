@@ -1,5 +1,12 @@
 # You're in Grave Danger 2.0.1
 
+### Fixes
+* Fixed issue related to graves clearing your inventory when trying to claim it, with a
+specific difference of curios/accessories slots between the grave and your own inventory
+
+### Changes
+* Added syncing from client claim priority configs to server
+
 ---
 
 # You're in Grave Danger 2.0.0 for NeoForge
