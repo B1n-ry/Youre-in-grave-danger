@@ -144,8 +144,13 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
 
                 for (int i = 0; i < mergingSlot.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> mergingTuple = mergingSlot.normal.get(i);
-                    ItemStack mergingStack = mergingTuple.getA();
+                    ItemStack mergingStack = mergingTuple.getA().copy();
                     if (mergingStack.isEmpty()) continue;
+
+                    if (thisSlot.normal.size() <= i) {
+                        extraItems.add(mergingStack);
+                        continue;
+                    }
 
                     Tuple<ItemStack, DropRule> currentPair = thisSlot.normal.get(i);
                     ItemStack thisStack = currentPair.getA();
@@ -163,8 +168,13 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                 }
                 for (int i = 0; i < mergingSlot.cosmetic.size(); i++) {
                     Tuple<ItemStack, DropRule> mergingTuple = mergingSlot.cosmetic.get(i);
-                    ItemStack mergingStack = mergingTuple.getA();
+                    ItemStack mergingStack = mergingTuple.getA().copy();
                     if (mergingStack.isEmpty()) continue;
+
+                    if (thisSlot.cosmetic.size() <= i) {
+                        extraItems.add(mergingStack);
+                        continue;
+                    }
 
                     Tuple<ItemStack, DropRule> currentPair = thisSlot.cosmetic.get(i);
                     ItemStack thisStack = currentPair.getA();
@@ -240,16 +250,18 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                 IDynamicStackHandler cosmeticEquipped = stacksHandler.getCosmeticStacks();
                 for (int i = 0; i < slotEntry.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> tuple = slotEntry.normal.get(i);
-                    if (i > normalEquipped.getSlots()) {
+                    if (i >= normalEquipped.getSlots()) {
                         extraItems.add(tuple.getA());
+                        continue;
                     }
 
                     normalEquipped.setStackInSlot(i, tuple.getA());
                 }
                 for (int i = 0; i < slotEntry.cosmetic.size(); i++) {
                     Tuple<ItemStack, DropRule> tuple = slotEntry.cosmetic.get(i);
-                    if (i > cosmeticEquipped.getSlots()) {
+                    if (i >= cosmeticEquipped.getSlots()) {
                         extraItems.add(tuple.getA());
+                        continue;
                     }
 
                     cosmeticEquipped.setStackInSlot(i, tuple.getA());

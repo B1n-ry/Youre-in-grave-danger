@@ -11,6 +11,7 @@
     "RegistryDataLoaderMixin"
   ],
   "client": [
+    "AbstractConfigScreenMixin",
     "CompassModelMixin"
   ],
   "server": [

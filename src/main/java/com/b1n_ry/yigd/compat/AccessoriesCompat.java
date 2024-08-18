@@ -152,8 +152,13 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
                 for (int i = 0; i < mergingSlot.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> mergingPair = mergingSlot.normal.get(i);
-                    ItemStack mergingStack = mergingPair.getA();
+                    ItemStack mergingStack = mergingPair.getA().copy();
                     if (mergingStack.isEmpty()) continue;
+
+                    if (thisSlot.normal.size() <= i) {
+                        extraItems.add(mergingStack);
+                        continue;
+                    }
 
                     Tuple<ItemStack, DropRule> currentPair = thisSlot.normal.get(i);
                     ItemStack thisStack = currentPair.getA();
@@ -171,8 +176,13 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 }
                 for (int i = 0; i < mergingSlot.cosmetic.size(); i++) {
                     Tuple<ItemStack, DropRule> mergingPair = mergingSlot.cosmetic.get(i);
-                    ItemStack mergingStack = mergingPair.getA();
+                    ItemStack mergingStack = mergingPair.getA().copy();
                     if (mergingStack.isEmpty()) continue;
+
+                    if (thisSlot.cosmetic.size() <= i) {
+                        extraItems.add(mergingStack);
+                        continue;
+                    }
 
                     Tuple<ItemStack, DropRule> currentPair = thisSlot.cosmetic.get(i);
                     ItemStack thisStack = currentPair.getA();
@@ -245,16 +255,18 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 ExpandedSimpleContainer cosmeticAccessories = container.getCosmeticAccessories();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
-                    if (i > normalAccessories.getContainerSize()) {
+                    if (i >= normalAccessories.getContainerSize()) {
                         extraItems.add(pair.getA());
+                        continue;
                     }
 
                     normalAccessories.setItem(i, pair.getA());
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     Tuple<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
-                    if (i > cosmeticAccessories.getContainerSize()) {
+                    if (i >= cosmeticAccessories.getContainerSize()) {
                         extraItems.add(pair.getA());
+                        continue;
                     }
 
                     cosmeticAccessories.setItem(i, pair.getA());
