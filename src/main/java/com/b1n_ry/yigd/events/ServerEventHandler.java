@@ -1,7 +1,6 @@
 package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.Yigd;
-import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -18,10 +17,7 @@ import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -97,7 +93,7 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent
-    public void playerJoin(EntityJoinLevelEvent event) {
+    public void playerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
 
@@ -119,7 +115,7 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent
-    public void playerLeave(EntityLeaveLevelEvent event) {
+    public void playerLeave(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
         YigdConfig config = YigdConfig.getConfig();
