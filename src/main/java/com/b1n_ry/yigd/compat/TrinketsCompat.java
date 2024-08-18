@@ -203,6 +203,11 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         Pair<ItemStack, DropRule> pair = mergingItems.get(i);
                         ItemStack mergingStack = pair.getLeft().copy();  // Solves the issue where the itemstacks are the same instance
 
+                        if (stacks.size() <= i) {
+                            extraItems.add(mergingStack);
+                            continue;
+                        }
+
                         Pair<ItemStack, DropRule> currentPair = stacks.get(i);
                         if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !this.canUnequip(trinketComponent.orElse(null), slotName, groupName, i, mergingStack, merger)) {
                             extraItems.add(currentPair.getLeft());  // Add the current item to extraItems (as it's being replaced)
@@ -210,7 +215,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                             continue;  // Already set the item, so we can skip the rest
                         }
 
-                        if (stacks.size() <= i || !currentPair.getLeft().isEmpty()) {
+                        if (!currentPair.getLeft().isEmpty()) {
                             extraItems.add(mergingStack);
                             continue;
                         }
