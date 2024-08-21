@@ -53,7 +53,7 @@ publishMods {
 		projectId = "HnD1GX6e"
 
 		minecraftVersionRange {
-			start = "1.20"
+			start = "1.21"
 			end = "1.21.1"
 		}
 
