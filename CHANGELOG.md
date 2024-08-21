@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.4.7
+
+### Fixes
+* Added translation for enabling soulbound enchantment in the configs
+
+---
+
 # You're in Grave Danger 2.4.6
 
 ### Fixes
