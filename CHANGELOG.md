@@ -2,6 +2,7 @@
 
 ### Fixes
 * Added a translation for enabling the soulbound enchantment in the configs
+* Improved accessories compat implementation (thanks @Dragon-Seeker!)
 
 ---
 
