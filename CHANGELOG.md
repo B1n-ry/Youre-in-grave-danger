@@ -3,6 +3,7 @@
 ### Fixes
 * Fixed issue with graves clearing inventories if the player had more trinkets equipped
 in the grave than when claiming a grave
+* Improved accessories compat implementation (thanks @Dragon-Seeker!)
 
 ---
 
