@@ -9,7 +9,6 @@ import com.b1n_ry.yigd.compat.AccessoriesCompat.AccessoriesInventorySlot;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.item.ItemStack;
@@ -33,10 +32,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
     @Override
     public void clear(ServerPlayerEntity player) {
-        AccessoriesCapability.getOptionally(player).ifPresent(inv -> inv.getContainers().forEach((s, accessoriesContainer) -> {
-            accessoriesContainer.getAccessories().clear();
-            accessoriesContainer.getCosmeticAccessories().clear();
-        }));
+        AccessoriesCapability.getOptionally(player).ifPresent(inv -> inv.reset(false));
     }
 
     @Override
@@ -52,12 +48,12 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
                     String dropRuleString = itemNbt.getString("dropRule");
                     if (dropRuleString.equals("DEFAULT")) {
-                        dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                        dropRule = YigdConfig.getConfig().compatConfig.defaultAccessoriesDropRule;
                     } else {
                         dropRule = DropRule.valueOf(dropRuleString);
                     }
                 } else {
-                    dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                    dropRule = YigdConfig.getConfig().compatConfig.defaultAccessoriesDropRule;
                 }
 
                 return new Pair<>(stack, dropRule);
@@ -69,12 +65,12 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
                     String dropRuleString = itemNbt.getString("dropRule");
                     if (dropRuleString.equals("DEFAULT")) {
-                        dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                        dropRule = YigdConfig.getConfig().compatConfig.defaultAccessoriesDropRule;
                     } else {
                         dropRule = DropRule.valueOf(dropRuleString);
                     }
                 } else {
-                    dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
+                    dropRule = YigdConfig.getConfig().compatConfig.defaultAccessoriesDropRule;
                 }
 
                 return new Pair<>(stack, dropRule);
@@ -161,7 +157,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
                     Pair<ItemStack, DropRule> currentPair = thisSlot.normal.get(i);
                     ItemStack thisStack = currentPair.getLeft();
-                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !AccessoriesAPI.getOrDefaultAccessory(mergingStack).canUnequip(mergingStack, SlotReference.of(merger, key, i))) {
+                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !AccessoriesAPI.canUnequip(mergingStack, SlotReference.of(merger, key, i))) {
                         extraItems.add(currentPair.getLeft());  // Add the current item to extraItems (as it's being replaced)
                         thisSlot.normal.set(i, new Pair<>(mergingStack, mergingPair.getRight()));  // Can't be unequipped, so it's prioritized
                         continue;  // Already set the item, so we can skip the rest
@@ -186,7 +182,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
                     Pair<ItemStack, DropRule> currentPair = thisSlot.cosmetic.get(i);
                     ItemStack thisStack = currentPair.getLeft();
-                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !AccessoriesAPI.getOrDefaultAccessory(mergingStack).canUnequip(mergingStack, SlotReference.of(merger, key, i))) {
+                    if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !AccessoriesAPI.canUnequip(mergingStack, SlotReference.of(merger, key, i))) {
                         extraItems.add(currentPair.getLeft());  // Add the current item to extraItems (as it's being replaced)
                         thisSlot.cosmetic.set(i, new Pair<>(mergingStack, mergingPair.getRight()));  // Can't be unequipped, so it's prioritized
                         continue;  // Already set the item, so we can skip the rest
@@ -213,8 +209,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     Pair<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
                     ItemStack stack = pair.getLeft();
-                    Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
-                    boolean isBound = accessory.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
+                    boolean isBound = !AccessoriesAPI.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
                     if (isBound) {
                         noUnequipItems.add(stack);
                         pair.setLeft(ItemStack.EMPTY);
@@ -223,8 +218,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     Pair<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
                     ItemStack stack = pair.getLeft();
-                    Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
-                    boolean isBound = !accessory.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
+                    boolean isBound = !AccessoriesAPI.canUnequip(stack, SlotReference.of(playerRef, entry.getKey(), i));
                     if (isBound) {
                         noUnequipItems.add(stack);
                         pair.setLeft(ItemStack.EMPTY);
