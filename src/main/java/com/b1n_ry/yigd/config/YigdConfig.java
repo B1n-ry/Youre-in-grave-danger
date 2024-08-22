@@ -265,15 +265,10 @@ public class YigdConfig implements ConfigData {
                 add(new MapEntry("minecraft:the_end", "minecraft:end_stone"));
                 add(new MapEntry("misc", "minecraft:dirt"));
             }};
-            public boolean generateOnProtectedLand = false;
         }
     }
 
     public static class CompatConfig {
-        @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
-        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
-        public DropRule standardDropRuleInClaim = DropRule.PUT_IN_GRAVE;
-
         public boolean enableAccessoriesCompat = true;
         @Comment("While PUT_IN_GRAVE, other drop rules will be prioritized")
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
