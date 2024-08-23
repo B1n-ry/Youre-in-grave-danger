@@ -1,9 +1,15 @@
+# You're in Grave Danger 2.0.6
+
+### Fixes
+* Improved accessories compat implementation (thanks @Dragon-Seeker!)
+
+---
+
 # You're in Grave Danger 2.0.5
 
 ### Fixes
 * Fixed issue with graves clearing inventories if the player had more trinkets equipped
 in the grave than when claiming a grave
-* Improved accessories compat implementation (thanks @Dragon-Seeker!)
 
 ---
 
