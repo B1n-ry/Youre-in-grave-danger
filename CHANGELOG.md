@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.3
+
+### Fixes
+* The mod can now launch when using a dedicated server
+
+---
+
 # You're in Grave Danger 2.0.2
 
 ### Fixes

@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.client.gui;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.networking.LightGraveData;
 import com.b1n_ry.yigd.networking.packets.GraveOverviewRequestC2SPacket;
+import com.b1n_ry.yigd.networking.packets.GraveSelectionS2CPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -255,5 +256,10 @@ public class GraveSelectionScreen extends Screen {
         this.overlayToggle.setPosition(x, y + 72);
         this.overlayToggle.render(graphics, mouseX, mouseY, partialTick);
         graphics.blitSprite(this.overlayColors ? SHOW_STATUS : HIDE_STATUS, x + 2, y + 74, 16, 16);
+    }
+
+    public static void openScreen(GraveSelectionS2CPacket payload) {
+        Minecraft client = Minecraft.getInstance();
+        client.execute(() -> client.setScreen(new GraveSelectionScreen(payload.data(), payload.profile(), client.screen)));
     }
 }

@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.client.gui;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.networking.LightPlayerData;
 import com.b1n_ry.yigd.networking.packets.GraveSelectionRequestC2SPacket;
+import com.b1n_ry.yigd.networking.packets.PlayerSelectionS2CPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -246,5 +247,10 @@ public class PlayerSelectionScreen extends Screen {
 
     private enum FilterButtonValue {
         WITH_GRAVES, WITH_CLAIMED, WITH_UNCLAIMED, WITH_DESTROYED
+    }
+
+    public static void openScreen(PlayerSelectionS2CPacket payload) {
+        Minecraft client = Minecraft.getInstance();
+        client.execute(() -> client.setScreen(new PlayerSelectionScreen(payload.data(), client.screen)));
     }
 }

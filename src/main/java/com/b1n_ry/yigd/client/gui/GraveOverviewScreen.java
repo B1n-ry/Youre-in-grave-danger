@@ -351,4 +351,11 @@ public class GraveOverviewScreen extends Screen {
             }
         }
     }
+
+    public static void openScreen(GraveOverviewS2CPacket payload) {
+        Minecraft client = Minecraft.getInstance();
+        client.execute(() -> client.setScreen(new GraveOverviewScreen(payload.component(), client.screen,
+                payload.canRestore(), payload.canRob(), payload.canDelete(), payload.canUnlock(),
+                payload.obtainableKeys(), payload.obtainableCompass())));
+    }
 }
