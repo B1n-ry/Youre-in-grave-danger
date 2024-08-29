@@ -288,7 +288,7 @@ public class YigdServerEventHandler {
             return;
         }
 
-        if (!graveConfig.generateGraveInVoid && grave.getPos().getY() < 0) {
+        if (!graveConfig.generateGraveInVoid && grave.getPos().getY() < context.world().getMinBuildHeight()) {
             event.setAllowGeneration(false);
             return;
         }
