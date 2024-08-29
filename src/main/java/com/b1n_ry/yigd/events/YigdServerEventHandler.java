@@ -186,7 +186,7 @@ public class YigdServerEventHandler {
 
             if (graveConfig.dimensionBlacklist.contains(grave.getWorldRegistryKey().getValue().toString())) return false;
 
-            if (!graveConfig.generateGraveInVoid && grave.getPos().getY() < 0) return false;
+            if (!graveConfig.generateGraveInVoid && grave.getPos().getY() < context.world().getBottomY()) return false;
 
             if (graveConfig.requireItem) {
                 Item item = Registries.ITEM.get(new Identifier(graveConfig.requiredItem));
