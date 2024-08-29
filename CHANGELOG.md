@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.4.8
+
+### Fixes
+* Graves can now generate below y=0 (if blocks can exist there) when `generateGraveInVoid`
+config is set to `false`
+
+---
+
 # You're in Grave Danger 2.4.7
 
 ### Fixes
