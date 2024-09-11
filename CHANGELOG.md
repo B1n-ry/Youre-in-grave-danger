@@ -3,6 +3,9 @@
 ### Fixes
 * Graves can now generate below y=0 (if blocks can exist there) when `generateGraveInVoid`
 config is set to `false`
+* When selecting graves in the GUI, it will no longer tell you that you have your xp point
+total number of levels
+* Empty graves will now generate if they are configured to
 
 ---
 

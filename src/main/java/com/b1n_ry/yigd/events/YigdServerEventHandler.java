@@ -179,8 +179,11 @@ public class YigdServerEventHandler {
             YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
             if (!graveConfig.enabled) return false;
 
-            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) return false;
-            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST && DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) return false;
+            if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())
+                || DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST && DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) {
+                Yigd.LOGGER.info("%s found on whitelist/blacklist, disallowing grave generation");
+                return false;
+            }
 
             if (!graveConfig.generateEmptyGraves && grave.isGraveEmpty()) return false;
 

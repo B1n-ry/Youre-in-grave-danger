@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.client.gui.widget.WCardButton;
 import com.b1n_ry.yigd.client.gui.widget.WFilterableListPanel;
 import com.b1n_ry.yigd.client.gui.widget.WHoverToggleButton;
+import com.b1n_ry.yigd.components.ExpComponent;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.packets.ClientPacketHandler;
 import com.b1n_ry.yigd.packets.LightGraveData;
@@ -54,7 +55,7 @@ public class GraveSelectionGui extends LightweightGuiDescription {
                     Text.translatable("text.yigd.gui.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ()),
                     Text.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName),
                     Text.translatable("text.yigd.gui.item_count", lightGraveData.itemCount()),
-                    Text.translatable("text.yigd.gui.level_count", lightGraveData.xpPoints())
+                    Text.translatable("text.yigd.gui.level_count", ExpComponent.xpToLevels(lightGraveData.xpPoints()))
             ));
             wCardButton.setOnClick(() -> ClientPacketHandler.sendGraveOverviewRequest(lightGraveData.id()));
         });

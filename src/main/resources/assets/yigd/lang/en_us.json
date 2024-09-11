@@ -75,6 +75,7 @@
   "text.yigd.message.irl_time": " (%d %s, %d, %d:%d%s)",
   "text.yigd.message.grave_destroyed": "Your grave has been unexpectedly destroyed. With proper permissions graves can be restored by using /yigd commands",
   "text.yigd.message.grave_relocated": "Your grave has been relocated to X: %d / Y: %d / Z: %d / %s",
+  "text.yigd.message.grave_generation_error": "Grave failed to generate. Dropping items",
 
   "text.yigd.dimension.name.minecraft:overworld": "The Overworld",
   "text.yigd.dimension.name.minecraft:the_nether": "The Nether",
