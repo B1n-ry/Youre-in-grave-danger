@@ -181,7 +181,7 @@ public class YigdServerEventHandler {
 
             if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())
                 || DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST && DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())) {
-                Yigd.LOGGER.info("%s found on whitelist/blacklist, disallowing grave generation");
+                Yigd.LOGGER.info("{} found on whitelist/blacklist, disallowing grave generation", context.player().getGameProfile().getName());
                 return false;
             }
 

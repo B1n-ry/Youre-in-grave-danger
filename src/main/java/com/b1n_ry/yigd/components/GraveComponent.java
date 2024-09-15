@@ -508,8 +508,8 @@ public class GraveComponent {
             }
         }
 
-        Yigd.LOGGER.info("%s claimed a grave belonging to %s at %d, %d, %d, %s"
-                .formatted(player.getGameProfile().getName(), this.owner.getName(), this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.worldRegistryKey.getValue()));
+        Yigd.LOGGER.info("{} claimed a grave belonging to {} at {}, {}, {}, {}", player.getGameProfile().getName(),
+                this.owner.getName(), this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.worldRegistryKey.getValue());
         return ActionResult.SUCCESS;
     }
 
