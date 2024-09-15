@@ -324,9 +324,6 @@ public class GraveComponent {
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, direction)
                 .setValue(BlockStateProperties.WATERLOGGED, waterlogged);
 
-        respawnComponent.setGraveGenerated(true);  // Not guaranteed yet, but only errors can stop it from generating after this point
-        DeathInfoManager.INSTANCE.setDirty();  // Make sure respawn component is updated
-
         // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
         Yigd.END_OF_TICK.add(() -> {
             BlockState previousState = world.getBlockState(pos);
@@ -335,13 +332,18 @@ public class GraveComponent {
             BlockPos placedPos = this.getPos();
 
             if (!placed) {
-                Yigd.LOGGER.error("Failed to generate grave at X: %d, Y: %d, Z: %d, %s".formatted(
-                        placedPos.getX(), placedPos.getY(), placedPos.getZ(), world.dimension().location()));
+                Yigd.LOGGER.error("Failed to generate grave at X: {}, Y: {}, Z: {}, {}. Grave block placement failed",
+                        placedPos.getX(), placedPos.getY(), placedPos.getZ(), world.dimension().location());
                 Yigd.LOGGER.info("Dropping items on ground instead of in grave");
+
+                context.player().sendSystemMessage(Component.translatable("text.yigd.message.grave_generation_error"));
                 this.getInventoryComponent().dropGraveItems(world, Vec3.atLowerCornerOf(placedPos));
                 this.getExpComponent().dropAll(world, Vec3.atLowerCornerOf(placedPos));
                 return;
             }
+
+            respawnComponent.setGraveGenerated(true);  // Not guaranteed yet, but only errors can stop it from generating after this point
+            DeathInfoManager.INSTANCE.setDirty();  // Make sure respawn component is updated
 
             GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(placedPos);
             if (be == null) return;

@@ -267,13 +267,11 @@ public class YigdServerEventHandler {
             return;
         }
 
-        if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST
-                && !DeathInfoManager.INSTANCE.isInList(new ResolvableProfile(context.player().getGameProfile()))) {
-            event.setAllowGeneration(false);
-            return;
-        }
-        if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST
-                && DeathInfoManager.INSTANCE.isInList(new ResolvableProfile(context.player().getGameProfile()))) {
+        if ((DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST
+                && !DeathInfoManager.INSTANCE.isInList(new ResolvableProfile(context.player().getGameProfile())))
+                || (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST
+                && DeathInfoManager.INSTANCE.isInList(new ResolvableProfile(context.player().getGameProfile())))) {
+            Yigd.LOGGER.info("{} found on whitelist/blacklist, disallowing grave generation", context.player().getGameProfile().getName());
             event.setAllowGeneration(false);
             return;
         }

@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.client.gui;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.components.ExpComponent;
 import com.b1n_ry.yigd.networking.LightGraveData;
 import com.b1n_ry.yigd.networking.packets.GraveOverviewRequestC2SPacket;
 import com.b1n_ry.yigd.networking.packets.GraveSelectionS2CPacket;
@@ -112,7 +113,7 @@ public class GraveSelectionScreen extends Screen {
                             .append("\n")
                             .append(Component.translatable("text.yigd.gui.item_count", graveData.itemCount()))
                             .append("\n")
-                            .append(Component.translatable("text.yigd.gui.level_count", graveData.xpPoints()))));
+                            .append(Component.translatable("text.yigd.gui.level_count", ExpComponent.xpToLevels(graveData.xpPoints())))));
 
             this.overlayColorList.add(graveData.status().getTransparentColor());
 
