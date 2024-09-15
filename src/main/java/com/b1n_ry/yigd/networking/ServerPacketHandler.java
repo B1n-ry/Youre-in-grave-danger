@@ -233,6 +233,6 @@ public class ServerPacketHandler {
         Yigd.CLAIM_PRIORITIES.put(playerId, claimPriority);
         Yigd.ROB_PRIORITIES.put(playerId, robPriority);
 
-        Yigd.LOGGER.info("Priority overwritten for player %s. Claiming: %s / Robbing: %s".formatted(player.getGameProfile().getName(), claimPriority.name(), robPriority.name()));
+        Yigd.LOGGER.info("Priority overwritten for player {}. Claiming: {} / Robbing: {}", player.getGameProfile().getName(), claimPriority.name(), robPriority.name());
     }
 }
