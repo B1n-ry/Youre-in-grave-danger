@@ -62,9 +62,10 @@ public class DeathHandler {
         GraveComponent graveComponent = new GraveComponent(profile, inventoryComponent, expComponent,
                 world, graveGenerationPos.add(0D, .5D, 0D), deathSource.getDeathMessage(player), killerId);  // Will keep track of player grave (if enabled)
 
-        if (graveComponent.isEmpty()) return;  // There is literally no information worth saving
+        if (!graveComponent.isEmpty()) {  // There is no information worth backing up
+            graveComponent.backUp();
+        }
 
-        graveComponent.backUp();
         respawnComponent.primeForRespawn(profile);
 
         Direction playerDirection = player.getHorizontalFacing();

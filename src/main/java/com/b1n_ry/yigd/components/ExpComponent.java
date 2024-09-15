@@ -61,20 +61,7 @@ public class ExpComponent {
     }
 
     public int getXpLevel() {
-        int totalXp = this.storedXp;
-
-        int i;
-        for (i = 0; totalXp >= 0; i++) {
-            if (i < 16) {
-                totalXp -= (2 * i) + 7;
-            } else if(i < 31) {
-                totalXp -= (5 * i) - 38;
-            } else {
-                totalXp -= (9 * i) - 158;
-            }
-        }
-
-        return i - 1;
+        return ExpComponent.xpToLevels(this.storedXp);
     }
 
     public boolean isEmpty() {
@@ -121,6 +108,21 @@ public class ExpComponent {
         player.totalExperience = 0;
         player.experienceLevel = 0;
         player.experienceProgress = 0;
+    }
+
+    public static int xpToLevels(int totalXp) {
+        int i;
+        for (i = 0; totalXp >= 0; i++) {
+            if (i < 16) {
+                totalXp -= (2 * i) + 7;
+            } else if(i < 31) {
+                totalXp -= (5 * i) - 38;
+            } else {
+                totalXp -= (9 * i) - 158;
+            }
+        }
+
+        return i - 1;
     }
 
     public ExpComponent copy() {
