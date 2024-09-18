@@ -30,15 +30,6 @@ import java.util.UUID;
 
 public class ServerEventHandler {
     @SubscribeEvent
-    public void onDrop(LivingDeathEvent event) {
-        LivingEntity e = event.getEntity();
-        if (e.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
-        if (!(e instanceof ServerPlayer player)) return;
-
-        Yigd.DEATH_HANDLER.onPlayerDeath(player, player.serverLevel(), player.position(), event.getSource());
-    }
-
-    @SubscribeEvent
     public void onEndOfTick(ServerTickEvent.Post event) {
         List<Runnable> methodsToRun = new ArrayList<>(Yigd.END_OF_TICK);
         Yigd.END_OF_TICK.clear();

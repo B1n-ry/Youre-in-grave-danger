@@ -8,6 +8,7 @@
     "CompassItemMixin",
     "EndPlatformFeatureMixin",
     "LevelChunkMixin",
+    "LivingEntityMixin",
     "RegistryDataLoaderMixin"
   ],
   "client": [
