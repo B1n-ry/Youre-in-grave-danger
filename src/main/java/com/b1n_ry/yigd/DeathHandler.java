@@ -63,9 +63,10 @@ public class DeathHandler {
                 world, graveGenerationPos.add(0D, .5D, 0D), new TranslatableDeathMessage(deathSource, player), killerId);  // Will keep track of player grave (if enabled)
 
         GameProfile profile = player.getGameProfile();
-        if (!graveComponent.isEmpty() || !respawnComponent.isEmpty()) {  // There is literally no information worth saving
-            Yigd.LOGGER.info("Did not backup data (grave data empty)");
+        if (!graveComponent.isEmpty()) {
             graveComponent.backUp();
+        } else {
+            Yigd.LOGGER.info("Did not backup data (grave data empty)");  // There is literally no information worth saving
         }
 
         respawnComponent.primeForRespawn(profile);
