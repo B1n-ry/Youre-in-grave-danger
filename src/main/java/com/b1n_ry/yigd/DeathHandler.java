@@ -62,8 +62,10 @@ public class DeathHandler {
         GraveComponent graveComponent = new GraveComponent(profile, inventoryComponent, expComponent,
                 world, graveGenerationPos.add(0D, .5D, 0D), deathSource.getDeathMessage(player), killerId);  // Will keep track of player grave (if enabled)
 
-        if (!graveComponent.isEmpty()) {  // There is no information worth backing up
+        if (!graveComponent.isEmpty()) {
             graveComponent.backUp();
+        } else {
+            Yigd.LOGGER.info("No grave backup generated (empty grave)");  // There is no information worth backing up
         }
 
         respawnComponent.primeForRespawn(profile);
