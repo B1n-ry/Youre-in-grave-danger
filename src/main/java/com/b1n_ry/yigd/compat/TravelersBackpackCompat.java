@@ -17,7 +17,12 @@ import java.util.function.Predicate;
 
 public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, DropRule>> {
     public static boolean isTrinketIntegrationEnabled() {
-        return TravelersBackpackConfig.getConfig().backpackSettings.trinketsIntegration;
+        try {
+            return TravelersBackpackConfig.getConfig().backpackSettings.trinketsIntegration;
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
