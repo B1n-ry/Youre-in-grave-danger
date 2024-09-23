@@ -1,8 +1,10 @@
+import me.modmuss50.mpp.ReleaseType
+
 plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.moddev' version '1.0.14'
-    id "me.modmuss50.mod-publish-plugin" version "0.6.3"
+    id "me.modmuss50.mod-publish-plugin" version "0.7.4"
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -21,7 +23,7 @@ publishMods {
     file = jar.archiveFile
 
     changelog = file("CHANGELOG.md").text.split("\n---")[0]
-    type = BETA
+    type = ReleaseType.STABLE
 
     displayName = "You're in Grave Danger [NeoForge] " + mod_version
     modLoaders.add("neoforge")
@@ -50,7 +52,7 @@ publishMods {
         accessToken = providers.environmentVariable("GITHUB_TOKEN")
         repository = "B1n-ry/Youre-in-grave-danger"
         commitish = "1.21-neoforge"
-        tagName = project.minecraft_version + "-" + project.mod_version
+        tagName = project.minecraft_version + "-" + project.mod_version + "-neoforge"
     }
 
     modrinth {
