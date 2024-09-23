@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.5
+
+### Fixes
+* Game no longer has a chance to crash when loading in with traveler's backpack and accessories
+
+---
+
 # You're in Grave Danger 2.0.4
 
 ### Fixes
