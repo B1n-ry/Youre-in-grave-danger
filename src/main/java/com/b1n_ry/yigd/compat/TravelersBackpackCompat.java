@@ -20,7 +20,12 @@ import java.util.function.Predicate;
 
 public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, DropRule>> {
     public static boolean isAccessoriesIntegrationEnabled() {
-        return TravelersBackpackConfig.SERVER.backpackSettings.accessoriesIntegration.get();
+        try {
+            return TravelersBackpackConfig.SERVER.backpackSettings.accessoriesIntegration.get();
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
