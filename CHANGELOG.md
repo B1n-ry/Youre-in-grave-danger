@@ -6,6 +6,8 @@ config is set to `false`
 * When selecting graves in the GUI, it will no longer tell you that you have your xp point
 total number of levels
 * Empty graves will now generate if they are configured to
+* Graves will no longer delete modded inventory contents from graves when restarting the
+instance.
 
 ---
 

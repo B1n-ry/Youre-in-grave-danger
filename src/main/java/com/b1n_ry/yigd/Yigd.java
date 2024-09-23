@@ -116,13 +116,14 @@ public class Yigd
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(PacketInitializer::register);
-        NeoForge.EVENT_BUS.addListener(ServerStartedEvent.class, e -> InvModCompat.initModCompat());
+        NeoForge.EVENT_BUS.addListener(ServerStartedEvent.class, e -> InvModCompat.reloadModCompat());
         NeoForge.EVENT_BUS.addListener(YigdCommands::registerCommands);
         NeoForge.EVENT_BUS.addListener(YigdResourceHandler::serverDataEvent);
     }
 
     private void modInitializer(final FMLCommonSetupEvent event)
     {
+        InvModCompat.reloadModCompat();
     }
 
     // Add the example block item to the building blocks tab
