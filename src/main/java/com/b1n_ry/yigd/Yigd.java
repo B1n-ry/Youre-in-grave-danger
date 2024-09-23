@@ -80,8 +80,9 @@ public class Yigd implements ModInitializer {
 
         PacketInitializer.init();
 
+        InvModCompat.reloadModCompat();
         // Makes sure proper mod compatibilities are loaded (on world load to check mods' config)
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> InvModCompat.initModCompat());
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> InvModCompat.reloadModCompat());
 
         YigdServerEventHandler.registerEventCallbacks();
         ServerEventHandler.registerEvents();

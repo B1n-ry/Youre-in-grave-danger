@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface InvModCompat<T> {
     List<InvModCompat<?>> invCompatMods = new ArrayList<>();
-    static void initModCompat() {
+    static void reloadModCompat() {
         invCompatMods.clear();
         FabricLoader loader = FabricLoader.getInstance();
         YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
