@@ -1,3 +1,7 @@
+# You're in Grave Danger 2.0.6
+
+---
+
 # You're in Grave Danger 2.0.5
 
 ### Fixes
