@@ -95,9 +95,11 @@ public class RespawnComponent {
         }
         if (extraFeaturesConfig.graveCompass.receiveOnRespawn) {
             List<GraveComponent> playerGraves = DeathInfoManager.INSTANCE.getBackupData(player.getGameProfile());
-            GraveComponent latestGrave = playerGraves.get(playerGraves.size() - 1);
+            if (!playerGraves.isEmpty()) {
+                GraveComponent latestGrave = playerGraves.get(playerGraves.size() - 1);
 
-            GraveCompassHelper.giveCompass(player, latestGrave.getGraveId(), latestGrave.getPos(), latestGrave.getWorldRegistryKey());
+                GraveCompassHelper.giveCompass(player, latestGrave.getGraveId(), latestGrave.getPos(), latestGrave.getWorldRegistryKey());
+            }
         }
 
         for (YigdConfig.RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {
