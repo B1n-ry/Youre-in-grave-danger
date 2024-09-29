@@ -1,5 +1,9 @@
 # You're in Grave Danger 2.4.10
 
+### Fixes
+* If dying for the first time in a world with an empty inventory, players will
+no longer be disconnected.
+
 ---
 
 # You're in Grave Danger 2.4.9
