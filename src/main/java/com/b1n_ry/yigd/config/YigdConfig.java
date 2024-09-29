@@ -184,6 +184,7 @@ public class YigdConfig implements ConfigData {
         public RandomSpawn randomSpawn = new RandomSpawn();
         // use last ground position
         public boolean generateOnLastGroundPos = false;
+        public boolean tryGenerateOnGround = false;
         // How far in X, Y, and Z the grave can generate from where you died
         @ConfigEntry.Gui.CollapsibleObject
         public Range generationMaxDistance = new Range();

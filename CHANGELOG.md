@@ -1,5 +1,9 @@
 # You're in Grave Danger 2.4.10
 
+### Changes
+* Added new config to look downward for ground to place a grave on, when dying in
+  the air
+
 ### Fixes
 * If dying for the first time in a world with an empty inventory, players will
 no longer be disconnected.
