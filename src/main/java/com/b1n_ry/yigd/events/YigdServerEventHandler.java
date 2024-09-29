@@ -131,7 +131,7 @@ public class YigdServerEventHandler {
                             return true;
                         }
                         case PLAYER_GRAVE -> {
-                            if (userNbt != null && Objects.equals(NbtHelper.toGameProfile(userNbt), grave.getOwner())) {
+                            if (Objects.equals(NbtHelper.toGameProfile(userNbt), grave.getOwner())) {
                                 tool.decrement(1);
                                 return true;
                             }

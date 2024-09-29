@@ -208,6 +208,15 @@ public class GraveComponent {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
 
+        if (config.graveConfig.tryGenerateOnGround) {
+            for (BlockPos pos = this.pos.down(); pos.getY() >= this.world.getBottomY(); pos = pos.down()) {
+                if (!this.world.getBlockState(pos).isIn(YigdTags.REPLACE_SOFT_WHITELIST)) {
+                    this.pos = pos.down();
+                    break;
+                }
+            }
+        }
+
         // Loop should ABSOLUTELY NOT loop 50 times, but in case some stupid ass person (maybe me lol) doesn't return true by default
         // in canGenerate when i reaches some value (maybe 4) there is a cap at least, so the loop won't continue forever and freeze the game
         for (int i = 0; i < 50; i++) {

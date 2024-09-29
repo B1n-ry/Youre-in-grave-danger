@@ -145,6 +145,7 @@
   "text.autoconfig.yigd.option.graveConfig.randomSpawn.spawnEntity": "Entity",
   "text.autoconfig.yigd.option.graveConfig.randomSpawn.spawnNbt": "Entity NBT",
   "text.autoconfig.yigd.option.graveConfig.generateOnLastGroundPos": "Generate Where Last on Ground",
+  "text.autoconfig.yigd.option.graveConfig.tryGenerateOnGround": "Try Generate On Ground",
   "text.autoconfig.yigd.option.graveConfig.generationMaxDistance": "Max Distance Generated From Death Location",
   "text.autoconfig.yigd.option.graveConfig.generationMaxDistance.x": "X",
   "text.autoconfig.yigd.option.graveConfig.generationMaxDistance.y": "Y",
