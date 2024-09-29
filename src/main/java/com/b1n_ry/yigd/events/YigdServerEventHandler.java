@@ -194,7 +194,7 @@ public class YigdServerEventHandler {
                         return;
                     }
                     case PLAYER_GRAVE -> {
-                        if (userNbt != null && Objects.equals(ResolvableProfile.CODEC.parse(NbtOps.INSTANCE, userNbt).result().orElse(null), grave.getOwner())) {
+                        if (Objects.equals(ResolvableProfile.CODEC.parse(NbtOps.INSTANCE, userNbt).result().orElse(null), grave.getOwner())) {
                             tool.shrink(1);
                             event.setCanClaim(true);
                             event.setCanceled(true);
