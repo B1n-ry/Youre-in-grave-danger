@@ -3,6 +3,8 @@
 ### Changes
 * Added new config to look downward for ground to place a grave on, when dying in
 the air
+* Changed default max grave count to 100 in the config (previously 50)
+* Improved rendering efficiency in yigd GUIs with a scroll-bar
 
 ### Fixes
 * If dying for the first time in a world with an empty inventory, players will
