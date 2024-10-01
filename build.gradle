@@ -90,6 +90,16 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://cursemaven.com"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 dependencies {
@@ -98,6 +108,7 @@ dependencies {
     compileOnly "io.wispforest:accessories-neoforge:${project.accessories_version}"
     compileOnly "top.theillusivec4.curios:curios-neoforge:${project.curios_version}"
     compileOnly "maven.modrinth:travelersbackpack:${project.travelers_backpack_version}"
+    compileOnly "curse.maven:cosmeticarmor-${project.cosmetic_armor_version}"
 }
 
 base {

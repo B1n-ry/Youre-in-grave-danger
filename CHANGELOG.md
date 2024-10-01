@@ -1,5 +1,8 @@
 # You're in Grave Danger 2.0.7
 
+### Changes
+* Added compat with [Cosmetic Armor Reworked](https://www.curseforge.com/minecraft/mc-mods/cosmetic-armor-reworked)
+
 ---
 
 # You're in Grave Danger 2.0.6

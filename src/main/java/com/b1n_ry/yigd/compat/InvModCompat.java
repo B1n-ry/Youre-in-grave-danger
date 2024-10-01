@@ -27,6 +27,8 @@ public interface InvModCompat<T> {
             if (compatConfig.enableTravelersBackpackCompat && !(accessoriesPresent && TravelersBackpackCompat.isAccessoriesIntegrationEnabled()))
                 invCompatMods.add(new TravelersBackpackCompat());
         }
+        if (modList.isLoaded("cosmeticarmorreworked") && compatConfig.enableCosmeticArmorCompat)
+            invCompatMods.add(new CosmeticArmorCompat());
     }
 
     String getModName();
