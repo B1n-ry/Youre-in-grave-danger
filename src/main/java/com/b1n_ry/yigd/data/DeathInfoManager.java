@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.nbt.*;
 import net.minecraft.registry.RegistryWrapper;
@@ -24,12 +25,12 @@ import java.util.*;
 public class DeathInfoManager extends PersistentState {
     public static DeathInfoManager INSTANCE = new DeathInfoManager();
 
-    private final Map<ProfileComponent, RespawnComponent> respawnEffects = new HashMap<>();
-    private final Map<ProfileComponent, List<GraveComponent>> graveBackups = new HashMap<>();
+    private final Map<GameProfile, RespawnComponent> respawnEffects = new HashMap<>();
+    private final Map<GameProfile, List<GraveComponent>> graveBackups = new HashMap<>();
     private final Map<UUID, GraveComponent> graveMap = new HashMap<>();
 
     private ListMode graveListMode = ListMode.BLACKLIST;
-    private final Set<ProfileComponent> affectedPlayers = new HashSet<>();
+    private final Set<GameProfile> affectedPlayers = new HashSet<>();
 
     public void clear() {
         this.respawnEffects.clear();
@@ -39,7 +40,7 @@ public class DeathInfoManager extends PersistentState {
         this.affectedPlayers.clear();
     }
 
-    public Set<ProfileComponent> getAffectedPlayers() {
+    public Set<GameProfile> getAffectedPlayers() {
         return affectedPlayers;
     }
 
@@ -56,7 +57,7 @@ public class DeathInfoManager extends PersistentState {
         GraveComponent component = this.graveMap.get(graveId);
         if (component == null) return ActionResult.FAIL;
 
-        ProfileComponent profile = component.getOwner();
+        GameProfile profile = component.getOwner().gameProfile();
 
         this.graveMap.remove(graveId);
 
@@ -70,21 +71,23 @@ public class DeathInfoManager extends PersistentState {
     }
 
     public void addRespawnComponent(ProfileComponent profile, RespawnComponent component) {
-        this.respawnEffects.put(profile, component);
+        this.respawnEffects.put(profile.gameProfile(), component);
     }
     public Optional<RespawnComponent> getRespawnComponent(ProfileComponent profile) {
-        return Optional.ofNullable(this.respawnEffects.get(profile));
+        return Optional.ofNullable(this.respawnEffects.get(profile.gameProfile()));
     }
-    public Map<ProfileComponent, List<GraveComponent>> getPlayerGraves() {
+    public Map<GameProfile, List<GraveComponent>> getPlayerGraves() {
         return this.graveBackups;
     }
 
     public void removeRespawnComponent(ProfileComponent profile) {
-        this.respawnEffects.remove(profile);
+        this.respawnEffects.remove(profile.gameProfile());
     }
 
-    public void addBackup(ProfileComponent profile, GraveComponent component) {
+    public void addBackup(ProfileComponent p, GraveComponent component) {
         YigdConfig config = YigdConfig.getConfig();
+
+        GameProfile profile = p.gameProfile();
 
         if (!this.graveBackups.containsKey(profile)) {
             this.graveBackups.put(profile, new ArrayList<>());
@@ -105,11 +108,11 @@ public class DeathInfoManager extends PersistentState {
 
         if (config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED
                 && component.getStatus() == GraveStatus.UNCLAIMED) {
-            GraveCompassHelper.addGravePosition(component.getWorldRegistryKey(), component.getPos(), profile.id().orElse(null));
+            GraveCompassHelper.addGravePosition(component.getWorldRegistryKey(), component.getPos(), profile.getId());
         }
     }
     public @NotNull List<GraveComponent> getBackupData(ProfileComponent profile) {
-        return this.graveBackups.computeIfAbsent(profile, k -> new ArrayList<>());
+        return this.graveBackups.computeIfAbsent(profile.gameProfile(), k -> new ArrayList<>());
     }
     public Optional<GraveComponent> getGrave(UUID graveId) {
         return Optional.ofNullable(this.graveMap.get(graveId));
@@ -122,13 +125,13 @@ public class DeathInfoManager extends PersistentState {
         this.graveListMode = listMode;
     }
     public void addToList(ProfileComponent profile) {
-        this.affectedPlayers.add(profile);
+        this.affectedPlayers.add(profile.gameProfile());
     }
     public boolean removeFromList(ProfileComponent profile) {
-        return this.affectedPlayers.remove(profile);
+        return this.affectedPlayers.remove(profile.gameProfile());
     }
     public boolean isInList(ProfileComponent profile) {
-        return this.affectedPlayers.contains(profile);
+        return this.affectedPlayers.contains(profile.gameProfile());
     }
 
     @Override
@@ -136,19 +139,19 @@ public class DeathInfoManager extends PersistentState {
         NbtList respawnNbt = new NbtList();
         NbtList graveNbt = new NbtList();
         NbtCompound graveListNbt = new NbtCompound();
-        for (Map.Entry<ProfileComponent, RespawnComponent> entry : this.respawnEffects.entrySet()) {
+        for (Map.Entry<GameProfile, RespawnComponent> entry : this.respawnEffects.entrySet()) {
             NbtCompound respawnCompound = new NbtCompound();
 
-            ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, entry.getKey()).result()
+            ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, new ProfileComponent(entry.getKey())).result()
                     .ifPresent(nbtElement -> respawnCompound.put("user", nbtElement));
             respawnCompound.put("component", entry.getValue().toNbt(registryLookup));
 
             respawnNbt.add(respawnCompound);
         }
 
-        for (Map.Entry<ProfileComponent, List<GraveComponent>> entry : this.graveBackups.entrySet()) {
+        for (Map.Entry<GameProfile, List<GraveComponent>> entry : this.graveBackups.entrySet()) {
             NbtCompound graveCompound = new NbtCompound();
-            ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, entry.getKey()).result()
+            ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, new ProfileComponent(entry.getKey())).result()
                     .ifPresent(nbtElement -> graveCompound.put("user", nbtElement));
 
             NbtList graveNbtList = new NbtList();
@@ -163,8 +166,8 @@ public class DeathInfoManager extends PersistentState {
 
         graveListNbt.putString("listMode", this.graveListMode.name());
         NbtList affectedPlayersNbt = new NbtList();
-        for (ProfileComponent profile : this.affectedPlayers) {
-            NbtElement profileNbt = ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, profile).result().orElseThrow();
+        for (GameProfile profile : this.affectedPlayers) {
+            NbtElement profileNbt = ProfileComponent.CODEC.encodeStart(NbtOps.INSTANCE, new ProfileComponent(profile)).result().orElseThrow();
             affectedPlayersNbt.add(profileNbt);
         }
         graveListNbt.put("affectedPlayers", affectedPlayersNbt);

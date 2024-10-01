@@ -2,11 +2,13 @@
 
 ### Changes
 * Added new config to look downward for ground to place a grave on, when dying in
-  the air
+the air
+* Increased default max graves per player in config to 100 (previously 50)
 
 ### Fixes
 * If dying for the first time in a world with an empty inventory, players will
 no longer be disconnected.
+* Grave data should no longer be generated for one player in two profiles
 
 ---
 

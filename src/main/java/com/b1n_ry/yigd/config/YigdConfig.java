@@ -209,7 +209,7 @@ public class YigdConfig implements ConfigData {
         public boolean sellOutOfflinePeople = false;
         // max backups
         @Comment("Max amount of backed up graves")
-        public int maxBackupsPerPerson = 50;
+        public int maxBackupsPerPerson = 100;
         public boolean dropFromOldestWhenDeleted = true;
 
         public static class RetrieveMethods {
