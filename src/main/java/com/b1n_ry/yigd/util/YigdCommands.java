@@ -10,6 +10,7 @@ import com.b1n_ry.yigd.networking.LightPlayerData;
 import com.b1n_ry.yigd.networking.packets.GraveOverviewS2CPacket;
 import com.b1n_ry.yigd.networking.packets.GraveSelectionS2CPacket;
 import com.b1n_ry.yigd.networking.packets.PlayerSelectionS2CPacket;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -136,7 +137,7 @@ public class YigdCommands {
 
         if (player == null) return -1;
 
-        Map<ResolvableProfile, List<GraveComponent>> players = DeathInfoManager.INSTANCE.getPlayerGraves();
+        Map<GameProfile, List<GraveComponent>> players = DeathInfoManager.INSTANCE.getPlayerGraves();
 
         List<LightPlayerData> lightPlayerData = new ArrayList<>();
         players.forEach((profile, components) -> {
@@ -148,7 +149,7 @@ public class YigdCommands {
                     case DESTROYED -> destroyed++;
                 }
             }
-            LightPlayerData lightData = new LightPlayerData(components.size(), unclaimed, destroyed, profile);
+            LightPlayerData lightData = new LightPlayerData(components.size(), unclaimed, destroyed, new ResolvableProfile(profile));
             lightPlayerData.add(lightData);
         });
 
@@ -258,11 +259,11 @@ public class YigdCommands {
     }
     private static int showList(CommandContext<CommandSourceStack> context) {
         ListMode listMode = DeathInfoManager.INSTANCE.getGraveListMode();
-        Set<ResolvableProfile> affectedPlayers = DeathInfoManager.INSTANCE.getAffectedPlayers();
+        Set<GameProfile> affectedPlayers = DeathInfoManager.INSTANCE.getAffectedPlayers();
 
         StringJoiner joiner = new StringJoiner(", ");
-        for (ResolvableProfile profile : affectedPlayers) {
-            joiner.add(profile.name().orElse("PLAYER_NOT_FOUND"));
+        for (GameProfile profile : affectedPlayers) {
+            joiner.add(Optional.ofNullable(profile.getName()).orElse("PLAYER_NOT_FOUND"));
         }
         context.getSource().sendSystemMessage(Component.literal(listMode.name() + ": %s" + joiner));
 

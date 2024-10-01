@@ -7,6 +7,7 @@ the air
 ### Fixes
 * If dying for the first time in a world with an empty inventory, players will
 no longer be disconnected.
+* Backup data should now recognize players more easily
 
 ---
 
