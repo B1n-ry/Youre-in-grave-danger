@@ -229,6 +229,8 @@ public class PlayerSelectionScreen extends Screen {
         this.scrollBar.render(graphics, mouseX, mouseY, partialTick);
         graphics.enableScissor(0, y + 1, this.width, y + SCROLL_MENU_HEIGHT + 1);
         for (int i = 0; i < this.buttons.size(); i++) {
+            if ((i + 1) * 20 < this.scrollDistance) continue;
+            if (i * 20 - this.scrollDistance > SCROLL_MENU_HEIGHT) break;
             Tuple<LightPlayerData, Button> tuple = this.buttons.get(i);
             LightPlayerData playerData = tuple.getA();
             Button button = tuple.getB();
