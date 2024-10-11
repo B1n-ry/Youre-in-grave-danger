@@ -3,6 +3,10 @@
 ### Changes
 * Added compat with [Cosmetic Armor Reworked](https://www.curseforge.com/minecraft/mc-mods/cosmetic-armor-reworked)
 
+### Fixes
+* Graves will no longer overwrite other graves when dying in exact same places
+outside the world
+
 ---
 
 # You're in Grave Danger 2.0.6

@@ -197,12 +197,43 @@ public class GraveComponent {
             return new DirectionalPos(this.pos, defaultDirection);
         }
 
+        YigdConfig config = YigdConfig.getConfig();
+        int y = this.pos.getY();
+        int lowerAcceptableY = config.graveConfig.lowestGraveY + this.world.getMinBuildHeight();
+        if (config.graveConfig.generateGraveInVoid && this.pos.getY() <= lowerAcceptableY) {
+            y = lowerAcceptableY;
+        }
+        int topY = this.world.getMaxBuildHeight() - 1;  // Can't actually place blocks at top Y
+        if (y > topY) {
+            y = topY;
+        }
+
+        int x = this.pos.getX();
+        int z = this.pos.getZ();
+        if (config.graveConfig.generateOnlyWithinBorder) {
+            WorldBorder border = this.world.getWorldBorder();
+            if (!border.isWithinBounds(x, z)) {
+                x = (int) Math.max(x, border.getMinX());
+                x = (int) Math.min(x, border.getMaxX());
+
+                z = (int) Math.max(z, border.getMinZ());
+                z = (int) Math.min(z, border.getMaxZ());
+            }
+        }
+
+        this.pos = new BlockPos(x, y, z);
+
+        // Makes sure the grave is not broken/replaced by portal, or the dragon egg
+        if (this.world.dimension().equals(Level.END)) {
+            if (Math.abs(this.pos.getX()) + Math.abs(this.pos.getZ()) < 25 && this.world.getBlockState(this.pos.below()).is(Blocks.BEDROCK))
+                this.pos = this.pos.above();
+        }
+
+        DeathInfoManager.INSTANCE.setDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
+
         DirectionalPos graveyardPos = this.findPosInGraveyard(defaultDirection);
         if (graveyardPos != null)
             return graveyardPos;
-
-        YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
 
         if (config.graveConfig.tryGenerateOnGround) {
             for (BlockPos pos = this.pos.below(); pos.getY() >= this.world.getMinBuildHeight(); pos = pos.below()) {
@@ -212,6 +243,8 @@ public class GraveComponent {
                 }
             }
         }
+
+        YigdConfig.GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
 
         // Loop should ABSOLUTELY NOT loop 50 times, but in case some stupid ass person (maybe me lol) doesn't return true by default
         // in canGenerate when i reaches some value (maybe 4) there is a cap at least, so the loop won't continue forever and freeze the game
@@ -265,49 +298,14 @@ public class GraveComponent {
 
     /**
      * Called to place down a grave block. Should only be called from server
-     * @param attemptedPos Where the grave should try to be placed
      * @param state Which block should be placed
      * @return Weather or not the grave was placed
      */
-    public boolean tryPlaceGraveAt(BlockPos attemptedPos, BlockState state) {
+    public boolean tryPlaceGrave(BlockState state) {
         if (this.world == null) {
-            Yigd.LOGGER.error("GraveComponent tried to place grave without knowing the ServerWorld");
+            Yigd.LOGGER.error("GraveComponent tried to place grave without knowing the ServerLevel");
             return false;
         }
-
-        YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
-        int y = attemptedPos.getY();
-        int lowerAcceptableY = config.lowestGraveY + this.world.getMinBuildHeight();
-        if (config.generateGraveInVoid && attemptedPos.getY() <= lowerAcceptableY) {
-            y = lowerAcceptableY;
-        }
-        int topY = this.world.getMaxBuildHeight() - 1;  // Can't actually place blocks at top Y
-        if (y > topY) {
-            y = topY;
-        }
-
-        int x = attemptedPos.getX();
-        int z = attemptedPos.getZ();
-        if (config.generateOnlyWithinBorder) {
-            WorldBorder border = this.world.getWorldBorder();
-            if (!border.isWithinBounds(x, z)) {
-                x = (int) Math.max(x, border.getMinX());
-                x = (int) Math.min(x, border.getMaxX());
-
-                z = (int) Math.max(z, border.getMinZ());
-                z = (int) Math.min(z, border.getMaxZ());
-            }
-        }
-
-        this.pos = new BlockPos(x, y, z);
-
-        // Makes sure the grave is not broken/replaced by portal, or the dragon egg
-        if (this.world.dimension().equals(Level.END)) {
-            if (Math.abs(attemptedPos.getX()) + Math.abs(attemptedPos.getZ()) < 25 && this.world.getBlockState(attemptedPos.below()).is(Blocks.BEDROCK))
-                this.pos = this.pos.above();
-        }
-
-        DeathInfoManager.INSTANCE.setDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
 
         this.placeBlockUnder();
         return this.world.setBlockAndUpdate(this.pos, state);
@@ -337,7 +335,7 @@ public class GraveComponent {
         Yigd.END_OF_TICK.add(() -> {
             BlockState previousState = world.getBlockState(pos);
 
-            boolean placed = this.tryPlaceGraveAt(pos, graveBlock);
+            boolean placed = this.tryPlaceGrave(graveBlock);
             BlockPos placedPos = this.getPos();
 
             if (!placed) {

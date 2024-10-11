@@ -314,6 +314,11 @@ public class YigdServerEventHandler {
         BlockPos pos = event.getPos();
         int nthTry = event.getNthTry();
 
+        if (level.isOutsideBuildHeight(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
+            event.setCanGenerate(false);
+            return;
+        }
+
         BlockState state = level.getBlockState(pos);
         YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
         if (level.getBlockEntity(pos) != null) {  // Block entities should NOT be replaced by graves
