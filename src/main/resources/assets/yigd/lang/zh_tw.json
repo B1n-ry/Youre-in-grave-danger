@@ -50,7 +50,7 @@
   "text.yigd.command.restore.success": "已成功將墳墓恢復給原玩家！",
   "text.yigd.command.restore.fail": "無法恢復墳墓。找不到墳墓",
   "text.yigd.command.rob.success": "成功掠奪墳墓！",
-  "text.yigd.command.rob.fail": "掠奪失敗！放棄！(找不到墳墓)",
+  "text.yigd.command.rob.fail": "掠奪失敗！放棄！（找不到墳墓）",
   "text.yigd.command.delete.success": "已從備份資料中移除墳墓資料",
   "text.yigd.command.delete.pass": "已部分刪除一些墳墓資料，但並非全部",
   "text.yigd.command.delete.fail": "無法刪除墳墓，因為找不到該墳墓",
