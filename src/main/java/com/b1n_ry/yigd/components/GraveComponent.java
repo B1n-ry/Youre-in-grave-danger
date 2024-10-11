@@ -201,11 +201,44 @@ public class GraveComponent {
             return new DirectionalPos(this.pos, defaultDirection);
         }
 
+        YigdConfig config = YigdConfig.getConfig();
+        int y = this.pos.getY();
+        int lowerAcceptableY = config.graveConfig.lowestGraveY + this.world.getBottomY();
+        if (config.graveConfig.generateGraveInVoid && this.pos.getY() <= lowerAcceptableY) {
+            y = lowerAcceptableY;
+        }
+        int topY = this.world.getTopY() - 1;
+        if (y > topY) {
+            y = topY;
+        }
+
+        int x = this.pos.getX();
+        int z = this.pos.getZ();
+        if (config.graveConfig.generateOnlyWithinBorder) {
+            WorldBorder border = this.world.getWorldBorder();
+            if (!border.contains(x, z)) {
+                x = (int) Math.max(x, border.getBoundWest());
+                x = (int) Math.min(x, border.getBoundEast());
+
+                z = (int) Math.max(z, border.getBoundNorth());
+                z = (int) Math.min(z, border.getBoundSouth());
+            }
+        }
+
+        this.pos = new BlockPos(x, y, z);
+
+        // Makes sure the grave is not broken/replaced by portal, or the dragon egg
+        if (this.world.getDimensionKey().equals(DimensionTypes.THE_END)) {
+            if (Math.abs(this.pos.getX()) + Math.abs(this.pos.getZ()) < 25 && this.world.getBlockState(this.pos.down()).isOf(Blocks.BEDROCK))
+                this.pos = this.pos.up();
+        }
+
+        DeathInfoManager.INSTANCE.markDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
+
         DirectionalPos graveyardPos = this.findPosInGraveyard(defaultDirection);
         if (graveyardPos != null)
             return graveyardPos;
 
-        YigdConfig config = YigdConfig.getConfig();
         YigdConfig.GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
 
         if (config.graveConfig.tryGenerateOnGround) {
@@ -267,49 +300,14 @@ public class GraveComponent {
 
     /**
      * Called to place down a grave block. Should only be called from server
-     * @param attemptedPos Where the grave should try to be placed
      * @param state Which block should be placed
      * @return Weather or not the grave was placed
      */
-    public boolean tryPlaceGraveAt(BlockPos attemptedPos, BlockState state) {
+    public boolean tryPlaceGrave(BlockState state) {
         if (this.world == null) {
             Yigd.LOGGER.error("GraveComponent tried to place grave without knowing the ServerWorld");
             return false;
         }
-
-        YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
-        int y = attemptedPos.getY();
-        int lowerAcceptableY = config.lowestGraveY + this.world.getBottomY();
-        if (config.generateGraveInVoid && attemptedPos.getY() <= lowerAcceptableY) {
-            y = lowerAcceptableY;
-        }
-        int topY = this.world.getTopY() - 1;
-        if (y > topY) {
-            y = topY;
-        }
-
-        int x = attemptedPos.getX();
-        int z = attemptedPos.getZ();
-        if (config.generateOnlyWithinBorder) {
-            WorldBorder border = this.world.getWorldBorder();
-            if (!border.contains(x, z)) {
-                x = (int) Math.max(x, border.getBoundWest());
-                x = (int) Math.min(x, border.getBoundEast());
-
-                z = (int) Math.max(z, border.getBoundNorth());
-                z = (int) Math.min(z, border.getBoundSouth());
-            }
-        }
-
-        this.pos = new BlockPos(x, y, z);
-
-        // Makes sure the grave is not broken/replaced by portal, or the dragon egg
-        if (this.world.getDimensionKey().equals(DimensionTypes.THE_END)) {
-            if (Math.abs(attemptedPos.getX()) + Math.abs(attemptedPos.getZ()) < 25 && this.world.getBlockState(attemptedPos.down()).isOf(Blocks.BEDROCK))
-                this.pos = this.pos.up();
-        }
-
-        DeathInfoManager.INSTANCE.markDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
 
         this.placeBlockUnder();
         return this.world.setBlockState(this.pos, state);
@@ -339,7 +337,7 @@ public class GraveComponent {
         Yigd.END_OF_TICK.add(() -> {
             BlockState previousState = world.getBlockState(pos);
 
-            boolean placed = this.tryPlaceGraveAt(pos, graveBlock);
+            boolean placed = this.tryPlaceGrave(graveBlock);
             BlockPos placedPos = this.getPos();
 
             if (!placed) {

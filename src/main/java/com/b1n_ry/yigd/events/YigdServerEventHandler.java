@@ -204,6 +204,10 @@ public class YigdServerEventHandler {
                 (grave, currentUnder) -> YigdConfig.getConfig().graveConfig.blockUnderGrave.enabled && currentUnder.isIn(YigdTags.REPLACE_SOFT_WHITELIST));
 
         GraveGenerationEvent.EVENT.register((world, pos, nthTry) -> {
+            if (world.isOutOfHeightLimit(pos) || ! world.getWorldBorder().contains(pos)) {
+                return false;
+            }
+
             BlockState state = world.getBlockState(pos);
             YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
             if (world.getBlockEntity(pos) != null)  // Block entities should NOT be replaced by graves

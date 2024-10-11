@@ -1,5 +1,9 @@
 # You're in Grave Danger 2.0.10
 
+### Fixes
+* Graves will no longer overwrite other graves when dying in exact same places
+outside the world
+
 ---
 
 # You're in Grave Danger 2.0.9
