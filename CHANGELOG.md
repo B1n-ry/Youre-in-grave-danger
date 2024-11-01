@@ -2,6 +2,7 @@
 
 ### Changes
 * Item loss can now optionally be applied to modded inventories
+* Soulbound can now be enchanted on all curios items
 
 ### Fixes
 * Item loss will now not try and remove the same item twice, and count it as 2

@@ -1,6 +1,56 @@
 {
   "replace": false,
   "values": [
-    "#minecraft:enchantable/durability"
+    {
+      "id": "#curios:curio",
+      "required": false
+    },
+    {
+      "id": "#curios:back",
+      "required": false
+    },
+    {
+      "id": "#curios:belt",
+      "required": false
+    },
+    {
+      "id": "#curios:body",
+      "required": false
+    },
+    {
+      "id": "#curios:bracelet",
+      "required": false
+    },
+    {
+      "id": "#curios:charm",
+      "required": false
+    },
+    {
+      "id": "#curios:feet",
+      "required": false
+    },
+    {
+      "id": "#curios:head",
+      "required": false
+    },
+    {
+      "id": "#curios:hands",
+      "required": false
+    },
+    {
+      "id": "#curios:necklace",
+      "required": false
+    },
+    {
+      "id": "#curios:ring",
+      "required": false
+    },
+    "#minecraft:enchantable/armor",
+    "#minecraft:enchantable/equippable",
+    "#minecraft:enchantable/weapon",
+    "#minecraft:enchantable/bow",
+    "#minecraft:enchantable/crossbow",
+    "#minecraft:enchantable/durability",
+    "#c:tools"
   ]
 }
