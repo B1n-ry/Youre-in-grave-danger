@@ -70,7 +70,7 @@ public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemS
 
             for (int i = 0; i < cosArmor.getContainerSize(); i++) {
                 if (i >= this.inventory.size()) break;
-                ItemStack stack = this.inventory.get(i).getA();
+                ItemStack stack = this.inventory.get(i).getA().copy();
                 if (cosArmor.getItem(i).isEmpty()) {
                     cosArmor.setItem(i, stack);
                 } else {

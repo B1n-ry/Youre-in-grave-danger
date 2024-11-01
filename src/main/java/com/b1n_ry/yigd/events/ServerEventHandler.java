@@ -15,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.GameRules;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -56,7 +57,7 @@ public class ServerEventHandler {
         DeathInfoManager.INSTANCE.setDirty();
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void afterRespawn(PlayerEvent.Clone event) {
         if (!event.isWasDeath()) return;
 

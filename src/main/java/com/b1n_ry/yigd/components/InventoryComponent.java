@@ -211,7 +211,8 @@ public class InventoryComponent {
         YigdConfig.InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
 
         List<Integer> itemSlots = new ArrayList<>();
-        for (int i = 0; i < this.items.size(); i++) {
+        int vanillaLimit = this.items.size();
+        for (int i = 0; i < vanillaLimit; i++) {
             Tuple<ItemStack, DropRule> pair = this.items.get(i);
             ItemStack stack = pair.getA();
             if (stack.isEmpty()) continue;
@@ -220,6 +221,18 @@ public class InventoryComponent {
 
             itemSlots.add(i);
         }
+        NonNullList<ItemStack> extraItems = NonNullList.create();
+        if (itemLoss.includeModdedInventories) {
+            for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
+                for (Tuple<ItemStack, DropRule> tuple : compatComponent.getAsStackDropList()) {
+                    if (tuple.getA().isEmpty()) continue;
+                    extraItems.add(tuple.getA());
+                }
+            }
+            for (int i = 0; i < extraItems.size(); i++) {
+                itemSlots.add(vanillaLimit + i);
+            }
+        }
 
         if (itemSlots.isEmpty()) return;
 
@@ -227,11 +240,22 @@ public class InventoryComponent {
 
         int slot = itemSlots.get(random);
         if (itemLoss.affectStacks) {
-            this.items.get(slot).setB(DropRule.DESTROY);
+            if (slot >= vanillaLimit) {
+                ItemStack toBeRemoved = extraItems.get(slot - vanillaLimit);
+                this.handleItemPairs(s -> !s.equals("vanilla"), (stack, s, pair) -> {
+                    if (stack.equals(toBeRemoved)) pair.setB(DropRule.DESTROY);
+                });
+            } else {
+                this.items.get(slot).setB(DropRule.DESTROY);
+            }
         } else {
-            ItemStack stack = this.items.get(slot).getA();
+            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit) : this.items.get(slot).getA();
 
             stack.shrink(1);
+        }
+        ItemStack decreased = this.items.get(slot).getA();
+        if (decreased.isEmpty() || decreased.getCount() == 0) {
+            itemSlots.remove(Integer.valueOf(slot));  // Make sure we can't lose this item again
         }
     }
 
@@ -539,7 +563,7 @@ public class InventoryComponent {
                 playerInvIndex = groupIndex + invMainSize + invArmorSize + invOffHandSize;
             }
 
-            ItemStack stack = this.items.get(i).getA();
+            ItemStack stack = this.items.get(i).getA().copy();
 
             if (playerInvIndex >= inventory.getContainerSize() || playerInvIndex == -1) {
                 extraItems.add(stack);

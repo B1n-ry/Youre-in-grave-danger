@@ -293,7 +293,7 @@ public class YigdServerEventHandler {
 
         if (graveConfig.requireItem) {
             Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(graveConfig.requiredItem));
-            if (!grave.getInventoryComponent().removeItem(stack -> stack.is(item), 1)) {
+            if (!grave.getInventoryComponent().removeItem(stack -> stack.is(item), graveConfig.requiredItemCount)) {
                 event.setAllowGeneration(false);
                 return;
             }

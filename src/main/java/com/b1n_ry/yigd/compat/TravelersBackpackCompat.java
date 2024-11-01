@@ -97,7 +97,7 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
         public NonNullList<ItemStack> storeToPlayer(ServerPlayer player) {
             if (this.inventory.getA().isEmpty()) return NonNullList.create();
 
-            AttachmentUtils.equipBackpack(player, this.inventory.getA());
+            AttachmentUtils.equipBackpack(player, this.inventory.getA().copy());
 
             return NonNullList.create();
         }

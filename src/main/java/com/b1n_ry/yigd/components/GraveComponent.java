@@ -658,6 +658,7 @@ public class GraveComponent {
 
         YigdConfig config = YigdConfig.getConfig();
 
+        Yigd.LOGGER.info("Grave belonging to {} was detected destroyed at X: {}, Y: {}, Z: {} / {}", owner.getGameProfile().getName(), this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.worldRegistryKey.location());
         if (config.graveConfig.notifyOwnerIfDestroyed) {
             owner.sendSystemMessage(Component.translatable("text.yigd.message.grave_destroyed"));
         }

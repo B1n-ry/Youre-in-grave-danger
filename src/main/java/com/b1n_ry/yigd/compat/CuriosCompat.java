@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.NeoForge;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.event.DropRulesEvent;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
@@ -251,39 +252,50 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                 for (int i = 0; i < slotEntry.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> tuple = slotEntry.normal.get(i);
                     if (i >= normalEquipped.getSlots()) {
-                        extraItems.add(tuple.getA());
+                        extraItems.add(tuple.getA().copy());
                         continue;
                     }
 
-                    normalEquipped.setStackInSlot(i, tuple.getA());
+                    normalEquipped.setStackInSlot(i, tuple.getA().copy());
                 }
                 for (int i = 0; i < slotEntry.cosmetic.size(); i++) {
                     Tuple<ItemStack, DropRule> tuple = slotEntry.cosmetic.get(i);
                     if (i >= cosmeticEquipped.getSlots()) {
-                        extraItems.add(tuple.getA());
+                        extraItems.add(tuple.getA().copy());
                         continue;
                     }
 
-                    cosmeticEquipped.setStackInSlot(i, tuple.getA());
+                    cosmeticEquipped.setStackInSlot(i, tuple.getA().copy());
                 }
             }
             return extraItems;
         }
 
-        private ICurio.DropRule getDropRule(ItemStack stack, String key, int index, DeathContext context, boolean cosmetic) {
+        private ICurio.DropRule getDropRule(ItemStack stack, String key, int index, DeathContext context, boolean cosmetic, List<Tuple<Predicate<ItemStack>, ICurio.DropRule>> overrides) {
+            for (Tuple<Predicate<ItemStack>, ICurio.DropRule> t : overrides) {
+                if (t.getA().test(stack)) {
+                    return t.getB();
+                }
+            }
             Optional<ICurio> iCurio = CuriosApi.getCurio(stack);
             return iCurio.map(curio -> curio.getDropRule(new SlotContext(key, context.player(), index, cosmetic, false), context.deathSource(), 0, true)).orElse(ICurio.DropRule.DEFAULT);
         }
 
         @Override
         public void handleDropRules(DeathContext context) {
+            ServerPlayer player = context.player();
+            List<Tuple<Predicate<ItemStack>, ICurio.DropRule>> overrides = new ArrayList<>();
+            CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
+                DropRulesEvent event = NeoForge.EVENT_BUS.post(new DropRulesEvent(player, handler, context.deathSource(), 0, false));
+                overrides.addAll(event.getOverrides());
+            });
             for (Map.Entry<String, CuriosSlotEntry> entry : this.inventory.entrySet()) {
                 String key = entry.getKey();
                 CuriosSlotEntry inventorySlot = entry.getValue();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     Tuple<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
                     ItemStack stack = pair.getA();
-                    DropRule dropRule = switch(this.getDropRule(stack, key, i, context, false)) {
+                    DropRule dropRule = switch(this.getDropRule(stack, key, i, context, false, overrides)) {
                         case DESTROY -> DropRule.DESTROY;
                         case ALWAYS_KEEP -> DropRule.KEEP;
                         default -> {
@@ -300,7 +312,7 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     Tuple<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
                     ItemStack stack = pair.getA();
-                    DropRule dropRule = switch(this.getDropRule(stack, key, i, context, true)) {
+                    DropRule dropRule = switch(this.getDropRule(stack, key, i, context, true, overrides)) {
                         case DESTROY -> DropRule.DESTROY;
                         case ALWAYS_KEEP -> DropRule.KEEP;
                         default -> {
