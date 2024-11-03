@@ -207,6 +207,7 @@ public class GraveBlockEntity extends BlockEntity {
             GameProfile owner = this.component.getOwner();
             ServerPlayerEntity player = owner.getId() != null ? playerManager.getPlayer(owner.getId()) : playerManager.getPlayer(owner.getName());
             if (player != null) {
+                Yigd.LOGGER.info("Grave belonging to {} resurfaced at X: {} / Y: {} / Z: {} / {}", this.component.getOwner().getName(), this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.component.getWorldRegistryKey().getValue());
                 player.sendMessage(Text.translatable("text.yigd.message.grave_relocated", pos.getX(), pos.getY(), pos.getZ(), world.getRegistryKey().getValue().toString()));
             }
         }
