@@ -251,7 +251,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     if (componentSlots == null) {  // The trinket group is missing, and all those items need to be added to extraItems
                         for (DefaultedList<Pair<ItemStack, DropRule>> itemList : group.getValue().values()) {
                             for (Pair<ItemStack, DropRule> stack : itemList) {
-                                extraItems.add(stack.getLeft());
+                                extraItems.add(stack.getLeft().copy());
                             }
                         }
                         continue;
@@ -265,7 +265,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
                         if (trinketInventory == null) {  // The trinket slot is missing, and all those items need to be added to extraItems
                             for (Pair<ItemStack, DropRule> stack : slotItems) {
-                                extraItems.add(stack.getLeft());
+                                extraItems.add(stack.getLeft().copy());
                             }
                             continue;
                         }
@@ -273,7 +273,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         // Traverse through item stacks
                         for (int i = 0; i < slotItems.size(); i++) {
                             Pair<ItemStack, DropRule> pair = slotItems.get(i);
-                            ItemStack item = pair.getLeft();
+                            ItemStack item = pair.getLeft().copy();
                             if (i >= trinketInventory.size()) {
                                 extraItems.add(item);
                                 continue;

@@ -199,7 +199,7 @@ public class YigdServerEventHandler {
 
             if (graveConfig.requireItem) {
                 Item item = Registries.ITEM.get(Identifier.of(graveConfig.requiredItem));
-                if (!grave.getInventoryComponent().removeItem(stack -> stack.isOf(item), 1)) {
+                if (!grave.getInventoryComponent().removeItem(stack -> stack.isOf(item), graveConfig.requiredItemCount)) {
                     return false;
                 }
             }

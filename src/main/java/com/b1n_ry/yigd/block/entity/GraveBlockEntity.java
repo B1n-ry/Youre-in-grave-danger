@@ -185,7 +185,11 @@ public class GraveBlockEntity extends BlockEntity {
     public static void tick(World world, BlockPos pos, BlockState ignoredState, GraveBlockEntity be) {
         if (world.isClient) return;
 
-        if (be.component == null) return;
+        if (be.component == null) {
+            if (be.graveId == null) return;
+            DeathInfoManager.INSTANCE.getGrave(be.graveId).ifPresent(be::setComponent);
+            if (be.component == null) return;
+        }
         if (world.getTime() % 2400 == 0) cachedConfig = YigdConfig.getConfig();  // Reloads the config every 60 seconds
 
         YigdConfig.GraveConfig.GraveTimeout timeoutConfig = cachedConfig.graveConfig.graveTimeout;
