@@ -248,20 +248,20 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     Pair<ItemStack, DropRule> pair = inventorySlot.normal.get(i);
                     if (i >= normalAccessories.size()) {
-                        extraItems.add(pair.getLeft());
+                        extraItems.add(pair.getLeft().copy());
                         continue;
                     }
 
-                    normalAccessories.setStack(i, pair.getLeft());
+                    normalAccessories.setStack(i, pair.getLeft().copy());
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     Pair<ItemStack, DropRule> pair = inventorySlot.cosmetic.get(i);
                     if (i >= cosmeticAccessories.size()) {
-                        extraItems.add(pair.getLeft());
+                        extraItems.add(pair.getLeft().copy());
                         continue;
                     }
 
-                    cosmeticAccessories.setStack(i, pair.getLeft());
+                    cosmeticAccessories.setStack(i, pair.getLeft().copy());
                 }
             }
 

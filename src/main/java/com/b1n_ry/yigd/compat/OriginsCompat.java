@@ -138,7 +138,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
                     continue;
 
                 for (int i = 0; i < inventoryItems.size(); i++) {
-                    ItemStack currentStack = inventoryItems.get(i).getLeft();
+                    ItemStack currentStack = inventoryItems.get(i).getLeft().copy();
 
                     if (i >= power.size()) {
                         extraItems.add(currentStack);
@@ -150,7 +150,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
 
             for (String key : unhandledPowers) {
                 for (Pair<ItemStack, DropRule> pair : this.inventory.get(key)) {
-                    extraItems.add(pair.getLeft());
+                    extraItems.add(pair.getLeft().copy());
                 }
             }
 

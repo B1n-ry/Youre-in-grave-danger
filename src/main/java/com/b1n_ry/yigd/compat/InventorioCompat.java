@@ -108,7 +108,7 @@ public class InventorioCompat implements InvModCompat<DefaultedList<Pair<ItemSta
             if (addon == null) return extraItems;
 
             for (int i = 0; i < this.inventory.size(); i++) {
-                ItemStack item = this.inventory.get(i).getLeft();
+                ItemStack item = this.inventory.get(i).getLeft().copy();
                 if (i >= addon.size()) {
                     extraItems.add(item);
                 } else {

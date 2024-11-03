@@ -125,12 +125,12 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         public DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player) {
             DefaultedList<ItemStack> extraItems = DefaultedList.of();
 
-            ItemStack backpack = this.inventory.getBackpack();
+            ItemStack backpack = this.inventory.getBackpack().copy();
             DefaultedList<ItemStack> backpackContents = this.inventory.getBackpackContents();
             if (backpack.isEmpty()) {
                 for (ItemStack extra : backpackContents) {
                     if (!extra.isEmpty())
-                        extraItems.add(extra);
+                        extraItems.add(extra.copy());
                 }
                 return extraItems;
             }
@@ -141,7 +141,7 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
             backpackInventory.clear();
             for (ItemStack stack : backpackContents) {
                 if (!stack.isEmpty()) {
-                    backpackInventory.add(stack);
+                    backpackInventory.add(stack.copy());
                 }
             }
 

@@ -1,5 +1,15 @@
 # You're in Grave Danger 2.0.11
 
+### Changes
+* Item loss can now optionally be applied to modded inventories
+
+### Fixes
+* Item loss will now not try and remove the same item twice, and count it as 2
+  items (more reliable how much is lost)
+* Running the /clear command after retrieving items from a grave no longer clears
+  the grave backup
+* Graves being moved (like with carry-on mod) will now be detected when they reappear
+
 ---
 
 # You're in Grave Danger 2.0.10

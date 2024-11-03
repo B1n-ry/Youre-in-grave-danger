@@ -71,6 +71,7 @@ public class YigdConfig implements ConfigData {
             public int percentChanceOfLoss = 50;
             @Comment("If true, you can lose soulbound items from the item loss feature")
             public boolean canLoseSoulbound = false;
+            public boolean includeModdedInventories = true;
         }
     }
 
@@ -138,9 +139,10 @@ public class YigdConfig implements ConfigData {
         public boolean storeXp = true;
         @Comment("Inform player where the grave generated when respawning")
         public boolean informGraveLocation = true;
-        @Comment("If true, you HAVE to have one of `requiredItem` for a grave to generate. One of that item will then be consumed")
+        @Comment("If true, you HAVE to have `requiredItemCount` number of `requiredItem` for a grave to generate. That many of that item will then be consumed")
         public boolean requireItem = false;
         public String requiredItem = "yigd:grave";
+        public int requiredItemCount = 1;
         // require shovel to open
         public boolean requireShovelToLoot = false;
         // retrieve method (list with enums)
