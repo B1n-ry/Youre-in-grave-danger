@@ -61,7 +61,7 @@ public class Yigd
             () -> BlockBehaviour.simpleCodec(GraveBlock::new));
 
     public static final DeferredBlock<Block> GRAVE = BLOCKS.registerBlock("grave", GraveBlock::new,
-            BlockBehaviour.Properties.of().strength(0.8f, 3600000.0f).noOcclusion());
+            BlockBehaviour.Properties.of().strength(-1.0f, 3600000.0f).noOcclusion());
 
     public static final DeferredItem<BlockItem> GRAVE_ITEM = ITEMS.registerSimpleBlockItem("grave", GRAVE);
     public static final DeferredItem<DeathScrollItem> DEATH_SCROLL_ITEM = ITEMS.registerItem("death_scroll", DeathScrollItem::new, new Item.Properties());

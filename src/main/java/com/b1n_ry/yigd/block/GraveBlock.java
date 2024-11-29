@@ -47,6 +47,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.ticks.ScheduledTick;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -265,10 +266,13 @@ public class GraveBlock extends BaseEntityBlock implements EntityBlock {
 
     @Override
     protected float getDestroyProgress(@NotNull BlockState state, @NotNull Player player, @NotNull BlockGetter level, @NotNull BlockPos pos) {
-        if (level.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.isUnclaimed()
-                && (!YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak
-                || !(new ResolvableProfile(player.getGameProfile())).equals(grave.getGraveSkull()))) {
-            return 0;
+        if (!(level.getBlockEntity(pos) instanceof GraveBlockEntity grave) || grave.isUnclaimed()
+                || (YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak
+                && (new ResolvableProfile(player.getGameProfile())).equals(grave.getGraveSkull()))) {
+            // Same calculations as done for "normal" blocks, except with the overwritten destroy speed of 0.8
+            float f = 0.8f;
+            int i = EventHooks.doPlayerHarvestCheck(player, state, level, pos) ? 30 : 100;
+            return player.getDigSpeed(state, pos) / f / (float) i;
         }
         return super.getDestroyProgress(state, player, level, pos);
     }
