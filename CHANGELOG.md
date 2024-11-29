@@ -4,6 +4,7 @@
 * Item loss can now optionally be applied to modded inventories
 
 ### Fixes
+* Made graves indestructible to a lot of ways they could be destroyed by previously
 * Item loss will now not try and remove the same item twice, and count it as 2
   items (more reliable how much is lost)
 * Running the /clear command after retrieving items from a grave no longer clears
