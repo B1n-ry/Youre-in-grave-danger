@@ -262,9 +262,13 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && grave.isUnclaimed()
-                && !YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
-            return 0;
+        if (!(world.getBlockEntity(pos) instanceof GraveBlockEntity grave) || grave.isUnclaimed()
+                || (YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak
+                && (new ProfileComponent(player.getGameProfile())).equals(grave.getGraveSkull()))) {
+            // Same calculations as done for "normal" blocks, except with the overwritten destroy speed of 0.8
+            float f = 0.8f;
+            int i = player.canHarvest(state) ? 30 : 100;
+            return player.getBlockBreakingSpeed(state) / f / (float)i;
         }
         return super.calcBlockBreakingDelta(state, player, world, pos);
     }

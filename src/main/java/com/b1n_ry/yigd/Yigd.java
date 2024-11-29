@@ -38,7 +38,7 @@ public class Yigd implements ModInitializer {
 
     public static Logger LOGGER = LoggerFactory.getLogger("YIGD");
 
-    public static GraveBlock GRAVE_BLOCK = new GraveBlock(AbstractBlock.Settings.create().strength(0.8f, 3600000.0f).nonOpaque());
+    public static GraveBlock GRAVE_BLOCK = new GraveBlock(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0f).nonOpaque());
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
 
