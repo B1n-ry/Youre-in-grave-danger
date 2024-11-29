@@ -267,8 +267,7 @@ public class GraveBlock extends BaseEntityBlock implements EntityBlock {
     @Override
     protected float getDestroyProgress(@NotNull BlockState state, @NotNull Player player, @NotNull BlockGetter level, @NotNull BlockPos pos) {
         if (!(level.getBlockEntity(pos) instanceof GraveBlockEntity grave) || grave.isUnclaimed()
-                || (YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak
-                && (new ResolvableProfile(player.getGameProfile())).equals(grave.getGraveSkull()))) {
+                || YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
             // Same calculations as done for "normal" blocks, except with the overwritten destroy speed of 0.8
             float f = 0.8f;
             int i = EventHooks.doPlayerHarvestCheck(player, state, level, pos) ? 30 : 100;
