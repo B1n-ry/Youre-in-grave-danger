@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.item;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.ScrollConfig;
@@ -13,11 +14,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.Level;
@@ -34,6 +37,8 @@ public class DeathScrollItem extends Item {
         super(properties);
     }
 
+    private static final int USE_TIME_MARGIN = 3;
+
     @Override
     public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
         if (!level.isClientSide) {
@@ -48,7 +53,61 @@ public class DeathScrollItem extends Item {
     }
 
     @Override
+    public int getUseDuration(@NotNull ItemStack ignoredStack, @NotNull LivingEntity ignoredEntity) {
+        return YigdConfig.getConfig().extraFeatures.deathScroll.useTime + USE_TIME_MARGIN;
+    }
+
+    @Override
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
+        return UseAnim.BOW;
+    }
+
+    @Override
+    public void onUseTick(@NotNull Level level, @NotNull LivingEntity livingEntity, @NotNull ItemStack stack, int remainingUseDuration) {
+        if (remainingUseDuration < USE_TIME_MARGIN) {
+            livingEntity.releaseUsingItem();
+        }
+    }
+
+    @Override
+    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity, int timeCharged) {
+        float f = (float) (this.getUseDuration(stack, livingEntity) - timeCharged) / (float) (this.getUseDuration(stack, livingEntity) - USE_TIME_MARGIN);
+        Yigd.LOGGER.debug("{}", f);
+        if (f >= 1.0F && livingEntity instanceof Player player) {
+            InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND).equals(stack) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+            this.useAction(level, player, hand);
+            return;
+        }
+        super.releaseUsing(stack, level, livingEntity, timeCharged);
+    }
+
+    @Override
     public @NotNull InteractionResultHolder<ItemStack> use(Level world, @NotNull Player user, @NotNull InteractionHand hand) {
+        if (world.isClientSide) return super.use(world, user, hand);
+
+        YigdConfig.ExtraFeatures.ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
+        ServerPlayer player = (ServerPlayer) user;
+        ItemStack scroll = player.getItemInHand(hand);
+        CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
+        CompoundTag scrollNbt = scrollNbtComponent != null ? scrollNbtComponent.copyTag() : null;
+
+        // Rebind if the player is sneaking (and it can be rebound), or if the scroll is unbound
+        if ((scrollConfig.rebindable && player.isShiftKeyDown()) || scrollNbt == null || !scrollNbt.contains("grave")) {
+            if (this.bindStackToLatestDeath(player, scroll))
+                return InteractionResultHolder.sidedSuccess(scroll, true);
+        }
+
+        if (player.getCooldowns().isOnCooldown(this)) return InteractionResultHolder.fail(scroll);
+
+        if (YigdConfig.getConfig().extraFeatures.deathScroll.useTime > 0) {
+            user.startUsingItem(hand);
+        } else {
+            return this.useAction(world, user, hand);
+        }
+        return InteractionResultHolder.consume(scroll);
+    }
+
+    private InteractionResultHolder<ItemStack> useAction(Level world, @NotNull Player user, @NotNull InteractionHand hand) {
         if (world.isClientSide) return super.use(world, user, hand);
 
         ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
@@ -57,11 +116,6 @@ public class DeathScrollItem extends Item {
         ItemStack scroll = player.getItemInHand(hand);
         CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
         CompoundTag scrollNbt = scrollNbtComponent != null ? scrollNbtComponent.copyTag() : null;
-        // Rebind if the player is sneaking (and it can be rebound), or if the scroll is unbound
-        if ((scrollConfig.rebindable && player.isShiftKeyDown()) || scrollNbt == null || scrollNbt.getUUID("grave") == null) {
-            if (this.bindStackToLatestDeath(player, scroll))
-                return InteractionResultHolder.sidedSuccess(scroll, true);
-        }
 
         ScrollConfig.ClickFunction clickFunction = scrollConfig.clickFunction;
         if (scrollNbt != null && scrollNbt.contains("clickFunction") && !scrollNbt.getString("clickFunction").equals("default")) {
@@ -76,10 +130,9 @@ public class DeathScrollItem extends Item {
         if (res.getResult() != InteractionResult.PASS) {  // If the action was successful/failed or something other than 'standard'
             if (YigdConfig.getConfig().extraFeatures.deathScroll.consumeOnUse && res.getResult() != InteractionResult.CONSUME)
                 scroll.shrink(1);
-            return res;
         }
-
-        return super.use(world, user, hand);
+        player.getCooldowns().addCooldown(this, scrollConfig.useCooldown);
+        return res;
     }
 
     public boolean bindStackToLatestDeath(ServerPlayer player, ItemStack scroll) {
