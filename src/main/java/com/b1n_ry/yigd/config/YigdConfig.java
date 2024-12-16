@@ -272,9 +272,9 @@ public class YigdConfig implements ConfigData {
                     add(new MapEntry("minecraft:the_end", "minecraft:end_stone"));
                     add(new MapEntry("misc", "minecraft:dirt"));
             }};
-            @Comment("Defines whether the block under grave can be generated in claims where the player can NOT place blocks if protection api compat is enabled.")
+            @Comment("Defines whether the block under grave can be generated in claims where the player can NOT place blocks if protection api compat is enabled")
             public boolean generateOnProtectedLand = false;
-            @Comment("Defines whether the block under grave can be generated in claims where the player CAN place blocks if protection api compat is enabled.")
+            @Comment("Defines whether the block under grave can be generated in claims where the player CAN place blocks if protection api compat is enabled")
             public boolean generateInOwnClaim = true;
         }
     }
