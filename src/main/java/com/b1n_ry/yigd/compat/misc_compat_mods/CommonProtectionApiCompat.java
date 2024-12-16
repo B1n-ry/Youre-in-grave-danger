@@ -11,23 +11,31 @@ import net.minecraft.util.math.BlockPos;
 
 public class CommonProtectionApiCompat {
     public static void init() {
-        AllowBlockUnderGraveGenerationEvent.EVENT.register((grave, currentUnder) ->
-                YigdConfig.getConfig().graveConfig.blockUnderGrave.generateOnProtectedLand || !ProtectionImpl.isProtected(grave.getWorld(), grave.getPos().down()));
+        AllowBlockUnderGraveGenerationEvent.EVENT.register((grave, currentUnder) -> {
+            if (ProtectionImpl.canPlaceBlock(grave.getWorld(), grave.getPos().down(), grave.getOwner(), null)) {
+                return YigdConfig.getConfig().graveConfig.blockUnderGrave.generateInOwnClaim;
+            } else {
+                return YigdConfig.getConfig().graveConfig.blockUnderGrave.generateOnProtectedLand;
+            }
+        });
 
         AllowGraveGenerationEvent.EVENT.register((context, grave) -> {
-            if (ProtectionImpl.isProtected(context.world(), grave.getPos()))
+            if (ProtectionImpl.canPlaceBlock(context.world(), grave.getPos(), grave.getOwner(), context.player())) {
+                return YigdConfig.getConfig().compatConfig.standardDropRuleInOwnClaim == DropRule.PUT_IN_GRAVE;
+            } else {
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim == DropRule.PUT_IN_GRAVE;
-
-            return true;
+            }
         });
 
         DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
             if (context == null || !modify) return GraveOverrideAreas.INSTANCE.defaultDropRule;
 
-            if (ProtectionImpl.isProtected(context.world(), BlockPos.ofFloored(context.deathPos())))
+            var player = context.player();
+            if (ProtectionImpl.canPlaceBlock(context.world(), BlockPos.ofFloored(context.deathPos()), player.getGameProfile(), player)) {
+                return YigdConfig.getConfig().compatConfig.standardDropRuleInOwnClaim;
+            } else {
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim;
-
-            return GraveOverrideAreas.INSTANCE.defaultDropRule;
+            }
         });
     }
 }
