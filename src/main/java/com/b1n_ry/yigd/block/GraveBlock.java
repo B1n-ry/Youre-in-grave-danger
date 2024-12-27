@@ -266,7 +266,7 @@ public class GraveBlock extends BaseEntityBlock implements EntityBlock {
 
     @Override
     protected float getDestroyProgress(@NotNull BlockState state, @NotNull Player player, @NotNull BlockGetter level, @NotNull BlockPos pos) {
-        if (!(level.getBlockEntity(pos) instanceof GraveBlockEntity grave) || grave.isUnclaimed()
+        if (!(level.getBlockEntity(pos) instanceof GraveBlockEntity grave) || !grave.isUnclaimed()
                 || YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
             // Same calculations as done for "normal" blocks, except with the overwritten destroy speed of 0.8
             float f = 0.8f;
