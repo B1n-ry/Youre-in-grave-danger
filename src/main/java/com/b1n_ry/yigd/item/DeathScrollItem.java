@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,8 +17,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.UseAction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +40,41 @@ public class DeathScrollItem extends Item {
         super.onCraft(stack, world, player);
     }
 
+    private static final int USE_TIME_MARGIN = 3;
+
     @Override
     public boolean isEnabled(FeatureSet enabledFeatures) {
         return YigdConfig.getConfig().extraFeatures.deathScroll.enabled;
+    }
+
+
+    @Override
+    public int getMaxUseTime(ItemStack ignoredStack) {
+        return YigdConfig.getConfig().extraFeatures.deathScroll.useTime + USE_TIME_MARGIN;
+    }
+
+    @Override
+    public UseAction getUseAction(ItemStack stack) {
+        return UseAction.BOW;
+    }
+
+    @Override
+    public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+        if (remainingUseTicks < USE_TIME_MARGIN) {
+            user.stopUsingItem();
+        }
+    }
+
+    @Override
+    public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
+        float f = (float) (this.getMaxUseTime(stack) - remainingUseTicks) / (float) (this.getMaxUseTime(stack) - USE_TIME_MARGIN);
+
+        if (f >= 1.0F && user instanceof PlayerEntity player) {
+            Hand hand = player.getStackInHand(Hand.MAIN_HAND).equals(stack) ? Hand.MAIN_HAND : Hand.OFF_HAND;
+            this.useAction(world, player, hand);
+            return;
+        }
+        super.onStoppedUsing(stack, world, user, remainingUseTicks);
     }
 
     @Override
@@ -52,10 +87,28 @@ public class DeathScrollItem extends Item {
         ItemStack scroll = player.getStackInHand(hand);
         NbtCompound scrollNbt = scroll.getNbt();
         // Rebind if the player is sneaking (and it can be rebound), or if the scroll is unbound
-        if ((scrollConfig.rebindable && player.isSneaking()) || scrollNbt == null || scrollNbt.getUuid("grave") == null) {
+        if ((scrollConfig.rebindable && player.isSneaking()) || scrollNbt == null || !scrollNbt.contains("grave")) {
             if (this.bindStackToLatestDeath(player, scroll))
                 return TypedActionResult.success(scroll, true);
         }
+
+        if (player.getItemCooldownManager().isCoolingDown(this)) return TypedActionResult.fail(scroll);
+
+        if (YigdConfig.getConfig().extraFeatures.deathScroll.useTime > 0) {
+            user.setCurrentHand(hand);
+        } else {
+            return this.useAction(world, user, hand);
+        }
+        return TypedActionResult.consume(scroll);
+    }
+
+    private TypedActionResult<ItemStack> useAction(World world, @NotNull PlayerEntity user, @NotNull Hand hand) {
+        if (world.isClient) return super.use(world, user, hand);
+
+        ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
+        ServerPlayerEntity player = (ServerPlayerEntity) user;
+        ItemStack scroll = player.getStackInHand(hand);
+        NbtCompound scrollNbt = scroll.getNbt();
 
         ScrollConfig.ClickFunction clickFunction = scrollConfig.clickFunction;
         if (scrollNbt != null && scrollNbt.contains("clickFunction") && !scrollNbt.getString("clickFunction").equals("default")) {
@@ -73,7 +126,8 @@ public class DeathScrollItem extends Item {
             return res;
         }
 
-        return super.use(world, user, hand);
+        player.getItemCooldownManager().set(this, scrollConfig.useCooldown);
+        return res;
     }
 
     public boolean bindStackToLatestDeath(ServerPlayerEntity player, ItemStack scroll) {
