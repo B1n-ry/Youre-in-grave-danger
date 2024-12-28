@@ -5,8 +5,8 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
+import com.tiviacz.travelersbackpack.TravelersBackpack;
 import com.tiviacz.travelersbackpack.component.ComponentUtils;
-import com.tiviacz.travelersbackpack.config.TravelersBackpackConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
@@ -19,9 +19,9 @@ import java.util.function.Predicate;
 public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, DropRule>> {
     public static boolean isAccessoriesIntegrationEnabled() {
         try {
-            return TravelersBackpackConfig.getConfig().backpackSettings.accessoriesIntegration;
+            return TravelersBackpack.enableIntegration();
         }
-        catch (Exception e) {
+        catch (Exception | Error e) {
             return false;
         }
     }
@@ -67,7 +67,7 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         @Override
         public Pair<ItemStack, DropRule> getInventory(ServerPlayerEntity player) {
             DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultTravelersBackpackDropRule;
-            ItemStack stack = ComponentUtils.getComponent(player).getWearable();
+            ItemStack stack = ComponentUtils.getWearingBackpack(player);
             return stack == null ? InventoryComponent.EMPTY_ITEM_PAIR : new Pair<>(stack, defaultDropRule);
         }
 

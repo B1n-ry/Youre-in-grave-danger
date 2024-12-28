@@ -3,10 +3,11 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.util.DropRule;
-import net.levelz.access.PlayerStatsManagerAccess;
-import net.levelz.stats.PlayerStatsManager;
+import net.levelz.access.LevelManagerAccess;
+import net.levelz.level.LevelManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
@@ -21,12 +22,12 @@ public class LevelzCompat implements InvModCompat<Float> {
 
     @Override
     public void clear(ServerPlayerEntity player) {
-        PlayerStatsManager manager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
+        LevelManager manager = ((LevelManagerAccess) player).getLevelManager();
         manager.setLevelProgress(0);
     }
 
     @Override
-    public CompatComponent<Float> readNbt(NbtCompound nbt) {
+    public CompatComponent<Float> readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         float value = nbt.getFloat("value");
         return new LevelzCompatComponent(value);
     }
@@ -48,7 +49,7 @@ public class LevelzCompat implements InvModCompat<Float> {
 
         @Override
         public Float getInventory(ServerPlayerEntity player) {
-            PlayerStatsManager manager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
+            LevelManager manager = ((LevelManagerAccess) player).getLevelManager();
 
             return manager.getLevelProgress();
         }
@@ -61,7 +62,7 @@ public class LevelzCompat implements InvModCompat<Float> {
 
         @Override
         public DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player) {
-            PlayerStatsManager manager = ((PlayerStatsManagerAccess) player).getPlayerStatsManager();
+            LevelManager manager = ((LevelManagerAccess) player).getLevelManager();
             manager.setLevelProgress(this.inventory);
             return DefaultedList.of();
         }
@@ -102,7 +103,7 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public NbtCompound writeNbt() {
+        public NbtCompound writeNbt(RegistryWrapper.WrapperLookup registryLookup) {
             NbtCompound nbt = new NbtCompound();
             nbt.putFloat("value", this.inventory);
             return nbt;

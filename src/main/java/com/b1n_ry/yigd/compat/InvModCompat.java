@@ -31,8 +31,8 @@ public interface InvModCompat<T> {
             if (compatConfig.enableTravelersBackpackCompat && !(accessoriesPresent && TravelersBackpackCompat.isAccessoriesIntegrationEnabled()))
                 invCompatMods.add(new TravelersBackpackCompat());
         }
-//        if (compatConfig.enableLevelzCompat && loader.isModLoaded("levelz"))
-//            invCompatMods.add(new LevelzCompat());
+        if (compatConfig.enableLevelzCompat && loader.isModLoaded("levelz"))
+            invCompatMods.add(new LevelzCompat());
 /*        if (compatConfig.enableNumismaticOverhaulCompat && loader.isModLoaded("numismatic-overhaul"))
             invCompatMods.add(new NumismaticOverhaulCompat());*/
 //        if (compatConfig.enableOriginsInventoryCompat && loader.isModLoaded("apoli"))
