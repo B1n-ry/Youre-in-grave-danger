@@ -27,8 +27,6 @@ public class CommonProtectionApiCompat {
             } else {
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim == DropRule.PUT_IN_GRAVE;
             }
-
-            return true;
         });
 
         DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
