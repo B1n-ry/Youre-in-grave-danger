@@ -377,6 +377,8 @@ public class YigdConfig implements ConfigData {
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public ClickFunction clickFunction = ClickFunction.VIEW_CONTENTS;
             public boolean consumeOnUse = false;
+            public int useTime = 0;
+            public int useCooldown = 0;
             public enum ClickFunction {
                 RESTORE_CONTENTS, VIEW_CONTENTS, TELEPORT_TO_LOCATION
             }
