@@ -16,15 +16,15 @@ public interface InvModCompat<T> {
         ModList modList = ModList.get();
         YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
-        boolean accessoriesPresent = compatConfig.enableAccessoriesCompat && modList.isLoaded("accessories");
-        boolean curiosPresent = compatConfig.enableCuriosCompat && modList.isLoaded("curios");
+        boolean accessoriesPresent = modList.isLoaded("accessories");
+        boolean curiosPresent = modList.isLoaded("curios");
 
-        if (accessoriesPresent)
+        if (compatConfig.enableAccessoriesCompat && accessoriesPresent)
             invCompatMods.add(new AccessoriesCompat());
-        if (curiosPresent && !modList.isLoaded("cclayer"))
+        if (compatConfig.enableCuriosCompat && curiosPresent && !modList.isLoaded("cclayer"))
             invCompatMods.add(new CuriosCompat());
         if (modList.isLoaded("travelersbackpack")) {
-            if (compatConfig.enableTravelersBackpackCompat && !(accessoriesPresent && TravelersBackpackCompat.isAccessoriesIntegrationEnabled()))
+            if (compatConfig.enableTravelersBackpackCompat && !((accessoriesPresent || curiosPresent) && TravelersBackpackCompat.isIntegrationEnabled()))
                 invCompatMods.add(new TravelersBackpackCompat());
         }
         if (modList.isLoaded("cosmeticarmorreworked") && compatConfig.enableCosmeticArmorCompat)

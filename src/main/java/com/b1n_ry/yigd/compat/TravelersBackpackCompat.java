@@ -5,9 +5,9 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.YigdEvents;
 import com.b1n_ry.yigd.util.DropRule;
+import com.tiviacz.travelersbackpack.TravelersBackpack;
 import com.tiviacz.travelersbackpack.capability.AttachmentUtils;
 import com.tiviacz.travelersbackpack.capability.ITravelersBackpack;
-import com.tiviacz.travelersbackpack.config.TravelersBackpackConfig;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -19,11 +19,11 @@ import net.neoforged.neoforge.common.NeoForge;
 import java.util.function.Predicate;
 
 public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, DropRule>> {
-    public static boolean isAccessoriesIntegrationEnabled() {
+    public static boolean isIntegrationEnabled() {
         try {
-            return TravelersBackpackConfig.SERVER.backpackSettings.accessoriesIntegration.get();
+            return TravelersBackpack.enableIntegration();
         }
-        catch (Exception e) {
+        catch (Exception | Error e) {
             return false;
         }
     }
