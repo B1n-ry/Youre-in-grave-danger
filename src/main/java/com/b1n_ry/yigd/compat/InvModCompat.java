@@ -45,7 +45,7 @@ public interface InvModCompat<T> {
                 invCompatMods.add(new BeansBackpacksCompat());
         }
 
-        if (loader.isModLoaded("common-protection-api"))
+        if (compatConfig.enableProtectionApiCompat && loader.isModLoaded("common-protection-api"))
             CommonProtectionApiCompat.init();
         if (loader.isModLoaded("orpheus"))
             OrpheusCompat.init();
