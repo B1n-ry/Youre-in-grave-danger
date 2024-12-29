@@ -227,7 +227,7 @@ public class YigdConfig implements ConfigData {
 
         public static class GraveRobbing {
             public boolean enabled = true;
-            public boolean onlyMurderer = false;
+            public boolean killerSkipWaitTime = false;
             public int afterTime = 1;
             @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
             public TimeUnit timeUnit = TimeUnit.HOURS;
