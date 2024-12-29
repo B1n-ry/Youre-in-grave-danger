@@ -56,7 +56,7 @@ public abstract class CompatComponent<T> {
     /**
      * Get all items as a {@link DefaultedList<Pair>} of {@link Pair<>} containing {@link ItemStack} and {@link DropRule} in the component
      * The drop rule refers to what drop rule was/will be applied on death
-     * @return Pairs containing all items in the component <b>INCLUDING EMPTY ITEMS</b>
+     * @return Pairs containing all items in the component <b>INCLUDING EMPTY ITEMS</b>, and <b>THAT ARE NOT COPIED ITEM PAIRS</b>
      */
     public abstract DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList();
     public abstract CompatComponent<T> filterInv(Predicate<DropRule> predicate);

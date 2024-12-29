@@ -484,10 +484,15 @@ public class GraveComponent {
         this.setStatus(GraveStatus.CLAIMED);
 
         if (!config.graveConfig.persistentGraves.enabled) {
+            boolean replaced;
             if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
-                this.replaceWithOld(previousState);
+                replaced = this.replaceWithOld(previousState);
             } else {
-                world.removeBlock(pos, false);
+                replaced = world.removeBlock(pos, false);
+            }
+            if (!replaced) {
+                Yigd.LOGGER.error("Grave could not be replaced at X: {}, Y: {}, Z: {} / {}",
+                        this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.worldRegistryKey.getValue());
             }
         } else {
             GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(pos);

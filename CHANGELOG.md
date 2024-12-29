@@ -6,6 +6,7 @@
 * Added configurable use time and cooldown for death scroll
 * Changed `onlyMurderer` rob config to `killerSkipWaitTime` allowing
 the killer of a player to skip the grave rob cooldown
+* Added compat with the twilight forest (unofficial mod)
 
 ### Fixes
 * Made graves indestructible to a lot of ways they could be destroyed by previously
