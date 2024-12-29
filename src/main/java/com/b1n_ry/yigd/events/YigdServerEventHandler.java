@@ -165,15 +165,13 @@ public class YigdServerEventHandler {
             YigdConfig.GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
             if (!robConfig.enabled) return false;
 
+            if (robConfig.killerSkipWaitTime && player.getUuid().equals(grave.getKillerId())) {
+                return true;
+            }
+
             final int tps = 20;  // ticks per second
             if (!grave.hasExistedTicks(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) {
                 player.sendMessage(Text.translatable("text.yigd.message.rob.too_early", grave.getTimeUntilRobbable()), true);
-                return false;
-            }
-
-            if (robConfig.onlyMurderer && !player.getUuid().equals(grave.getKillerId())) {
-                player.sendMessage(Text.translatable("text.yigd.message.rob_not_killer",
-                        grave.getOwner().name().orElse("PLAYER_NOT_FOUND")), true);
                 return false;
             }
 

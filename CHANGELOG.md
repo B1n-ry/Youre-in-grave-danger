@@ -2,6 +2,8 @@
 
 ### Changes
 * Item loss can now optionally be applied to modded inventories
+* Improved land claiming compat by adding more configs
+* Added configurable use time and cooldown for death scroll
 
 ### Fixes
 * Made graves indestructible to a lot of ways they could be destroyed by previously
