@@ -145,7 +145,6 @@ public class YigdServerEventHandler {
     public void graveClaimEvent(GraveClaimEvent event) {
         ServerPlayer player = event.getPlayer();
         ServerLevel level = event.getLevel();
-        BlockPos pos = event.getPos();
         GraveComponent grave = event.getGrave();
         ItemStack tool = event.getTool();
 
@@ -239,16 +238,14 @@ public class YigdServerEventHandler {
             return;
         }
 
-        final int tps = 20;  // ticks per second
-        if (!grave.hasExistedTicks(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) {
-            player.sendSystemMessage(Component.translatable("text.yigd.message.rob.too_early", grave.getTimeUntilRobbable()), true);
-            event.setCanClaim(false);
+        if (robConfig.killerSkipWaitTime && player.getUUID().equals(grave.getKillerId())) {
+            event.setCanClaim(true);
             return;
         }
 
-        if (robConfig.onlyMurderer && !player.getUUID().equals(grave.getKillerId())) {
-            player.sendSystemMessage(Component.translatable("text.yigd.message.rob_not_killer",
-                    grave.getOwner().name().orElse("PLAYER_NOT_FOUND")), true);
+        final int tps = 20;  // ticks per second
+        if (!grave.hasExistedTicks(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) {
+            player.sendSystemMessage(Component.translatable("text.yigd.message.rob.too_early", grave.getTimeUntilRobbable()), true);
             event.setCanClaim(false);
             return;
         }

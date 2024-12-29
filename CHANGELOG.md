@@ -3,6 +3,9 @@
 ### Changes
 * Item loss can now optionally be applied to modded inventories
 * Soulbound can now be enchanted on all curios items
+* Added configurable use time and cooldown for death scroll
+* Replaced the `onlyMurderer` rob config with `killerSkipWaitTime`
+allowing the killer of a player to skip the grave robbing cooldown
 
 ### Fixes
 * Made graves indestructible to a lot of ways they could be destroyed by previously
