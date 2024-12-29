@@ -30,7 +30,7 @@ public class TwilightCompat {
             final int hotbarSize = 9;  // We don't know for certain, but we can be pretty confident
             int afterOffhandIndex = inventoryComponent.mainSize + inventoryComponent.armorSize + inventoryComponent.offHandSize;
             inventoryComponent.handleItemPairs(mod -> true, (stack, slot, pair) -> {
-                if (slot >= inventoryComponent.mainSize && slot < afterOffhandIndex || slot == selectedSlot) {  // Tier 1: Will always be true, otherwise we exit sooner
+                if (slot >= inventoryComponent.mainSize && slot < afterOffhandIndex || slot == selectedSlot || slot < 0) {  // Tier 1: Will always be true, otherwise we exit sooner
                     pair.setRight(DropRule.KEEP);
                 } else if (tier2 && slot < hotbarSize) {
                     pair.setRight(DropRule.KEEP);
