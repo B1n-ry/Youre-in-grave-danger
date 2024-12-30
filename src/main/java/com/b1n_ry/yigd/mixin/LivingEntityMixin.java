@@ -17,7 +17,7 @@ public class LivingEntityMixin {
     private void drop(DamageSource damageSource, CallbackInfo ci) {
         LivingEntity e = (LivingEntity) (Object) this;
 
-        if (!(e instanceof ServerPlayerEntity player)) return;
+        if (e.getWorld().isClient || !(e instanceof ServerPlayerEntity player)) return;
 
         ServerWorld world = player.getServerWorld();
 

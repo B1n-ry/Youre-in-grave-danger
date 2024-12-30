@@ -9,7 +9,8 @@
     "LivingEntityMixin",
     "ServerPlayerEntityMixin",
     "TravelersBackpackTrinketMixin",
-    "WorldChunkMixin"
+    "WorldChunkMixin",
+    "accessor.KeepInventoryPowerAccessor"
   ],
   "client": [
     "AbstractConfigScreenMixin",

@@ -3,11 +3,14 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.events.AdjustDropRuleEvent;
 import com.b1n_ry.yigd.events.DropRuleEvent;
+import com.b1n_ry.yigd.mixin.accessor.KeepInventoryPowerAccessor;
 import com.b1n_ry.yigd.util.DropRule;
 import io.github.apace100.apoli.component.PowerHolderComponent;
 import io.github.apace100.apoli.power.Active;
 import io.github.apace100.apoli.power.InventoryPower;
+import io.github.apace100.apoli.power.KeepInventoryPower;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -18,6 +21,23 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> {
+    public OriginsCompat() {
+        AdjustDropRuleEvent.EVENT.register((inventoryComponent, context) -> {
+            List<KeepInventoryPower> powers = PowerHolderComponent.getPowers(context.player(), KeepInventoryPower.class);
+            Predicate<ItemStack> keepCondition = Predicate.not(s -> true);  // Base to add onto
+            for (KeepInventoryPower power : powers) {
+                keepCondition = keepCondition.or(((KeepInventoryPowerAccessor) power).getKeepItemCondition());
+            }
+
+            Predicate<ItemStack> finalKeepCondition = keepCondition;  // The compiler requires this copy to compile
+            inventoryComponent.handleItemPairs(mod -> true, (stack, slot, pair) -> {
+                if (finalKeepCondition.test(stack)) {
+                    pair.setRight(DropRule.KEEP);
+                }
+            });
+        });
+    }
+
     @Override
     public String getModName() {
         return "apoli";
