@@ -11,12 +11,12 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,18 +31,18 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
     }
 
     @Override
-    public void clear(ServerPlayerEntity player) {
+    public void clear(ServerPlayer player) {
         AccessoriesCapability.getOptionally(player).ifPresent(inv -> inv.reset(false));
     }
 
     @Override
-    public CompatComponent<Map<String, AccessoriesInventoryGroup>> readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+    public CompatComponent<Map<String, AccessoriesInventoryGroup>> readNbt(CompoundTag nbt, HolderLookup.Provider registryLookup) {
         Map<String, AccessoriesInventoryGroup> inventory = new HashMap<>();
 
-        for (String key : nbt.getKeys()) {
-            NbtCompound slotNbt = nbt.getCompound(key);
-            DefaultedList<AccessoriesInventorySlot> normalSlot = InventoryComponent.listFromNbt(slotNbt.getCompound("normal"), itemNbt -> {
-                ItemStack stack = ItemStack.fromNbt(registryLookup, itemNbt).orElse(ItemStack.EMPTY);
+        for (String key : nbt.getAllKeys()) {
+            CompoundTag slotNbt = nbt.getCompound(key);
+            NonNullList<AccessoriesInventorySlot> normalSlot = InventoryComponent.listFromNbt(slotNbt.getCompound("normal"), itemNbt -> {
+                ItemStack stack = ItemStack.parse(registryLookup, itemNbt).orElse(ItemStack.EMPTY);
                 DropRule dropRule;
                 if (itemNbt.contains("dropRule")) {
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
@@ -59,8 +59,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
                 return new AccessoriesInventorySlot(stack, dropRule, visible);
             }, AccessoriesInventorySlot.EMPTY);
-            DefaultedList<AccessoriesInventorySlot> cosmeticSlot = InventoryComponent.listFromNbt(slotNbt.getCompound("cosmetic"), itemNbt -> {
-                ItemStack stack = ItemStack.fromNbt(registryLookup, itemNbt).orElse(ItemStack.EMPTY);
+            NonNullList<AccessoriesInventorySlot> cosmeticSlot = InventoryComponent.listFromNbt(slotNbt.getCompound("cosmetic"), itemNbt -> {
+                ItemStack stack = ItemStack.parse(registryLookup, itemNbt).orElse(ItemStack.EMPTY);
                 DropRule dropRule;
                 if (itemNbt.contains("dropRule")) {
                     // We need to check in case the drop rule is a trinket drop rule (only has one difference and that is trinkets have DEFAULT)
@@ -84,11 +84,11 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
     }
 
     @Override
-    public CompatComponent<Map<String, AccessoriesInventoryGroup>> getNewComponent(ServerPlayerEntity player) {
+    public CompatComponent<Map<String, AccessoriesInventoryGroup>> getNewComponent(ServerPlayer player) {
         return new AccessoriesCompatComponent(player);
     }
 
-    public record AccessoriesInventoryGroup(DefaultedList<AccessoriesInventorySlot> normal, DefaultedList<AccessoriesInventorySlot> cosmetic) {
+    public record AccessoriesInventoryGroup(NonNullList<AccessoriesInventorySlot> normal, NonNullList<AccessoriesInventorySlot> cosmetic) {
         private void addAllNonEmptyToList(Collection<ItemStack> list) {
             for (AccessoriesInventorySlot slot : this.normal) {
                 list.add(slot.stack.copy());
@@ -111,7 +111,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
     }
 
     private static class AccessoriesCompatComponent extends CompatComponent<Map<String, AccessoriesInventoryGroup>> {
-        public AccessoriesCompatComponent(ServerPlayerEntity player) {
+        public AccessoriesCompatComponent(ServerPlayer player) {
             super(player);
         }
         public AccessoriesCompatComponent(Map<String, AccessoriesInventoryGroup> inventory) {
@@ -119,25 +119,25 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
         }
 
         @Override
-        public Map<String, AccessoriesInventoryGroup> getInventory(ServerPlayerEntity player) {
+        public Map<String, AccessoriesInventoryGroup> getInventory(ServerPlayer player) {
             Map<String, AccessoriesInventoryGroup> inventory = new HashMap<>();
             AccessoriesCapability capability = AccessoriesCapability.get(player);
             if (capability == null) return inventory;
 
             Map<String, AccessoriesContainer> containers = capability.getContainers();
             for (Map.Entry<String, AccessoriesContainer> entry : containers.entrySet()) {
-                DefaultedList<AccessoriesInventorySlot> normalSlot = DefaultedList.of();
-                DefaultedList<AccessoriesInventorySlot> cosmeticSlot = DefaultedList.of();
+                NonNullList<AccessoriesInventorySlot> normalSlot = NonNullList.create();
+                NonNullList<AccessoriesInventorySlot> cosmeticSlot = NonNullList.create();
 
                 AccessoriesContainer container = entry.getValue();
                 ExpandedSimpleContainer normal = container.getAccessories();
                 ExpandedSimpleContainer cosmetic = container.getCosmeticAccessories();
-                for (int i = 0; i < normal.size(); i++) {
-                    normalSlot.add(new AccessoriesInventorySlot(normal.getStack(i).copy(), DropRule.PUT_IN_GRAVE, true));
+                for (int i = 0; i < normal.getContainerSize(); i++) {
+                    normalSlot.add(new AccessoriesInventorySlot(normal.getItem(i).copy(), DropRule.PUT_IN_GRAVE, true));
                 }
-                for (int i = 0; i < cosmetic.size(); i++) {
+                for (int i = 0; i < cosmetic.getContainerSize(); i++) {
                     boolean shouldRender = container.shouldRender(i);
-                    cosmeticSlot.add(new AccessoriesInventorySlot(cosmetic.getStack(i).copy(), DropRule.PUT_IN_GRAVE, shouldRender));
+                    cosmeticSlot.add(new AccessoriesInventorySlot(cosmetic.getItem(i).copy(), DropRule.PUT_IN_GRAVE, shouldRender));
                 }
 
                 inventory.put(entry.getKey(), new AccessoriesInventoryGroup(normalSlot, cosmeticSlot));
@@ -146,8 +146,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public NonNullList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
+            NonNullList<ItemStack> extraItems = NonNullList.create();
             @SuppressWarnings("unchecked")
             Map<String, AccessoriesInventoryGroup> mergingInventory = (Map<String, AccessoriesInventoryGroup>) mergingComponent.inventory;
 
@@ -214,8 +214,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
         }
 
         @Override
-        public DefaultedList<ItemStack> pullBindingCurseItems(ServerPlayerEntity playerRef) {
-            DefaultedList<ItemStack> noUnequipItems = DefaultedList.of();
+        public NonNullList<ItemStack> pullBindingCurseItems(ServerPlayer playerRef) {
+            NonNullList<ItemStack> noUnequipItems = NonNullList.create();
 
             if (!YigdConfig.getConfig().graveConfig.treatBindingCurse) return noUnequipItems;
 
@@ -245,8 +245,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
         }
 
         @Override
-        public DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public NonNullList<ItemStack> storeToPlayer(ServerPlayer player) {
+            NonNullList<ItemStack> extraItems = NonNullList.create();
             AccessoriesCapability capability = AccessoriesCapability.get(player);
             if (capability == null) return extraItems;
 
@@ -264,21 +264,21 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 ExpandedSimpleContainer cosmeticAccessories = container.getCosmeticAccessories();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     AccessoriesInventorySlot pair = inventorySlot.normal.get(i);
-                    if (i >= normalAccessories.size()) {
+                    if (i >= normalAccessories.getContainerSize()) {
                         extraItems.add(pair.stack.copy());
                         continue;
                     }
 
-                    normalAccessories.setStack(i, pair.stack.copy());
+                    normalAccessories.setItem(i, pair.stack.copy());
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     AccessoriesInventorySlot pair = inventorySlot.cosmetic.get(i);
-                    if (i >= cosmeticAccessories.size()) {
+                    if (i >= cosmeticAccessories.getContainerSize()) {
                         extraItems.add(pair.stack.copy());
                         continue;
                     }
 
-                    cosmeticAccessories.setStack(i, pair.stack.copy());
+                    cosmeticAccessories.setItem(i, pair.stack.copy());
                     container.renderOptions().set(i, pair.visible);
                     container.markChanged(false);
                 }
@@ -328,14 +328,14 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
         }
 
         @Override
-        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
-            DefaultedList<Pair<ItemStack, DropRule>> allItems = DefaultedList.of();
+        public NonNullList<Tuple<ItemStack, DropRule>> getAsStackDropList() {
+            NonNullList<Tuple<ItemStack, DropRule>> allItems = NonNullList.create();
             for (AccessoriesInventoryGroup slot : this.inventory.values()) {
                 for (AccessoriesInventorySlot entry : slot.normal) {
-                    allItems.add(new Pair<>(entry.stack, entry.dropRule));
+                    allItems.add(new Tuple<>(entry.stack, entry.dropRule));
                 }
                 for (AccessoriesInventorySlot entry : slot.cosmetic) {
-                    allItems.add(new Pair<>(entry.stack, entry.dropRule));
+                    allItems.add(new Tuple<>(entry.stack, entry.dropRule));
                 }
             }
 
@@ -347,8 +347,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
             Map<String, AccessoriesInventoryGroup> filtered = new HashMap<>();
             for (Map.Entry<String, AccessoriesInventoryGroup> entry : this.inventory.entrySet()) {
                 AccessoriesInventoryGroup inventorySlot = entry.getValue();
-                DefaultedList<AccessoriesInventorySlot> normalSlot = DefaultedList.of();
-                DefaultedList<AccessoriesInventorySlot> cosmeticSlot = DefaultedList.of();
+                NonNullList<AccessoriesInventorySlot> normalSlot = NonNullList.create();
+                NonNullList<AccessoriesInventorySlot> cosmeticSlot = NonNullList.create();
                 for (AccessoriesInventorySlot pair : inventorySlot.normal) {
                     if (predicate.test(pair.dropRule)) {
                         normalSlot.add(pair);
@@ -375,7 +375,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 for (AccessoriesInventorySlot pair : inventorySlot.normal) {
                     ItemStack stack = pair.stack;
                     if (predicate.test(stack)) {
-                        stack.decrement(itemCount);
+                        stack.shrink(itemCount);
                         return true;
                     }
                 }
@@ -392,20 +392,20 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
         }
 
         @Override
-        public NbtCompound writeNbt(RegistryWrapper.WrapperLookup registryLookup) {
-            NbtCompound nbt = new NbtCompound();
+        public CompoundTag writeNbt(HolderLookup.Provider registryLookup) {
+            CompoundTag nbt = new CompoundTag();
             for (Map.Entry<String, AccessoriesInventoryGroup> entry : this.inventory.entrySet()) {
                 AccessoriesInventoryGroup inventorySlot = entry.getValue();
-                NbtCompound slotNbt = new NbtCompound();
-                NbtCompound normalNbt = InventoryComponent.listToNbt(inventorySlot.normal, pair -> {
-                    NbtCompound itemNbt = (NbtCompound) pair.stack.encode(registryLookup);
+                CompoundTag slotNbt = new CompoundTag();
+                CompoundTag normalNbt = InventoryComponent.listToNbt(inventorySlot.normal, pair -> {
+                    CompoundTag itemNbt = (CompoundTag) pair.stack.save(registryLookup);
                     itemNbt.putString("dropRule", pair.dropRule.name());
                     itemNbt.putBoolean("visible", pair.visible);
 
                     return itemNbt;
                 }, pair -> pair.stack.isEmpty());
-                NbtCompound cosmeticNbt = InventoryComponent.listToNbt(inventorySlot.cosmetic, pair -> {
-                    NbtCompound itemNbt = (NbtCompound) pair.stack.encode(registryLookup);
+                CompoundTag cosmeticNbt = InventoryComponent.listToNbt(inventorySlot.cosmetic, pair -> {
+                    CompoundTag itemNbt = (CompoundTag) pair.stack.save(registryLookup);
                     itemNbt.putString("dropRule", pair.dropRule.name());
                     itemNbt.putBoolean("visible", pair.visible);
 

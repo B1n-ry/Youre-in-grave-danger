@@ -1,7 +1,7 @@
 package com.b1n_ry.yigd.data;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -14,8 +14,8 @@ public class TimePoint {
 
     private static final EnumMap<Month, String> MONTH_NAMES;
 
-    public TimePoint(ServerWorld world) {
-        this(world.getTime(), world.getTimeOfDay(), LocalDateTime.now());
+    public TimePoint(ServerLevel world) {
+        this(world.getGameTime(), world.getDayTime(), LocalDateTime.now());
     }
     public TimePoint(long time, long timeOfDay, LocalDateTime irlTime) {
         this.time = time;
@@ -52,12 +52,12 @@ public class TimePoint {
         return "";
     }
 
-    public NbtCompound toNbt() {
-        NbtCompound nbt = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag nbt = new CompoundTag();
         nbt.putLong("time", this.time);
         nbt.putLong("timeOfDay", this.timeOfDay);
 
-        NbtCompound irlTimeNbt = new NbtCompound();
+        CompoundTag irlTimeNbt = new CompoundTag();
         irlTimeNbt.putInt("year", this.irlTime.getYear());
         irlTimeNbt.putInt("month", this.irlTime.getMonthValue());
         irlTimeNbt.putInt("date", this.irlTime.getDayOfMonth());
@@ -69,11 +69,11 @@ public class TimePoint {
         return nbt;
     }
 
-    public static TimePoint fromNbt(NbtCompound nbt) {
+    public static TimePoint fromNbt(CompoundTag nbt) {
         long time = nbt.getLong("time");
         long timeOfDay = nbt.getLong("timeOfDay");
 
-        NbtCompound irlTimeNbt = nbt.getCompound("realTime");
+        CompoundTag irlTimeNbt = nbt.getCompound("realTime");
         int year = irlTimeNbt.getInt("year");
         int month = irlTimeNbt.getInt("month");
         int date = irlTimeNbt.getInt("date");

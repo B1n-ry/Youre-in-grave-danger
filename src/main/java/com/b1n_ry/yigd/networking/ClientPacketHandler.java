@@ -10,8 +10,8 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.networking.packets.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.component.type.ProfileComponent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.component.ResolvableProfile;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,24 +27,24 @@ public class ClientPacketHandler {
             boolean obtainableKeys = payload.obtainableKeys();
             boolean obtainableCompass = payload.obtainableCompass();
 
-            MinecraftClient client = context.client();
+            Minecraft client = context.client();
             // Set screen on client thread
             client.execute(() -> client.setScreen(new GraveOverviewScreen(new GraveOverviewGui(component,
-                    client.currentScreen, canRestore, canRob, canDelete, canUnlock,
+                    client.screen, canRestore, canRob, canDelete, canUnlock,
                     obtainableKeys, obtainableCompass))));
         });
         ClientPlayNetworking.registerGlobalReceiver(GraveSelectionS2CPacket.ID, (payload, context) -> {
             List<LightGraveData> data = payload.data();
-            ProfileComponent profile = payload.owner();
+            ResolvableProfile profile = payload.owner();
 
-            MinecraftClient client = context.client();
-            client.execute(() -> client.setScreen(new GraveSelectionScreen(new GraveSelectionGui(data, profile, client.currentScreen))));
+            Minecraft client = context.client();
+            client.execute(() -> client.setScreen(new GraveSelectionScreen(new GraveSelectionGui(data, profile, client.screen))));
         });
         ClientPlayNetworking.registerGlobalReceiver(PlayerSelectionS2CPacket.ID, (payload, context) -> {
             List<LightPlayerData> data = payload.data();
 
-            MinecraftClient client = context.client();
-            client.execute(() -> client.setScreen(new PlayerSelectionScreen(new PlayerSelectionGui(data, client.currentScreen))));
+            Minecraft client = context.client();
+            client.execute(() -> client.setScreen(new PlayerSelectionScreen(new PlayerSelectionGui(data, client.screen))));
         });
     }
 
@@ -69,7 +69,7 @@ public class ClientPacketHandler {
     public static void sendGraveOverviewRequest(UUID graveId) {
         ClientPlayNetworking.send(new GraveOverviewRequestC2SPacket(graveId));
     }
-    public static void sendGraveSelectionRequest(ProfileComponent profile) {
+    public static void sendGraveSelectionRequest(ResolvableProfile profile) {
         ClientPlayNetworking.send(new GraveSelectionRequestC2SPacket(profile));
     }
     public static void sendConfigUpdate(YigdConfig config) {

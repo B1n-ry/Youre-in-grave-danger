@@ -1,8 +1,8 @@
 package com.b1n_ry.yigd.data;
 
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ public class GraveyardData {
     @SerializedName("point2point")
     public boolean point2point = false;
     @SerializedName("dimension")
-    public Identifier dimensionId = Identifier.of("overworld");
+    public ResourceLocation dimensionId = ResourceLocation.withDefaultNamespace("overworld");
     @SerializedName("use_closest")
     public boolean useClosest = false;
     @SerializedName("coordinates")

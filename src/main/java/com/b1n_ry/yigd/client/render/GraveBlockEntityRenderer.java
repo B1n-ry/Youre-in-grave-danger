@@ -3,33 +3,41 @@ package com.b1n_ry.yigd.client.render;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.RenderGlowingGraveEvent;
-import com.b1n_ry.yigd.mixin.accessor.WorldRendererAccessor;
+import com.b1n_ry.yigd.mixin.accessor.LevelRendererAccessor;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SkullBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.model.*;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.*;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
-import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
-import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.world.World;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.model.SkullModelBase;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.OutlineBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SkullBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
@@ -39,9 +47,9 @@ import java.util.Map;
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
     private static final Gson GSON = new Gson();
 
-    private final Map<SkullBlock.SkullType, SkullBlockEntityModel> skullModels;
-    private final TextRenderer textRenderer;
-    private final MinecraftClient client;
+    private final Map<SkullBlock.Type, SkullModelBase> skullModels;
+    private final Font textRenderer;
+    private final Minecraft client;
     private final boolean adaptRenderer;
 
     private static ModelPart graveModel;
@@ -49,26 +57,26 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     private static TextRenderInfo textRenderInfo = null;
     @Nullable
     private static SkullRenderInfo skullRenderInfo = null;
-    private static final Map<String, SpriteIdentifier> CUBOID_SPRITES = new HashMap<>();
-    private static final RenderLayer OUTLINE_RENDER_LAYER;
+    private static final Map<String, Material> CUBOID_SPRITES = new HashMap<>();
+    private static final RenderType OUTLINE_RENDER_LAYER;
 
     public static boolean renderOutlineShader = false;
 
-    public GraveBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
-        this.skullModels = SkullBlockEntityRenderer.getModels(context.getLayerRenderDispatcher());
-        this.textRenderer = context.getTextRenderer();
-        this.client = MinecraftClient.getInstance();
+    public GraveBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        this.skullModels = SkullBlockRenderer.createSkullRenderers(context.getModelSet());
+        this.textRenderer = context.getFont();
+        this.client = Minecraft.getInstance();
 
         this.adaptRenderer = YigdConfig.getConfig().graveRendering.adaptRenderer;
     }
 
     @Override
-    public void render(GraveBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+    public void render(GraveBlockEntity entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
         YigdConfig.GraveRendering config = YigdConfig.getConfig().graveRendering;
         if (!config.useCustomFeatureRenderer) return;
 
-        BlockState state = entity.getCachedState();
-        Direction direction = state.get(Properties.HORIZONTAL_FACING);
+        BlockState state = entity.getBlockState();
+        Direction direction = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
         float rotation = (float) switch (direction) {
             case SOUTH -> Math.PI;
@@ -77,13 +85,13 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             default -> 0;  // North (can't be up/down)
         };
 
-        matrices.push();
+        matrices.pushPose();
 
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotation(rotation), .5f, .5f, .5f);
+        matrices.rotateAround(Axis.YP.rotation(rotation), .5f, .5f, .5f);
 
         if (config.useGlowingEffect && entity.isUnclaimed()) {
             // Get the actual outline vertex consumer, instead of the normal one
-            OutlineVertexConsumerProvider consumerProvider = ((WorldRendererAccessor) this.client.worldRenderer).getBufferBuilders().getOutlineVertexConsumers();
+            OutlineBufferSource consumerProvider = ((LevelRendererAccessor) this.client.levelRenderer).getRenderBuffers().outlineBufferSource();
             this.renderGlowingOutline(entity, tickDelta, matrices, consumerProvider, light, overlay);
         }
 
@@ -93,28 +101,28 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             this.renderGraveText(entity, tickDelta, matrices, vertexConsumers, light, overlay);
         this.renderGraveModel(entity, tickDelta, matrices, vertexConsumers, light, overlay);
 
-        matrices.pop();
+        matrices.popPose();
     }
 
-    private void renderOwnerSkull(GraveBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        ProfileComponent skullOwner = entity.getGraveSkull();
+    private void renderOwnerSkull(GraveBlockEntity entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+        ResolvableProfile skullOwner = entity.getGraveSkull();
         if (skullOwner == null) return;
 
-        SkullBlock.SkullType type = SkullBlock.Type.PLAYER;
-        RenderLayer renderLayer = SkullBlockEntityRenderer.getRenderLayer(type, skullOwner);
+        SkullBlock.Type type = SkullBlock.Types.PLAYER;
+        RenderType renderLayer = SkullBlockRenderer.getRenderType(type, skullOwner);
 
         this.renderSkull(entity, tickDelta, matrices, vertexConsumers, light, overlay, renderLayer);
     }
     /**
      * Render the model with given RenderLayer. This way it can be rendered with both the skin texture and outline shader
      */
-    private void renderSkull(GraveBlockEntity ignoredEntity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int ignoredOverlay, RenderLayer renderLayer) {
+    private void renderSkull(GraveBlockEntity ignoredEntity, float ignoredTickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int ignoredOverlay, RenderType renderLayer) {
         if (skullRenderInfo == null) return;
-        SkullBlock.SkullType type = SkullBlock.Type.PLAYER;
+        SkullBlock.Type type = SkullBlock.Types.PLAYER;
 
-        SkullBlockEntityModel model = this.skullModels.get(type);
+        SkullModelBase model = this.skullModels.get(type);
 
-        matrices.push();
+        matrices.pushPose();
         matrices.translate(0.5f, 0.25f, 0.5f);  // Required for calculations of rotation and scale to not change position
 
         int[] rotation = skullRenderInfo.rotation;
@@ -122,72 +130,72 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
         matrices.translate(0D, -(4 - skullRenderInfo.height) / 16D, -(8 - skullRenderInfo.depth) / 16D);
 
         Quaternionf angle = new Quaternionf().rotateXYZ((float) Math.toRadians(rotation[0]), (float) Math.toRadians(rotation[1]), (float) Math.toRadians(rotation[2]));
-        matrices.multiply(angle);
+        matrices.mulPose(angle);
         matrices.scale(skullRenderInfo.scaleFace, skullRenderInfo.scaleFace, skullRenderInfo.scaleDepth);
 
         matrices.translate(-0.5f, -0.25f, -0.5f);  // Move back to actual position. Calculations of scale and rotation are now done
 
-        SkullBlockEntityRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, model, renderLayer);
-        matrices.pop();
+        SkullBlockRenderer.renderSkull(null, 0, 0, matrices, vertexConsumers, light, model, renderLayer);
+        matrices.popPose();
     }
 
-    private void renderGraveText(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int ignoredOverlay) {
-        Text graveText = entity.getGraveText();
+    private void renderGraveText(GraveBlockEntity entity, float ignoredTickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int ignoredOverlay) {
+        Component graveText = entity.getGraveText();
         if (graveText == null || textRenderInfo == null) return;
 
-        matrices.push();
+        matrices.pushPose();
 
         matrices.translate(.5, textRenderInfo.height / 16f, textRenderInfo.depth / 16f - 0.0001f);
         matrices.scale(-1, -1, 0);
 
-        int textWidth = this.textRenderer.getWidth(graveText.getString());
+        int textWidth = this.textRenderer.width(graveText.getString());
         float scale = textRenderInfo.width / (textWidth * 16f);
         matrices.scale(scale, scale, scale);
 
         matrices.translate(-textWidth / 2.0, -4.5, 0);
 
-        this.textRenderer.draw(graveText, 0f, 0f, 0xFFFFFF, false, matrices.peek().getPositionMatrix(), vertexConsumers, TextRenderer.TextLayerType.NORMAL, 0x0, light);
+        this.textRenderer.drawInBatch(graveText, 0f, 0f, 0xFFFFFF, false, matrices.last().pose(), vertexConsumers, Font.DisplayMode.NORMAL, 0x0, light);
 
-        matrices.pop();
+        matrices.popPose();
     }
 
-    private void renderGraveModel(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        for (Map.Entry<String, SpriteIdentifier> cuboid : CUBOID_SPRITES.entrySet()) {
+    private void renderGraveModel(GraveBlockEntity entity, float ignoredTickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+        for (Map.Entry<String, Material> cuboid : CUBOID_SPRITES.entrySet()) {
             String key = cuboid.getKey();
             ModelPart part = graveModel.getChild(key);
             if (this.adaptRenderer && key.equals("ground")) {
-                World world = entity.getWorld();
+                Level world = entity.getLevel();
                 if (world != null) {
-                    BlockPos underPos = entity.getPos().down();
-                    BlockState blockUnder = entity.getWorld().getBlockState(underPos);
+                    BlockPos underPos = entity.getBlockPos().below();
+                    BlockState blockUnder = entity.getLevel().getBlockState(underPos);
 
-                    if (blockUnder != null && blockUnder.isOpaqueFullCube(world, underPos)) {
-                        ModelPart.Cuboid cuboidPart = part.getRandomCuboid(world.random);  // Only contains 1 cuboid, so we'll get that one
+                    if (blockUnder.isSolidRender(world, underPos)) {
+                        ModelPart.Cube cuboidPart = part.getRandomCube(world.random);  // Only contains 1 cuboid, so we'll get that one
                         float scaleX = cuboidPart.maxX - cuboidPart.minX;
                         float scaleZ = cuboidPart.maxZ - cuboidPart.minZ;
 
-                        matrices.push();
+                        matrices.pushPose();
 
                         matrices.translate(cuboidPart.minX / 16f + .0005f, cuboidPart.maxY / 16f - 1f, cuboidPart.minZ / 16f + .0005f);
                         matrices.scale(.999f * (scaleX / 16f), 1f, .999f * (scaleZ / 16f));
 
-                        this.client.getBlockRenderManager()
-                                .renderBlock(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(
-                                        RenderLayer.getCutout()), false, world.random);
-                        matrices.pop();
+                        this.client.getBlockRenderer()
+                                .renderBatched(blockUnder, underPos, world, matrices, vertexConsumers.getBuffer(
+                                        RenderType.cutout()), false, world.random);
+                        matrices.popPose();
 
                         continue;
                     }
                 }
             }
-            VertexConsumer consumer = cuboid.getValue().getVertexConsumer(vertexConsumers, RenderLayer::getEntityCutout);
+            VertexConsumer consumer = cuboid.getValue().buffer(vertexConsumers, RenderType::entityCutout);
 
             part.render(matrices, consumer, light, overlay);
         }
     }
 
-    private void renderGlowingOutline(GraveBlockEntity entity, float ignoredTickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        ClientPlayerEntity player = this.client.player;
+    private void renderGlowingOutline(GraveBlockEntity entity, float ignoredTickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+        LocalPlayer player = this.client.player;
         if (!RenderGlowingGraveEvent.EVENT.invoker().canRenderOutline(entity, player)) return;
 
         VertexConsumer consumer = vertexConsumers.getBuffer(OUTLINE_RENDER_LAYER);
@@ -207,8 +215,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
      */
     public static void reloadModelFromJson(JsonObject json) throws IllegalStateException {
         CUBOID_SPRITES.clear();
-        ModelData modelData = new ModelData();
-        ModelPartData root = modelData.getRoot();
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition root = modelData.getRoot();
 
         JsonArray textureSize = json.getAsJsonArray("texture_size");
         JsonObject textures = json.getAsJsonObject("textures");
@@ -249,8 +257,8 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
             if (nameIds.containsKey(textureName)) {
                 textureName = nameIds.get(textureName);
             }
-            Identifier texture = Identifier.of(textureName);
-            SpriteIdentifier sprite = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, texture);
+            ResourceLocation texture = ResourceLocation.parse(textureName);
+            Material sprite = new Material(InventoryMenu.BLOCK_ATLAS, texture);
 
             CUBOID_SPRITES.put(name, sprite);
 
@@ -278,28 +286,28 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
                 skullRenderInfo = GSON.fromJson(features.get("skull"), SkullRenderInfo.class);
             }
         }
-        graveModel = TexturedModelData.of(modelData, uvX, uvY).createModel();
+        graveModel = LayerDefinition.create(modelData, uvX, uvY).bakeRoot();
     }
     private static ModelPart getGraveModel() {
-        ModelData modelData = new ModelData();
-        ModelPartData root = modelData.getRoot();
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition root = modelData.getRoot();
         addChildPart(root, "ground", 0, 0, 0, 0, 0, 16, 1, 16);
         addChildPart(root, "base", 0, 21, 2, 1, 10, 12, 2, 5);
         addChildPart(root, "bust", 0, 28, 3, 3, 11, 10, 12, 3);
         addChildPart(root, "top", 0, 17, 4, 15, 11, 8, 1, 3);
 
-        return TexturedModelData.of(modelData, 64, 64).createModel();
+        return LayerDefinition.create(modelData, 64, 64).bakeRoot();
     }
-    private static void addChildPart(ModelPartData root, String name, int uvX, int uvY, float minX, float minY, float minZ, float sizeX, float sizeY, float sizeZ) {
-        root.addChild(
+    private static void addChildPart(PartDefinition root, String name, int uvX, int uvY, float minX, float minY, float minZ, float sizeX, float sizeY, float sizeZ) {
+        root.addOrReplaceChild(
                 name,
-                ModelPartBuilder.create().uv(uvX, uvY).cuboid(minX, minY, minZ, sizeX, sizeY, sizeZ),
-                ModelTransform.of(sizeX + minX * 2, sizeY + minY * 2, 0, 0, 0, (float) Math.PI));
+                CubeListBuilder.create().texOffs(uvX, uvY).addBox(minX, minY, minZ, sizeX, sizeY, sizeZ),
+                PartPose.offsetAndRotation(sizeX + minX * 2, sizeY + minY * 2, 0, 0, 0, (float) Math.PI));
     }
 
     static {
         graveModel = getGraveModel();
-        OUTLINE_RENDER_LAYER = RenderLayer.getOutline(Identifier.of("textures/misc/white.png"));
+        OUTLINE_RENDER_LAYER = RenderType.outline(ResourceLocation.withDefaultNamespace("textures/misc/white.png"));
     }
 
     private record TextRenderInfo(float depth, float height, float width) { }

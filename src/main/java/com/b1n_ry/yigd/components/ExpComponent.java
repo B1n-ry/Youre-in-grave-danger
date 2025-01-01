@@ -1,17 +1,17 @@
 package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.config.YigdConfig;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.phys.Vec3;
 
 public class ExpComponent {
     private final double originalXp;
     private int storedXp;
 
-    public ExpComponent(ServerPlayerEntity player) {
+    public ExpComponent(ServerPlayer player) {
         this.originalXp = this.getTotalExperience(player);
         this.storedXp = this.getXpDropAmount(player);
     }
@@ -31,12 +31,12 @@ public class ExpComponent {
         return this.originalXp;
     }
 
-    public int getXpDropAmount(ServerPlayerEntity player) {
+    public int getXpDropAmount(ServerPlayer player) {
         YigdConfig config = YigdConfig.getConfig();
 
         double totalExperience = this.getTotalExperience(player);
         int percentageDrop = (int) ((config.expConfig.dropPercentage / 100f) * totalExperience);
-        int vanillaDrop = player.getXpToDrop(player.getServerWorld(), null);
+        int vanillaDrop = player.getExperienceReward(player.serverLevel(), null);
         return switch (config.expConfig.dropBehaviour) {
             case BEST_OF_BOTH -> Math.max(vanillaDrop, percentageDrop);
             case WORST_OF_BOTH -> Math.min(vanillaDrop, percentageDrop);
@@ -45,7 +45,7 @@ public class ExpComponent {
         };
     }
 
-    private double getTotalExperience(ServerPlayerEntity player) {
+    private double getTotalExperience(ServerPlayer player) {
         // This for some reason works more reliably than to get player.totalExperience directly
         int currentLevel = player.experienceLevel;
         double totalExperience;
@@ -56,7 +56,7 @@ public class ExpComponent {
         } else {
             totalExperience = Math.pow(currentLevel, 2) + 6 * currentLevel;
         }
-        totalExperience += player.getNextLevelExperience() * player.experienceProgress;
+        totalExperience += player.getXpNeededForNextLevel() * player.experienceProgress;
         return totalExperience;
     }
 
@@ -79,32 +79,32 @@ public class ExpComponent {
         return new ExpComponent(keepXp, this.originalXp);
     }
 
-    public void dropAll(ServerWorld world, Vec3d pos) {
-        ExperienceOrbEntity.spawn(world, pos, this.storedXp);
+    public void dropAll(ServerLevel world, Vec3 pos) {
+        ExperienceOrb.award(world, pos, this.storedXp);
     }
 
-    public void applyToPlayer(ServerPlayerEntity player) {
-        player.addExperience(this.storedXp);
+    public void applyToPlayer(ServerPlayer player) {
+        player.giveExperiencePoints(this.storedXp);
     }
 
     public void clear() {
         this.storedXp = 0;
     }
 
-    public NbtCompound toNbt() {
-        NbtCompound nbt = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag nbt = new CompoundTag();
         nbt.putInt("value", this.storedXp);
         nbt.putDouble("original", this.originalXp);
         return nbt;
     }
 
-    public static ExpComponent fromNbt(NbtCompound nbt) {
+    public static ExpComponent fromNbt(CompoundTag nbt) {
         int xpToDrop = nbt.getInt("value");
         double originalXp = nbt.contains("original") ? nbt.getDouble("original") : xpToDrop;
         return new ExpComponent(xpToDrop, originalXp);
     }
 
-    public static void clearXp(ServerPlayerEntity player) {
+    public static void clearXp(ServerPlayer player) {
         player.totalExperience = 0;
         player.experienceLevel = 0;
         player.experienceProgress = 0;

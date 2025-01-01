@@ -1,28 +1,28 @@
 package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.config.YigdConfig;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.HungerManager;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.food.FoodData;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class EffectComponent {
-    private final List<StatusEffectInstance> effects;
+    private final List<MobEffectInstance> effects;
     private final int resetHp;
     private final int resetHunger;
     private final float resetSaturation;
 
 
-    public EffectComponent(ServerPlayerEntity player) {
+    public EffectComponent(ServerPlayer player) {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.RespawnConfig rConfig = config.respawnConfig;
 
@@ -31,7 +31,7 @@ public class EffectComponent {
 
         this.resetHp = rConfig.respawnHealth;
 
-        HungerManager hungerManager = player.getHungerManager();
+        FoodData hungerManager = player.getFoodData();
         if (!rConfig.resetHunger) {
             this.resetHunger = hungerManager.getFoodLevel();
         } else {
@@ -44,37 +44,37 @@ public class EffectComponent {
         }
     }
 
-    public EffectComponent(List<StatusEffectInstance> effects, int resetHp, int resetHunger, float resetSaturation) {
+    public EffectComponent(List<MobEffectInstance> effects, int resetHp, int resetHunger, float resetSaturation) {
         this.effects = effects;
         this.resetHp = resetHp;
         this.resetHunger = resetHunger;
         this.resetSaturation = resetSaturation;
     }
 
-    public void applyToPlayer(ServerPlayerEntity player) {
+    public void applyToPlayer(ServerPlayer player) {
         if (this.resetHp > 0)
             player.setHealth(this.resetHp);
 
-        HungerManager hungerManager = player.getHungerManager();
+        FoodData hungerManager = player.getFoodData();
         if (this.resetHunger >= 0)
             hungerManager.setFoodLevel(this.resetHunger);
         if (this.resetSaturation >= 0)
-            hungerManager.setSaturationLevel(this.resetSaturation);
+            hungerManager.setSaturation(this.resetSaturation);
 
-        for (StatusEffectInstance effect : this.effects) {
-            player.addStatusEffect(effect);
+        for (MobEffectInstance effect : this.effects) {
+            player.addEffect(effect);
         }
     }
 
-    public NbtCompound toNbt() {
-        NbtCompound nbtCompound = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag nbtCompound = new CompoundTag();
         nbtCompound.putInt("hp", this.resetHp);
         nbtCompound.putInt("hunger", this.resetHunger);
         nbtCompound.putFloat("saturation", this.resetSaturation);
 
-        NbtList nbtEffects = new NbtList();
-        for (StatusEffectInstance instance : this.effects) {
-            nbtEffects.add(instance.writeNbt());
+        ListTag nbtEffects = new ListTag();
+        for (MobEffectInstance instance : this.effects) {
+            nbtEffects.add(instance.save());
         }
         nbtCompound.put("effects", nbtEffects);
 
@@ -83,25 +83,25 @@ public class EffectComponent {
 
     private void loadEffectsFromConfig(YigdConfig.RespawnConfig rConfig) {
         for (YigdConfig.RespawnConfig.EffectConfig effect : rConfig.respawnEffects) {
-            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(Identifier.of(effect.effectName));
+            MobEffect statusEffect = BuiltInRegistries.MOB_EFFECT.get(ResourceLocation.parse(effect.effectName));
             if (statusEffect == null) continue;
 
-            RegistryEntry<StatusEffect> effectRegistryEntry = Registries.STATUS_EFFECT.getEntry(statusEffect);
-            StatusEffectInstance effectInstance = new StatusEffectInstance(effectRegistryEntry, effect.effectTime, effect.effectLevel - 1, false, effect.showBubbles);
+            Holder<MobEffect> effectRegistryEntry = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(statusEffect);
+            MobEffectInstance effectInstance = new MobEffectInstance(effectRegistryEntry, effect.effectTime, effect.effectLevel - 1, false, effect.showBubbles);
             this.effects.add(effectInstance);
         }
     }
 
-    public static EffectComponent fromNbt(NbtCompound nbt) {
+    public static EffectComponent fromNbt(CompoundTag nbt) {
         int resetHp = nbt.getInt("hp");
         int resetHunger = nbt.getInt("hunger");
         float resetSaturation = nbt.getFloat("saturation");
 
-        List<StatusEffectInstance> effects = new ArrayList<>();
-        NbtList effectsNbt = nbt.getList("effects", NbtElement.COMPOUND_TYPE);
-        for (NbtElement e : effectsNbt) {
-            NbtCompound compound = (NbtCompound) e;
-            StatusEffectInstance instance = StatusEffectInstance.fromNbt(compound);
+        List<MobEffectInstance> effects = new ArrayList<>();
+        ListTag effectsNbt = nbt.getList("effects", Tag.TAG_COMPOUND);
+        for (Tag e : effectsNbt) {
+            CompoundTag compound = (CompoundTag) e;
+            MobEffectInstance instance = MobEffectInstance.load(compound);
             effects.add(instance);
         }
 

@@ -11,56 +11,55 @@ import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.b1n_ry.yigd.util.PairModificationConsumer;
 import com.b1n_ry.yigd.util.YigdTags;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.EnchantmentEffectComponentTypes;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.Pair;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.Containers;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class InventoryComponent {
-    private final DefaultedList<Pair<ItemStack, DropRule>> items;
+    private final NonNullList<Tuple<ItemStack, DropRule>> items;
     private final Map<String, CompatComponent<?>> modInventoryItems;
     public final int mainSize;
     public final int armorSize;
     public final int offHandSize;
 
     private static final Random RANDOM = new Random();
-    public static final Pair<ItemStack, DropRule> EMPTY_ITEM_PAIR = new Pair<>(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule);
+    public static final Tuple<ItemStack, DropRule> EMPTY_ITEM_PAIR = new Tuple<>(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule);
 
-    public InventoryComponent(ServerPlayerEntity player) {
+    public InventoryComponent(ServerPlayer player) {
         // Avoiding list being immutable in case items should be added on death
-        this.items = DefaultedList.of();
+        this.items = NonNullList.create();
         for (ItemStack stack : this.getInventoryItems(player)) {
-            this.items.add(new Pair<>(stack, DropRule.PUT_IN_GRAVE));
+            this.items.add(new Tuple<>(stack, DropRule.PUT_IN_GRAVE));
         }
 
         this.modInventoryItems = this.getModInventoryItems(player);
 
-        PlayerInventory inventory = player.getInventory();
-        this.mainSize = inventory.main.size();
+        Inventory inventory = player.getInventory();
+        this.mainSize = inventory.items.size();
         this.armorSize = inventory.armor.size();
-        this.offHandSize = inventory.offHand.size();
+        this.offHandSize = inventory.offhand.size();
     }
-    private InventoryComponent(DefaultedList<Pair<ItemStack, DropRule>> items, Map<String, CompatComponent<?>> modInventoryItems, int mainSize, int armorSize, int offHandSize) {
+    private InventoryComponent(NonNullList<Tuple<ItemStack, DropRule>> items, Map<String, CompatComponent<?>> modInventoryItems, int mainSize, int armorSize, int offHandSize) {
         // Avoiding list being immutable in case items should be added on death
-        this.items = DefaultedList.of();
+        this.items = NonNullList.create();
         this.items.addAll(items);
 
         this.modInventoryItems = modInventoryItems;
@@ -69,7 +68,7 @@ public class InventoryComponent {
         this.offHandSize = offHandSize;
     }
 
-    public DefaultedList<Pair<ItemStack, DropRule>> getItems() {
+    public NonNullList<Tuple<ItemStack, DropRule>> getItems() {
         return this.items;
     }
 
@@ -78,12 +77,12 @@ public class InventoryComponent {
      * @param withoutEmpty Whether empty items should be included
      * @return All items in component, excluding vanilla inventory
      */
-    public DefaultedList<ItemStack> getAllExtraItems(boolean withoutEmpty) {
-        DefaultedList<ItemStack> stacks = DefaultedList.of();
+    public NonNullList<ItemStack> getAllExtraItems(boolean withoutEmpty) {
+        NonNullList<ItemStack> stacks = NonNullList.create();
 
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
-            for (Pair<ItemStack, DropRule> pair : compatComponent.getAsStackDropList()) {
-                ItemStack stack = pair.getLeft();
+            for (Tuple<ItemStack, DropRule> pair : compatComponent.getAsStackDropList()) {
+                ItemStack stack = pair.getA();
                 if (withoutEmpty && stack.isEmpty()) continue;
 
                 stacks.add(stack);
@@ -95,10 +94,10 @@ public class InventoryComponent {
     public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
         predicate = predicate.and(stack -> stack.getCount() >= itemCount);
 
-        for (Pair<ItemStack, DropRule> pair : this.items) {
-            ItemStack stack = pair.getLeft();
+        for (Tuple<ItemStack, DropRule> pair : this.items) {
+            ItemStack stack = pair.getA();
             if (predicate.test(stack)) {
-                stack.decrement(itemCount);
+                stack.shrink(itemCount);
                 return true;
             }
         }
@@ -109,19 +108,19 @@ public class InventoryComponent {
 
         return false;
     }
-    private DefaultedList<ItemStack> getInventoryItems(ServerPlayerEntity player) {
-        PlayerInventory inventory = player.getInventory();
+    private NonNullList<ItemStack> getInventoryItems(ServerPlayer player) {
+        Inventory inventory = player.getInventory();
 
-        DefaultedList<ItemStack> items = DefaultedList.ofSize(inventory.size(), ItemStack.EMPTY);
+        NonNullList<ItemStack> items = NonNullList.withSize(inventory.getContainerSize(), ItemStack.EMPTY);
 
         // Save all items in vanilla inventory
-        for (int i = 0; i < inventory.size(); i++) {
-            items.set(i, inventory.getStack(i));
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            items.set(i, inventory.getItem(i));
         }
 
         return items;
     }
-    private Map<String, CompatComponent<?>> getModInventoryItems(ServerPlayerEntity player) {
+    private Map<String, CompatComponent<?>> getModInventoryItems(ServerPlayer player) {
         Map<String, CompatComponent<?>> modInventories = new HashMap<>();
 
         for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
@@ -135,9 +134,9 @@ public class InventoryComponent {
         YigdConfig config = YigdConfig.getConfig();
         if (config.inventoryConfig.dropPlayerHead) {
             ItemStack playerHead = new ItemStack(Items.PLAYER_HEAD);
-            playerHead.set(DataComponentTypes.PROFILE, new ProfileComponent(context.player().getGameProfile()));
+            playerHead.set(DataComponents.PROFILE, new ResolvableProfile(context.player().getGameProfile()));
 
-            this.items.add(new Pair<>(playerHead, GraveOverrideAreas.INSTANCE.defaultDropRule));  // Drop rules should not yet be handled, so default one is used
+            this.items.add(new Tuple<>(playerHead, GraveOverrideAreas.INSTANCE.defaultDropRule));  // Drop rules should not yet be handled, so default one is used
         }
 
         this.handleDropRules(context);
@@ -154,13 +153,13 @@ public class InventoryComponent {
     private void handleDropRules(DeathContext context) {
         // Handle drop rules for vanilla inventory
         for (int i = 0; i < this.items.size(); i++) {
-            Pair<ItemStack, DropRule> pair = this.items.get(i);
+            Tuple<ItemStack, DropRule> pair = this.items.get(i);
 
-            ItemStack item = pair.getLeft();
+            ItemStack item = pair.getA();
             if (item.isEmpty()) continue;
 
             DropRule dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, i, context, true);
-            pair.setRight(dropRule);
+            pair.setB(dropRule);
         }
 
         // Handle drop rules for mod compat inventories
@@ -179,10 +178,10 @@ public class InventoryComponent {
 
         int from, to;
         if (itemLoss.usePercentRange) {
-            DefaultedList<ItemStack> vanillaStacks = DefaultedList.of();
-            for (Pair<ItemStack, DropRule> pair : this.items) {
-                if (!pair.getLeft().isEmpty() && pair.getRight() != DropRule.DESTROY)
-                    vanillaStacks.add(pair.getLeft());
+            NonNullList<ItemStack> vanillaStacks = NonNullList.create();
+            for (Tuple<ItemStack, DropRule> pair : this.items) {
+                if (!pair.getA().isEmpty() && pair.getB() != DropRule.DESTROY)
+                    vanillaStacks.add(pair.getA());
             }
 
             int itemCount = vanillaStacks.size();
@@ -214,20 +213,20 @@ public class InventoryComponent {
         List<Integer> itemSlots = new ArrayList<>();
         int vanillaLimit = this.items.size();
         for (int i = 0; i < vanillaLimit; i++) {
-            Pair<ItemStack, DropRule> pair = this.items.get(i);
-            ItemStack stack = pair.getLeft();
+            Tuple<ItemStack, DropRule> pair = this.items.get(i);
+            ItemStack stack = pair.getA();
             if (stack.isEmpty()) continue;
-            if (pair.getRight() == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
-            if (stack.isIn(YigdTags.LOSS_IMMUNE)) continue;
+            if (pair.getB() == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
+            if (stack.is(YigdTags.LOSS_IMMUNE)) continue;
 
             itemSlots.add(i);
         }
-        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        NonNullList<ItemStack> extraItems = NonNullList.create();
         if (itemLoss.includeModdedInventories) {
             for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
-                for (Pair<ItemStack, DropRule> tuple : compatComponent.getAsStackDropList()) {
-                    if (tuple.getLeft().isEmpty()) continue;
-                    extraItems.add(tuple.getLeft());
+                for (Tuple<ItemStack, DropRule> tuple : compatComponent.getAsStackDropList()) {
+                    if (tuple.getA().isEmpty()) continue;
+                    extraItems.add(tuple.getA());
                 }
             }
             for (int i = 0; i < extraItems.size(); i++) {
@@ -244,15 +243,15 @@ public class InventoryComponent {
             if (slot >= vanillaLimit) {
                 ItemStack toBeRemoved = extraItems.get(slot - vanillaLimit);
                 this.handleItemPairs(s -> !s.equals("vanilla"), (stack, s, pair) -> {
-                    if (stack.equals(toBeRemoved)) pair.setRight(DropRule.DESTROY);
+                    if (stack.equals(toBeRemoved)) pair.setB(DropRule.DESTROY);
                 });
             } else {
-                this.items.get(slot).setRight(DropRule.DESTROY);
+                this.items.get(slot).setB(DropRule.DESTROY);
             }
         } else {
-            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit) : this.items.get(slot).getLeft();
+            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit) : this.items.get(slot).getA();
 
-            stack.decrement(1);
+            stack.shrink(1);
 
             if (stack.isEmpty() || stack.getCount() == 0) {
                 itemSlots.remove(Integer.valueOf(slot));  // Make sure we can't lose this item again
@@ -260,9 +259,9 @@ public class InventoryComponent {
         }
     }
 
-    public void dropAll(ServerWorld world, Vec3d pos) {
-        for (Pair<ItemStack, DropRule> pair : this.items) {
-            ItemStack stack = pair.getLeft();
+    public void dropAll(ServerLevel world, Vec3 pos) {
+        for (Tuple<ItemStack, DropRule> pair : this.items) {
+            ItemStack stack = pair.getA();
             if (stack.isEmpty()) continue;
             InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
         }
@@ -271,11 +270,11 @@ public class InventoryComponent {
             compatComponent.dropItems(world, pos);
         }
     }
-    public void dropGraveItems(ServerWorld world, Vec3d pos) {
-        for (Pair<ItemStack, DropRule> pair : this.items) {
-            ItemStack stack = pair.getLeft();
-            if (stack.isEmpty() || pair.getRight() != DropRule.PUT_IN_GRAVE) continue;
-            pair.setRight(DropRule.DROP);  // Make sure item are marked as dropped, and not in a non-existent grave
+    public void dropGraveItems(ServerLevel world, Vec3 pos) {
+        for (Tuple<ItemStack, DropRule> pair : this.items) {
+            ItemStack stack = pair.getA();
+            if (stack.isEmpty() || pair.getB() != DropRule.PUT_IN_GRAVE) continue;
+            pair.setB(DropRule.DROP);  // Make sure item are marked as dropped, and not in a non-existent grave
             InventoryComponent.dropItemIfToBeDropped(stack, pos.x, pos.y, pos.z, world);
         }
 
@@ -289,9 +288,9 @@ public class InventoryComponent {
      * @param mergingComponent Inventory component to merge with. This will be added to existing component
      * @return All items that wouldn't fit in inventory
      */
-    public DefaultedList<ItemStack> merge(InventoryComponent mergingComponent, ServerPlayerEntity merger) {
+    public NonNullList<ItemStack> merge(InventoryComponent mergingComponent, ServerPlayer merger) {
         YigdConfig config = YigdConfig.getConfig();
-        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        NonNullList<ItemStack> extraItems = NonNullList.create();
 
         for (int i = 0; i < mergingComponent.items.size(); i++) {
             // Make sure to only add items from respective section to correct group. E.g. no sword should end up in the chest-plate slot
@@ -313,21 +312,21 @@ public class InventoryComponent {
                 currentComponentIndex = groupIndex + this.mainSize + this.armorSize + this.offHandSize;
             }
 
-            ItemStack mergingStack = mergingComponent.items.get(i).getLeft().copy();  // Copy to avoid a problem in the case when merging and current stack are the same object
+            ItemStack mergingStack = mergingComponent.items.get(i).getA().copy();  // Copy to avoid a problem in the case when merging and current stack are the same object
             if (currentComponentIndex > this.items.size()) {
                 extraItems.add(mergingStack);
                 continue;
             }
 
-            ItemStack currentStack = this.items.get(currentComponentIndex).getLeft();
+            ItemStack currentStack = this.items.get(currentComponentIndex).getA();
 
             if (config.graveConfig.treatBindingCurse && i >= mergingComponent.mainSize && i < mergingComponent.mainSize + mergingComponent.armorSize) {  // If merging stack is armor, check for curse of binding
-                if (EnchantmentHelper.hasAnyEnchantmentsWith(mergingStack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE)) {  // If merging stack has curse of binding, force in that slot
+                if (EnchantmentHelper.has(mergingStack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {  // If merging stack has curse of binding, force in that slot
                     // If grave inventory got all curse of binding items pulled, only the player equipped ones should be forced on the player (because that makes sense)
                     // This is done by clearing the current slot, moving the item to extraItems, and the curse of binding item will be applied in the slot later
                     if (!currentStack.isEmpty()) extraItems.add(currentStack);
                     this.items.set(currentComponentIndex, EMPTY_ITEM_PAIR);  // Item will get put here later
-                    currentStack = this.items.get(currentComponentIndex).getLeft();
+                    currentStack = this.items.get(currentComponentIndex).getA();
                 }
             }
             if (config.graveConfig.mergeStacksOnRetrieve) {
@@ -339,7 +338,7 @@ public class InventoryComponent {
             }
             if (!mergingStack.isEmpty()) {  // Can be due to merging (count could be 0 if merge was "fully completed")
                 if (currentStack.isEmpty()) {
-                    this.items.set(currentComponentIndex, new Pair<>(mergingStack, DropRule.PUT_IN_GRAVE));  // Drop rule does not matter
+                    this.items.set(currentComponentIndex, new Tuple<>(mergingStack, DropRule.PUT_IN_GRAVE));  // Drop rule does not matter
                 } else {
                     extraItems.add(mergingStack);
                 }
@@ -352,8 +351,8 @@ public class InventoryComponent {
 
             CompatComponent<?> mergingCompatComponent = mergingComponent.modInventoryItems.get(modName);
             if (!this.modInventoryItems.containsKey(modName)) {
-                for (Pair<ItemStack, DropRule> pair : mergingCompatComponent.getAsStackDropList()) {
-                    ItemStack item = pair.getLeft();
+                for (Tuple<ItemStack, DropRule> pair : mergingCompatComponent.getAsStackDropList()) {
+                    ItemStack item = pair.getA();
                     if (!item.isEmpty())
                         extraItems.add(item);
                 }
@@ -361,7 +360,7 @@ public class InventoryComponent {
             }
             CompatComponent<?> compatComponent = this.modInventoryItems.get(modName);
 
-            DefaultedList<ItemStack> extraModItems = compatComponent.merge(mergingCompatComponent, merger);
+            NonNullList<ItemStack> extraModItems = compatComponent.merge(mergingCompatComponent, merger);
             extraItems.addAll(extraModItems);
         }
 
@@ -372,8 +371,8 @@ public class InventoryComponent {
 
     private int findMatchingStackSlot(ItemStack stack) {
         for (int i = 0; i < this.mainSize; i++) {
-            ItemStack iStack = this.items.get(i).getLeft();
-            if (ItemStack.areItemsAndComponentsEqual(stack, iStack) && iStack.isStackable() && iStack.getMaxCount() > iStack.getCount()) {
+            ItemStack iStack = this.items.get(i).getA();
+            if (ItemStack.isSameItemSameComponents(stack, iStack) && iStack.isStackable() && iStack.getMaxStackSize() > iStack.getCount()) {
                 return i;
             }
         }
@@ -386,12 +385,12 @@ public class InventoryComponent {
      * @param slot Which slot the item should merge into
      */
     private void mergeItemInSlot(ItemStack toMerge, int slot) {
-        ItemStack mergeTo = this.items.get(slot).getLeft();
-        int remaining = mergeTo.getMaxCount() - mergeTo.getCount();
+        ItemStack mergeTo = this.items.get(slot).getA();
+        int remaining = mergeTo.getMaxStackSize() - mergeTo.getCount();
 
         int ableToAdd = Math.min(toMerge.getCount(), remaining);
-        mergeTo.increment(ableToAdd);
-        toMerge.decrement(ableToAdd);
+        mergeTo.grow(ableToAdd);
+        toMerge.shrink(ableToAdd);
     }
 
     /**
@@ -399,11 +398,11 @@ public class InventoryComponent {
      * @param playerRef Player reference for some modded inventories to know if an item can be unequipped or not
      * @return all curse of binding items in armor slots
      */
-    public DefaultedList<ItemStack> pullBindingCurseItems(ServerPlayerEntity playerRef) {
-        DefaultedList<ItemStack> bindingItems = DefaultedList.of();
+    public NonNullList<ItemStack> pullBindingCurseItems(ServerPlayer playerRef) {
+        NonNullList<ItemStack> bindingItems = NonNullList.create();
         for (int i = 0; i < this.armorSize; i++) {
-            ItemStack armorStack = this.items.get(this.mainSize + i).getLeft();  // Current armor item
-            if (EnchantmentHelper.hasAnyEnchantmentsWith(armorStack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE)) {
+            ItemStack armorStack = this.items.get(this.mainSize + i).getA();  // Current armor item
+            if (EnchantmentHelper.has(armorStack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
                 bindingItems.add(armorStack);
                 this.items.set(this.mainSize + i, EMPTY_ITEM_PAIR);  // Moving the item in  this slot
             }
@@ -414,7 +413,7 @@ public class InventoryComponent {
         return bindingItems;
     }
 
-    private void addStacksToMain(DefaultedList<ItemStack> extraItems) {
+    private void addStacksToMain(NonNullList<ItemStack> extraItems) {
         YigdConfig config = YigdConfig.getConfig();
         while (!extraItems.isEmpty()) {
             ItemStack stack = extraItems.getFirst();
@@ -427,9 +426,9 @@ public class InventoryComponent {
                 addToSlot = this.findEmptySlot();
                 if (addToSlot == -1) return;  // Inventory is full
             }
-            ItemStack addToStack = this.items.get(addToSlot).getLeft();
+            ItemStack addToStack = this.items.get(addToSlot).getA();
             if (addToStack.isEmpty()) {
-                this.items.set(addToSlot, new Pair<>(stack, GraveOverrideAreas.INSTANCE.defaultDropRule));
+                this.items.set(addToSlot, new Tuple<>(stack, GraveOverrideAreas.INSTANCE.defaultDropRule));
                 extraItems.removeFirst();
             } else {
                 this.mergeItemInSlot(stack, addToSlot);
@@ -442,7 +441,7 @@ public class InventoryComponent {
 
     private int findEmptySlot() {
         for (int i = 0; i < this.mainSize; i++) {
-            if (this.items.get(i).getLeft().isEmpty()) {
+            if (this.items.get(i).getA().isEmpty()) {
                 return i;
             }
         }
@@ -459,8 +458,8 @@ public class InventoryComponent {
     public boolean containsAny(Predicate<ItemStack> itemPredicate, Predicate<String> modPredicate, Predicate<Integer> slotPredicate) {
         if (modPredicate.test("vanilla")) {
             for (int i = 0; i < this.items.size(); i++) {
-                Pair<ItemStack, DropRule> pair = this.items.get(i);
-                if (slotPredicate.test(i) && itemPredicate.test(pair.getLeft())) return true;
+                Tuple<ItemStack, DropRule> pair = this.items.get(i);
+                if (slotPredicate.test(i) && itemPredicate.test(pair.getA())) return true;
             }
         }
         for (Map.Entry<String, CompatComponent<?>> entry : this.modInventoryItems.entrySet()) {
@@ -479,8 +478,8 @@ public class InventoryComponent {
     public void handleItemPairs(Predicate<String> modPredicate, PairModificationConsumer modification) {
         if (modPredicate.test("vanilla")) {
             for (int i = 0; i < this.items.size(); i++) {
-                Pair<ItemStack, DropRule> pair = this.items.get(i);
-                modification.accept(pair.getLeft(), i, pair);
+                Tuple<ItemStack, DropRule> pair = this.items.get(i);
+                modification.accept(pair.getA(), i, pair);
             }
         }
         for (Map.Entry<String, CompatComponent<?>> entry : this.modInventoryItems.entrySet()) {
@@ -498,8 +497,8 @@ public class InventoryComponent {
             if (compatComponent.containsGraveItems()) return false;
         }
 
-        for (Pair<ItemStack, DropRule> pair : this.items) {
-            if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE)
+        for (Tuple<ItemStack, DropRule> pair : this.items) {
+            if (!pair.getA().isEmpty() && pair.getB() == DropRule.PUT_IN_GRAVE)
                 return false;
         }
         return true;
@@ -511,8 +510,8 @@ public class InventoryComponent {
                 return false;
         }
 
-        for (Pair<ItemStack, DropRule> pair : this.items) {
-            if (!pair.getLeft().isEmpty())
+        for (Tuple<ItemStack, DropRule> pair : this.items) {
+            if (!pair.getA().isEmpty())
                 return false;
         }
         return true;
@@ -526,27 +525,27 @@ public class InventoryComponent {
         int size = 0;
 
         for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
-            for (Pair<ItemStack, DropRule> pair : compatComponent.getAsStackDropList()) {
-                if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE)
+            for (Tuple<ItemStack, DropRule> pair : compatComponent.getAsStackDropList()) {
+                if (!pair.getA().isEmpty() && pair.getB() == DropRule.PUT_IN_GRAVE)
                     ++size;
             }
         }
-        for (Pair<ItemStack, DropRule> pair : this.items) {
-            if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE)
+        for (Tuple<ItemStack, DropRule> pair : this.items) {
+            if (!pair.getA().isEmpty() && pair.getB() == DropRule.PUT_IN_GRAVE)
                 ++size;
         }
 
         return size;
     }
 
-    public DefaultedList<ItemStack> applyToPlayer(ServerPlayerEntity player) {
-        DefaultedList<ItemStack> extraItems = DefaultedList.of();
-        PlayerInventory inventory = player.getInventory();
+    public NonNullList<ItemStack> applyToPlayer(ServerPlayer player) {
+        NonNullList<ItemStack> extraItems = NonNullList.create();
+        Inventory inventory = player.getInventory();
 
         // Set vanilla inventory
-        int invMainSize = inventory.main.size();
+        int invMainSize = inventory.items.size();
         int invArmorSize = inventory.armor.size();
-        int invOffHandSize = inventory.offHand.size();
+        int invOffHandSize = inventory.offhand.size();
         for (int i = 0; i < this.items.size(); i++) {
             int groupIndex;
             int playerInvIndex;
@@ -564,12 +563,12 @@ public class InventoryComponent {
                 playerInvIndex = groupIndex + invMainSize + invArmorSize + invOffHandSize;
             }
 
-            ItemStack stack = this.items.get(i).getLeft().copy();
+            ItemStack stack = this.items.get(i).getA().copy();
 
-            if (playerInvIndex >= inventory.size() || playerInvIndex == -1) {
+            if (playerInvIndex >= inventory.getContainerSize() || playerInvIndex == -1) {
                 extraItems.add(stack);
             } else {
-                inventory.setStack(playerInvIndex, stack);
+                inventory.setItem(playerInvIndex, stack);
             }
         }
 
@@ -577,7 +576,7 @@ public class InventoryComponent {
         for (InvModCompat<?> modCompat : InvModCompat.invCompatMods) {
             String modName = modCompat.getModName();
             if (!this.modInventoryItems.containsKey(modName)) continue;
-            DefaultedList<ItemStack> extraModItems = this.modInventoryItems.get(modName).storeToPlayer(player);
+            NonNullList<ItemStack> extraModItems = this.modInventoryItems.get(modName).storeToPlayer(player);
             extraItems.addAll(extraModItems);
         }
 
@@ -585,9 +584,9 @@ public class InventoryComponent {
     }
 
     public InventoryComponent filteredInv(Predicate<DropRule> filter) {
-        DefaultedList<Pair<ItemStack, DropRule>> filteredItems = DefaultedList.of();
-        for (Pair<ItemStack, DropRule> pair : this.items) {
-            if (filter.test(pair.getRight())) {
+        NonNullList<Tuple<ItemStack, DropRule>> filteredItems = NonNullList.create();
+        for (Tuple<ItemStack, DropRule> pair : this.items) {
+            if (filter.test(pair.getB())) {
                 filteredItems.add(pair);
             } else {
                 filteredItems.add(EMPTY_ITEM_PAIR);
@@ -614,20 +613,20 @@ public class InventoryComponent {
         }
     }
 
-    public NbtCompound toNbt(RegistryWrapper.WrapperLookup lookupRegistry) {
-        NbtCompound nbt = new NbtCompound();
-        NbtCompound vanillaInventoryNbt = listToNbt(this.items, pair -> {
-            NbtCompound itemNbt = (NbtCompound) pair.getLeft().encode(lookupRegistry);
-            itemNbt.putString("dropRule", pair.getRight().name());
+    public CompoundTag toNbt(HolderLookup.Provider lookupRegistry) {
+        CompoundTag nbt = new CompoundTag();
+        CompoundTag vanillaInventoryNbt = listToNbt(this.items, pair -> {
+            CompoundTag itemNbt = (CompoundTag) pair.getA().save(lookupRegistry);
+            itemNbt.putString("dropRule", pair.getB().name());
 
             return itemNbt;
-        }, pair -> pair.getLeft().isEmpty());
+        }, pair -> pair.getA().isEmpty());
         
         vanillaInventoryNbt.putInt("mainSize", this.mainSize);
         vanillaInventoryNbt.putInt("armorSize", this.armorSize);
         vanillaInventoryNbt.putInt("offHandSize", this.offHandSize);
 
-        NbtCompound modInventoriesNbt = new NbtCompound();
+        CompoundTag modInventoriesNbt = new CompoundTag();
         for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
             String modName = compatMod.getModName();
             if (!this.modInventoryItems.containsKey(modName)) continue;
@@ -643,63 +642,63 @@ public class InventoryComponent {
         return nbt;
     }
 
-    public static InventoryComponent fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookupRegistry) {
-        NbtCompound vanillaInvNbt = nbt.getCompound("vanilla");
-        DefaultedList<Pair<ItemStack, DropRule>> items = listFromNbt(vanillaInvNbt, itemNbt -> {
-            ItemStack stack = ItemStack.fromNbtOrEmpty(lookupRegistry, itemNbt);
+    public static InventoryComponent fromNbt(CompoundTag nbt, HolderLookup.Provider lookupRegistry) {
+        CompoundTag vanillaInvNbt = nbt.getCompound("vanilla");
+        NonNullList<Tuple<ItemStack, DropRule>> items = listFromNbt(vanillaInvNbt, itemNbt -> {
+            ItemStack stack = ItemStack.parseOptional(lookupRegistry, itemNbt);
             DropRule dropRule = GraveOverrideAreas.INSTANCE.defaultDropRule;
             if (itemNbt.contains("dropRule")) {
                 dropRule = DropRule.valueOf(itemNbt.getString("dropRule"));
             }
-            return new Pair<>(stack, dropRule);
+            return new Tuple<>(stack, dropRule);
         }, EMPTY_ITEM_PAIR);
 
         int mainSize = vanillaInvNbt.getInt("mainSize");
         int armorSize = vanillaInvNbt.getInt("armorSize");
         int offHandSize = vanillaInvNbt.getInt("offHandSize");
 
-        NbtCompound modInventoriesNbt = nbt.getCompound("mods");
+        CompoundTag modInventoriesNbt = nbt.getCompound("mods");
         Map<String, CompatComponent<?>> compatComponents = new HashMap<>();
         for (InvModCompat<?> compatMod : InvModCompat.invCompatMods) {
             String modName = compatMod.getModName();
             if (!modInventoriesNbt.contains(modName)) continue;
-            NbtCompound modNbt = modInventoriesNbt.getCompound(modName);
+            CompoundTag modNbt = modInventoriesNbt.getCompound(modName);
             compatComponents.put(modName, compatMod.readNbt(modNbt, lookupRegistry));
         }
 
         return new InventoryComponent(items, compatComponents, mainSize, armorSize, offHandSize);
     }
 
-    public static <T> NbtCompound listToNbt(DefaultedList<T> list, Function<T, NbtCompound> mappingFunction, Predicate<T> isEmpty) {
+    public static <T> CompoundTag listToNbt(NonNullList<T> list, Function<T, CompoundTag> mappingFunction, Predicate<T> isEmpty) {
         return listToNbt(list, mappingFunction, isEmpty, "Items", "Slot");
     }
-    public static <T> NbtCompound listToNbt(DefaultedList<T> list, Function<T, NbtCompound> mappingFunction, Predicate<T> isEmpty, String listName, String itemName) {
-        NbtCompound nbt = new NbtCompound();
+    public static <T> CompoundTag listToNbt(NonNullList<T> list, Function<T, CompoundTag> mappingFunction, Predicate<T> isEmpty, String listName, String itemName) {
+        CompoundTag nbt = new CompoundTag();
         int size = list.size();
         nbt.putInt("size", size);
 
-        NbtList nbtList = new NbtList();
+        ListTag nbtList = new ListTag();
         for (int i = 0; i < size; i++) {
             T item = list.get(i);
             if (isEmpty.test(item)) continue;
 
-            NbtCompound itemNbt = mappingFunction.apply(item);
+            CompoundTag itemNbt = mappingFunction.apply(item);
             itemNbt.putInt(itemName, i);
             nbtList.add(itemNbt);
         }
         nbt.put(listName, nbtList);
         return nbt;
     }
-    public static <T> DefaultedList<T> listFromNbt(NbtCompound nbt, Function<NbtCompound, T> mappingFunction, T emptyValue) {
+    public static <T> NonNullList<T> listFromNbt(CompoundTag nbt, Function<CompoundTag, T> mappingFunction, T emptyValue) {
         return listFromNbt(nbt, mappingFunction, emptyValue, "Items", "Slot");
     }
-    public static <T> DefaultedList<T> listFromNbt(NbtCompound nbt, Function<NbtCompound, T> mappingFunction, T emptyValue, String listName, String itemName) {
+    public static <T> NonNullList<T> listFromNbt(CompoundTag nbt, Function<CompoundTag, T> mappingFunction, T emptyValue, String listName, String itemName) {
         int size = nbt.getInt("size");
-        DefaultedList<T> list = DefaultedList.ofSize(size, emptyValue);
+        NonNullList<T> list = NonNullList.withSize(size, emptyValue);
 
-        NbtList nbtList = nbt.getList(listName, NbtElement.COMPOUND_TYPE);
-        for (NbtElement element : nbtList) {
-            NbtCompound itemNbt = (NbtCompound) element;
+        ListTag nbtList = nbt.getList(listName, Tag.TAG_COMPOUND);
+        for (Tag element : nbtList) {
+            CompoundTag itemNbt = (CompoundTag) element;
             int index = itemNbt.getInt(itemName);
             T item = mappingFunction.apply(itemNbt);
             list.set(index, item);
@@ -708,15 +707,15 @@ public class InventoryComponent {
         return list;
     }
 
-    public static void dropItemIfToBeDropped(ItemStack stack, double x, double y, double z, ServerWorld world) {
+    public static void dropItemIfToBeDropped(ItemStack stack, double x, double y, double z, ServerLevel world) {
         if (DropItemEvent.EVENT.invoker().shouldDropItem(stack, x, y, z, world))
-            ItemScatterer.spawn(world, x, y, z, stack.copy());
+            Containers.dropItemStack(world, x, y, z, stack.copy());
     }
 
-    public static void clearPlayer(ServerPlayerEntity player) {
-        PlayerInventory inventory = player.getInventory();
-        for (int i = 0; i < inventory.size(); i++) {
-            inventory.setStack(i, ItemStack.EMPTY);
+    public static void clearPlayer(ServerPlayer player) {
+        Inventory inventory = player.getInventory();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            inventory.setItem(i, ItemStack.EMPTY);
         }
 
         for (InvModCompat<?> invModCompat : InvModCompat.invCompatMods) {

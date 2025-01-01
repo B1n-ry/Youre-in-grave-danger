@@ -10,10 +10,10 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.component.ResolvableProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +26,9 @@ public class ServerEventHandler {
             // Clear and load from new stored data
             DeathInfoManager.INSTANCE.clear();
 
-            ServerWorld overworld = server.getOverworld();
-            DeathInfoManager.INSTANCE = overworld.getPersistentStateManager().getOrCreate(DeathInfoManager.getPersistentStateType(server), "yigd_data");
-            DeathInfoManager.INSTANCE.markDirty();
+            ServerLevel overworld = server.overworld();
+            DeathInfoManager.INSTANCE = overworld.getDataStorage().computeIfAbsent(DeathInfoManager.getPersistentStateType(server), "yigd_data");
+            DeathInfoManager.INSTANCE.setDirty();
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
@@ -36,7 +36,7 @@ public class ServerEventHandler {
 
             BeforeSoulboundEvent.EVENT.invoker().beforeSoulbound(oldPlayer, newPlayer);
 
-            ProfileComponent newProfile = new ProfileComponent(newPlayer.getGameProfile());
+            ResolvableProfile newProfile = new ResolvableProfile(newPlayer.getGameProfile());
             Optional<RespawnComponent> respawnComponent = DeathInfoManager.INSTANCE.getRespawnComponent(newProfile);
             respawnComponent.ifPresent(component -> component.apply(newPlayer));
 
@@ -46,9 +46,9 @@ public class ServerEventHandler {
                 if (!graves.isEmpty()) {
                     GraveComponent latest = graves.getLast();
                     BlockPos gravePos = latest.getPos();
-                    newPlayer.sendMessage(Text.translatable("text.yigd.message.grave_location",
+                    newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location",
                             gravePos.getX(), gravePos.getY(), gravePos.getZ(),
-                            latest.getWorldRegistryKey().getValue().toString()));
+                            latest.getWorldRegistryKey().location().toString()));
                 }
             }
         });
@@ -65,21 +65,21 @@ public class ServerEventHandler {
             YigdConfig config = YigdConfig.getConfig();
             if (!config.graveConfig.sellOutOfflinePeople) return;
 
-            ProfileComponent loggedOffProfile = new ProfileComponent(handler.player.getGameProfile());
+            ResolvableProfile loggedOffProfile = new ResolvableProfile(handler.player.getGameProfile());
             List<GraveComponent> loggedOffGraves = DeathInfoManager.INSTANCE.getBackupData(loggedOffProfile);
             List<GraveComponent> loggedOffUnclaimed = new ArrayList<>(loggedOffGraves);
             loggedOffGraves.removeIf(c -> c.getStatus() == GraveStatus.UNCLAIMED);
             if (!loggedOffUnclaimed.isEmpty()) {
                 GraveComponent component = loggedOffUnclaimed.getFirst();
                 BlockPos lastGravePos = component.getPos();
-                server.sendMessage(Text.translatable("text.yigd.message.sellout_player",
+                server.sendSystemMessage(Component.translatable("text.yigd.message.sellout_player",
                         loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
-                        component.getWorldRegistryKey().getValue().toString()));
+                        component.getWorldRegistryKey().location().toString()));
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             YigdConfig.GraveConfig.GraveRobbing robConfig = YigdConfig.getConfig().graveConfig.graveRobbing;
-            UUID joiningId = handler.player.getUuid();
+            UUID joiningId = handler.player.getUUID();
 
             if (!Yigd.NOT_NOTIFIED_ROBBERIES.containsKey(joiningId)) return;
 
@@ -87,11 +87,11 @@ public class ServerEventHandler {
             if (robConfig.tellWhoRobbed) {
                 List<String> robbedBy = Yigd.NOT_NOTIFIED_ROBBERIES.remove(joiningId);
                 for (String robber : robbedBy) {
-                    handler.player.sendMessage(Text.translatable("text.yigd.message.inform_robbery.with_details", robber));
+                    handler.player.sendSystemMessage(Component.translatable("text.yigd.message.inform_robbery.with_details", robber));
                 }
             } else {
                 Yigd.NOT_NOTIFIED_ROBBERIES.remove(joiningId);
-                handler.player.sendMessage(Text.translatable("text.yigd.message.inform_robbery"));
+                handler.player.sendSystemMessage(Component.translatable("text.yigd.message.inform_robbery"));
             }
         });
     }

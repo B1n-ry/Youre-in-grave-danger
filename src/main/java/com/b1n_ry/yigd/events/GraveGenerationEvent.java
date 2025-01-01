@@ -2,8 +2,8 @@ package com.b1n_ry.yigd.events;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 
 public interface GraveGenerationEvent {
     Event<GraveGenerationEvent> EVENT = EventFactory.createArrayBacked(GraveGenerationEvent.class, graveGenerationEvents -> (world, pos, nthTry) -> {
@@ -23,5 +23,5 @@ public interface GraveGenerationEvent {
      *               good.
      * @return Weather or not the grave can generate at the given position under the given attempt number/iteration
      */
-    boolean canGenerateAt(ServerWorld world, BlockPos pos, int nthTry);
+    boolean canGenerateAt(ServerLevel world, BlockPos pos, int nthTry);
 }

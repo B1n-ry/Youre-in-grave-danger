@@ -1,15 +1,15 @@
 package com.b1n_ry.yigd.networking;
 
 import com.b1n_ry.yigd.data.GraveStatus;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import java.util.UUID;
 
@@ -18,55 +18,55 @@ import java.util.UUID;
  * @param itemCount Amount of items in total on the player
  * @param pos {@link BlockPos} where the player died
  * @param xpPoints How much XP the player had
- * @param registryKey {@link RegistryKey<World>} of the world player died in
- * @param deathMessage {@link Text} of the player's death message
+ * @param registryKey {@link ResourceKey<Level>} of the world player died in
+ * @param deathMessage {@link Component} of the player's death message
  * @param id The grave {@link UUID}
  * @param status The availability status of the grave
  */
-public record LightGraveData(int itemCount, BlockPos pos, int xpPoints, RegistryKey<World> registryKey,
-                             Text deathMessage, UUID id, GraveStatus status) {
+public record LightGraveData(int itemCount, BlockPos pos, int xpPoints, ResourceKey<Level> registryKey,
+                             Component deathMessage, UUID id, GraveStatus status) {
 
-    public static LightGraveData fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+    public static LightGraveData fromNbt(CompoundTag nbt, HolderLookup.Provider registryLookup) {
         if (nbt == null) {
-            return new LightGraveData(0, BlockPos.ORIGIN, 0, World.OVERWORLD, Text.empty(), UUID.randomUUID(), GraveStatus.CLAIMED);
+            return new LightGraveData(0, BlockPos.ZERO, 0, Level.OVERWORLD, Component.empty(), UUID.randomUUID(), GraveStatus.CLAIMED);
         }
         int itemCount = nbt.getInt("itemCount");
-        BlockPos pos = NbtHelper.toBlockPos(nbt, "pos").orElse(BlockPos.ORIGIN);
+        BlockPos pos = NbtUtils.readBlockPos(nbt, "pos").orElse(BlockPos.ZERO);
         int xpPoints = nbt.getInt("xpPoints");
-        RegistryKey<World> registryKey = getRegistryKeyFromNbt(nbt.getCompound("worldKey"));
-        Text deathMessage = Text.Serialization.fromJson(nbt.getString("deathMessage"), registryLookup);
-        UUID id = nbt.getUuid("id");
+        ResourceKey<Level> registryKey = getRegistryKeyFromNbt(nbt.getCompound("worldKey"));
+        Component deathMessage = Component.Serializer.fromJson(nbt.getString("deathMessage"), registryLookup);
+        UUID id = nbt.getUUID("id");
         GraveStatus status = GraveStatus.valueOf(nbt.getString("status"));
 
         return new LightGraveData(itemCount, pos, xpPoints, registryKey, deathMessage, id, status);
     }
 
-    public NbtCompound toNbt(RegistryWrapper.WrapperLookup registryLookup) {
-        NbtCompound nbt = new NbtCompound();
+    public CompoundTag toNbt(HolderLookup.Provider registryLookup) {
+        CompoundTag nbt = new CompoundTag();
         nbt.putInt("itemCount", this.itemCount);
-        nbt.put("pos", NbtHelper.fromBlockPos(this.pos));
+        nbt.put("pos", NbtUtils.writeBlockPos(this.pos));
         nbt.putInt("xpPoints", this.xpPoints);
         nbt.put("worldKey", this.getWorldRegistryKeyNbt(this.registryKey));
-        nbt.putString("deathMessage", Text.Serialization.toJsonString(this.deathMessage, registryLookup));
-        nbt.putUuid("id", this.id);
+        nbt.putString("deathMessage", Component.Serializer.toJson(this.deathMessage, registryLookup));
+        nbt.putUUID("id", this.id);
         nbt.putString("status", this.status.toString());
 
         return nbt;
     }
 
-    private NbtCompound getWorldRegistryKeyNbt(RegistryKey<?> key) {
-        NbtCompound nbt = new NbtCompound();
-        nbt.putString("registry", key.getRegistry().toString());
-        nbt.putString("value", key.getValue().toString());
+    private CompoundTag getWorldRegistryKeyNbt(ResourceKey<?> key) {
+        CompoundTag nbt = new CompoundTag();
+        nbt.putString("registry", key.registry().toString());
+        nbt.putString("value", key.location().toString());
 
         return nbt;
     }
 
-    private static RegistryKey<World> getRegistryKeyFromNbt(NbtCompound nbt) {
+    private static ResourceKey<Level> getRegistryKeyFromNbt(CompoundTag nbt) {
         String registry = nbt.getString("registry");
         String value = nbt.getString("value");
 
-        RegistryKey<Registry<World>> r = RegistryKey.ofRegistry(Identifier.of(registry));
-        return RegistryKey.of(r, Identifier.of(value));
+        ResourceKey<Registry<Level>> r = ResourceKey.createRegistryKey(ResourceLocation.parse(registry));
+        return ResourceKey.create(r, ResourceLocation.parse(value));
     }
 }

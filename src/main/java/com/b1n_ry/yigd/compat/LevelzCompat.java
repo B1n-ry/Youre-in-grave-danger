@@ -5,12 +5,12 @@ import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.util.DropRule;
 import net.levelz.access.LevelManagerAccess;
 import net.levelz.level.LevelManager;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Predicate;
 
@@ -21,25 +21,25 @@ public class LevelzCompat implements InvModCompat<Float> {
     }
 
     @Override
-    public void clear(ServerPlayerEntity player) {
+    public void clear(ServerPlayer player) {
         LevelManager manager = ((LevelManagerAccess) player).getLevelManager();
         manager.setLevelProgress(0);
     }
 
     @Override
-    public CompatComponent<Float> readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+    public CompatComponent<Float> readNbt(CompoundTag nbt, HolderLookup.Provider registryLookup) {
         float value = nbt.getFloat("value");
         return new LevelzCompatComponent(value);
     }
 
     @Override
-    public CompatComponent<Float> getNewComponent(ServerPlayerEntity player) {
+    public CompatComponent<Float> getNewComponent(ServerPlayer player) {
         return new LevelzCompatComponent(player);
     }
 
     private static class LevelzCompatComponent extends CompatComponent<Float> {
 
-        public LevelzCompatComponent(ServerPlayerEntity player) {
+        public LevelzCompatComponent(ServerPlayer player) {
             super(player);
         }
 
@@ -48,23 +48,23 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public Float getInventory(ServerPlayerEntity player) {
+        public Float getInventory(ServerPlayer player) {
             LevelManager manager = ((LevelManagerAccess) player).getLevelManager();
 
             return manager.getLevelProgress();
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
+        public NonNullList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
             this.inventory += (float) mergingComponent.inventory;
-            return DefaultedList.of();
+            return NonNullList.create();
         }
 
         @Override
-        public DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player) {
+        public NonNullList<ItemStack> storeToPlayer(ServerPlayer player) {
             LevelManager manager = ((LevelManagerAccess) player).getLevelManager();
             manager.setLevelProgress(this.inventory);
-            return DefaultedList.of();
+            return NonNullList.create();
         }
 
         @Override
@@ -74,8 +74,8 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
-            return DefaultedList.of();
+        public NonNullList<Tuple<ItemStack, DropRule>> getAsStackDropList() {
+            return NonNullList.create();
         }
 
         @Override
@@ -103,8 +103,8 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public NbtCompound writeNbt(RegistryWrapper.WrapperLookup registryLookup) {
-            NbtCompound nbt = new NbtCompound();
+        public CompoundTag writeNbt(HolderLookup.Provider registryLookup) {
+            CompoundTag nbt = new CompoundTag();
             nbt.putFloat("value", this.inventory);
             return nbt;
         }

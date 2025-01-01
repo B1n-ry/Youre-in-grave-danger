@@ -2,7 +2,7 @@ package com.b1n_ry.yigd.events;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 public interface BeforeSoulboundEvent {
     Event<BeforeSoulboundEvent> EVENT = EventFactory.createArrayBacked(BeforeSoulboundEvent.class, events -> (oldPlayer, newPlayer) -> {
@@ -11,5 +11,5 @@ public interface BeforeSoulboundEvent {
         }
     });
 
-    void beforeSoulbound(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer);
+    void beforeSoulbound(ServerPlayer oldPlayer, ServerPlayer newPlayer);
 }

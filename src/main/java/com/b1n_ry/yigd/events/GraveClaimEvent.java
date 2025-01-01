@@ -3,10 +3,10 @@ package com.b1n_ry.yigd.events;
 import com.b1n_ry.yigd.components.GraveComponent;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 public interface GraveClaimEvent {
     Event<GraveClaimEvent> EVENT = EventFactory.createArrayBacked(GraveClaimEvent.class, graveClaimEvents -> (player, world, pos, grave, tool) -> {
@@ -17,5 +17,5 @@ public interface GraveClaimEvent {
         return allow;
     });
 
-    boolean canClaim(ServerPlayerEntity player, ServerWorld world, BlockPos pos, GraveComponent grave, ItemStack tool);
+    boolean canClaim(ServerPlayer player, ServerLevel world, BlockPos pos, GraveComponent grave, ItemStack tool);
 }

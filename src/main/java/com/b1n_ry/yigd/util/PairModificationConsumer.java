@@ -1,9 +1,10 @@
 package com.b1n_ry.yigd.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Pair;
+
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
 
 @FunctionalInterface
 public interface PairModificationConsumer {
-    void accept(ItemStack stack, int slot, Pair<ItemStack, DropRule> pair);
+    void accept(ItemStack stack, int slot, Tuple<ItemStack, DropRule> pair);
 }

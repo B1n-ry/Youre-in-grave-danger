@@ -14,13 +14,13 @@ import io.github.cottonmc.cotton.gui.widget.WTextField;
 import io.github.cottonmc.cotton.gui.widget.data.Insets;
 import io.github.cottonmc.cotton.gui.widget.icon.ItemIcon;
 import io.github.cottonmc.cotton.gui.widget.icon.TextureIcon;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ResolvableProfile;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         root.setInsets(Insets.ROOT_PANEL);
         root.setGaps(5, 5);
 
-        WLabel label = new WLabel(Text.translatable("text.yigd.gui.players_on_server"));
+        WLabel label = new WLabel(Component.translatable("text.yigd.gui.players_on_server"));
         root.add(label, 0, 0);
 
         WFilterableListPanel<LightPlayerData, WCardButton> listPanel = this.addFilterList(root);
@@ -57,18 +57,18 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
         ItemIcon defaultIcon = new ItemIcon(Items.PLAYER_HEAD.asItem());
         WFilterableListPanel<LightPlayerData, WCardButton> listPanel = new WFilterableListPanel<>(this.data,
                 () -> new WCardButton(defaultIcon), (playerData, wCardButton) -> {
-            ProfileComponent profile = playerData.playerProfile();
+            ResolvableProfile profile = playerData.playerProfile();
             ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
 
-            skull.set(DataComponentTypes.PROFILE, profile);
+            skull.set(DataComponents.PROFILE, profile);
 
             ItemIcon icon = new ItemIcon(skull);
             wCardButton.setIcon(icon);
-            wCardButton.setCardText(Text.translatable("text.yigd.gui.player_name", profile.name().orElse("PLAYER_NOT_FOUND")));
+            wCardButton.setCardText(Component.translatable("text.yigd.gui.player_name", profile.name().orElse("PLAYER_NOT_FOUND")));
             wCardButton.setTooltipText(List.of(
-                    Text.translatable("text.yigd.gui.unclaimed_count", playerData.unclaimedCount()),
-                    Text.translatable("text.yigd.gui.destroyed_count", playerData.destroyedCount()),
-                    Text.translatable("text.yigd.gui.total_count", playerData.graveCount())
+                    Component.translatable("text.yigd.gui.unclaimed_count", playerData.unclaimedCount()),
+                    Component.translatable("text.yigd.gui.destroyed_count", playerData.destroyedCount()),
+                    Component.translatable("text.yigd.gui.total_count", playerData.graveCount())
             ));
 
             wCardButton.setOnClick(() -> ClientPacketHandler.sendGraveSelectionRequest(profile));
@@ -80,15 +80,15 @@ public class PlayerSelectionGui extends LightweightGuiDescription {
     }
     private void addFilterButton(WGridPanel root, WFilterableListPanel<LightPlayerData, WCardButton> filterableList) {
         ItemIcon allIcon = new ItemIcon(Items.BARRIER.asItem());
-        TextureIcon claimedIcon = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/claimed_grave.png"));
-        TextureIcon unclaimedIcon = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"));
-        TextureIcon destroyedIcon = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"));
+        TextureIcon claimedIcon = new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/claimed_grave.png"));
+        TextureIcon unclaimedIcon = new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"));
+        TextureIcon destroyedIcon = new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"));
 
         WCardPanel cardPanel = new WCardPanel();
-        WHoverButton showAllButton = new WHoverButton(allIcon, Text.translatable("button.yigd.gui.showing_with_data"));
-        WHoverButton showClaimedButton = new WHoverButton(claimedIcon, Text.translatable("button.yigd.gui.showing_with_claimed"));
-        WHoverButton showUnclaimedButton = new WHoverButton(unclaimedIcon, Text.translatable("button.yigd.gui.showing_with_unclaimed"));
-        WHoverButton showDestroyedButton = new WHoverButton(destroyedIcon, Text.translatable("button.yigd.gui.showing_with_destroyed"));
+        WHoverButton showAllButton = new WHoverButton(allIcon, Component.translatable("button.yigd.gui.showing_with_data"));
+        WHoverButton showClaimedButton = new WHoverButton(claimedIcon, Component.translatable("button.yigd.gui.showing_with_claimed"));
+        WHoverButton showUnclaimedButton = new WHoverButton(unclaimedIcon, Component.translatable("button.yigd.gui.showing_with_unclaimed"));
+        WHoverButton showDestroyedButton = new WHoverButton(destroyedIcon, Component.translatable("button.yigd.gui.showing_with_destroyed"));
 
         cardPanel.add(showAllButton);
         cardPanel.add(showClaimedButton);

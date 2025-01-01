@@ -13,15 +13,15 @@ import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
 import io.github.cottonmc.cotton.gui.widget.*;
 import io.github.cottonmc.cotton.gui.widget.data.Insets;
 import io.github.cottonmc.cotton.gui.widget.icon.TextureIcon;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.awt.*;
 import java.util.HashSet;
@@ -109,9 +109,9 @@ public class GraveOverviewGui extends LightweightGuiDescription {
     }
 
     private void addItemSlots() {
-        DefaultedList<ItemStack> items = DefaultedList.of();
-        for (Pair<ItemStack, DropRule> pair : this.visibleInventoryComponent.getItems()) {
-            items.add(pair.getLeft());
+        NonNullList<ItemStack> items = NonNullList.create();
+        for (Tuple<ItemStack, DropRule> pair : this.visibleInventoryComponent.getItems()) {
+            items.add(pair.getA());
         }
 
         items.addAll(this.visibleInventoryComponent.getAllExtraItems(true));
@@ -168,26 +168,26 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
     private void addCoordinates(int x) {
         BlockPos pos = this.graveComponent.getPos();
-        WText coordinates = new WText(Text.of("X: %d / Y: %d / Z: %d".formatted(pos.getX(), pos.getY(), pos.getZ())));
+        WText coordinates = new WText(Component.nullToEmpty("X: %d / Y: %d / Z: %d".formatted(pos.getX(), pos.getY(), pos.getZ())));
 
         this.invPanel.add(coordinates, x, GraveOverviewGui.SLOT_SIZE, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
     }
 
     private void addDimension(int x) {
-        RegistryKey<World> key = this.graveComponent.getWorldRegistryKey();
-        String dimId = key.getValue().toString();
-        WText dimension = new WText(Text.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId));
+        ResourceKey<Level> key = this.graveComponent.getWorldRegistryKey();
+        String dimId = key.registry().toString();
+        WText dimension = new WText(Component.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId));
 
         this.invPanel.add(dimension, x, 36, SLOTS_PER_LINE * SLOT_SIZE - 2 * x, SLOT_SIZE);
     }
 
     private void addXpInfo(int x) {
-        WSprite xpIcon = new WSprite(Identifier.of(Yigd.MOD_ID, "textures/gui/exp_orb.png"));
+        WSprite xpIcon = new WSprite(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/exp_orb.png"));
         int spriteSize = (int) (SLOT_SIZE * 0.7);
         this.invPanel.add(xpIcon, x, 54, spriteSize, spriteSize);
 
         int level = this.graveComponent.getExpComponent().getXpLevel();
-        Text text = Text.of(String.valueOf(level));
+        Component text = Component.nullToEmpty(String.valueOf(level));
 
         // Create outline 1 pixel to each side
         WText bgTextUp = new WText(text, 0x000000);
@@ -207,7 +207,7 @@ public class GraveOverviewGui extends LightweightGuiDescription {
         this.invPanel.add(wText, textX, textY);
     }
 
-    private void addItemSlot(WPlainPanel root, int fromIndex, int amount, DefaultedList<ItemStack> items, Function<Integer, Point> posCalculation) {
+    private void addItemSlot(WPlainPanel root, int fromIndex, int amount, NonNullList<ItemStack> items, Function<Integer, Point> posCalculation) {
         for (int i = 0; i < amount; i++) {
             Point pos = posCalculation.apply(i);
 
@@ -221,30 +221,30 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
     private void addButtons(boolean restoreBtn, boolean robBtn, boolean deleteBtn, boolean lockingBtn,
                             boolean obtainableKeys, boolean obtainableCompass) {
-        WHoverToggleButton viewGraveItems = new WHoverToggleButton(new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png")),
-                Text.translatable("button.yigd.gui.view_grave_items"), new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png")),
-                Text.translatable("button.yigd.gui.hide_grave_items"));
-        WHoverToggleButton viewDeletedItems = new WHoverToggleButton(new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/trashcan_icon.png")),
-                Text.translatable("button.yigd.gui.view_deleted_items"), new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/trashcan_icon_cross.png")),
-                Text.translatable("button.yigd.gui.hide_deleted_items"));
-        WHoverToggleButton viewSoulboundItems = new WHoverToggleButton(new TextureIcon(Identifier.of("textures/item/enchanted_book.png")),
-                Text.translatable("button.yigd.gui.view_soulbound_items"), new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/enchanted_book_cross.png")),
-                Text.translatable("button.yigd.gui.hide_soulbound_items"));
-        WHoverToggleButton viewDroppedItems = new WHoverToggleButton(new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/drop_icon.png")),
-                Text.translatable("button.yigd.gui.view_dropped_items"), new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/drop_icon_cross.png")),
-                Text.translatable("button.yigd.gui.hide_dropped_items"));
+        WHoverToggleButton viewGraveItems = new WHoverToggleButton(new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png")),
+                Component.translatable("button.yigd.gui.view_grave_items"), new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png")),
+                Component.translatable("button.yigd.gui.hide_grave_items"));
+        WHoverToggleButton viewDeletedItems = new WHoverToggleButton(new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/trashcan_icon.png")),
+                Component.translatable("button.yigd.gui.view_deleted_items"), new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/trashcan_icon_cross.png")),
+                Component.translatable("button.yigd.gui.hide_deleted_items"));
+        WHoverToggleButton viewSoulboundItems = new WHoverToggleButton(new TextureIcon(ResourceLocation.withDefaultNamespace("textures/item/enchanted_book.png")),
+                Component.translatable("button.yigd.gui.view_soulbound_items"), new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/enchanted_book_cross.png")),
+                Component.translatable("button.yigd.gui.hide_soulbound_items"));
+        WHoverToggleButton viewDroppedItems = new WHoverToggleButton(new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/drop_icon.png")),
+                Component.translatable("button.yigd.gui.view_dropped_items"), new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/drop_icon_cross.png")),
+                Component.translatable("button.yigd.gui.hide_dropped_items"));
 
-        WHoverButton restoreButton = new WHoverButton(new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/restore_btn.png")), Text.translatable("button.yigd.gui.restore"));
-        WHoverButton robButton = new WHoverButton(new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/rob_btn.png")), Text.translatable("button.yigd.gui.rob"));
-        WHoverButton deleteButton = new WHoverButton(new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/trashcan_icon.png")), Text.translatable("button.yigd.gui.delete"));
+        WHoverButton restoreButton = new WHoverButton(new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/restore_btn.png")), Component.translatable("button.yigd.gui.restore"));
+        WHoverButton robButton = new WHoverButton(new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/rob_btn.png")), Component.translatable("button.yigd.gui.rob"));
+        WHoverButton deleteButton = new WHoverButton(new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/trashcan_icon.png")), Component.translatable("button.yigd.gui.delete"));
 
-        TextureIcon lockingIconOn = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/locked_btn.png"));
-        TextureIcon lockingIconOff = new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/gui/unlocked_btn.png"));
-        WHoverToggleButton lockingButton = new WHoverToggleButton(lockingIconOn, Text.translatable("button.yigd.gui.locked"), lockingIconOff, Text.translatable("button.yigd.gui.unlocked"));
+        TextureIcon lockingIconOn = new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/locked_btn.png"));
+        TextureIcon lockingIconOff = new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/unlocked_btn.png"));
+        WHoverToggleButton lockingButton = new WHoverToggleButton(lockingIconOn, Component.translatable("button.yigd.gui.locked"), lockingIconOff, Component.translatable("button.yigd.gui.unlocked"));
         lockingButton.setToggle(this.graveComponent.isLocked());
 
-        WHoverButton obtainKeysButton = new WHoverButton(new TextureIcon(Identifier.of(Yigd.MOD_ID, "textures/item/grave_key.png")), Text.translatable("button.yigd.gui.obtain_keys"));
-        WHoverButton obtainCompassButton = new WHoverButton(new TextureIcon(Identifier.of("textures/item/recovery_compass_18.png")), Text.translatable("button.yigd.gui.obtain_compass"));
+        WHoverButton obtainKeysButton = new WHoverButton(new TextureIcon(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/item/grave_key.png")), Component.translatable("button.yigd.gui.obtain_keys"));
+        WHoverButton obtainCompassButton = new WHoverButton(new TextureIcon(ResourceLocation.withDefaultNamespace("textures/item/recovery_compass_18.png")), Component.translatable("button.yigd.gui.obtain_compass"));
 
         UUID graveId = this.graveComponent.getGraveId();
 

@@ -6,22 +6,22 @@ import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.ScrollConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.networking.ServerPacketHandler;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.UseAction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -32,112 +32,113 @@ import java.util.UUID;
 public class DeathScrollItem extends Item {
     private static final int USE_TIME_MARGIN = 3;
 
-    public DeathScrollItem(Settings settings) {
+    public DeathScrollItem(Properties settings) {
         super(settings);
     }
 
+
     @Override
-    public void onCraftByPlayer(ItemStack stack, World world, PlayerEntity player) {
-        if (!world.isClient) {
-            this.bindStackToLatestDeath((ServerPlayerEntity) player, stack);
+    public void onCraftedBy(ItemStack stack, Level world, Player player) {
+        if (!world.isClientSide) {
+            this.bindStackToLatestDeath((ServerPlayer) player, stack);
         }
-        super.onCraftByPlayer(stack, world, player);
+        super.onCraftedBy(stack, world, player);
     }
 
     @Override
-    public boolean isEnabled(FeatureSet enabledFeatures) {
+    public boolean isEnabled(FeatureFlagSet enabledFeatures) {
         return YigdConfig.getConfig().extraFeatures.deathScroll.enabled;
     }
 
     @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack, LivingEntity user) {
         return YigdConfig.getConfig().extraFeatures.deathScroll.useTime + USE_TIME_MARGIN;
     }
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.BOW;
+    public @NotNull UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.BOW;
     }
     @Override
-    public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+    public void onUseTick(Level world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
         if (remainingUseTicks < USE_TIME_MARGIN) {
             user.stopUsingItem();
         }
     }
     @Override
-    public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
-        float f = (float) (this.getMaxUseTime(stack, user) - remainingUseTicks) / (float) (this.getMaxUseTime(stack, user) - USE_TIME_MARGIN);
-        if (f >= 1.0F && user instanceof PlayerEntity player) {
-            Hand hand = player.getStackInHand(Hand.MAIN_HAND).equals(stack) ? Hand.MAIN_HAND : Hand.OFF_HAND;
+    public void releaseUsing(ItemStack stack, Level world, LivingEntity user, int remainingUseTicks) {
+        float f = (float) (this.getUseDuration(stack, user) - remainingUseTicks) / (float) (this.getUseDuration(stack, user) - USE_TIME_MARGIN);
+        if (f >= 1.0F && user instanceof Player player) {
+            InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND).equals(stack) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
             this.useAction(world, player, hand);
             return;
         }
-        super.onStoppedUsing(stack, world, user, remainingUseTicks);
+        super.releaseUsing(stack, world, user, remainingUseTicks);
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (world.isClient) return super.use(world, user, hand);
+    public @NotNull InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+        if (world.isClientSide) return super.use(world, user, hand);
 
         ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
 
-        ServerPlayerEntity player = (ServerPlayerEntity) user;
-        ItemStack scroll = player.getStackInHand(hand);
-        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
-        NbtCompound scrollNbt = scrollNbtComponent != null ? scrollNbtComponent.copyNbt() : null;
+        ServerPlayer player = (ServerPlayer) user;
+        ItemStack scroll = player.getItemInHand(hand);
+        CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
+        CompoundTag scrollNbt = scrollNbtComponent != null ? scrollNbtComponent.copyTag() : null;
         // Rebind if the player is sneaking (and it can be rebound), or if the scroll is unbound
-        if ((scrollConfig.rebindable && player.isSneaking()) || scrollNbt == null || !scrollNbt.contains("grave")) {
+        if ((scrollConfig.rebindable && player.isShiftKeyDown()) || scrollNbt == null || !scrollNbt.contains("grave")) {
             if (this.bindStackToLatestDeath(player, scroll))
-                return TypedActionResult.success(scroll, true);
+                return InteractionResultHolder.sidedSuccess(scroll, true);
         }
 
-        if (player.getItemCooldownManager().isCoolingDown(this)) return TypedActionResult.fail(scroll);
+        if (player.getCooldowns().isOnCooldown(this)) return InteractionResultHolder.fail(scroll);
         if (YigdConfig.getConfig().extraFeatures.deathScroll.useTime > 0) {
-            user.setCurrentHand(hand);
+            user.startUsingItem(hand);
         } else {
             return this.useAction(world, user, hand);
         }
-        return TypedActionResult.consume(scroll);
+        return InteractionResultHolder.consume(scroll);
     }
-    private TypedActionResult<ItemStack> useAction(World world, @NotNull PlayerEntity user, @NotNull Hand hand) {
-        if (world.isClient) return super.use(world, user, hand);
+    private InteractionResultHolder<ItemStack> useAction(Level world, @NotNull Player user, @NotNull InteractionHand hand) {
+        if (world.isClientSide) return super.use(world, user, hand);
         ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
-        ServerPlayerEntity player = (ServerPlayerEntity) user;
-        ItemStack scroll = player.getStackInHand(hand);
-        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
-        NbtCompound scrollNbt = scrollNbtComponent != null ? scrollNbtComponent.copyNbt() : null;
+        ServerPlayer player = (ServerPlayer) user;
+        ItemStack scroll = player.getItemInHand(hand);
+        CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
+        CompoundTag scrollNbt = scrollNbtComponent != null ? scrollNbtComponent.copyTag() : null;
 
         ScrollConfig.ClickFunction clickFunction = scrollConfig.clickFunction;
         if (scrollNbt != null && scrollNbt.contains("clickFunction") && !scrollNbt.getString("clickFunction").equals("default")) {
             clickFunction = ScrollConfig.ClickFunction.valueOf(scrollNbt.getString("clickFunction"));
         }
 
-        TypedActionResult<ItemStack> res = switch (clickFunction) {
+        InteractionResultHolder<ItemStack> res = switch (clickFunction) {
             case VIEW_CONTENTS -> this.viewContent(scroll, player);
             case RESTORE_CONTENTS -> this.restoreContent(scroll, player);
             case TELEPORT_TO_LOCATION -> this.teleport(scroll, player);
         };
-        if (res.getResult() != ActionResult.PASS) {  // If the action was successful/failed or something other than 'standard'
-            if (YigdConfig.getConfig().extraFeatures.deathScroll.consumeOnUse && res.getResult() != ActionResult.CONSUME)
-                scroll.decrement(1);
+        if (res.getResult() != InteractionResult.PASS) {  // If the action was successful/failed or something other than 'standard'
+            if (YigdConfig.getConfig().extraFeatures.deathScroll.consumeOnUse && res.getResult() != InteractionResult.CONSUME)
+                scroll.shrink(1);
             return res;
         }
 
-        player.getItemCooldownManager().set(this, scrollConfig.useCooldown);
+        player.getCooldowns().addCooldown(this, scrollConfig.useCooldown);
         return res;
     }
 
-    public boolean bindStackToLatestDeath(ServerPlayerEntity player, ItemStack scroll) {
+    public boolean bindStackToLatestDeath(ServerPlayer player, ItemStack scroll) {
         if (player == null) return false;  // Idk how some mods do auto-crafting, but this could fix some issues if they just pass null
 
-        ProfileComponent playerProfile = new ProfileComponent(player.getGameProfile());
+        ResolvableProfile playerProfile = new ResolvableProfile(player.getGameProfile());
         List<GraveComponent> graves = new ArrayList<>(DeathInfoManager.INSTANCE.getBackupData(playerProfile));
         graves.removeIf(component -> component.getStatus() != GraveStatus.UNCLAIMED);
 
         int size = graves.size();
         if (size >= 1) {
             GraveComponent component = graves.get(size - 1);
-            scroll.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbtCompound -> {
-                nbtCompound.putUuid("grave", component.getGraveId());
+            scroll.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY, comp -> comp.update(nbtCompound -> {
+                nbtCompound.putUUID("grave", component.getGraveId());
                 nbtCompound.putString("clickFunction", "default");
             }));
             return true;
@@ -145,50 +146,50 @@ public class DeathScrollItem extends Item {
         return false;
     }
 
-    private TypedActionResult<ItemStack> viewContent(ItemStack scroll, ServerPlayerEntity player) {
-        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
-        if (scrollNbtComponent == null) return TypedActionResult.pass(scroll);
+    private InteractionResultHolder<ItemStack> viewContent(ItemStack scroll, ServerPlayer player) {
+        CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
+        if (scrollNbtComponent == null) return InteractionResultHolder.pass(scroll);
 
-        NbtCompound scrollNbt = scrollNbtComponent.copyNbt();
+        CompoundTag scrollNbt = scrollNbtComponent.copyTag();
 
-        UUID graveId = scrollNbt.getUuid("grave");
+        UUID graveId = scrollNbt.getUUID("grave");
         Optional<GraveComponent> optional = DeathInfoManager.INSTANCE.getGrave(graveId);
         if (optional.isPresent()) {
             GraveComponent component = optional.get();
             ServerPacketHandler.sendGraveOverviewPacket(player, component);
         }
 
-        return TypedActionResult.success(scroll);
+        return InteractionResultHolder.success(scroll);
     }
-    private TypedActionResult<ItemStack> restoreContent(ItemStack scroll, ServerPlayerEntity player) {
-        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
-        if (scrollNbtComponent == null) return TypedActionResult.pass(scroll);
+    private InteractionResultHolder<ItemStack> restoreContent(ItemStack scroll, ServerPlayer player) {
+        CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
+        if (scrollNbtComponent == null) return InteractionResultHolder.pass(scroll);
 
-        NbtCompound scrollNbt = scrollNbtComponent.copyNbt();
+        CompoundTag scrollNbt = scrollNbtComponent.copyTag();
 
-        UUID graveId = scrollNbt.getUuid("grave");
+        UUID graveId = scrollNbt.getUUID("grave");
         Optional<GraveComponent> optional = DeathInfoManager.INSTANCE.getGrave(graveId);
         if (optional.isPresent()) {
             GraveComponent component = optional.get();
-            ActionResult res = component.claim(player, player.getServerWorld(), null, component.getPos(), scroll);
-            return new TypedActionResult<>(res, scroll);
+            InteractionResult res = component.claim(player, player.serverLevel(), null, component.getPos(), scroll);
+            return new InteractionResultHolder<>(res, scroll);
         }
-        return TypedActionResult.pass(scroll);
+        return InteractionResultHolder.pass(scroll);
     }
-    private TypedActionResult<ItemStack> teleport(ItemStack scroll, ServerPlayerEntity player) {
-        NbtComponent scrollNbtComponent = scroll.get(DataComponentTypes.CUSTOM_DATA);
-        if (scrollNbtComponent == null) return TypedActionResult.pass(scroll);
+    private InteractionResultHolder<ItemStack> teleport(ItemStack scroll, ServerPlayer player) {
+        CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
+        if (scrollNbtComponent == null) return InteractionResultHolder.pass(scroll);
 
-        NbtCompound scrollNbt = scrollNbtComponent.copyNbt();
+        CompoundTag scrollNbt = scrollNbtComponent.copyTag();
 
-        UUID graveId = scrollNbt.getUuid("grave");
+        UUID graveId = scrollNbt.getUUID("grave");
         Optional<GraveComponent> optional = DeathInfoManager.INSTANCE.getGrave(graveId);
         if (optional.isPresent()) {
             GraveComponent component = optional.get();
             BlockPos gravePos = component.getPos();
-            player.teleport(component.getWorld(), gravePos.getX(), gravePos.getY(), gravePos.getZ(), player.getYaw(), player.getPitch());
+            player.teleportTo(component.getWorld(), gravePos.getX(), gravePos.getY(), gravePos.getZ(), player.getYRot(), player.getXRot());
         }
 
-        return TypedActionResult.success(scroll);
+        return InteractionResultHolder.success(scroll);
     }
 }

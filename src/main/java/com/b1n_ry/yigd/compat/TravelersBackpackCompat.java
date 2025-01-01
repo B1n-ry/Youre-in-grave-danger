@@ -6,17 +6,18 @@ import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import com.tiviacz.travelersbackpack.TravelersBackpack;
-import com.tiviacz.travelersbackpack.component.ComponentUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
-import net.minecraft.util.collection.DefaultedList;
+import com.tiviacz.travelersbackpack.capability.AttachmentUtils;
+import com.tiviacz.travelersbackpack.capability.ITravelersBackpack;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Predicate;
 
-public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, DropRule>> {
+public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, DropRule>> {
     public static boolean isAccessoriesIntegrationEnabled() {
         try {
             return TravelersBackpack.enableIntegration();
@@ -32,13 +33,13 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
     }
 
     @Override
-    public void clear(ServerPlayerEntity player) {
-        ComponentUtils.getComponent(player).removeWearable();
+    public void clear(ServerPlayer player) {
+        AttachmentUtils.getAttachment(player).ifPresent(ITravelersBackpack::removeWearable);
     }
 
     @Override
-    public CompatComponent<Pair<ItemStack, DropRule>> readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        ItemStack stack = ItemStack.fromNbt(registryLookup, nbt).orElse(ItemStack.EMPTY);
+    public CompatComponent<Tuple<ItemStack, DropRule>> readNbt(CompoundTag nbt, HolderLookup.Provider registryLookup) {
+        ItemStack stack = ItemStack.parse(registryLookup, nbt).orElse(ItemStack.EMPTY);
 
         DropRule dropRule;
         if (nbt.contains("dropRule")) {
@@ -46,39 +47,39 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         } else {
             dropRule = YigdConfig.getConfig().compatConfig.defaultTravelersBackpackDropRule;
         }
-        return new TBCompatComponent(new Pair<>(stack, dropRule));
+        return new TBCompatComponent(new Tuple<>(stack, dropRule));
     }
 
     @Override
-    public CompatComponent<Pair<ItemStack, DropRule>> getNewComponent(ServerPlayerEntity player) {
+    public CompatComponent<Tuple<ItemStack, DropRule>> getNewComponent(ServerPlayer player) {
         return new TBCompatComponent(player);
     }
 
-    private static class TBCompatComponent extends CompatComponent<Pair<ItemStack, DropRule>> {
+    private static class TBCompatComponent extends CompatComponent<Tuple<ItemStack, DropRule>> {
 
-        public TBCompatComponent(ServerPlayerEntity player) {
+        public TBCompatComponent(ServerPlayer player) {
             super(player);
         }
 
-        public TBCompatComponent(Pair<ItemStack, DropRule> inventory) {
+        public TBCompatComponent(Tuple<ItemStack, DropRule> inventory) {
             super(inventory);
         }
 
         @Override
-        public Pair<ItemStack, DropRule> getInventory(ServerPlayerEntity player) {
+        public Tuple<ItemStack, DropRule> getInventory(ServerPlayer player) {
             DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultTravelersBackpackDropRule;
-            ItemStack stack = ComponentUtils.getWearingBackpack(player);
-            return stack == null ? InventoryComponent.EMPTY_ITEM_PAIR : new Pair<>(stack, defaultDropRule);
+            ItemStack stack = AttachmentUtils.getWearingBackpack(player);
+            return stack == null ? InventoryComponent.EMPTY_ITEM_PAIR : new Tuple<>(stack, defaultDropRule);
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public NonNullList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
+            NonNullList<ItemStack> extraItems = NonNullList.create();
 
             @SuppressWarnings("unchecked")
-            Pair<ItemStack, DropRule> pair = (Pair<ItemStack, DropRule>) mergingComponent.inventory;
-            ItemStack mergingStack = pair.getLeft();
-            ItemStack currentStack = this.inventory.getLeft();
+            Tuple<ItemStack, DropRule> pair = (Tuple<ItemStack, com.b1n_ry.yigd.util.DropRule>) mergingComponent.inventory;
+            ItemStack mergingStack = pair.getA();
+            ItemStack currentStack = this.inventory.getA();
 
             if (mergingStack.isEmpty()) return extraItems;
 
@@ -87,17 +88,17 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
                 return extraItems;
             }
 
-            this.inventory = new Pair<>(mergingStack, pair.getRight());
+            this.inventory = new Tuple<>(mergingStack, pair.getB());
             return extraItems;
         }
 
         @Override
-        public DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player) {
-            if (this.inventory.getLeft().isEmpty()) return DefaultedList.of();
+        public NonNullList<ItemStack> storeToPlayer(ServerPlayer player) {
+            if (this.inventory.getA().isEmpty()) return NonNullList.create();
 
-            ComponentUtils.equipBackpack(player, this.inventory.getLeft().copy());
+            AttachmentUtils.equipBackpack(player, this.inventory.getA().copy());
 
-            return DefaultedList.of();
+            return NonNullList.create();
         }
 
         @Override
@@ -106,26 +107,26 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
 
             DropRule dropRule = compatConfig.defaultTravelersBackpackDropRule;
 
-            ItemStack stack = this.inventory.getLeft();
+            ItemStack stack = this.inventory.getA();
             if (stack.isEmpty()) return;
 
             if (dropRule == DropRule.PUT_IN_GRAVE)
                 dropRule = DropRuleEvent.EVENT.invoker().getDropRule(stack, -1, context, true);
 
-            this.inventory.setRight(dropRule);
+            this.inventory.setB(dropRule);
         }
 
         @Override
-        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
-            DefaultedList<Pair<ItemStack, DropRule>> stacks = DefaultedList.of();
+        public NonNullList<Tuple<ItemStack, DropRule>> getAsStackDropList() {
+            NonNullList<Tuple<ItemStack, DropRule>> stacks = NonNullList.create();
             stacks.add(this.inventory);
             return stacks;
         }
 
         @Override
-        public CompatComponent<Pair<ItemStack, DropRule>> filterInv(Predicate<DropRule> predicate) {
-            Pair<ItemStack, DropRule> pair;
-            if (predicate.test(this.inventory.getRight())) {
+        public CompatComponent<Tuple<ItemStack, DropRule>> filterInv(Predicate<DropRule> predicate) {
+            Tuple<ItemStack, DropRule> pair;
+            if (predicate.test(this.inventory.getB())) {
                 pair = this.inventory;
             } else {
                 pair = InventoryComponent.EMPTY_ITEM_PAIR;
@@ -135,9 +136,9 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
 
         @Override
         public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
-            ItemStack stack = this.inventory.getLeft();
+            ItemStack stack = this.inventory.getA();
             if (predicate.test(stack)) {
-                stack.decrement(itemCount);
+                stack.shrink(itemCount);
                 return true;
             }
             return false;
@@ -149,10 +150,10 @@ public class TravelersBackpackCompat implements InvModCompat<Pair<ItemStack, Dro
         }
 
         @Override
-        public NbtCompound writeNbt(RegistryWrapper.WrapperLookup registryLookup) {
-            NbtCompound nbt = (NbtCompound) this.inventory.getLeft().encode(registryLookup);
+        public CompoundTag writeNbt(HolderLookup.Provider registryLookup) {
+            CompoundTag nbt = (CompoundTag) this.inventory.getA().save(registryLookup);
 
-            nbt.putString("dropRule", this.inventory.getRight().name());
+            nbt.putString("dropRule", this.inventory.getB().name());
             return nbt;
         }
     }

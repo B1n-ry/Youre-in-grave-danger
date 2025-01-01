@@ -12,8 +12,8 @@ public class GraveOverviewScreen extends CottonClientScreen {
 
     @Override
     public boolean keyPressed(int ch, int keyCode, int modifiers) {
-        if (ch == GLFW.GLFW_KEY_BACKSPACE && this.description instanceof GraveOverviewGui gui && this.client != null) {
-            this.client.setScreen(gui.getPreviousScreen());
+        if (ch == GLFW.GLFW_KEY_BACKSPACE && this.description instanceof GraveOverviewGui gui && this.minecraft != null) {
+            this.minecraft.setScreen(gui.getPreviousScreen());
             return true;
         }
 
@@ -21,7 +21,7 @@ public class GraveOverviewScreen extends CottonClientScreen {
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 }

@@ -20,14 +20,14 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +38,13 @@ public class Yigd implements ModInitializer {
 
     public static Logger LOGGER = LoggerFactory.getLogger("YIGD");
 
-    public static GraveBlock GRAVE_BLOCK = new GraveBlock(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0f).nonOpaque());
+    public static GraveBlock GRAVE_BLOCK = new GraveBlock(BlockBehaviour.Properties.of().strength(-1.0f, 3600000.0f).noOcclusion());
     public static BlockEntityType<GraveBlockEntity> GRAVE_BLOCK_ENTITY;
 
 
     // Optional registries
-    public static DeathScrollItem DEATH_SCROLL_ITEM = new DeathScrollItem(new Item.Settings());
-    public static GraveKeyItem GRAVE_KEY_ITEM = new GraveKeyItem(new Item.Settings());
+    public static DeathScrollItem DEATH_SCROLL_ITEM = new DeathScrollItem(new Item.Properties());
+    public static GraveKeyItem GRAVE_KEY_ITEM = new GraveKeyItem(new Item.Properties());
 
     /**
      * Any runnable added to this list will be executed on the end of the current server tick.
@@ -60,22 +60,22 @@ public class Yigd implements ModInitializer {
     public void onInitialize() {
         AutoConfig.register(YigdConfig.class, GsonConfigSerializer::new);
 
-        GRAVE_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(MOD_ID, "grave_block_entity"), BlockEntityType.Builder.create(GraveBlockEntity::new, GRAVE_BLOCK).build());
+        GRAVE_BLOCK_ENTITY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MOD_ID, "grave_block_entity"), BlockEntityType.Builder.of(GraveBlockEntity::new, GRAVE_BLOCK).build());
 
-        Registry.register(Registries.BLOCK, Identifier.of(MOD_ID, "grave"), GRAVE_BLOCK);
-        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new Item.Settings()));
+        Registry.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(MOD_ID, "grave"), GRAVE_BLOCK);
+        Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(MOD_ID, "grave"), new BlockItem(GRAVE_BLOCK, new Item.Properties()));
 
-        Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(Yigd.MOD_ID, "grave_location"), GraveCompassHelper.GRAVE_LOCATION);
-        Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(Yigd.MOD_ID, "grave_id"), GraveComponent.GRAVE_ID);
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_location"), GraveCompassHelper.GRAVE_LOCATION);
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_id"), GraveComponent.GRAVE_ID);
 
-        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
-        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "grave_key"), GRAVE_KEY_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(MOD_ID, "death_scroll"), DEATH_SCROLL_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(MOD_ID, "grave_key"), GRAVE_KEY_ITEM);
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(entries -> {
-            entries.add(GRAVE_BLOCK.asItem());
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(entries -> {
+            entries.accept(GRAVE_BLOCK.asItem());
 
-            entries.add(DEATH_SCROLL_ITEM.getDefaultStack());
-            entries.add(GRAVE_KEY_ITEM.getDefaultStack());
+            entries.accept(DEATH_SCROLL_ITEM.getDefaultInstance());
+            entries.accept(GRAVE_KEY_ITEM.getDefaultInstance());
         });
 
         PacketInitializer.init();

@@ -7,18 +7,18 @@
     "CompassItemMixin",
     "EndPlatformFeatureMixin",
     "LivingEntityMixin",
-    "RegistryLoaderMixin",
-    "ServerPlayerEntityMixin",
-    "WorldChunkMixin"
+    "RegistryDataLoaderMixin",
+    "ServerPlayerMixin",
+    "LevelChunkMixin"
   ],
   "client": [
     "AbstractConfigScreenMixin",
     "CompassModelMixin",
-    "WorldRendererMixin",
-    "accessor.WorldRendererAccessor"
+    "LevelRendererMixin",
+    "accessor.LevelRendererAccessor"
   ],
   "server": [
-    "MinecraftDedicatedServerMixin"
+    "DedicatedServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

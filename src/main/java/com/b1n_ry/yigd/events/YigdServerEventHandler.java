@@ -11,24 +11,27 @@ import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import com.b1n_ry.yigd.util.YigdTags;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.block.BlockState;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.*;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
@@ -39,28 +42,28 @@ public class YigdServerEventHandler {
         DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
             YigdConfig config = YigdConfig.getConfig();
 
-            StatusEffect statusEffect = Registries.STATUS_EFFECT.get(Identifier.of("amethyst_imbuement", "soulbinding"));
-            RegistryEntry<StatusEffect> statusEffectEntry = Registries.STATUS_EFFECT.getEntry(statusEffect);
+            MobEffect statusEffect = BuiltInRegistries.MOB_EFFECT.get(ResourceLocation.fromNamespaceAndPath("amethyst_imbuement", "soulbinding"));
+            Holder<MobEffect> statusEffectEntry = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(statusEffect);
 
             if (config.inventoryConfig.soulboundSlots.contains(slot)) return DropRule.KEEP;
             if (config.inventoryConfig.vanishingSlots.contains(slot)) return DropRule.DESTROY;
             if (config.inventoryConfig.dropOnGroundSlots.contains(slot)) return DropRule.DROP;
 
-            if (item.isIn(YigdTags.NATURAL_SOULBOUND)) return DropRule.KEEP;
-            if (item.isIn(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
-            if (item.isIn(YigdTags.GRAVE_INCOMPATIBLE)) return DropRule.DROP;
+            if (item.is(YigdTags.NATURAL_SOULBOUND)) return DropRule.KEEP;
+            if (item.is(YigdTags.NATURAL_VANISHING)) return DropRule.DESTROY;
+            if (item.is(YigdTags.GRAVE_INCOMPATIBLE)) return DropRule.DROP;
 
-            if (statusEffect != null && context != null && context.player().hasStatusEffect(statusEffectEntry))
+            if (statusEffect != null && context != null && context.player().hasEffect(statusEffectEntry))
                 return DropRule.KEEP;
 
-            if (!item.isEmpty() && item.contains(DataComponentTypes.CUSTOM_DATA)) {
-                NbtComponent nbt = item.get(DataComponentTypes.CUSTOM_DATA);
+            if (!item.isEmpty() && item.has(DataComponents.CUSTOM_DATA)) {
+                CustomData nbt = item.get(DataComponents.CUSTOM_DATA);
                 assert nbt != null;  // This should never be null, but it's sorta required for intelliJ to not complain
-                NbtCompound itemNbt = nbt.copyNbt();
+                CompoundTag itemNbt = nbt.copyTag();
                 if (itemNbt.contains("Botania_keepIvy") && itemNbt.getBoolean("Botania_keepIvy")) {
                     if (modify) {
-                        NbtComponent replaced = nbt.apply(nbtCompound -> nbtCompound.remove("Botania_keepIvy"));
-                        item.set(DataComponentTypes.CUSTOM_DATA, replaced);
+                        CustomData replaced = nbt.update(nbtCompound -> nbtCompound.remove("Botania_keepIvy"));
+                        item.set(DataComponents.CUSTOM_DATA, replaced);
                     }
 
                     return DropRule.KEEP;
@@ -69,24 +72,24 @@ public class YigdServerEventHandler {
 
             DropRule dropRule;
             if (context != null)
-                dropRule = GraveOverrideAreas.INSTANCE.getDropRuleFromArea(BlockPos.ofFloored(context.deathPos()), context.world());
+                dropRule = GraveOverrideAreas.INSTANCE.getDropRuleFromArea(BlockPos.containing(context.deathPos()), context.world());
             else
                 dropRule = GraveOverrideAreas.INSTANCE.defaultDropRule;
 
 
             // Get drop rule from enchantment
-            if (EnchantmentHelper.hasAnyEnchantmentsIn(item, YigdTags.VANISHING))
+            if (EnchantmentHelper.hasTag(item, YigdTags.VANISHING))
                 return DropRule.DESTROY;
 
-            if (EnchantmentHelper.hasAnyEnchantmentsIn(item, YigdTags.SOULBOUND)) {
+            if (EnchantmentHelper.hasTag(item, YigdTags.SOULBOUND)) {
                 if (config.inventoryConfig.loseSoulboundLevelOnDeath) {
-                    for (RegistryEntry<Enchantment> enchantmentRegistryEntry : EnchantmentHelper.getEnchantments(item).getEnchantments()) {
-                        if (!enchantmentRegistryEntry.isIn(YigdTags.SOULBOUND))
+                    for (Holder<Enchantment> enchantmentRegistryEntry : EnchantmentHelper.getEnchantmentsForCrafting(item).keySet()) {
+                        if (!enchantmentRegistryEntry.is(YigdTags.SOULBOUND))
                             continue;
 
-                        int level = EnchantmentHelper.getLevel(enchantmentRegistryEntry, item);
-                        if (level > 1) EnchantmentHelper.apply(item, builder -> builder.set(enchantmentRegistryEntry, level - 1));
-                        else EnchantmentHelper.apply(item, builder -> builder.remove(enchant -> enchant.equals(enchantmentRegistryEntry)));
+                        int level = EnchantmentHelper.getItemEnchantmentLevel(enchantmentRegistryEntry, item);
+                        if (level > 1) EnchantmentHelper.updateEnchantments(item, builder -> builder.set(enchantmentRegistryEntry, level - 1));
+                        else EnchantmentHelper.updateEnchantments(item, builder -> builder.removeIf(enchant -> enchant.equals(enchantmentRegistryEntry)));
                     }
                 }
                 return DropRule.KEEP;
@@ -96,82 +99,82 @@ public class YigdServerEventHandler {
         });
 
         GraveClaimEvent.EVENT.register((player, world, pos, grave, tool) -> {
-            if (player.isDead()) return false;
+            if (player.isDeadOrDying()) return false;
 
             YigdConfig config = YigdConfig.getConfig();
 
             if (config.extraFeatures.graveCompass.consumeOnUse || config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
-                PlayerInventory inventory = player.getInventory();
-                for (int i = 0; i < inventory.size(); i++) {
-                    ItemStack stack = inventory.getStack(i);
-                    if (!stack.isOf(Items.COMPASS)) continue;
+                Inventory inventory = player.getInventory();
+                for (int i = 0; i < inventory.getContainerSize(); i++) {
+                    ItemStack stack = inventory.getItem(i);
+                    if (!stack.is(Items.COMPASS)) continue;
 
                     if (config.extraFeatures.graveCompass.consumeOnUse) {
-                        NbtComponent stackNbtComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
-                        NbtCompound stackNbt = stackNbtComponent != null ? stackNbtComponent.copyNbt() : null;
-                        if (stack.isOf(Items.COMPASS) && stackNbt != null && stackNbt.contains("linked_grave")) {
-                            UUID graveId = stackNbt.getUuid("linked_grave");
+                        CustomData stackNbtComponent = stack.get(DataComponents.CUSTOM_DATA);
+                        CompoundTag stackNbt = stackNbtComponent != null ? stackNbtComponent.copyTag() : null;
+                        if (stack.is(Items.COMPASS) && stackNbt != null && stackNbt.contains("linked_grave")) {
+                            UUID graveId = stackNbt.getUUID("linked_grave");
                             if (graveId.equals(grave.getGraveId())) {
                                 stack.setCount(0);
                                 break;
                             }
                         }
                     } else {  // Redirect closest grave pointer
-                        GraveCompassHelper.updateClosestNbt(world.getRegistryKey(), player.getBlockPos(), player.getUuid(), stack);
+                        GraveCompassHelper.updateClosestNbt(world.dimension(), player.blockPosition(), player.getUUID(), stack);
                     }
                 }
             }
 
             if (config.extraFeatures.graveKeys.enabled) {
-                if (tool.isOf(Yigd.GRAVE_KEY_ITEM)) {
-                    NbtComponent nbtComponent = tool.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
-                    NbtCompound nbt = nbtComponent.copyNbt();
-                    NbtCompound userNbt = nbt.getCompound("user");
-                    NbtElement uuidNbt = nbt.get("grave");
+                if (tool.is(Yigd.GRAVE_KEY_ITEM)) {
+                    CustomData nbtComponent = tool.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+                    CompoundTag nbt = nbtComponent.copyTag();
+                    CompoundTag userNbt = nbt.getCompound("user");
+                    Tag uuidNbt = nbt.get("grave");
                     GraveKeyConfig.KeyTargeting targeting = config.extraFeatures.graveKeys.targeting;
                     switch (targeting) {
                         case ANY_GRAVE -> {
-                            tool.decrement(1);
+                            tool.shrink(1);
                             return true;
                         }
                         case PLAYER_GRAVE -> {
-                            if (Objects.equals(ProfileComponent.CODEC.parse(NbtOps.INSTANCE, userNbt).result().orElse(null), grave.getOwner())) {
-                                tool.decrement(1);
+                            if (Objects.equals(ResolvableProfile.CODEC.parse(NbtOps.INSTANCE, userNbt).result().orElse(null), grave.getOwner())) {
+                                tool.shrink(1);
                                 return true;
                             }
                         }
                         case SPECIFIC_GRAVE -> {
-                            if (uuidNbt != null && Objects.equals(NbtHelper.toUuid(uuidNbt), grave.getGraveId())) {
-                                tool.decrement(1);
+                            if (uuidNbt != null && Objects.equals(NbtUtils.loadUUID(uuidNbt), grave.getGraveId())) {
+                                tool.shrink(1);
                                 return true;
                             }
                         }
                     }
                 }
                 if (config.extraFeatures.graveKeys.required) {
-                    player.sendMessage(Text.translatable("text.yigd.message.missing_key"), true);
+                    player.sendSystemMessage(Component.translatable("text.yigd.message.missing_key"), true);
                     return false;  // The grave key didn't work
                 }
             }
 
-            if (config.graveConfig.requireShovelToLoot && !tool.isIn(ItemTags.SHOVELS)) {
-                player.sendMessage(Text.translatable("text.yigd.message.no_shovel"), true);
+            if (config.graveConfig.requireShovelToLoot && !tool.is(ItemTags.SHOVELS)) {
+                player.sendSystemMessage(Component.translatable("text.yigd.message.no_shovel"), true);
                 return false;
             }
 
-            if (player.getUuid().equals(grave.getOwner().id().orElse(null))) return true;
+            if (player.getUUID().equals(grave.getOwner().id().orElse(null))) return true;
             if (!grave.isLocked()) return true;
 
             YigdConfig.GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
             if (!robConfig.enabled) return false;
 
-            if (robConfig.killerSkipWaitTime && player.getUuid().equals(grave.getKillerId())) {
+            if (robConfig.killerSkipWaitTime && player.getUUID().equals(grave.getKillerId())) {
                 return true;
             }
 
             final int tps = 20;  // ticks per second
             if (!grave.hasExistedTicks(robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps)) {
-                player.sendMessage(Text.translatable("text.yigd.message.rob.too_early", grave.getTimeUntilRobbable()), true);
+                player.sendSystemMessage(Component.translatable("text.yigd.message.rob.too_early", grave.getTimeUntilRobbable()), true);
                 return false;
             }
 
@@ -183,32 +186,32 @@ public class YigdServerEventHandler {
             if (!graveConfig.enabled) return false;
 
             if ((DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST
-                    && !DeathInfoManager.INSTANCE.isInList(new ProfileComponent(context.player().getGameProfile())))
+                    && !DeathInfoManager.INSTANCE.isInList(new ResolvableProfile(context.player().getGameProfile())))
                     || (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.BLACKLIST
-                    && DeathInfoManager.INSTANCE.isInList(new ProfileComponent(context.player().getGameProfile())))) {
+                    && DeathInfoManager.INSTANCE.isInList(new ResolvableProfile(context.player().getGameProfile())))) {
                 Yigd.LOGGER.info("{} found on whitelist/blacklist, disallowing grave generation", context.player().getGameProfile().getName());
             }
 
             if (!graveConfig.generateEmptyGraves && grave.isGraveEmpty()) return false;
 
-            if (graveConfig.dimensionBlacklist.contains(grave.getWorldRegistryKey().getValue().toString())) return false;
+            if (graveConfig.dimensionBlacklist.contains(grave.getWorldRegistryKey().location().toString())) return false;
 
-            if (!graveConfig.generateGraveInVoid && grave.getPos().getY() < context.world().getBottomY()) return false;
+            if (!graveConfig.generateGraveInVoid && grave.getPos().getY() < context.world().getMinBuildHeight()) return false;
 
             if (graveConfig.requireItem) {
-                Item item = Registries.ITEM.get(Identifier.of(graveConfig.requiredItem));
-                if (!grave.getInventoryComponent().removeItem(stack -> stack.isOf(item), graveConfig.requiredItemCount)) {
+                Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(graveConfig.requiredItem));
+                if (!grave.getInventoryComponent().removeItem(stack -> stack.is(item), graveConfig.requiredItemCount)) {
                     return false;
                 }
             }
 
-            return !graveConfig.ignoredDeathTypes.contains(context.deathSource().getName());
+            return !graveConfig.ignoredDeathTypes.contains(context.deathSource().getMsgId());
         });
         AllowBlockUnderGraveGenerationEvent.EVENT.register(
-                (grave, currentUnder) -> YigdConfig.getConfig().graveConfig.blockUnderGrave.enabled && currentUnder.isIn(YigdTags.REPLACE_SOFT_WHITELIST));
+                (grave, currentUnder) -> YigdConfig.getConfig().graveConfig.blockUnderGrave.enabled && currentUnder.is(YigdTags.REPLACE_SOFT_WHITELIST));
 
         GraveGenerationEvent.EVENT.register((world, pos, nthTry) -> {
-            if (world.isOutOfHeightLimit(pos) || !world.getWorldBorder().contains(pos)) {
+            if (world.isOutsideBuildHeight(pos) || !world.getWorldBorder().isWithinBounds(pos)) {
                 return false;
             }
 
@@ -219,11 +222,11 @@ public class YigdServerEventHandler {
             switch (nthTry) {
                 case 0 -> {
                     if (!config.useSoftBlockWhitelist) return false;
-                    if (!state.isIn(YigdTags.REPLACE_SOFT_WHITELIST)) return false;
+                    if (!state.is(YigdTags.REPLACE_SOFT_WHITELIST)) return false;
                 }
                 case 1 -> {
                     if (!config.useStrictBlockBlacklist) return false;
-                    if (state.isIn(YigdTags.KEEP_STRICT_BLACKLIST)) return false;
+                    if (state.is(YigdTags.KEEP_STRICT_BLACKLIST)) return false;
                 }
             }
             return true;

@@ -3,26 +3,26 @@ package com.b1n_ry.yigd.client.gui.widget;
 import io.github.cottonmc.cotton.gui.widget.WButton;
 import io.github.cottonmc.cotton.gui.widget.data.InputResult;
 import io.github.cottonmc.cotton.gui.widget.icon.Icon;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 
 import java.util.function.Consumer;
 
 public class WHoverToggleButton extends WButton {
-    private final Text onText;
-    private final Text offText;
+    private final Component onText;
+    private final Component offText;
     private final Icon onImg;
     private final Icon offImg;
     private boolean isOn;
     private Consumer<Boolean> onToggle = null;
 
-    private static final TextRenderer TEXT_RENDERER = MinecraftClient.getInstance().textRenderer;
+    private static final Font TEXT_RENDERER = Minecraft.getInstance().font;
 
-    public WHoverToggleButton(Icon onImg, Text onText, Icon offImg, Text offText) {
+    public WHoverToggleButton(Icon onImg, Component onText, Icon offImg, Component offText) {
         super(onImg);
 
         this.onImg = onImg;
@@ -40,17 +40,17 @@ public class WHoverToggleButton extends WButton {
     }
 
     @Override
-    public void paint(DrawContext context, int x, int y, int mouseX, int mouseY) {
+    public void paint(GuiGraphics context, int x, int y, int mouseX, int mouseY) {
         super.paint(context, x, y, mouseX, mouseY);
 
         if (mouseX >= 0 && mouseX <= this.width && mouseY >= 0 && mouseY <= this.height) {
-            context.drawTooltip(TEXT_RENDERER, this.isOn ? this.onText : this.offText, x + mouseX, y + mouseY);
+            context.renderTooltip(TEXT_RENDERER, this.isOn ? this.onText : this.offText, x + mouseX, y + mouseY);
         }
     }
 
     @Override
     public InputResult onClick(int x, int y, int button) {
-        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 
         this.isOn = !this.isOn;
         this.onToggle(this.isOn);

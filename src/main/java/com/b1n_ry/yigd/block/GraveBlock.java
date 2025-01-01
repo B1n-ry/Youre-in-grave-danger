@@ -12,113 +12,116 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.Properties;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.tick.OrderedTick;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.ticks.ScheduledTick;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, Waterloggable {
+public class GraveBlock extends BaseEntityBlock implements EntityBlock, SimpleWaterloggedBlock {
     private static VoxelShape SHAPE_EAST;
     private static VoxelShape SHAPE_WEST;
     private static VoxelShape SHAPE_SOUTH;
     private static VoxelShape SHAPE_NORTH;
 
-    public static final MapCodec<GraveBlock> CODEC = createCodec(GraveBlock::new);
+    public static final MapCodec<GraveBlock> CODEC = simpleCodec(GraveBlock::new);
 
-    public GraveBlock(Settings settings) {
+    public GraveBlock(Properties settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.WATERLOGGED, false));
+            this.registerDefaultState(this.stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH).setValue(BlockStateProperties.WATERLOGGED, false));
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(Properties.HORIZONTAL_FACING, Properties.WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.WATERLOGGED);
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
-        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && itemStack.contains(DataComponentTypes.CUSTOM_NAME)) {
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave && itemStack.has(DataComponents.CUSTOM_NAME)) {
             GraveComponent graveComponent = grave.getComponent();
             if (graveComponent == null) {
-                grave.setGraveText(itemStack.getName());
-                grave.markDirty();
+                grave.setGraveText(itemStack.getDisplayName());
+                grave.setChanged();
             }
         }
-        super.onPlaced(world, pos, state, placer, itemStack);
+        super.setPlacedBy(world, pos, state, placer, itemStack);
     }
 
     @Nullable
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        Direction dir = ctx.getHorizontalPlayerFacing().getOpposite();  // Have the grave facing you, not away from you
-        BlockState state = this.getDefaultState();
-        FluidState fluidState = ctx.getWorld().getFluidState(ctx.getBlockPos());
-        return state.with(Properties.HORIZONTAL_FACING, dir).with(Properties.WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        Direction dir = ctx.getHorizontalDirection().getOpposite();  // Have the grave facing you, not away from you
+        BlockState state = this.defaultBlockState();
+        FluidState fluidState = ctx.getLevel().getFluidState(ctx.getClickedPos());
+        return state.setValue(BlockStateProperties.HORIZONTAL_FACING, dir).setValue(BlockStateProperties.WATERLOGGED, fluidState.getType() == Fluids.WATER);
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        if (state.get(Properties.WATERLOGGED)) {
-            world.getFluidTickScheduler().scheduleTick(OrderedTick.create(Fluids.WATER, pos));
+    public @NotNull BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+        if (state.getValue(BlockStateProperties.WATERLOGGED)) {
+            world.getFluidTicks().schedule(ScheduledTick.probe(Fluids.WATER, pos));
         }
-        return direction.getAxis().isHorizontal() ? state : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+        return direction.getAxis().isHorizontal() ? state : super.updateShape(state, direction, neighborState, world, pos, neighborPos);
     }
 
     @Override
-    public FluidState getFluidState(BlockState state) {
-        return state.get(Properties.WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
+    public @NotNull FluidState getFluidState(BlockState state) {
+        return state.getValue(BlockStateProperties.WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
+    public @NotNull RenderShape getRenderShape(BlockState state) {
         YigdConfig.GraveRendering config = YigdConfig.getConfig().graveRendering;
-        return config.useCustomFeatureRenderer ? BlockRenderType.INVISIBLE : BlockRenderType.MODEL;
+        return config.useCustomFeatureRenderer ? RenderShape.INVISIBLE : RenderShape.MODEL;
     }
 
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new GraveBlockEntity(pos, state);
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        Direction direction = state.get(Properties.HORIZONTAL_FACING);
+    public @NotNull VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        Direction direction = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
         return switch (direction) {
             case EAST -> SHAPE_EAST;
@@ -130,16 +133,16 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return validateTicker(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+            return createTickerHelper(type, Yigd.GRAVE_BLOCK_ENTITY, GraveBlockEntity::tick);
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         YigdConfig config = YigdConfig.getConfig();
-        Hand hand = player.getActiveHand();  // Maybe?
-        if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
-        if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
+        InteractionHand hand = player.getUsedItemHand();  // Maybe?
+        if (!(player instanceof ServerPlayer)) return InteractionResult.PASS;
+        if (!world.isClientSide && world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
             GraveComponent graveComponent = grave.getComponent();
 
             if (graveComponent == null) {
@@ -156,14 +159,14 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                     return this.interactWithNonPlayerGrave(grave, state, world, pos, player, hand, hit);
             }
 
-            if (config.graveConfig.persistentGraves.enabled && graveComponent.getStatus() == GraveStatus.CLAIMED && hand == Hand.MAIN_HAND) {
-                MutableText message = graveComponent.getDeathMessage().copy();
+            if (config.graveConfig.persistentGraves.enabled && graveComponent.getStatus() == GraveStatus.CLAIMED && hand == InteractionHand.MAIN_HAND) {
+                MutableComponent message = graveComponent.getDeathMessage().copy();
 
                 TimePoint creationTime = graveComponent.getCreationTime();
                 if (config.graveConfig.persistentGraves.showDeathDay)
-                    message.append(Text.translatable("text.yigd.message.on_day", creationTime.getDay()));
+                    message.append(Component.translatable("text.yigd.message.on_day", creationTime.getDay()));
                 if (config.graveConfig.persistentGraves.showDeathIrlTime)
-                    message.append(Text.translatable("text.yigd.message.irl_time",
+                    message.append(Component.translatable("text.yigd.message.irl_time",
                             creationTime.getMonthName(),
                             creationTime.getDate(),
                             creationTime.getYear(),
@@ -172,41 +175,41 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                             creationTime.getTimePostfix(config.graveConfig.persistentGraves.useAmPm)
                     ));
 
-                player.sendMessage(message);
-                return ActionResult.SUCCESS;
+                player.sendSystemMessage(message);
+                return InteractionResult.SUCCESS;
             }
 
             // If it's not on the client side, player and world should safely be able to be cast into their serverside counterpart classes
             if (config.graveConfig.retrieveMethods.onClick)
-                return graveComponent.claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, player.getStackInHand(hand));
+                return graveComponent.claim((ServerPlayer) player, (ServerLevel) world, grave.getPreviousState(), pos, player.getItemInHand(hand));
         }
-        return ActionResult.FAIL;
+        return InteractionResult.FAIL;
     }
-    private ActionResult interactWithNonPlayerGrave(GraveBlockEntity grave, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult ignoredHit) {
-        if (player.isSneaking()) return ActionResult.FAIL;
+    private InteractionResult interactWithNonPlayerGrave(GraveBlockEntity grave, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ignoredHit) {
+        if (player.isShiftKeyDown()) return InteractionResult.FAIL;
 
-        ItemStack stack = player.getStackInHand(hand);
-        if (stack.isOf(Items.PLAYER_HEAD) && stack.contains(DataComponentTypes.PROFILE)) {
-            ProfileComponent profile = stack.get(DataComponentTypes.PROFILE);
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.is(Items.PLAYER_HEAD) && stack.has(DataComponents.PROFILE)) {
+            ResolvableProfile profile = stack.get(DataComponents.PROFILE);
 
-            if (profile == null) return ActionResult.PASS;
+            if (profile == null) return InteractionResult.PASS;
             grave.setGraveSkull(profile);  // Works since profile is nullable
-            grave.markDirty();
-            world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+            grave.setChanged();
+            world.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
 
             if (!player.isCreative())
-                stack.decrement(1);
+                stack.shrink(1);
 
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
     @Override
-    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
-        if (!world.isClient && entity instanceof ServerPlayerEntity player) {
+    public void stepOn(Level world, BlockPos pos, BlockState state, Entity entity) {
+        if (!world.isClientSide && entity instanceof ServerPlayer player) {
             YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
-            if (graveConfig.retrieveMethods.onStand || (graveConfig.retrieveMethods.onSneak && player.isSneaking())) {
+            if (graveConfig.retrieveMethods.onStand || (graveConfig.retrieveMethods.onSneak && player.isShiftKeyDown())) {
                 if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
                     GraveComponent graveComponent = grave.getComponent();
 
@@ -222,25 +225,25 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
                     if (graveComponent != null)  // Check needed again
                         if (graveComponent.getStatus() != GraveStatus.CLAIMED) {
-                            graveComponent.claim(player, (ServerWorld) world, grave.getPreviousState(), pos, player.getMainHandStack());
+                            graveComponent.claim(player, (ServerLevel) world, grave.getPreviousState(), pos, player.getMainHandItem());
                         }
                 }
             }
         }
 
-        super.onSteppedOn(world, pos, state, entity);
+        super.stepOn(world, pos, state, entity);
     }
 
     @Override
-    public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+    public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
         YigdConfig config = YigdConfig.getConfig();
-        if (!world.isClient && blockEntity instanceof GraveBlockEntity grave && grave.getComponent() != null && grave.getComponent().getStatus() != GraveStatus.CLAIMED) {
+        if (!world.isClientSide && blockEntity instanceof GraveBlockEntity grave && grave.getComponent() != null && grave.getComponent().getStatus() != GraveStatus.CLAIMED) {
             if (config.graveConfig.retrieveMethods.onBreak) {
-                ActionResult claimResult = grave.getComponent().claim((ServerPlayerEntity) player, (ServerWorld) world, grave.getPreviousState(), pos, tool);
-                if (claimResult != ActionResult.FAIL)
+                InteractionResult claimResult = grave.getComponent().claim((ServerPlayer) player, (ServerLevel) world, grave.getPreviousState(), pos, tool);
+                if (claimResult != InteractionResult.FAIL)
                     return;
             }
-            world.setBlockState(pos, state);
+            world.setBlockAndUpdate(pos, state);
             Optional<GraveBlockEntity> be = world.getBlockEntity(pos, Yigd.GRAVE_BLOCK_ENTITY);
             if (be.isPresent()) {
                 GraveBlockEntity graveBlockEntity = be.get();
@@ -250,33 +253,33 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
                 component.ifPresent(graveBlockEntity::setComponent);
 
                 Yigd.END_OF_TICK.add(() -> {  // Required because it might take a tick for the game to realize the block is replaced
-                    graveBlockEntity.markDirty();
-                    world.updateListeners(pos, state, state, Block.NOTIFY_ALL);
+                    graveBlockEntity.setChanged();
+                    world.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
                 });
 
                 return;
             }
         }
-        super.afterBreak(world, player, pos, state, blockEntity, tool);
+        super.playerDestroy(world, player, pos, state, blockEntity, tool);
     }
 
     @Override
-    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+    public float getDestroyProgress(BlockState state, Player player, BlockGetter world, BlockPos pos) {
         if (!(world.getBlockEntity(pos) instanceof GraveBlockEntity grave) || !grave.isUnclaimed()
                 || YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak) {
             // Same calculations as done for "normal" blocks, except with the overwritten destroy speed of 0.8
             float f = 0.8f;
-            int i = player.canHarvest(state) ? 30 : 100;
-            return player.getBlockBreakingSpeed(state) / f / (float)i;
+            int i = player.hasCorrectToolForDrops(state) ? 30 : 100;
+            return player.getDestroySpeed(state) / f / (float)i;
         }
-        return super.calcBlockBreakingDelta(state, player, world, pos);
+        return super.getDestroyProgress(state, player, world, pos);
     }
 
     public static void reloadShapeFromJson(JsonObject json) throws IllegalStateException {
-        VoxelShape voxelShapeNorth = VoxelShapes.empty();
-        VoxelShape voxelShapeSouth = VoxelShapes.empty();
-        VoxelShape voxelShapeEast = VoxelShapes.empty();
-        VoxelShape voxelShapeWest = VoxelShapes.empty();
+        VoxelShape voxelShapeNorth = Shapes.empty();
+        VoxelShape voxelShapeSouth = Shapes.empty();
+        VoxelShape voxelShapeEast = Shapes.empty();
+        VoxelShape voxelShapeWest = Shapes.empty();
 
         JsonArray elements = json.getAsJsonArray("elements");
         for (JsonElement element : elements) {
@@ -291,10 +294,10 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
             double y2 = to.get(1).getAsDouble() / 16D;
             double z2 = to.get(2).getAsDouble() / 16D;
 
-            voxelShapeNorth = VoxelShapes.union(voxelShapeNorth, VoxelShapes.cuboid(x1, y1, z1, x2, y2, z2));
-            voxelShapeEast = VoxelShapes.union(voxelShapeEast, VoxelShapes.cuboid(1 - z2, y1, x1, 1 - z1, y2, x2));
-            voxelShapeSouth = VoxelShapes.union(voxelShapeSouth, VoxelShapes.cuboid(1 - x2, y1, 1 - z2, 1 - x1, y2, 1 - z1));
-            voxelShapeWest = VoxelShapes.union(voxelShapeWest, VoxelShapes.cuboid(z1, y1, 1 - x2, z2, y2, 1 - x1));
+            voxelShapeNorth = Shapes.or(voxelShapeNorth, Shapes.create(x1, y1, z1, x2, y2, z2));
+            voxelShapeEast = Shapes.or(voxelShapeEast, Shapes.create(1 - z2, y1, x1, 1 - z1, y2, x2));
+            voxelShapeSouth = Shapes.or(voxelShapeSouth, Shapes.create(1 - x2, y1, 1 - z2, 1 - x1, y2, 1 - z1));
+            voxelShapeWest = Shapes.or(voxelShapeWest, Shapes.create(z1, y1, 1 - x2, z2, y2, 1 - x1));
         }
 
         SHAPE_NORTH = voxelShapeNorth;
@@ -304,26 +307,26 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     }
 
     static {
-        VoxelShape bottom = VoxelShapes.cuboid(0, 0, 0, 1, 1D / 16D, 1);
-        VoxelShape supportEast = VoxelShapes.cuboid(1D / 16D, 1D / 16D, 2D / 16D, 6D / 16D, 3D / 16D, 14D / 16D);
-        VoxelShape bustEast = VoxelShapes.cuboid(2D / 16D, 3D / 16D, 3D / 16D, 5D / 16D, 15D / 16D, 13D / 16D);
-        VoxelShape topEast = VoxelShapes.cuboid(2D / 16D, 15D / 16D, 4D / 16D, 5D / 16D, 1, 12D / 16D);
+        VoxelShape bottom = Shapes.create(0, 0, 0, 1, 1D / 16D, 1);
+        VoxelShape supportEast = Shapes.create(1D / 16D, 1D / 16D, 2D / 16D, 6D / 16D, 3D / 16D, 14D / 16D);
+        VoxelShape bustEast = Shapes.create(2D / 16D, 3D / 16D, 3D / 16D, 5D / 16D, 15D / 16D, 13D / 16D);
+        VoxelShape topEast = Shapes.create(2D / 16D, 15D / 16D, 4D / 16D, 5D / 16D, 1, 12D / 16D);
 
-        VoxelShape supportWest = VoxelShapes.cuboid(10D / 16D, 1D / 16D, 2D / 16D, 15D / 16D, 3D / 16D, 14D / 16D);
-        VoxelShape bustWest = VoxelShapes.cuboid(11D / 16D, 3D / 16D, 3D / 16D, 14D / 16D, 15D / 16D, 13D / 16D);
-        VoxelShape topWest = VoxelShapes.cuboid(11D / 16D, 15D / 16D, 4D / 16D, 14D / 16D, 1, 12D / 16D);
+        VoxelShape supportWest = Shapes.create(10D / 16D, 1D / 16D, 2D / 16D, 15D / 16D, 3D / 16D, 14D / 16D);
+        VoxelShape bustWest = Shapes.create(11D / 16D, 3D / 16D, 3D / 16D, 14D / 16D, 15D / 16D, 13D / 16D);
+        VoxelShape topWest = Shapes.create(11D / 16D, 15D / 16D, 4D / 16D, 14D / 16D, 1, 12D / 16D);
 
-        VoxelShape supportSouth = VoxelShapes.cuboid(2D / 16D, 1D / 16D, 1D / 16D, 14D / 16D, 3D / 16D, 6D / 16D);
-        VoxelShape bustSouth = VoxelShapes.cuboid(3D / 16D, 3D / 16D, 2D / 16D, 13D / 16D, 15D / 16D, 5D / 16D);
-        VoxelShape topSouth = VoxelShapes.cuboid(4D / 16D, 15D / 16D, 2D / 16D, 12D / 16D, 1, 5D / 16D);
+        VoxelShape supportSouth = Shapes.create(2D / 16D, 1D / 16D, 1D / 16D, 14D / 16D, 3D / 16D, 6D / 16D);
+        VoxelShape bustSouth = Shapes.create(3D / 16D, 3D / 16D, 2D / 16D, 13D / 16D, 15D / 16D, 5D / 16D);
+        VoxelShape topSouth = Shapes.create(4D / 16D, 15D / 16D, 2D / 16D, 12D / 16D, 1, 5D / 16D);
 
-        VoxelShape supportNorth = VoxelShapes.cuboid(2D / 16D, 1D / 16D, 10D / 16D, 14D / 16D, 3D / 16D, 15D / 16D);
-        VoxelShape bustNorth = VoxelShapes.cuboid(3D / 16D, 3D / 16D, 11D / 16D, 13D / 16D, 15D / 16D, 14D / 16D);
-        VoxelShape topNorth = VoxelShapes.cuboid(4D / 16D, 15D / 16D, 11D / 16D, 12D / 16D, 1, 14D / 16D);
+        VoxelShape supportNorth = Shapes.create(2D / 16D, 1D / 16D, 10D / 16D, 14D / 16D, 3D / 16D, 15D / 16D);
+        VoxelShape bustNorth = Shapes.create(3D / 16D, 3D / 16D, 11D / 16D, 13D / 16D, 15D / 16D, 14D / 16D);
+        VoxelShape topNorth = Shapes.create(4D / 16D, 15D / 16D, 11D / 16D, 12D / 16D, 1, 14D / 16D);
 
-        SHAPE_EAST = VoxelShapes.union(bottom, supportEast, bustEast, topEast);
-        SHAPE_WEST = VoxelShapes.union(bottom, supportWest, bustWest, topWest);
-        SHAPE_SOUTH = VoxelShapes.union(bottom, supportSouth, bustSouth, topSouth);
-        SHAPE_NORTH = VoxelShapes.union(bottom, supportNorth, bustNorth, topNorth);
+        SHAPE_EAST = Shapes.or(bottom, supportEast, bustEast, topEast);
+        SHAPE_WEST = Shapes.or(bottom, supportWest, bustWest, topWest);
+        SHAPE_SOUTH = Shapes.or(bottom, supportSouth, bustSouth, topSouth);
+        SHAPE_NORTH = Shapes.or(bottom, supportNorth, bustNorth, topNorth);
     }
 }

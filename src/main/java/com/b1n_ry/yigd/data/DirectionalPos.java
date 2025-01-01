@@ -1,8 +1,9 @@
 package com.b1n_ry.yigd.data;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 
 public record DirectionalPos(BlockPos pos, Direction dir) {
     public DirectionalPos(int x, int y, int z, Direction dir) {
@@ -10,6 +11,6 @@ public record DirectionalPos(BlockPos pos, Direction dir) {
     }
 
     public double getSquaredDistance(Vec3i pos) {
-        return this.pos.getSquaredDistance(pos);
+        return this.pos.distSqr(pos);
     }
 }

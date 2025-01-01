@@ -9,22 +9,22 @@ import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DelayGraveGenerationEvent;
 import com.b1n_ry.yigd.impl.ServerPlayerEntityImpl;
 import com.b1n_ry.yigd.util.DropRule;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.UUID;
 
 public class DeathHandler {
-    public void onPlayerDeath(ServerPlayerEntity player, ServerWorld world, Vec3d pos, DamageSource deathSource) {
+    public void onPlayerDeath(ServerPlayer player, ServerLevel world, Vec3 pos, DamageSource deathSource) {
         YigdConfig config = YigdConfig.getConfig();
 
         UUID killerId;
-        if (deathSource.getAttacker() instanceof ServerPlayerEntity killer) {
-            killerId = killer.getUuid();
+        if (deathSource.getEntity() instanceof ServerPlayer killer) {
+            killerId = killer.getUUID();
         } else {
             killerId = null;
         }
@@ -57,10 +57,10 @@ public class DeathHandler {
             inventoryComponent.applyLoss();
         }
 
-        ProfileComponent profile = new ProfileComponent(player.getGameProfile());
-        Vec3d graveGenerationPos = !config.graveConfig.generateOnLastGroundPos ? pos : ((ServerPlayerEntityImpl) player).youre_in_grave_danger$getLastGroundPos();
+        ResolvableProfile profile = new ResolvableProfile(player.getGameProfile());
+        Vec3 graveGenerationPos = !config.graveConfig.generateOnLastGroundPos ? pos : ((ServerPlayerEntityImpl) player).youre_in_grave_danger$getLastGroundPos();
         GraveComponent graveComponent = new GraveComponent(profile, inventoryComponent, expComponent,
-                world, graveGenerationPos.add(0D, .5D, 0D), deathSource.getDeathMessage(player), killerId);  // Will keep track of player grave (if enabled)
+                world, graveGenerationPos.add(0D, .5D, 0D), deathSource.getLocalizedDeathMessage(player), killerId);  // Will keep track of player grave (if enabled)
 
         if (!graveComponent.isEmpty()) {
             graveComponent.backUp();
@@ -70,7 +70,7 @@ public class DeathHandler {
 
         respawnComponent.primeForRespawn(profile);
 
-        Direction playerDirection = player.getHorizontalFacing();
+        Direction playerDirection = player.getDirection();
 
         if (!DelayGraveGenerationEvent.EVENT.invoker()
                 .skipGenerationCall(graveComponent, playerDirection, context, respawnComponent, "vanilla")) {

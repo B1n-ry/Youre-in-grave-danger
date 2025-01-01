@@ -8,11 +8,11 @@ import com.b1n_ry.yigd.data.GraveyardData;
 import com.google.gson.*;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +21,7 @@ import java.util.List;
 
 public class YigdResourceHandler {
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Identifier.class, (JsonDeserializer<Identifier>) (elem, type, context) -> Identifier.of(elem.getAsString()))
+            .registerTypeAdapter(ResourceLocation.class, (JsonDeserializer<ResourceLocation>) (elem, type, context) -> ResourceLocation.parse(elem.getAsString()))
             .registerTypeAdapter(Vec3i.class, (JsonDeserializer<Vec3i>) (elem, type, context) -> new Vec3i(
                     elem.getAsJsonArray().get(0).getAsInt(),
                     elem.getAsJsonArray().get(1).getAsInt(),
@@ -29,25 +29,25 @@ public class YigdResourceHandler {
             .create();
 
     public static void init() {
-        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new GraveResourceLoader());
-        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new GraveServerModelLoader());
-        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new GraveyardDataLoader());
-        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new GraveAreaOverrideLoader());
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new GraveResourceLoader());
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new GraveServerModelLoader());
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new GraveyardDataLoader());
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new GraveAreaOverrideLoader());
     }
 
     private static class GraveResourceLoader implements SimpleSynchronousResourceReloadListener {
         @Override
-        public Identifier getFabricId() {
-            return Identifier.of(Yigd.MOD_ID, "custom_grave_model");
+        public ResourceLocation getFabricId() {
+            return ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "custom_grave_model");
         }
 
         @Override
-        public void reload(ResourceManager manager) {
-            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "models/block/grave.json");
-            List<Resource> resources = manager.getAllResources(resourceLocation);
+        public void onResourceManagerReload(ResourceManager manager) {
+            ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "models/block/grave.json");
+            List<Resource> resources = manager.getResourceStack(resourceLocation);
 
             for (Resource resource : resources) {
-                try (InputStream is = resource.getInputStream()) {
+                try (InputStream is = resource.open()) {
                     Yigd.LOGGER.info("Reloading grave model (client)");
                     JsonObject resourceJson = (JsonObject) JsonParser.parseReader(new InputStreamReader(is));
                     GraveBlockEntityRenderer.reloadModelFromJson(resourceJson);
@@ -56,24 +56,24 @@ public class YigdResourceHandler {
                     Yigd.LOGGER.info("Grave model and shape reload successful (client)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from resource pack `%s`".formatted(resourceLocation, resource.getPackId()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from resource pack `%s`".formatted(resourceLocation, resource.sourcePackId()), e);
                 }
             }
         }
     }
     private static class GraveServerModelLoader implements SimpleSynchronousResourceReloadListener {
         @Override
-        public Identifier getFabricId() {
-            return Identifier.of(Yigd.MOD_ID, "custom_server_grave_shape");
+        public ResourceLocation getFabricId() {
+            return ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "custom_server_grave_shape");
         }
 
         @Override
-        public void reload(ResourceManager manager) {
-            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "custom/grave_shape.json");
-            List<Resource> resources = manager.getAllResources(resourceLocation);
+        public void onResourceManagerReload(ResourceManager manager) {
+            ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "custom/grave_shape.json");
+            List<Resource> resources = manager.getResourceStack(resourceLocation);
 
             for (Resource resource : resources) {
-                try (InputStream is = resource.getInputStream()) {
+                try (InputStream is = resource.open()) {
                     Yigd.LOGGER.info("Reloading grave shape (server)");
                     JsonObject resourceJson = (JsonObject) JsonParser.parseReader(new InputStreamReader(is));
                     GraveBlock.reloadShapeFromJson(resourceJson);
@@ -81,24 +81,24 @@ public class YigdResourceHandler {
                     Yigd.LOGGER.info("Grave model and shape reload successful (server)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getPackId()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.sourcePackId()), e);
                 }
             }
         }
     }
     private static class GraveyardDataLoader implements SimpleSynchronousResourceReloadListener {
         @Override
-        public Identifier getFabricId() {
-            return Identifier.of(Yigd.MOD_ID, "graveyard");
+        public ResourceLocation getFabricId() {
+            return ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "graveyard");
         }
 
         @Override
-        public void reload(ResourceManager manager) {
-            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "custom/graveyard.json");
-            List<Resource> resources = manager.getAllResources(resourceLocation);
+        public void onResourceManagerReload(ResourceManager manager) {
+            ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "custom/graveyard.json");
+            List<Resource> resources = manager.getResourceStack(resourceLocation);
 
             for (Resource resource : resources) {
-                try (InputStream is = resource.getInputStream()) {
+                try (InputStream is = resource.open()) {
                     Yigd.LOGGER.info("Reloading YIGD graveyard data (server)");
                     GraveComponent.graveyardData = GSON.fromJson(new InputStreamReader(is), GraveyardData.class);
                     GraveComponent.graveyardData.handlePoint2Point();
@@ -106,31 +106,31 @@ public class YigdResourceHandler {
                     Yigd.LOGGER.info("Graveyard data successfully reloaded (server)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getPackId()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.sourcePackId()), e);
                 }
             }
         }
     }
     private static class GraveAreaOverrideLoader implements SimpleSynchronousResourceReloadListener {
         @Override
-        public Identifier getFabricId() {
-            return Identifier.of(Yigd.MOD_ID, "grave_area_override");
+        public ResourceLocation getFabricId() {
+            return ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_area_override");
         }
 
         @Override
-        public void reload(ResourceManager manager) {
-            Identifier resourceLocation = Identifier.of(Yigd.MOD_ID, "custom/grave_areas.json");
-            List<Resource> resources = manager.getAllResources(resourceLocation);
+        public void onResourceManagerReload(ResourceManager manager) {
+            ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "custom/grave_areas.json");
+            List<Resource> resources = manager.getResourceStack(resourceLocation);
 
             for (Resource resource : resources) {
-                try (InputStream is = resource.getInputStream()) {
+                try (InputStream is = resource.open()) {
                     Yigd.LOGGER.info("Reloading YIGD grave area overrides (server)");
                     GraveOverrideAreas.INSTANCE = GSON.fromJson(new InputStreamReader(is), GraveOverrideAreas.class);
 
                     Yigd.LOGGER.info("Grave area overrides successfully reloaded (server)");
                 }
                 catch (IOException | ClassCastException | NullPointerException e) {
-                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.getPackId()), e);
+                    Yigd.LOGGER.error("Could not load resource `%s` from datapack `%s`".formatted(resourceLocation, resource.sourcePackId()), e);
                 }
             }
         }

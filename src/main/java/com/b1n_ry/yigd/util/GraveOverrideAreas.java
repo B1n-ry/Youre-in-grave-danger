@@ -1,10 +1,10 @@
 package com.b1n_ry.yigd.util;
 
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +17,8 @@ public class GraveOverrideAreas {
     @SerializedName("values")
     public List<Area> values = new ArrayList<>();
 
-    public DropRule getDropRuleFromArea(BlockPos pos, ServerWorld world) {
-        Identifier worldId = world.getRegistryKey().getValue();
+    public DropRule getDropRuleFromArea(BlockPos pos, ServerLevel world) {
+        ResourceLocation worldId = world.dimension().location();
         for (Area area : this.values) {
             if (!worldId.equals(area.worldId))
                 continue;
@@ -52,6 +52,6 @@ public class GraveOverrideAreas {
         @SerializedName("y_dependent")
         public boolean yDependent = false;
         @SerializedName("world_id")
-        public Identifier worldId;
+        public ResourceLocation worldId;
     }
 }

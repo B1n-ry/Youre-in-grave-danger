@@ -10,13 +10,13 @@ import com.b1n_ry.yigd.networking.packets.*;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ResolvableProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +27,9 @@ public class ServerPacketHandler {
     public static void registerReceivers() {
         ServerPlayNetworking.registerGlobalReceiver(RestoreGraveC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.restore", config.commandConfig.restorePermissionLevel)) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -43,19 +43,19 @@ public class ServerPacketHandler {
             server.execute(() -> {
                 Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
                 maybeComponent.ifPresentOrElse(component -> {
-                    ProfileComponent owner = component.getOwner();
+                    ResolvableProfile owner = component.getOwner();
                     UUID uuid = owner.id().orElse(null);
                     String playerName = owner.name().orElse(null);
-                    ServerPlayerEntity restoringPlayer = uuid != null ?
-                            server.getPlayerManager().getPlayer(uuid) : playerName != null ?
-                            server.getPlayerManager().getPlayer(playerName) : null;
+                    ServerPlayer restoringPlayer = uuid != null ?
+                            server.getPlayerList().getPlayer(uuid) : playerName != null ?
+                            server.getPlayerList().getPlayerByName(playerName) : null;
 
                     if (restoringPlayer == null) {
-                        player.sendMessage(Text.translatable("text.yigd.command.restore.fail.offline_player"));
+                        player.sendSystemMessage(Component.translatable("text.yigd.command.restore.fail.offline_player"));
                         return;
                     }
 
-                    component.applyToPlayer(restoringPlayer, restoringPlayer.getServerWorld(), restoringPlayer.getPos(), true, dropRule -> switch (dropRule) {
+                    component.applyToPlayer(restoringPlayer, restoringPlayer.serverLevel(), restoringPlayer.position(), true, dropRule -> switch (dropRule) {
                         case KEEP -> itemsKept;
                         case DESTROY -> itemsDeleted;
                         case DROP -> itemsDropped;
@@ -67,15 +67,15 @@ public class ServerPacketHandler {
                         component.removeGraveBlock();
                     }
 
-                    player.sendMessage(Text.translatable("text.yigd.command.restore.success"));
-                }, () -> player.sendMessage(Text.translatable("text.yigd.command.restore.fail")));
+                    player.sendSystemMessage(Component.translatable("text.yigd.command.restore.success"));
+                }, () -> player.sendSystemMessage(Component.translatable("text.yigd.command.restore.fail")));
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(RobGraveC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.rob", config.commandConfig.robPermissionLevel)) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -90,7 +90,7 @@ public class ServerPacketHandler {
             server.execute(() -> {
                 Optional<GraveComponent> maybeComponent = DeathInfoManager.INSTANCE.getGrave(graveId);
                 maybeComponent.ifPresentOrElse(component -> {
-                    component.applyToPlayer(player, player.getServerWorld(), player.getPos(), false, dropRule -> switch (dropRule) {
+                    component.applyToPlayer(player, player.serverLevel(), player.position(), false, dropRule -> switch (dropRule) {
                         case KEEP -> itemsKept;
                         case DESTROY -> itemsDeleted;
                         case DROP -> itemsDropped;
@@ -103,15 +103,15 @@ public class ServerPacketHandler {
                         component.removeGraveBlock();
                     }
 
-                    player.sendMessage(Text.translatable("text.yigd.command.rob.success"));
-                }, () -> player.sendMessage(Text.translatable("text.yigd.command.rob.fail")));
+                    player.sendSystemMessage(Component.translatable("text.yigd.command.rob.success"));
+                }, () -> player.sendSystemMessage(Component.translatable("text.yigd.command.rob.fail")));
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(DeleteGraveC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.delete", config.commandConfig.deletePermissionLevel)) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -119,8 +119,8 @@ public class ServerPacketHandler {
             MinecraftServer server = player.server;
 
             server.execute(() -> {
-                ActionResult deleted = DeathInfoManager.INSTANCE.delete(graveId);
-                DeathInfoManager.INSTANCE.markDirty();
+                InteractionResult deleted = DeathInfoManager.INSTANCE.delete(graveId);
+                DeathInfoManager.INSTANCE.setDirty();
 
                 String translatable = switch (deleted) {
                     case SUCCESS -> "text.yigd.command.delete.success";
@@ -128,14 +128,14 @@ public class ServerPacketHandler {
                     case FAIL -> "text.yigd.command.delete.fail";
                     default -> "If you see this, congratulations. You've broken YIGD";
                 };
-                player.sendMessage(Text.translatable(translatable));
+                player.sendSystemMessage(Component.translatable(translatable));
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(LockGraveC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.locking", config.commandConfig.unlockPermissionLevel)) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -145,14 +145,14 @@ public class ServerPacketHandler {
             server.execute(() -> {
                 Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
                 component.ifPresentOrElse(grave -> grave.setLocked(lockState),
-                        () -> player.sendMessage(Text.translatable("text.yigd.command.lock.fail")));
+                        () -> player.sendSystemMessage(Component.translatable("text.yigd.command.lock.fail")));
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(RequestKeyC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!config.extraFeatures.graveKeys.enabled || !config.extraFeatures.graveKeys.obtainableFromGui) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -163,15 +163,15 @@ public class ServerPacketHandler {
                 component.ifPresentOrElse(grave -> {
                     ItemStack key = new ItemStack(Yigd.GRAVE_KEY_ITEM);
                     Yigd.GRAVE_KEY_ITEM.bindStackToGrave(graveId, grave.getOwner(), key);
-                    player.giveItemStack(key);
-                }, () -> player.sendMessage(Text.translatable("text.yigd.command.obtain_key.fail")));
+                    player.addItem(key);
+                }, () -> player.sendSystemMessage(Component.translatable("text.yigd.command.obtain_key.fail")));
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(RequestCompassC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!config.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
@@ -180,31 +180,31 @@ public class ServerPacketHandler {
             server.execute(() -> {
                 Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
                 component.ifPresentOrElse(grave -> GraveCompassHelper.giveCompass(player, graveId, grave.getPos(), grave.getWorldRegistryKey()),
-                        () -> player.sendMessage(Text.translatable("text.yigd.command.obtain_compass.fail")));
+                        () -> player.sendSystemMessage(Component.translatable("text.yigd.command.obtain_compass.fail")));
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(GraveOverviewRequestC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.view_self", config.commandConfig.viewSelfPermissionLevel)) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
             UUID graveId = payload.graveId();
             Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);
             component.ifPresentOrElse(grave -> sendGraveOverviewPacket(player, grave),
-                    () -> player.sendMessage(Text.translatable("text.yigd.command.view_self.fail")));
+                    () -> player.sendSystemMessage(Component.translatable("text.yigd.command.view_self.fail")));
         });
         ServerPlayNetworking.registerGlobalReceiver(GraveSelectionRequestC2SPacket.ID, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.view_user", config.commandConfig.viewUserPermissionLevel)) {
-                player.sendMessage(Text.translatable("text.yigd.command.permission_fail"));
+                player.sendSystemMessage(Component.translatable("text.yigd.command.permission_fail"));
                 return;
             }
 
-            ProfileComponent profile = payload.profile();
+            ResolvableProfile profile = payload.profile();
             List<GraveComponent> components = DeathInfoManager.INSTANCE.getBackupData(profile);
 
             List<LightGraveData> lightGraveData = new ArrayList<>();
@@ -215,12 +215,12 @@ public class ServerPacketHandler {
             sendGraveSelectionPacket(player, profile, lightGraveData);
         });
         ServerPlayNetworking.registerGlobalReceiver(UpdateConfigC2SPacket.ID, (payload, context) -> {
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
 
             ClaimPriority claimPriority = payload.claiming();
             ClaimPriority robPriority = payload.robbing();
 
-            UUID playerId = player.getUuid();
+            UUID playerId = player.getUUID();
             Yigd.CLAIM_PRIORITIES.put(playerId, claimPriority);
             Yigd.ROB_PRIORITIES.put(playerId, robPriority);
 
@@ -228,7 +228,7 @@ public class ServerPacketHandler {
         });
     }
 
-    public static void sendGraveOverviewPacket(ServerPlayerEntity player, GraveComponent component) {
+    public static void sendGraveOverviewPacket(ServerPlayer player, GraveComponent component) {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.CommandConfig commandConfig = YigdConfig.getConfig().commandConfig;
         boolean canRestore = Permissions.check(player, "yigd.command.restore", commandConfig.restorePermissionLevel);
@@ -237,15 +237,15 @@ public class ServerPacketHandler {
         boolean canUnlock = Permissions.check(player, "yigd.command.locking", commandConfig.unlockPermissionLevel);
 
         boolean obtainableKeys = config.extraFeatures.graveKeys.enabled && config.extraFeatures.graveKeys.obtainableFromGui;
-        boolean obtainableCompass = config.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI && player.getInventory().count(Items.RECOVERY_COMPASS) > 0;
+        boolean obtainableCompass = config.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI && player.getInventory().countItem(Items.RECOVERY_COMPASS) > 0;
         ServerPlayNetworking.send(player, new GraveOverviewS2CPacket(component, canRestore, canRob, canDelete, canUnlock, obtainableKeys, obtainableCompass));
     }
 
-    public static void sendGraveSelectionPacket(ServerPlayerEntity player, ProfileComponent ofUser, List<LightGraveData> data) {
+    public static void sendGraveSelectionPacket(ServerPlayer player, ResolvableProfile ofUser, List<LightGraveData> data) {
         ServerPlayNetworking.send(player, new GraveSelectionS2CPacket(data, ofUser));
     }
 
-    public static void sendPlayerSelectionPacket(ServerPlayerEntity player, List<LightPlayerData> data) {
+    public static void sendPlayerSelectionPacket(ServerPlayer player, List<LightPlayerData> data) {
         ServerPlayNetworking.send(player, new PlayerSelectionS2CPacket(data));
     }
 }

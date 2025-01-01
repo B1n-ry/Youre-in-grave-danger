@@ -5,19 +5,19 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +32,7 @@ public class RespawnComponent {
 
     private boolean graveGenerated = false;
 
-    public RespawnComponent(ServerPlayerEntity player) {
+    public RespawnComponent(ServerPlayer player) {
         this.respawnEffects = new EffectComponent(player);
     }
     private RespawnComponent(@Nullable InventoryComponent soulboundInventory, @Nullable ExpComponent expComponent, EffectComponent effectComponent) {
@@ -58,9 +58,9 @@ public class RespawnComponent {
         return this.graveGenerated;
     }
 
-    public void primeForRespawn(ProfileComponent profile) {
+    public void primeForRespawn(ResolvableProfile profile) {
         DeathInfoManager.INSTANCE.addRespawnComponent(profile, this);
-        DeathInfoManager.INSTANCE.markDirty();
+        DeathInfoManager.INSTANCE.setDirty();
     }
 
     public boolean isEmpty() {
@@ -68,15 +68,15 @@ public class RespawnComponent {
                 && (this.soulboundExp == null || this.soulboundExp.isEmpty());
     }
 
-    public void apply(ServerPlayerEntity player) {
+    public void apply(ServerPlayer player) {
         if (this.soulboundInventory != null) {
-            DefaultedList<ItemStack> extraItems = this.soulboundInventory.pullBindingCurseItems(player);
+            NonNullList<ItemStack> extraItems = this.soulboundInventory.pullBindingCurseItems(player);
             extraItems.addAll(this.soulboundInventory.applyToPlayer(player));
 
             double x = player.getX();
             double y = player.getY();
             double z = player.getZ();
-            ServerWorld world = player.getServerWorld();
+            ServerLevel world = player.serverLevel();
             for (ItemStack stack : extraItems) {
                 InventoryComponent.dropItemIfToBeDropped(stack, x, y, z, world);
             }
@@ -85,19 +85,19 @@ public class RespawnComponent {
         YigdConfig config = YigdConfig.getConfig();
         YigdConfig.ExtraFeatures extraFeaturesConfig = config.extraFeatures;
         if (extraFeaturesConfig.deathScroll.enabled && extraFeaturesConfig.deathScroll.receiveOnRespawn) {
-            ItemStack scroll = Yigd.DEATH_SCROLL_ITEM.getDefaultStack();
+            ItemStack scroll = Yigd.DEATH_SCROLL_ITEM.getDefaultInstance();
             boolean turned = Yigd.DEATH_SCROLL_ITEM.bindStackToLatestDeath(player, scroll);
             if (turned)
-                player.giveItemStack(scroll);
+                player.addItem(scroll);
         }
         if (extraFeaturesConfig.graveKeys.enabled && extraFeaturesConfig.graveKeys.receiveOnRespawn) {
-            ItemStack key = Yigd.GRAVE_KEY_ITEM.getDefaultStack();
+            ItemStack key = Yigd.GRAVE_KEY_ITEM.getDefaultInstance();
             boolean turned = Yigd.GRAVE_KEY_ITEM.bindStackToLatestGrave(player, key);
             if (turned)
-                player.giveItemStack(key);
+                player.addItem(key);
         }
         if (extraFeaturesConfig.graveCompass.receiveOnRespawn) {
-            List<GraveComponent> playerGraves = DeathInfoManager.INSTANCE.getBackupData(new ProfileComponent(player.getGameProfile()));
+            List<GraveComponent> playerGraves = DeathInfoManager.INSTANCE.getBackupData(new ResolvableProfile(player.getGameProfile()));
             if (!playerGraves.isEmpty()) {
                 GraveComponent latestGrave = playerGraves.getLast();
 
@@ -106,16 +106,16 @@ public class RespawnComponent {
         }
 
         for (YigdConfig.RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {
-            Item item = Registries.ITEM.get(Identifier.of(extraItemDrop.itemId));
+            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(extraItemDrop.itemId));
             ItemStack stack = new ItemStack(item, extraItemDrop.count);
             try {
                 if (!extraItemDrop.itemNbt.isEmpty())
-                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(NbtHelper.fromNbtProviderString(extraItemDrop.itemNbt)));
+                    stack.set(DataComponents.CUSTOM_DATA, CustomData.of(NbtUtils.snbtToStructure(extraItemDrop.itemNbt)));
             }
             catch (CommandSyntaxException e) {
                 Yigd.LOGGER.error("Could not give an item with NBT to player on respawn. Invalid NBT. Falling back to item without NBT");
             }
-            player.giveItemStack(stack);
+            player.addItem(stack);
         }
 
         if (this.soulboundExp != null)
@@ -124,12 +124,12 @@ public class RespawnComponent {
         this.respawnEffects.applyToPlayer(player);
 
         // If there is an issue, items don't get duped
-        DeathInfoManager.INSTANCE.removeRespawnComponent(new ProfileComponent(player.getGameProfile()));
-        DeathInfoManager.INSTANCE.markDirty();
+        DeathInfoManager.INSTANCE.removeRespawnComponent(new ResolvableProfile(player.getGameProfile()));
+        DeathInfoManager.INSTANCE.setDirty();
     }
 
-    public NbtCompound toNbt(RegistryWrapper.WrapperLookup registryLookup) {
-        NbtCompound nbt = new NbtCompound();
+    public CompoundTag toNbt(HolderLookup.Provider registryLookup) {
+        CompoundTag nbt = new CompoundTag();
 
         if (this.soulboundInventory != null) nbt.put("inventory", this.soulboundInventory.toNbt(registryLookup));
         if (this.soulboundExp != null) nbt.put("exp", this.soulboundExp.toNbt());
@@ -138,20 +138,20 @@ public class RespawnComponent {
         return nbt;
     }
 
-    public static RespawnComponent fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+    public static RespawnComponent fromNbt(CompoundTag nbt, HolderLookup.Provider registryLookup) {
         InventoryComponent soulboundInventory = null;
         if (nbt.contains("inventory")) {
-            NbtCompound inventoryNbt = nbt.getCompound("inventory");
+            CompoundTag inventoryNbt = nbt.getCompound("inventory");
             soulboundInventory = InventoryComponent.fromNbt(inventoryNbt, registryLookup);
         }
 
         ExpComponent expComponent = null;
         if (nbt.contains("exp")) {
-            NbtCompound expNbt = nbt.getCompound("exp");
+            CompoundTag expNbt = nbt.getCompound("exp");
             expComponent = ExpComponent.fromNbt(expNbt);
         }
 
-        NbtCompound effectsNbt = nbt.getCompound("effects");
+        CompoundTag effectsNbt = nbt.getCompound("effects");
         EffectComponent effectComponent = EffectComponent.fromNbt(effectsNbt);
 
         return new RespawnComponent(soulboundInventory, expComponent, effectComponent);

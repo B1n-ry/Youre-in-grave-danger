@@ -1,7 +1,8 @@
 package com.b1n_ry.yigd.impl;
 
-import net.minecraft.util.math.Vec3d;
+
+import net.minecraft.world.phys.Vec3;
 
 public interface ServerPlayerEntityImpl {
-    Vec3d youre_in_grave_danger$getLastGroundPos();
+    Vec3 youre_in_grave_danger$getLastGroundPos();
 }

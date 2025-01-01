@@ -5,7 +5,7 @@ import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public interface DropRuleEvent {

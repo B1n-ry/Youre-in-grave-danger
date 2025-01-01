@@ -3,9 +3,9 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.compat.misc_compat_mods.CommonProtectionApiCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,8 +53,8 @@ public interface InvModCompat<T> {
     }
 
     String getModName();
-    void clear(ServerPlayerEntity player);
-    CompatComponent<T> readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup);
+    void clear(ServerPlayer player);
+    CompatComponent<T> readNbt(CompoundTag nbt, HolderLookup.Provider registryLookup);
 
-    CompatComponent<T> getNewComponent(ServerPlayerEntity player);
+    CompatComponent<T> getNewComponent(ServerPlayer player);
 }

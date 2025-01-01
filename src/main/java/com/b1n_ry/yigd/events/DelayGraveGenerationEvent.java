@@ -5,7 +5,7 @@ import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.data.DeathContext;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
 
 public interface DelayGraveGenerationEvent {
     Event<DelayGraveGenerationEvent> EVENT = EventFactory.createArrayBacked(DelayGraveGenerationEvent.class,

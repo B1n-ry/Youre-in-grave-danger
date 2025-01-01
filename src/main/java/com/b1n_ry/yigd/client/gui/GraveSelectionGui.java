@@ -13,18 +13,18 @@ import io.github.cottonmc.cotton.gui.widget.*;
 import io.github.cottonmc.cotton.gui.widget.data.Insets;
 import io.github.cottonmc.cotton.gui.widget.icon.ItemIcon;
 import io.github.cottonmc.cotton.gui.widget.icon.TextureIcon;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.component.ResolvableProfile;
 
 import java.util.List;
 
 public class GraveSelectionGui extends LightweightGuiDescription {
     private final List<LightGraveData> data;
     private final Screen previousScreen;
-    public GraveSelectionGui(List<LightGraveData> data, ProfileComponent profile, Screen previousScreen) {
+    public GraveSelectionGui(List<LightGraveData> data, ResolvableProfile profile, Screen previousScreen) {
         this.data = data;
         this.previousScreen = previousScreen;
 
@@ -33,7 +33,7 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         root.setInsets(Insets.ROOT_PANEL);
         root.setGaps(2, 5);
 
-        WLabel title = new WLabel(Text.translatable("text.yigd.gui.graves_of", profile.name().orElse("PLAYER_NOT_FOUND")));
+        WLabel title = new WLabel(Component.translatable("text.yigd.gui.graves_of", profile.name().orElse("PLAYER_NOT_FOUND")));
         root.add(title, 0, 0);
 
         WFilterableListPanel<LightGraveData, WCardButton> listPanel = this.addGraveList(root);
@@ -50,12 +50,12 @@ public class GraveSelectionGui extends LightweightGuiDescription {
             wCardButton.setOverlayColor(lightGraveData.status().getTransparentColor());
 
             BlockPos gravePos = lightGraveData.pos();
-            String dimensionName = lightGraveData.registryKey().getValue().toString();
+            String dimensionName = lightGraveData.registryKey().registry().toString();
             wCardButton.setTooltipText(List.of(
-                    Text.translatable("text.yigd.gui.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ()),
-                    Text.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName),
-                    Text.translatable("text.yigd.gui.item_count", lightGraveData.itemCount()),
-                    Text.translatable("text.yigd.gui.level_count", ExpComponent.xpToLevels(lightGraveData.xpPoints()))
+                    Component.translatable("text.yigd.gui.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ()),
+                    Component.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName),
+                    Component.translatable("text.yigd.gui.item_count", lightGraveData.itemCount()),
+                    Component.translatable("text.yigd.gui.level_count", ExpComponent.xpToLevels(lightGraveData.xpPoints()))
             ));
             wCardButton.setOnClick(() -> ClientPacketHandler.sendGraveOverviewRequest(lightGraveData.id()));
         });
@@ -66,24 +66,24 @@ public class GraveSelectionGui extends LightweightGuiDescription {
     }
     private void addFilterButtons(WGridPanel root, WFilterableListPanel<LightGraveData, WCardButton> filterableList) {
         WHoverToggleButton viewClaimed = this.addToggleButton(
-                Identifier.of(Yigd.MOD_ID, "textures/gui/claimed_grave.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/claimed_grave.png"),
                 "button.yigd.gui.viewing_claimed",
-                Identifier.of(Yigd.MOD_ID, "textures/gui/claimed_grave_cross.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/claimed_grave_cross.png"),
                 "button.yigd.gui.hiding_claimed");
         WHoverToggleButton viewUnclaimed = this.addToggleButton(
-                Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/unclaimed_grave.png"),
                 "button.yigd.gui.viewing_unclaimed",
-                Identifier.of(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/unclaimed_grave_cross.png"),
                 "button.yigd.gui.hiding_unclaimed");
         WHoverToggleButton viewDestroyed = this.addToggleButton(
-                Identifier.of(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/destroyed_grave.png"),
                 "button.yigd.gui.viewing_destroyed",
-                Identifier.of(Yigd.MOD_ID, "textures/gui/destroyed_grave_cross.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/destroyed_grave_cross.png"),
                 "button.yigd.gui.hiding_destroyed");
         WHoverToggleButton showStatus = this.addToggleButton(
-                Identifier.of(Yigd.MOD_ID, "textures/gui/show_status.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/show_status.png"),
                 "button.yigd.gui.showing_status",
-                Identifier.of(Yigd.MOD_ID, "textures/gui/hide_status.png"),
+                ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "textures/gui/hide_status.png"),
                 "button.yigd.gui.hiding_status");
 
         // a == b && bool <=> a == b if bool, else a != b
@@ -116,13 +116,13 @@ public class GraveSelectionGui extends LightweightGuiDescription {
         root.add(viewDestroyed, 12, 3);
         root.add(showStatus, 12, 4);
     }
-    private WHoverToggleButton addToggleButton(Identifier stateOnImg, String stateOnTranslationKey,
-                                               Identifier stateOffImg, String stateOffTranslationKey) {
+    private WHoverToggleButton addToggleButton(ResourceLocation stateOnImg, String stateOnTranslationKey,
+                                               ResourceLocation stateOffImg, String stateOffTranslationKey) {
         TextureIcon onIcon = new TextureIcon(stateOnImg);
         TextureIcon offIcon = new TextureIcon(stateOffImg);
 
-        Text stateOnText = Text.translatable(stateOnTranslationKey);
-        Text stateOffText = Text.translatable(stateOffTranslationKey);
+        Component stateOnText = Component.translatable(stateOnTranslationKey);
+        Component stateOffText = Component.translatable(stateOffTranslationKey);
 
         return new WHoverToggleButton(onIcon, stateOnText, offIcon, stateOffText);
     }

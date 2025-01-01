@@ -8,13 +8,13 @@ import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import eu.pb4.common.protection.api.CommonProtection;
 import eu.pb4.common.protection.impl.ProtectionImpl;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 
 public class CommonProtectionApiCompat {
     public static void init() {
         AllowBlockUnderGraveGenerationEvent.EVENT.register((grave, currentUnder) -> {
-            if (CommonProtection.canPlaceBlock(grave.getWorld(), grave.getPos().down(), grave.getOwner().gameProfile(), null)) {
+            if (CommonProtection.canPlaceBlock(grave.getWorld(), grave.getPos().below(), grave.getOwner().gameProfile(), null)) {
                 return YigdConfig.getConfig().graveConfig.blockUnderGrave.generateInOwnClaim;
             } else {
                 return YigdConfig.getConfig().graveConfig.blockUnderGrave.generateOnProtectedLand;
@@ -32,11 +32,11 @@ public class CommonProtectionApiCompat {
         DropRuleEvent.EVENT.register((item, slot, context, modify) -> {
             if (context == null || !modify) return GraveOverrideAreas.INSTANCE.defaultDropRule;
 
-            if (ProtectionImpl.isProtected(context.world(), BlockPos.ofFloored(context.deathPos())))
+            if (ProtectionImpl.isProtected(context.world(), BlockPos.containing(context.deathPos())))
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim;
 
-            ServerPlayerEntity player = context.player();
-            if (CommonProtection.canPlaceBlock(context.world(), BlockPos.ofFloored(context.deathPos()), player.getGameProfile(), player)) {
+            ServerPlayer player = context.player();
+            if (CommonProtection.canPlaceBlock(context.world(), BlockPos.containing(context.deathPos()), player.getGameProfile(), player)) {
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInOwnClaim;
             } else {
                 return YigdConfig.getConfig().compatConfig.standardDropRuleInClaim;

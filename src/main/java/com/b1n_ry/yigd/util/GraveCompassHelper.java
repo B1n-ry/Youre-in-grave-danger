@@ -3,16 +3,16 @@ package com.b1n_ry.yigd.util;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveCompassConfig;
-import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,15 +22,15 @@ import java.util.Map;
 import java.util.UUID;
 
 public class GraveCompassHelper {
-    private static final Map<RegistryKey<World>, KDNode> GRAVE_POSITIONS = new HashMap<>();
-    public static final ComponentType<GlobalPos> GRAVE_LOCATION = ComponentType.<GlobalPos>builder().codec(GlobalPos.CODEC).packetCodec(GlobalPos.PACKET_CODEC).build();
+    private static final Map<ResourceKey<Level>, KDNode> GRAVE_POSITIONS = new HashMap<>();
+    public static final DataComponentType<GlobalPos> GRAVE_LOCATION = DataComponentType.<GlobalPos>builder().persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC).build();
 
-    public static void giveCompass(ServerPlayerEntity player, UUID graveId, BlockPos gravePos, RegistryKey<World> worldKey) {
-        ItemStack compass = Items.COMPASS.getDefaultStack();
+    public static void giveCompass(ServerPlayer player, UUID graveId, BlockPos gravePos, ResourceKey<Level> worldKey) {
+        ItemStack compass = Items.COMPASS.getDefaultInstance();
 
         BlockPos closestPos = null;
         if (YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest != GraveCompassConfig.CompassGraveTarget.DISABLED) {
-            closestPos = findClosest(player.getUuid(), worldKey, player.getBlockPos());
+            closestPos = findClosest(player.getUUID(), worldKey, player.blockPosition());
         }
         if (closestPos != null) {  // Point to closest not disabled and a grave was found
             compass.set(GRAVE_LOCATION, new GlobalPos(worldKey, closestPos));
@@ -42,21 +42,21 @@ public class GraveCompassHelper {
             compass.set(GRAVE_LOCATION, new GlobalPos(worldKey, gravePos));
         }
 
-        compass.set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.yigd.grave_compass").styled(style -> style.withItalic(false)));
-        player.giveItemStack(compass);
+        compass.set(DataComponents.CUSTOM_NAME, Component.translatable("item.yigd.grave_compass").withStyle(style -> style.withItalic(false)));
+        player.addItem(compass);
     }
 
-    public static void updateClosestNbt(RegistryKey<World> worldKey, BlockPos pos, UUID holderId, ItemStack compass) {
+    public static void updateClosestNbt(ResourceKey<Level> worldKey, BlockPos pos, UUID holderId, ItemStack compass) {
         if (YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest == GraveCompassConfig.CompassGraveTarget.DISABLED) return;
 
-        if (!compass.contains(GRAVE_LOCATION)) return;  // Not a grave compass
+        if (!compass.has(GRAVE_LOCATION)) return;  // Not a grave compass
 
         BlockPos closestPos = findClosest(holderId, worldKey, pos);
         if (closestPos != null) {
             compass.set(GRAVE_LOCATION, new GlobalPos(worldKey, closestPos));
         }
     }
-    public static void addGravePosition(RegistryKey<World> worldKey, BlockPos gravePos, UUID ownerId) {
+    public static void addGravePosition(ResourceKey<Level> worldKey, BlockPos gravePos, UUID ownerId) {
         KDNode root = GRAVE_POSITIONS.get(worldKey);
         int[] pos = new int[] { gravePos.getX(), gravePos.getY(), gravePos.getZ() };
         if (root == null) {
@@ -86,7 +86,7 @@ public class GraveCompassHelper {
         }
     }
 
-    public static void setClaimed(RegistryKey<World> worldKey, BlockPos gravePos) {
+    public static void setClaimed(ResourceKey<Level> worldKey, BlockPos gravePos) {
         KDNode root = GRAVE_POSITIONS.get(worldKey);
         if (root == null) {
             return;
@@ -114,7 +114,7 @@ public class GraveCompassHelper {
         }
     }
 
-    public static @Nullable BlockPos findClosest(UUID ownerId, RegistryKey<World> worldKey, BlockPos pos) {
+    public static @Nullable BlockPos findClosest(UUID ownerId, ResourceKey<Level> worldKey, BlockPos pos) {
         GraveCompassConfig config = YigdConfig.getConfig().extraFeatures.graveCompass;
         if (config.pointToClosest == GraveCompassConfig.CompassGraveTarget.DISABLED) return null;  // What how are we here?
 

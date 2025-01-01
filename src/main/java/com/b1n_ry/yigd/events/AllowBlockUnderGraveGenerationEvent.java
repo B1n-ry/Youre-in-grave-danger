@@ -3,7 +3,7 @@ package com.b1n_ry.yigd.events;
 import com.b1n_ry.yigd.components.GraveComponent;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface AllowBlockUnderGraveGenerationEvent {
     Event<AllowBlockUnderGraveGenerationEvent> EVENT = EventFactory.createArrayBacked(AllowBlockUnderGraveGenerationEvent.class, events -> (grave, currentUnder) -> {

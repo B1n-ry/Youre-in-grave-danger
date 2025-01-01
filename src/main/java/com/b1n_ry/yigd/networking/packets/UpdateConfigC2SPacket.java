@@ -2,25 +2,26 @@ package com.b1n_ry.yigd.networking.packets;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.ClaimPriority;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
-public record UpdateConfigC2SPacket(ClaimPriority claiming, ClaimPriority robbing) implements CustomPayload {
-    public static final Id<UpdateConfigC2SPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "update_config"));
-    public static final PacketCodec<RegistryByteBuf, UpdateConfigC2SPacket> CODEC = PacketCodec.of(UpdateConfigC2SPacket::write, UpdateConfigC2SPacket::new);
+public record UpdateConfigC2SPacket(ClaimPriority claiming, ClaimPriority robbing) implements CustomPacketPayload {
+    public static final Type<UpdateConfigC2SPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "update_config"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, UpdateConfigC2SPacket> CODEC = StreamCodec.ofMember(UpdateConfigC2SPacket::write, UpdateConfigC2SPacket::new);
 
     @Override
-    public Id<UpdateConfigC2SPacket> getId() {
+    public @NotNull Type<UpdateConfigC2SPacket> type() {
         return ID;
     }
 
-    public UpdateConfigC2SPacket(RegistryByteBuf buf) {
-        this(buf.readEnumConstant(ClaimPriority.class), buf.readEnumConstant(ClaimPriority.class));
+    public UpdateConfigC2SPacket(RegistryFriendlyByteBuf buf) {
+        this(buf.readEnum(ClaimPriority.class), buf.readEnum(ClaimPriority.class));
     }
-    public void write(RegistryByteBuf buf) {
-        buf.writeEnumConstant(this.claiming);
-        buf.writeEnumConstant(this.robbing);
+    public void write(RegistryFriendlyByteBuf buf) {
+        buf.writeEnum(this.claiming);
+        buf.writeEnum(this.robbing);
     }
 }

@@ -1,25 +1,26 @@
 package com.b1n_ry.yigd.networking.packets;
 
 import com.b1n_ry.yigd.Yigd;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.component.ResolvableProfile;
+import org.jetbrains.annotations.NotNull;
 
-public record GraveSelectionRequestC2SPacket(ProfileComponent profile) implements CustomPayload {
-    public static final Id<GraveSelectionRequestC2SPacket> ID = new Id<>(Identifier.of(Yigd.MOD_ID, "grave_selection_request"));
-    public static final PacketCodec<RegistryByteBuf, GraveSelectionRequestC2SPacket> CODEC = PacketCodec.of(GraveSelectionRequestC2SPacket::write, GraveSelectionRequestC2SPacket::new);
+public record GraveSelectionRequestC2SPacket(ResolvableProfile profile) implements CustomPacketPayload {
+    public static final Type<GraveSelectionRequestC2SPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_selection_request"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, GraveSelectionRequestC2SPacket> CODEC = StreamCodec.ofMember(GraveSelectionRequestC2SPacket::write, GraveSelectionRequestC2SPacket::new);
 
     @Override
-    public Id<GraveSelectionRequestC2SPacket> getId() {
+    public @NotNull Type<GraveSelectionRequestC2SPacket> type() {
         return ID;
     }
 
-    public GraveSelectionRequestC2SPacket(RegistryByteBuf buf) {
-        this(ProfileComponent.PACKET_CODEC.decode(buf));
+    public GraveSelectionRequestC2SPacket(RegistryFriendlyByteBuf buf) {
+        this(ResolvableProfile.STREAM_CODEC.decode(buf));
     }
-    public void write(RegistryByteBuf buf) {
-        ProfileComponent.PACKET_CODEC.encode(buf, this.profile);
+    public void write(RegistryFriendlyByteBuf buf) {
+        ResolvableProfile.STREAM_CODEC.encode(buf, this.profile);
     }
 }
