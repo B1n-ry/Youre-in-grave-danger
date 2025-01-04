@@ -1,7 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.8-SNAPSHOT'
 	id 'maven-publish'
-	id "me.modmuss50.mod-publish-plugin" version "0.6.3"
+	id "me.modmuss50.mod-publish-plugin" version "0.8.3"
 }
 
 version = project.mod_version
