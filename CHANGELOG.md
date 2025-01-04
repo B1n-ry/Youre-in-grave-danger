@@ -15,6 +15,7 @@ the killer of a player to skip the grave rob cooldown
 * Running the /clear command after retrieving items from a grave no longer clears
   the grave backup
 * Graves being moved (like with carry-on mod) will now be detected when they reappear
+* Now prevents "fake players" from looting graves
 
 ---
 

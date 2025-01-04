@@ -12,6 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -133,7 +134,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         YigdConfig config = YigdConfig.getConfig();
-        if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
+        if (!(player instanceof ServerPlayerEntity) || player instanceof FakePlayer) return ActionResult.PASS;
         if (!world.isClient && world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
             GraveComponent graveComponent = grave.getComponent();
 
