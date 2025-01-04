@@ -47,6 +47,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.ticks.ScheduledTick;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -142,7 +143,7 @@ public class GraveBlock extends BaseEntityBlock implements EntityBlock {
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hit) {
         YigdConfig config = YigdConfig.getConfig();
         InteractionHand hand = player.getUsedItemHand();  // Maybe?
-        if (!(player instanceof ServerPlayer)) return InteractionResult.PASS;
+        if (!(player instanceof ServerPlayer) || player instanceof FakePlayer) return InteractionResult.PASS;
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
             GraveComponent graveComponent = grave.getComponent();
 

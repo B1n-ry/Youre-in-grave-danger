@@ -15,6 +15,8 @@ items (more reliable how much is lost)
 the grave backup
 * Soulbound now works with curios
 * Graves being moved (like with carry-on mod) will now be detected when they reappear
+* Fixed crash with travelers backpack
+* Now prevents "fake players" from looting graves
 
 ---
 
