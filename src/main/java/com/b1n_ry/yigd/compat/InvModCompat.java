@@ -17,18 +17,18 @@ public interface InvModCompat<T> {
         FabricLoader loader = FabricLoader.getInstance();
         YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
-        boolean accessoriesPresent = compatConfig.enableAccessoriesCompat && loader.isModLoaded("accessories");
+        boolean accessoriesPresent = loader.isModLoaded("accessories");
 
-        boolean trinketsPresent = compatConfig.enableTrinketsCompat && loader.isModLoaded("trinkets");
+        boolean trinketsPresent = loader.isModLoaded("trinkets");
 
-        if (accessoriesPresent)
+        if (accessoriesPresent && compatConfig.enableAccessoriesCompat)
             invCompatMods.add(new AccessoriesCompat());
-        if (trinketsPresent && !loader.isModLoaded("tclayer"))
+        if (trinketsPresent && compatConfig.enableTrinketsCompat && !loader.isModLoaded("tclayer"))
             invCompatMods.add(new TrinketsCompat());
 /*        if (compatConfig.enableInventorioCompat && loader.isModLoaded("inventorio"))
             invCompatMods.add(new InventorioCompat());*/
         if (loader.isModLoaded("travelersbackpack")) {
-            if (compatConfig.enableTravelersBackpackCompat && !(accessoriesPresent && TravelersBackpackCompat.isAccessoriesIntegrationEnabled()))
+            if (compatConfig.enableTravelersBackpackCompat && !((accessoriesPresent || trinketsPresent) && TravelersBackpackCompat.isIntegrationEnabled()))
                 invCompatMods.add(new TravelersBackpackCompat());
         }
         if (compatConfig.enableLevelzCompat && loader.isModLoaded("levelz"))

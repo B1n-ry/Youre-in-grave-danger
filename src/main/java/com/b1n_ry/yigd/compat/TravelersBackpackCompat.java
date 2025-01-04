@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Predicate;
 
 public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, DropRule>> {
-    public static boolean isAccessoriesIntegrationEnabled() {
+    public static boolean isIntegrationEnabled() {
         try {
             return TravelersBackpack.enableIntegration();
         }
