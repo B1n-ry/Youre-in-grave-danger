@@ -12,6 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.MapCodec;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -141,7 +142,7 @@ public class GraveBlock extends BaseEntityBlock implements EntityBlock, SimpleWa
     public @NotNull InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         YigdConfig config = YigdConfig.getConfig();
         InteractionHand hand = player.getUsedItemHand();  // Maybe?
-        if (!(player instanceof ServerPlayer)) return InteractionResult.PASS;
+        if (!(player instanceof ServerPlayer) || player instanceof FakePlayer) return InteractionResult.PASS;
         if (!world.isClientSide && world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
             GraveComponent graveComponent = grave.getComponent();
 
