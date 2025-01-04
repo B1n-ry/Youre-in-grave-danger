@@ -12,6 +12,7 @@ items (more reliable how much is lost)
 * Running the /clear command after retrieving items from a grave no longer clears
 the grave backup
 * Graves being moved (like with carry-on mod) will now be detected when they reappear
+* Fixed compatibility issue crash with travelers backpack
 
 ---
 
