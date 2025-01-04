@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.compat.misc_compat_mods.TwilightCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -29,6 +30,8 @@ public interface InvModCompat<T> {
         }
         if (modList.isLoaded("cosmeticarmorreworked") && compatConfig.enableCosmeticArmorCompat)
             invCompatMods.add(new CosmeticArmorCompat());
+        if (modList.isLoaded("twilightforest"))
+            TwilightCompat.init();
     }
 
     String getModName();
