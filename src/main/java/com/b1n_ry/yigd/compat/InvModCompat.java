@@ -40,9 +40,9 @@ public interface InvModCompat<T> {
         if (compatConfig.enableOriginsInventoryCompat && loader.isModLoaded("apoli"))
             invCompatMods.add(new OriginsCompat());
         if (loader.isModLoaded("beansbackpacks")) {
-            if (trinketsPresent)
+            if (trinketsPresent || compatConfig.enableBeansBackpacksCompat)
                 BeansBackpacksCompat.prepForTrinkets();
-            else if (compatConfig.enableBeansBackpacksCompat)
+            if (compatConfig.enableBeansBackpacksCompat)
                 invCompatMods.add(new BeansBackpacksCompat());
         }
 
