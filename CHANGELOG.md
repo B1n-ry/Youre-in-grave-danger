@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.4.13
+
+### Fixes
+* Fixed NoClassDefFoundError exception when using travelers
+backpack
+
+---
+
 # You're in Grave Danger 2.4.12
 
 ### Changes

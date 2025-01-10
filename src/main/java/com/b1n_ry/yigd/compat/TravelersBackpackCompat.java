@@ -6,8 +6,8 @@ import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import com.tiviacz.travelersbackpack.TravelersBackpack;
-import com.tiviacz.travelersbackpack.capability.AttachmentUtils;
-import com.tiviacz.travelersbackpack.capability.ITravelersBackpack;
+import com.tiviacz.travelersbackpack.component.ComponentUtils;
+import com.tiviacz.travelersbackpack.component.ITravelersBackpack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -34,7 +34,7 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
 
     @Override
     public void clear(ServerPlayer player) {
-        AttachmentUtils.getAttachment(player).ifPresent(ITravelersBackpack::removeWearable);
+        ComponentUtils.getComponent(player).ifPresent(ITravelersBackpack::removeWearable);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
         @Override
         public Tuple<ItemStack, DropRule> getInventory(ServerPlayer player) {
             DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultTravelersBackpackDropRule;
-            ItemStack stack = AttachmentUtils.getWearingBackpack(player);
+            ItemStack stack = ComponentUtils.getWearingBackpack(player);
             return stack == null ? InventoryComponent.EMPTY_ITEM_PAIR : new Tuple<>(stack, defaultDropRule);
         }
 
@@ -96,7 +96,7 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
         public NonNullList<ItemStack> storeToPlayer(ServerPlayer player) {
             if (this.inventory.getA().isEmpty()) return NonNullList.create();
 
-            AttachmentUtils.equipBackpack(player, this.inventory.getA().copy());
+            ComponentUtils.equipBackpack(player, this.inventory.getA().copy());
 
             return NonNullList.create();
         }
