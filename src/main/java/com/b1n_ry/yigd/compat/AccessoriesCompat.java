@@ -33,6 +33,16 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
     @Override
     public void clear(ServerPlayer player) {
         AccessoriesCapability.getOptionally(player).ifPresent(inv -> inv.reset(false));
+//        AccessoriesCapability.getOptionally(player).ifPresent(inv -> inv.getContainers().forEach((s, container) -> {
+//            ExpandedSimpleContainer normal = container.getAccessories();
+//            ExpandedSimpleContainer cosmetic = container.getCosmeticAccessories();
+//            for (int i = 0; i < normal.getContainerSize(); i++) {
+//                normal.setItem(i, ItemStack.EMPTY);
+//            }
+//            for (int i = 0; i < cosmetic.getContainerSize(); i++) {
+//                cosmetic.setItem(i, ItemStack.EMPTY);
+//            }
+//        }));
     }
 
     @Override
@@ -91,9 +101,11 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
     public record AccessoriesInventoryGroup(NonNullList<AccessoriesInventorySlot> normal, NonNullList<AccessoriesInventorySlot> cosmetic) {
         private void addAllNonEmptyToList(Collection<ItemStack> list) {
             for (AccessoriesInventorySlot slot : this.normal) {
+                if (slot.stack.isEmpty()) continue;
                 list.add(slot.stack.copy());
             }
             for (AccessoriesInventorySlot slot : this.cosmetic) {
+                if (slot.stack.isEmpty()) continue;
                 list.add(slot.stack.copy());
             }
         }
@@ -263,23 +275,25 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 ExpandedSimpleContainer normalAccessories = container.getAccessories();
                 ExpandedSimpleContainer cosmeticAccessories = container.getCosmeticAccessories();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
-                    AccessoriesInventorySlot pair = inventorySlot.normal.get(i);
+                    AccessoriesInventorySlot slot = inventorySlot.normal.get(i);
+                    if (slot.stack.isEmpty()) continue;
                     if (i >= normalAccessories.getContainerSize()) {
-                        extraItems.add(pair.stack.copy());
+                        extraItems.add(slot.stack.copy());
                         continue;
                     }
 
-                    normalAccessories.setItem(i, pair.stack.copy());
+                    normalAccessories.setItem(i, slot.stack.copy());
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
-                    AccessoriesInventorySlot pair = inventorySlot.cosmetic.get(i);
+                    AccessoriesInventorySlot slot = inventorySlot.cosmetic.get(i);
+                    if (slot.stack.isEmpty()) continue;
                     if (i >= cosmeticAccessories.getContainerSize()) {
-                        extraItems.add(pair.stack.copy());
+                        extraItems.add(slot.stack.copy());
                         continue;
                     }
 
-                    cosmeticAccessories.setItem(i, pair.stack.copy());
-                    container.renderOptions().set(i, pair.visible);
+                    cosmeticAccessories.setItem(i, slot.stack.copy());
+                    container.renderOptions().set(i, slot.visible);
                     container.markChanged(false);
                 }
             }
