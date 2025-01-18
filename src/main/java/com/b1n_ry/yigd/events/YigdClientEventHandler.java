@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.config.ExtraFeaturesConfig.DeathSightConfig;
 import com.mojang.authlib.GameProfile;
@@ -13,15 +14,17 @@ public class YigdClientEventHandler {
         RenderGlowingGraveEvent.EVENT.register((be, player) -> {
             YigdConfig config = YigdConfig.getConfig();
 
+            if (!config.graveRendering.useGlowingEffect || !GraveBlockEntityRenderer.syncedGlowing) return false;
+
             GameProfile graveOwner = be.getGraveSkull();
 
-            double distance = config.graveRendering.glowingDistance;
+            double distance = Integer.min(config.graveRendering.glowingDistance, GraveBlockEntityRenderer.syncedGlowingMaxDistance);
             boolean isOwner = graveOwner != null && graveOwner.equals(player.getGameProfile());
             DeathSightConfig deathSightConfig = config.extraFeatures.deathSightEnchant;
             if (deathSightConfig.enabled) {
                 ItemStack headStack = player.getEquippedStack(EquipmentSlot.HEAD);
                 if (!headStack.isEmpty() && EnchantmentHelper.get(headStack).containsKey(Yigd.DEATH_SIGHT_ENCHANTMENT)) {
-                    distance = deathSightConfig.range;
+                    distance = Double.min(deathSightConfig.range, GraveBlockEntityRenderer.syncedDeathSightDistance);
 
                     // This doesn't actually mean that the user is the grave owner, but that the graves should light up
                     isOwner = deathSightConfig.targets == DeathSightConfig.GraveTargets.ALL_GRAVES
