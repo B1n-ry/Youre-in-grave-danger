@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.b1n_ry.yigd.networking.ServerPacketHandler;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -80,6 +81,8 @@ public class ServerEventHandler {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             YigdConfig.GraveConfig.GraveRobbing robConfig = YigdConfig.getConfig().graveConfig.graveRobbing;
             UUID joiningId = handler.player.getUUID();
+
+            ServerPacketHandler.sendConfigSyncPacket(handler.player);
 
             if (!Yigd.NOT_NOTIFIED_ROBBERIES.containsKey(joiningId)) return;
 

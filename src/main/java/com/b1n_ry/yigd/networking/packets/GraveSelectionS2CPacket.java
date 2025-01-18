@@ -12,12 +12,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public record GraveSelectionS2CPacket(List<LightGraveData> data, ResolvableProfile owner) implements CustomPacketPayload {
-    public static final Type<GraveSelectionS2CPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_selection"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, GraveSelectionS2CPacket> CODEC = StreamCodec.ofMember(GraveSelectionS2CPacket::write, GraveSelectionS2CPacket::new);
+    public static final Type<GraveSelectionS2CPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_selection"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, GraveSelectionS2CPacket> STREAM_CODEC = StreamCodec.ofMember(GraveSelectionS2CPacket::write, GraveSelectionS2CPacket::new);
 
     @Override
     public @NotNull Type<GraveSelectionS2CPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     public GraveSelectionS2CPacket(RegistryFriendlyByteBuf buf) {

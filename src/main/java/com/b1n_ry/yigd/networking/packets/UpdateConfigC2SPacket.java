@@ -9,12 +9,12 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public record UpdateConfigC2SPacket(ClaimPriority claiming, ClaimPriority robbing) implements CustomPacketPayload {
-    public static final Type<UpdateConfigC2SPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "update_config"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, UpdateConfigC2SPacket> CODEC = StreamCodec.ofMember(UpdateConfigC2SPacket::write, UpdateConfigC2SPacket::new);
+    public static final Type<UpdateConfigC2SPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "update_config"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, UpdateConfigC2SPacket> STREAM_CODEC = StreamCodec.ofMember(UpdateConfigC2SPacket::write, UpdateConfigC2SPacket::new);
 
     @Override
     public @NotNull Type<UpdateConfigC2SPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     public UpdateConfigC2SPacket(RegistryFriendlyByteBuf buf) {

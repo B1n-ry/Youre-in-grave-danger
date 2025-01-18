@@ -101,12 +101,12 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
     public record AccessoriesInventoryGroup(NonNullList<AccessoriesInventorySlot> normal, NonNullList<AccessoriesInventorySlot> cosmetic) {
         private void addAllNonEmptyToList(Collection<ItemStack> list) {
             for (AccessoriesInventorySlot slot : this.normal) {
-                if (slot.stack.isEmpty()) continue;
-                list.add(slot.stack.copy());
+                if (!slot.stack.isEmpty())
+                    list.add(slot.stack.copy());
             }
             for (AccessoriesInventorySlot slot : this.cosmetic) {
-                if (slot.stack.isEmpty()) continue;
-                list.add(slot.stack.copy());
+                if (!slot.stack.isEmpty())
+                    list.add(slot.stack.copy());
             }
         }
     }

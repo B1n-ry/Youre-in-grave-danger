@@ -10,12 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 public record DeleteGraveC2SPacket(UUID graveId) implements CustomPacketPayload {
-    public static final Type<DeleteGraveC2SPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "delete_grave_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, DeleteGraveC2SPacket> CODEC = StreamCodec.ofMember(DeleteGraveC2SPacket::write, DeleteGraveC2SPacket::new);
+    public static final Type<DeleteGraveC2SPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "delete_grave_request"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, DeleteGraveC2SPacket> STREAM_CODEC = StreamCodec.ofMember(DeleteGraveC2SPacket::write, DeleteGraveC2SPacket::new);
 
     @Override
     public @NotNull Type<DeleteGraveC2SPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     public DeleteGraveC2SPacket(RegistryFriendlyByteBuf buf) {

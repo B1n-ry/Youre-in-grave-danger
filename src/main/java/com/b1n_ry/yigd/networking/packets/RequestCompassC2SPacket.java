@@ -10,12 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 public record RequestCompassC2SPacket(UUID graveId) implements CustomPacketPayload {
-    public static final Type<RequestCompassC2SPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "request_grave_compass"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, RequestCompassC2SPacket> CODEC = StreamCodec.ofMember(RequestCompassC2SPacket::write, RequestCompassC2SPacket::new);
+    public static final Type<RequestCompassC2SPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "request_grave_compass"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, RequestCompassC2SPacket> STREAM_CODEC = StreamCodec.ofMember(RequestCompassC2SPacket::write, RequestCompassC2SPacket::new);
 
     @Override
     public @NotNull Type<RequestCompassC2SPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     public RequestCompassC2SPacket(RegistryFriendlyByteBuf buf) {

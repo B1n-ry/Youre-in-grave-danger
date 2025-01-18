@@ -62,6 +62,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     public static boolean renderOutlineShader = false;
 
+    public static boolean syncedGlowing = true;
+    public static int syncedGlowingMaxDistance = Integer.MAX_VALUE;
+    public static double syncedDeathSightDistance = Integer.MAX_VALUE;
+
     public GraveBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.skullModels = SkullBlockRenderer.createSkullRenderers(context.getModelSet());
         this.textRenderer = context.getFont();

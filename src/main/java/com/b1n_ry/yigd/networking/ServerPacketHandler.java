@@ -25,7 +25,7 @@ import java.util.UUID;
 
 public class ServerPacketHandler {
     public static void registerReceivers() {
-        ServerPlayNetworking.registerGlobalReceiver(RestoreGraveC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(RestoreGraveC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.restore", config.commandConfig.restorePermissionLevel)) {
@@ -71,7 +71,7 @@ public class ServerPacketHandler {
                 }, () -> player.sendSystemMessage(Component.translatable("text.yigd.command.restore.fail")));
             });
         });
-        ServerPlayNetworking.registerGlobalReceiver(RobGraveC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(RobGraveC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.rob", config.commandConfig.robPermissionLevel)) {
@@ -107,7 +107,7 @@ public class ServerPacketHandler {
                 }, () -> player.sendSystemMessage(Component.translatable("text.yigd.command.rob.fail")));
             });
         });
-        ServerPlayNetworking.registerGlobalReceiver(DeleteGraveC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(DeleteGraveC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.delete", config.commandConfig.deletePermissionLevel)) {
@@ -131,7 +131,7 @@ public class ServerPacketHandler {
                 player.sendSystemMessage(Component.translatable(translatable));
             });
         });
-        ServerPlayNetworking.registerGlobalReceiver(LockGraveC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(LockGraveC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.locking", config.commandConfig.unlockPermissionLevel)) {
@@ -148,7 +148,7 @@ public class ServerPacketHandler {
                         () -> player.sendSystemMessage(Component.translatable("text.yigd.command.lock.fail")));
             });
         });
-        ServerPlayNetworking.registerGlobalReceiver(RequestKeyC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(RequestKeyC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!config.extraFeatures.graveKeys.enabled || !config.extraFeatures.graveKeys.obtainableFromGui) {
@@ -167,7 +167,7 @@ public class ServerPacketHandler {
                 }, () -> player.sendSystemMessage(Component.translatable("text.yigd.command.obtain_key.fail")));
             });
         });
-        ServerPlayNetworking.registerGlobalReceiver(RequestCompassC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(RequestCompassC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!config.extraFeatures.graveCompass.cloneRecoveryCompassWithGUI) {
@@ -183,7 +183,7 @@ public class ServerPacketHandler {
                         () -> player.sendSystemMessage(Component.translatable("text.yigd.command.obtain_compass.fail")));
             });
         });
-        ServerPlayNetworking.registerGlobalReceiver(GraveOverviewRequestC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(GraveOverviewRequestC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.view_self", config.commandConfig.viewSelfPermissionLevel)) {
@@ -196,7 +196,7 @@ public class ServerPacketHandler {
             component.ifPresentOrElse(grave -> sendGraveOverviewPacket(player, grave),
                     () -> player.sendSystemMessage(Component.translatable("text.yigd.command.view_self.fail")));
         });
-        ServerPlayNetworking.registerGlobalReceiver(GraveSelectionRequestC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(GraveSelectionRequestC2SPacket.TYPE, (payload, context) -> {
             YigdConfig config = YigdConfig.getConfig();
             ServerPlayer player = context.player();
             if (!Permissions.check(player, "yigd.command.view_user", config.commandConfig.viewUserPermissionLevel)) {
@@ -214,7 +214,7 @@ public class ServerPacketHandler {
 
             sendGraveSelectionPacket(player, profile, lightGraveData);
         });
-        ServerPlayNetworking.registerGlobalReceiver(UpdateConfigC2SPacket.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(UpdateConfigC2SPacket.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();
 
             ClaimPriority claimPriority = payload.claiming();
@@ -247,5 +247,14 @@ public class ServerPacketHandler {
 
     public static void sendPlayerSelectionPacket(ServerPlayer player, List<LightPlayerData> data) {
         ServerPlayNetworking.send(player, new PlayerSelectionS2CPacket(data));
+    }
+
+    public static void sendConfigSyncPacket(ServerPlayer player) {
+        YigdConfig config = YigdConfig.getConfig();
+        ServerPlayNetworking.send(player, new SyncConfigS2CPacket(
+                config.graveConfig.retrieveMethods.onBreak,
+                config.graveRendering.useGlowingEffect,
+                config.graveRendering.glowingDistance,
+                config.extraFeatures.deathSightEnchant.range));
     }
 }

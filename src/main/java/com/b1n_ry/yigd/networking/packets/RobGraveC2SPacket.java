@@ -11,12 +11,12 @@ import java.util.UUID;
 
 public record RobGraveC2SPacket(UUID graveId, boolean itemsInGrave, boolean itemsDeleted, boolean itemsKept,
                                 boolean itemsDropped) implements CustomPacketPayload {
-    public static final Type<RobGraveC2SPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "rob_grave_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, RobGraveC2SPacket> CODEC = StreamCodec.ofMember(RobGraveC2SPacket::write, RobGraveC2SPacket::new);
+    public static final Type<RobGraveC2SPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "rob_grave_request"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, RobGraveC2SPacket> STREAM_CODEC = StreamCodec.ofMember(RobGraveC2SPacket::write, RobGraveC2SPacket::new);
 
     @Override
     public @NotNull Type<RobGraveC2SPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     public RobGraveC2SPacket(RegistryFriendlyByteBuf buf) {

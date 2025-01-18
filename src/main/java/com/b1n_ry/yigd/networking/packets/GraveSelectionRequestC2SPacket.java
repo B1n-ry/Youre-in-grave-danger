@@ -9,12 +9,12 @@ import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.NotNull;
 
 public record GraveSelectionRequestC2SPacket(ResolvableProfile profile) implements CustomPacketPayload {
-    public static final Type<GraveSelectionRequestC2SPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_selection_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, GraveSelectionRequestC2SPacket> CODEC = StreamCodec.ofMember(GraveSelectionRequestC2SPacket::write, GraveSelectionRequestC2SPacket::new);
+    public static final Type<GraveSelectionRequestC2SPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_selection_request"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, GraveSelectionRequestC2SPacket> STREAM_CODEC = StreamCodec.ofMember(GraveSelectionRequestC2SPacket::write, GraveSelectionRequestC2SPacket::new);
 
     @Override
     public @NotNull Type<GraveSelectionRequestC2SPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     public GraveSelectionRequestC2SPacket(RegistryFriendlyByteBuf buf) {

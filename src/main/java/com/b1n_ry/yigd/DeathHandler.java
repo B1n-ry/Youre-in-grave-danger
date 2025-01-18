@@ -52,7 +52,6 @@ public class DeathHandler {
         ExpComponent keepExp = expComponent.getSoulboundExp();
         respawnComponent.setSoulboundExp(keepExp);
 
-
         if (config.inventoryConfig.itemLoss.enabled) {
             inventoryComponent.applyLoss();
         }

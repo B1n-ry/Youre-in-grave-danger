@@ -11,12 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public record PlayerSelectionS2CPacket(List<LightPlayerData> data) implements CustomPacketPayload {
-    public static final Type<PlayerSelectionS2CPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "player_selection"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, PlayerSelectionS2CPacket> CODEC = StreamCodec.ofMember(PlayerSelectionS2CPacket::write, PlayerSelectionS2CPacket::new);
+    public static final Type<PlayerSelectionS2CPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "player_selection"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, PlayerSelectionS2CPacket> STREAM_CODEC = StreamCodec.ofMember(PlayerSelectionS2CPacket::write, PlayerSelectionS2CPacket::new);
 
     @Override
     public @NotNull Type<PlayerSelectionS2CPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     public PlayerSelectionS2CPacket(RegistryFriendlyByteBuf buf) {

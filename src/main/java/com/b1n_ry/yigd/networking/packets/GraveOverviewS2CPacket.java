@@ -10,12 +10,12 @@ import org.jetbrains.annotations.NotNull;
 
 public record GraveOverviewS2CPacket(GraveComponent component, boolean canRestore, boolean canRob, boolean canDelete,
                                      boolean canUnlock, boolean obtainableKeys, boolean obtainableCompass) implements CustomPacketPayload {
-    public static final Type<GraveOverviewS2CPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_overview"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, GraveOverviewS2CPacket> CODEC = StreamCodec.ofMember(GraveOverviewS2CPacket::write, GraveOverviewS2CPacket::new);
+    public static final Type<GraveOverviewS2CPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "grave_overview"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, GraveOverviewS2CPacket> STREAM_CODEC = StreamCodec.ofMember(GraveOverviewS2CPacket::write, GraveOverviewS2CPacket::new);
 
     @Override
     public @NotNull Type<GraveOverviewS2CPacket> type() {
-        return ID;
+        return TYPE;
     }
 
     private GraveOverviewS2CPacket(RegistryFriendlyByteBuf buf) {
