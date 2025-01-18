@@ -52,10 +52,6 @@ public class DeathHandler {
         ExpComponent keepExp = expComponent.getSoulboundExp();
         respawnComponent.setSoulboundExp(keepExp);
 
-        if (config.inventoryConfig.itemLoss.enabled) {
-            inventoryComponent.applyLoss();
-        }
-
         ResolvableProfile profile = new ResolvableProfile(player.getGameProfile());
         Vec3 graveGenerationPos = !config.graveConfig.generateOnLastGroundPos ? pos : ((ServerPlayerEntityImpl) player).youre_in_grave_danger$getLastGroundPos();
         GraveComponent graveComponent = new GraveComponent(profile, inventoryComponent, expComponent,

@@ -364,7 +364,13 @@ public class GraveComponent {
     public void generateOrDrop(Direction playerDirection, DeathContext context, RespawnComponent respawnComponent) {
         ServerLevel world = context.world();
         Vec3 pos = context.deathPos();
-        if (!AllowGraveGenerationEvent.EVENT.invoker().allowGeneration(context, this)) {
+
+        boolean canGenerate = AllowGraveGenerationEvent.EVENT.invoker().allowGeneration(context, this);
+
+        if (YigdConfig.getConfig().inventoryConfig.itemLoss.enabled) {
+            inventoryComponent.applyLoss();
+        }
+        if (!canGenerate) {
             this.inventoryComponent.dropGraveItems(world, pos);
             this.expComponent.dropAll(world, pos);
         } else {
