@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.block.entity;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.GraveConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
@@ -167,7 +168,7 @@ public class GraveBlockEntity extends BlockEntity {
         }
         if (world.getTime() % 2400 == 0) cachedConfig = YigdConfig.getConfig();  // Reloads the config every 60 seconds
 
-        YigdConfig.GraveConfig.GraveTimeout timeoutConfig = cachedConfig.graveConfig.graveTimeout;
+        GraveConfig.GraveTimeout timeoutConfig = cachedConfig.graveConfig.graveTimeout;
 
         if (!pos.equals(be.component.getPos())
                 || (!be.component.getWorldRegistryKey().equals(world.getRegistryKey()))) {

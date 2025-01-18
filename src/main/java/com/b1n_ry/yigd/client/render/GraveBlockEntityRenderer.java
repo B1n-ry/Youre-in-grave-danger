@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.client.render;
 
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.config.GraveRenderingConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.RenderGlowingGraveEvent;
 import com.b1n_ry.yigd.mixin.accessor.WorldRendererAccessor;
@@ -20,8 +21,6 @@ import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
 import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.PlayerScreenHandler;
@@ -36,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockEntity> {
@@ -57,6 +55,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     public static boolean renderOutlineShader = false;
 
+    public static boolean syncedGlowing = true;
+    public static int syncedGlowingMaxDistance = Integer.MAX_VALUE;
+    public static double syncedDeathSightDistance = Integer.MAX_VALUE;
+
     public GraveBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.skullModels = SkullBlockEntityRenderer.getModels(context.getLayerRenderDispatcher());
         this.textRenderer = context.getTextRenderer();
@@ -67,7 +69,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
 
     @Override
     public void render(GraveBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        YigdConfig.GraveRendering config = YigdConfig.getConfig().graveRendering;
+        GraveRenderingConfig config = YigdConfig.getConfig().graveRendering;
         if (!config.useCustomFeatureRenderer) return;
 
         BlockState state = entity.getCachedState();

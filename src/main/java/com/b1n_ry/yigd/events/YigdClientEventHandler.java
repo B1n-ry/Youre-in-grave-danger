@@ -2,7 +2,7 @@ package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.DeathSightConfig;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig.DeathSightConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EquipmentSlot;

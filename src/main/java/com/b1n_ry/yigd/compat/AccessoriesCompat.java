@@ -90,10 +90,12 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
     public record AccessoriesInventoryGroup(DefaultedList<AccessoriesInventorySlot> normal, DefaultedList<AccessoriesInventorySlot> cosmetic) {
         private void addAllNonEmptyToList(Collection<ItemStack> list) {
             for (AccessoriesInventorySlot slot : this.normal) {
-                list.add(slot.stack.copy());
+                if (!slot.stack.isEmpty())
+                    list.add(slot.stack.copy());
             }
             for (AccessoriesInventorySlot slot : this.cosmetic) {
-                list.add(slot.stack.copy());
+                if (!slot.stack.isEmpty())
+                    list.add(slot.stack.copy());
             }
         }
     }
@@ -263,6 +265,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 ExpandedSimpleContainer cosmeticAccessories = container.getCosmeticAccessories();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     AccessoriesInventorySlot slot = inventorySlot.normal.get(i);
+                    if (slot.stack.isEmpty()) continue;
                     if (i >= normalAccessories.size()) {
                         extraItems.add(slot.stack.copy());
                         continue;
@@ -272,6 +275,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     AccessoriesInventorySlot slot = inventorySlot.cosmetic.get(i);
+                    if (slot.stack.isEmpty()) continue;
                     if (i >= cosmeticAccessories.size()) {
                         extraItems.add(slot.stack.copy());
                         continue;

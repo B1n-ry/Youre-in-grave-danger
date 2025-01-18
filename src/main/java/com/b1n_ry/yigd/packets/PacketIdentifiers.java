@@ -7,6 +7,7 @@ public interface PacketIdentifiers {
     Identifier GRAVE_OVERVIEW_S2C = idFor("grave_overview_s2c");
     Identifier GRAVE_SELECTION_S2C = idFor("grave_selection_s2c");
     Identifier PLAYER_SELECTION_S2C = idFor("player_selection_s2c");
+    Identifier CONFIG_SYNC_S2C = idFor("config_sync_s2c");
 
     Identifier GRAVE_LOCKING_C2S = idFor("grave_locking_c2s");
     Identifier GRAVE_RESTORE_C2S = idFor("grave_restore_c2s");

@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.util;
 
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.CommandConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
@@ -28,7 +29,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class YigdCommands {
     public static void register() {
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.CommandConfig commandConfig = config.commandConfig;
+        CommandConfig commandConfig = config.commandConfig;
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 literal(commandConfig.mainCommand)

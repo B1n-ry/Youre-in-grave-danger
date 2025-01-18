@@ -2,7 +2,7 @@ package com.b1n_ry.yigd.item;
 
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.ScrollConfig;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig.ScrollConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.packets.ServerPacketHandler;

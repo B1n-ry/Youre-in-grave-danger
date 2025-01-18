@@ -4,6 +4,8 @@ package com.b1n_ry.yigd.block;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.GraveConfig;
+import com.b1n_ry.yigd.config.GraveRenderingConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
@@ -101,7 +103,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
 
     @Override
     public BlockRenderType getRenderType(BlockState state) {
-        YigdConfig.GraveRendering config = YigdConfig.getConfig().graveRendering;
+        GraveRenderingConfig config = YigdConfig.getConfig().graveRendering;
         return config.useCustomFeatureRenderer ? BlockRenderType.INVISIBLE : BlockRenderType.MODEL;
     }
 
@@ -207,7 +209,7 @@ public class GraveBlock extends BlockWithEntity implements BlockEntityProvider, 
     @Override
     public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
         if (!world.isClient && entity instanceof ServerPlayerEntity player) {
-            YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
+            GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
             if (graveConfig.retrieveMethods.onStand || (graveConfig.retrieveMethods.onSneak && player.isSneaking())) {
                 if (world.getBlockEntity(pos) instanceof GraveBlockEntity grave) {
                     GraveComponent graveComponent = grave.getComponent();

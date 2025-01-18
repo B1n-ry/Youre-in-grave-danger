@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.data;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
 import com.mojang.authlib.GameProfile;
@@ -101,7 +102,7 @@ public class DeathInfoManager extends PersistentState {
             }
         }
 
-        if (config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED
+        if (config.extraFeatures.graveCompass.pointToClosest != ExtraFeaturesConfig.GraveCompassConfig.CompassGraveTarget.DISABLED
                 && component.getStatus() == GraveStatus.UNCLAIMED) {
             GraveCompassHelper.addGravePosition(component.getWorldRegistryKey(), component.getPos(), profile.getId());
         }

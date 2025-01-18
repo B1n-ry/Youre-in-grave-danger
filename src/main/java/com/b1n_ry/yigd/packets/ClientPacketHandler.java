@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.client.gui.PlayerSelectionGui;
 import com.b1n_ry.yigd.client.gui.screens.GraveOverviewScreen;
 import com.b1n_ry.yigd.client.gui.screens.GraveSelectionScreen;
 import com.b1n_ry.yigd.client.gui.screens.PlayerSelectionScreen;
+import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.mojang.authlib.GameProfile;
@@ -64,6 +65,18 @@ public class ClientPacketHandler {
             }
 
             client.execute(() -> client.setScreen(new PlayerSelectionScreen(new PlayerSelectionGui(data, client.currentScreen))));
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(PacketIdentifiers.CONFIG_SYNC_S2C, (client, handler, buf, responseBuilder) -> {
+            boolean breakableGraves = buf.readBoolean();
+            boolean glowingGraves = buf.readBoolean();
+            int glowingMaxDistance = buf.readInt();
+            double deathSightRange = buf.readDouble();
+
+            YigdConfig.getConfig().graveConfig.retrieveMethods.onBreak = breakableGraves;
+            GraveBlockEntityRenderer.syncedGlowing = glowingGraves;
+            GraveBlockEntityRenderer.syncedGlowingMaxDistance = glowingMaxDistance;
+            GraveBlockEntityRenderer.syncedDeathSightDistance = deathSightRange;
         });
     }
 

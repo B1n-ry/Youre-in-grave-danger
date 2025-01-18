@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.packets;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.ClaimPriority;
+import com.b1n_ry.yigd.config.CommandConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
@@ -209,7 +210,7 @@ public class ServerPacketHandler {
 
     public static void sendGraveOverviewPacket(ServerPlayerEntity player, GraveComponent component) {
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.CommandConfig commandConfig = YigdConfig.getConfig().commandConfig;
+        CommandConfig commandConfig = YigdConfig.getConfig().commandConfig;
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeNbt(component.toNbt());
         buf.writeBoolean(Permissions.check(player, "yigd.command.restore", commandConfig.restorePermissionLevel));
@@ -244,5 +245,16 @@ public class ServerPacketHandler {
         }
 
         ServerPlayNetworking.send(player, PacketIdentifiers.PLAYER_SELECTION_S2C, buf);
+    }
+
+    public static void sendConfigSyncPacket(ServerPlayerEntity player) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        YigdConfig config = YigdConfig.getConfig();
+        buf.writeBoolean(config.graveConfig.retrieveMethods.onBreak);
+        buf.writeBoolean(config.graveRendering.useGlowingEffect);
+        buf.writeInt(config.graveRendering.glowingDistance);
+        buf.writeDouble(config.extraFeatures.deathSightEnchant.range);
+
+        ServerPlayNetworking.send(player, PacketIdentifiers.CONFIG_SYNC_S2C, buf);
     }
 }

@@ -1,6 +1,8 @@
 package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig;
+import com.b1n_ry.yigd.config.RespawnConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.util.GraveCompassHelper;
@@ -80,7 +82,7 @@ public class RespawnComponent {
         }
 
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.ExtraFeatures extraFeaturesConfig = config.extraFeatures;
+        ExtraFeaturesConfig extraFeaturesConfig = config.extraFeatures;
         if (extraFeaturesConfig.deathScroll.enabled && extraFeaturesConfig.deathScroll.receiveOnRespawn) {
             ItemStack scroll = Yigd.DEATH_SCROLL_ITEM.getDefaultStack();
             boolean turned = Yigd.DEATH_SCROLL_ITEM.bindStackToLatestDeath(player, scroll);
@@ -102,7 +104,7 @@ public class RespawnComponent {
             }
         }
 
-        for (YigdConfig.RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {
+        for (RespawnConfig.ExtraItemDrop extraItemDrop : config.respawnConfig.extraItemDrops) {
             Item item = Registries.ITEM.get(new Identifier(extraItemDrop.itemId));
             ItemStack stack = new ItemStack(item, extraItemDrop.count);
             try {

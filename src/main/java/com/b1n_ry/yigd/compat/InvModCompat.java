@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.compat.misc_compat_mods.CommonProtectionApiCompat;
 import com.b1n_ry.yigd.compat.misc_compat_mods.OrpheusCompat;
 import com.b1n_ry.yigd.compat.misc_compat_mods.RespawnObelisksCompat;
 import com.b1n_ry.yigd.compat.misc_compat_mods.TwilightCompat;
+import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.NbtCompound;
@@ -17,7 +18,7 @@ public interface InvModCompat<T> {
     static void reloadModCompat() {
         invCompatMods.clear();
         FabricLoader loader = FabricLoader.getInstance();
-        YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+        CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
         boolean accessoriesLoaded = compatConfig.enableAccessoriesCompat && loader.isModLoaded("accessories");
 

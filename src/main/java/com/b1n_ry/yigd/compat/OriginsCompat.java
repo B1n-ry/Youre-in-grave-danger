@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.components.InventoryComponent;
+import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.AdjustDropRuleEvent;
@@ -91,7 +92,7 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Pai
 
         @Override
         public Map<String, DefaultedList<Pair<ItemStack, DropRule>>> getInventory(ServerPlayerEntity player) {
-            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+            CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
             Map<String, DefaultedList<Pair<ItemStack, DropRule>>> inventory = new HashMap<>();
 

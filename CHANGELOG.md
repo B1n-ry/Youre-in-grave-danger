@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.0.12
+
+### Changes
+* Config values for glowing graves, glowing grave distance, breakable graves, and
+death sight enchantment range are now properly synced to the server
+
+---
+
 # You're in Grave Danger 2.0.11
 
 ### Changes

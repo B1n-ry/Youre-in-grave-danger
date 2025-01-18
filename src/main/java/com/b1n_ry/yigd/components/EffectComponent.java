@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.config.RespawnConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -23,7 +24,7 @@ public class EffectComponent {
 
     public EffectComponent(ServerPlayerEntity player) {
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.RespawnConfig rConfig = config.respawnConfig;
+        RespawnConfig rConfig = config.respawnConfig;
 
         this.effects = new ArrayList<>();
         this.loadEffectsFromConfig(rConfig);
@@ -83,8 +84,8 @@ public class EffectComponent {
         return nbtCompound;
     }
 
-    private void loadEffectsFromConfig(YigdConfig.RespawnConfig rConfig) {
-        for (YigdConfig.RespawnConfig.EffectConfig effect : rConfig.respawnEffects) {
+    private void loadEffectsFromConfig(RespawnConfig rConfig) {
+        for (RespawnConfig.EffectConfig effect : rConfig.respawnEffects) {
             StatusEffect statusEffect = Registries.STATUS_EFFECT.get(new Identifier(effect.effectName));
             if (statusEffect == null) continue;
 

@@ -2,7 +2,7 @@ package com.b1n_ry.yigd.util;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveCompassConfig;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig.GraveCompassConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;

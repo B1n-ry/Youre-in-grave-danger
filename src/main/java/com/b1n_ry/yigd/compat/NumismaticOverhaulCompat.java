@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.DropRuleEvent;
@@ -83,7 +84,7 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
 
         @Override
         public void handleDropRules(DeathContext context) {
-            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+            CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
             int dropRate = context.world().getGameRules().get(NumismaticOverhaul.MONEY_DROP_PERCENTAGE).get();
             float dropFactor = dropRate * 0.01f;

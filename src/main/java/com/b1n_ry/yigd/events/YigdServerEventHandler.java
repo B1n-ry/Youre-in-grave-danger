@@ -1,8 +1,10 @@
 package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig;
+import com.b1n_ry.yigd.config.GraveConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.GraveKeyConfig;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig.GraveKeyConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.data.ListMode;
@@ -98,7 +100,7 @@ public class YigdServerEventHandler {
 
             YigdConfig config = YigdConfig.getConfig();
 
-            if (config.extraFeatures.graveCompass.consumeOnUse || config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
+            if (config.extraFeatures.graveCompass.consumeOnUse || config.extraFeatures.graveCompass.pointToClosest != ExtraFeaturesConfig.GraveCompassConfig.CompassGraveTarget.DISABLED) {
                 PlayerInventory inventory = player.getInventory();
                 for (int i = 0; i < inventory.size(); i++) {
                     ItemStack stack = inventory.getStack(i);
@@ -158,7 +160,7 @@ public class YigdServerEventHandler {
             if (player.getUuid().equals(grave.getOwner().getId())) return true;
             if (!grave.isLocked()) return true;
 
-            YigdConfig.GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
+            GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
             if (!robConfig.enabled) return false;
 
             if (robConfig.killerSkipWaitTime && player.getUuid().equals(grave.getKillerId())) {
@@ -175,7 +177,7 @@ public class YigdServerEventHandler {
         });
 
         AllowGraveGenerationEvent.EVENT.register((context, grave) -> {
-            YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
+            GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
             if (!graveConfig.enabled) return false;
 
             if (DeathInfoManager.INSTANCE.getGraveListMode() == ListMode.WHITELIST && !DeathInfoManager.INSTANCE.isInList(context.player().getGameProfile())
@@ -208,7 +210,7 @@ public class YigdServerEventHandler {
             }
 
             BlockState state = world.getBlockState(pos);
-            YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
+            GraveConfig config = YigdConfig.getConfig().graveConfig;
             if (world.getBlockEntity(pos) != null)  // Block entities should NOT be replaced by graves
                 return false;
             switch (nthTry) {
