@@ -361,6 +361,11 @@ public class GraveComponent {
         ServerLevel world = context.world();
         Vec3 pos = context.deathPos();
         YigdEvents.AllowGraveGenerationEvent event = NeoForge.EVENT_BUS.post(new YigdEvents.AllowGraveGenerationEvent(context, this));
+
+        if (YigdConfig.getConfig().inventoryConfig.itemLoss.enabled) {
+            inventoryComponent.applyLoss();
+        }
+
         if (!event.isGenerationAllowed()) {
             this.inventoryComponent.dropGraveItems(world, pos);
             this.expComponent.dropAll(world, pos);

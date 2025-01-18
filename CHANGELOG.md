@@ -4,6 +4,9 @@
 * Config values for glowing graves, glowing grave distance, breakable graves, and
 death sight enchantment range are now properly synced to the server
 
+### Fixes
+* Item loss is now applied after checking items required for generating a grave
+
 ---
 
 # You're in Grave Danger 2.0.8
