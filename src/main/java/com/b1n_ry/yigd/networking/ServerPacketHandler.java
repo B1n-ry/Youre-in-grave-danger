@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.networking;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.config.ClaimPriority;
+import com.b1n_ry.yigd.config.CommandConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
@@ -58,7 +59,7 @@ public class ServerPacketHandler {
             return;
         }
 
-        YigdConfig.CommandConfig commandConfig = config.commandConfig;
+        CommandConfig commandConfig = config.commandConfig;
 
         UUID graveId = payload.graveId();
         Optional<GraveComponent> component = DeathInfoManager.INSTANCE.getGrave(graveId);

@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.mixin;
 
 import com.b1n_ry.yigd.Yigd;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Decoder;
@@ -24,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class RegistryDataLoaderMixin {
     @Inject(method = "loadElementFromResource", at = @At("HEAD"), cancellable = true)
     private static <E> void maybeCancelResourceLoad(WritableRegistry<E> registry, Decoder<E> decoder, RegistryOps<JsonElement> ops, ResourceKey<E> key, Resource resource, RegistrationInfo entryInfo, CallbackInfo ci) {
-        YigdConfig.ExtraFeatures extraFeaturesConfig = YigdConfig.getConfig().extraFeatures;
+        ExtraFeaturesConfig extraFeaturesConfig = YigdConfig.getConfig().extraFeatures;
         if (key.equals(ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(Yigd.MOD_ID, "soulbound"))) && !extraFeaturesConfig.enableSoulbound) {
             ci.cancel();
         }

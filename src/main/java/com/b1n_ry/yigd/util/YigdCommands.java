@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.util;
 
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.CommandConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
@@ -32,7 +33,7 @@ import static net.minecraft.commands.Commands.literal;
 public class YigdCommands {
     public static void registerCommands(RegisterCommandsEvent event) {
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.CommandConfig commandConfig = config.commandConfig;
+        CommandConfig commandConfig = config.commandConfig;
 
         event.getDispatcher().register(
                 literal(commandConfig.mainCommand)
@@ -99,7 +100,7 @@ public class YigdCommands {
         }
 
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.CommandConfig commandConfig = config.commandConfig;
+        CommandConfig commandConfig = config.commandConfig;
         PacketDistributor.sendToPlayer(player, new GraveOverviewS2CPacket(
                 unClaimedGraves.getFirst(),
                 player.hasPermissions(commandConfig.restorePermissionLevel),

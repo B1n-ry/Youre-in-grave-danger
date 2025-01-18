@@ -2,6 +2,8 @@ package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig;
+import com.b1n_ry.yigd.config.GraveConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.data.DeathInfoManager;
@@ -156,7 +158,7 @@ public class YigdServerEventHandler {
 
         YigdConfig config = YigdConfig.getConfig();
 
-        if (config.extraFeatures.graveCompass.consumeOnUse || config.extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
+        if (config.extraFeatures.graveCompass.consumeOnUse || config.extraFeatures.graveCompass.pointToClosest != ExtraFeaturesConfig.GraveCompassConfig.CompassGraveTarget.DISABLED) {
             Inventory inventory = player.getInventory();
             for (int i = 0; i < inventory.getContainerSize(); i++) {
                 ItemStack stack = inventory.getItem(i);
@@ -184,7 +186,7 @@ public class YigdServerEventHandler {
                 CompoundTag nbt = nbtComponent.copyTag();
                 CompoundTag userNbt = nbt.getCompound("user");
                 Tag uuidNbt = nbt.get("grave");
-                YigdConfig.ExtraFeatures.GraveKeyConfig.KeyTargeting targeting = config.extraFeatures.graveKeys.targeting;
+                ExtraFeaturesConfig.GraveKeyConfig.KeyTargeting targeting = config.extraFeatures.graveKeys.targeting;
                 switch (targeting) {
                     case ANY_GRAVE -> {
                         tool.shrink(1);
@@ -232,7 +234,7 @@ public class YigdServerEventHandler {
             return;
         }
 
-        YigdConfig.GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
+        GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
         if (!robConfig.enabled) {
             event.setCanClaim(false);
             return;
@@ -258,7 +260,7 @@ public class YigdServerEventHandler {
         DeathContext context = event.getDeathContext();
         GraveComponent grave = event.getGrave();
 
-        YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
+        GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
         if (!graveConfig.enabled) {
             event.setAllowGeneration(false);
             return;
@@ -317,7 +319,7 @@ public class YigdServerEventHandler {
         }
 
         BlockState state = level.getBlockState(pos);
-        YigdConfig.GraveConfig config = YigdConfig.getConfig().graveConfig;
+        GraveConfig config = YigdConfig.getConfig().graveConfig;
         if (level.getBlockEntity(pos) != null) {  // Block entities should NOT be replaced by graves
             event.setCanGenerate(false);
             return;

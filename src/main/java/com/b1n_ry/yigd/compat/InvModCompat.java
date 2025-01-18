@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.compat.misc_compat_mods.TwilightCompat;
+import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -15,7 +16,7 @@ public interface InvModCompat<T> {
     static void reloadModCompat() {
         invCompatMods.clear();
         ModList modList = ModList.get();
-        YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+        CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
         boolean accessoriesPresent = modList.isLoaded("accessories");
         boolean curiosPresent = modList.isLoaded("curios");

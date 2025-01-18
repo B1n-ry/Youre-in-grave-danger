@@ -2,8 +2,10 @@ package com.b1n_ry.yigd.item;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
+import com.b1n_ry.yigd.config.CommandConfig;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
-import com.b1n_ry.yigd.config.YigdConfig.ExtraFeatures.ScrollConfig;
+import com.b1n_ry.yigd.config.ExtraFeaturesConfig.ScrollConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.networking.packets.GraveOverviewS2CPacket;
@@ -85,7 +87,7 @@ public class DeathScrollItem extends Item {
     public @NotNull InteractionResultHolder<ItemStack> use(Level world, @NotNull Player user, @NotNull InteractionHand hand) {
         if (world.isClientSide) return super.use(world, user, hand);
 
-        YigdConfig.ExtraFeatures.ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
+        ExtraFeaturesConfig.ScrollConfig scrollConfig = YigdConfig.getConfig().extraFeatures.deathScroll;
         ServerPlayer player = (ServerPlayer) user;
         ItemStack scroll = player.getItemInHand(hand);
         CustomData scrollNbtComponent = scroll.get(DataComponents.CUSTOM_DATA);
@@ -165,7 +167,7 @@ public class DeathScrollItem extends Item {
         if (optional.isPresent()) {
             GraveComponent component = optional.get();
             YigdConfig config = YigdConfig.getConfig();
-            YigdConfig.CommandConfig commandConfig = config.commandConfig;
+            CommandConfig commandConfig = config.commandConfig;
             PacketDistributor.sendToPlayer(player, new GraveOverviewS2CPacket(component,
                     player.hasPermissions(commandConfig.restorePermissionLevel),
                     player.hasPermissions(commandConfig.robPermissionLevel),

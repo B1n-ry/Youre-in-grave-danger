@@ -2,9 +2,7 @@ package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
-import com.b1n_ry.yigd.config.ClaimPriority;
-import com.b1n_ry.yigd.config.DropType;
-import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.config.*;
 import com.b1n_ry.yigd.data.*;
 import com.b1n_ry.yigd.events.*;
 import com.b1n_ry.yigd.networking.LightGraveData;
@@ -173,7 +171,7 @@ public class GraveComponent {
     }
     public void setStatus(GraveStatus status) {
         if (this.status == GraveStatus.UNCLAIMED
-                && YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest != YigdConfig.ExtraFeatures.GraveCompassConfig.CompassGraveTarget.DISABLED) {
+                && YigdConfig.getConfig().extraFeatures.graveCompass.pointToClosest != ExtraFeaturesConfig.GraveCompassConfig.CompassGraveTarget.DISABLED) {
             GraveCompassHelper.setClaimed(this.worldRegistryKey, this.pos);
         }
         this.status = status;
@@ -244,7 +242,7 @@ public class GraveComponent {
             }
         }
 
-        YigdConfig.GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
+        GraveConfig.Range generationMaxDistance = config.graveConfig.generationMaxDistance;
 
         // Loop should ABSOLUTELY NOT loop 50 times, but in case some stupid ass person (maybe me lol) doesn't return true by default
         // in canGenerate when i reaches some value (maybe 4) there is a cap at least, so the loop won't continue forever and freeze the game
@@ -383,7 +381,7 @@ public class GraveComponent {
             Yigd.LOGGER.error("Tried to place block under a grave but world was null");
             return;
         }
-        YigdConfig.GraveConfig.BlockUnderGrave config = YigdConfig.getConfig().graveConfig.blockUnderGrave;
+        GraveConfig.BlockUnderGrave config = YigdConfig.getConfig().graveConfig.blockUnderGrave;
         if (!config.enabled) return;  // Not in an event because idk. I don't want to put this in an event I guess
 
         BlockState currentUnder = this.world.getBlockState(this.pos.below());
@@ -391,7 +389,7 @@ public class GraveComponent {
         if (!event.isPlacementAllowed()) return;
 
         Map<String, String> blockInDimMap = new HashMap<>();
-        for (YigdConfig.MapEntry pair : config.blockInDimensions) {
+        for (MapEntryConfig pair : config.blockInDimensions) {
             blockInDimMap.put(pair.key, pair.value);
         }
 
@@ -448,7 +446,7 @@ public class GraveComponent {
     public String getTimeUntilRobbable() {
         if (this.world == null) return "0";
         final int tps = 20;
-        YigdConfig.GraveConfig.GraveRobbing robConfig = YigdConfig.getConfig().graveConfig.graveRobbing;
+        GraveConfig.GraveRobbing robConfig = YigdConfig.getConfig().graveConfig.graveRobbing;
         long delay = robConfig.timeUnit.toSeconds(robConfig.afterTime) * tps;
 
         long timePassed = (this.creationTime.getTime() - this.world.getGameTime() + delay) / tps;
@@ -543,7 +541,7 @@ public class GraveComponent {
         }
     }
 
-    private void handleRandomSpawn(YigdConfig.GraveConfig.RandomSpawn config, ServerLevel world, GameProfile looter) {
+    private void handleRandomSpawn(GraveConfig.RandomSpawn config, ServerLevel world, GameProfile looter) {
         if (config.percentSpawnChance <= world.random.nextInt(100)) return;  // Using world's random (from world seed)
         IntArrayTag ownerIdNbt = this.owner.id().map(NbtUtils::createUUID).orElse(new IntArrayTag(new int[0]));
         IntArrayTag looterIdNbt = NbtUtils.createUUID(looter.getId());

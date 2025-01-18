@@ -3,26 +3,26 @@ package com.b1n_ry.yigd.events;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
+import com.b1n_ry.yigd.config.GraveConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
+import com.b1n_ry.yigd.networking.packets.SyncConfigS2CPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ResolvableProfile;
-import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,8 +88,14 @@ public class ServerEventHandler {
     public void playerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
+        YigdConfig config = YigdConfig.getConfig();
+        PacketDistributor.sendToPlayer(player, new SyncConfigS2CPacket(
+                config.graveConfig.retrieveMethods.onBreak,
+                config.graveRendering.useGlowingEffect,
+                config.graveRendering.glowingDistance,
+                config.extraFeatures.deathSightEnchant.range));
 
-        YigdConfig.GraveConfig.GraveRobbing robConfig = YigdConfig.getConfig().graveConfig.graveRobbing;
+        GraveConfig.GraveRobbing robConfig = config.graveConfig.graveRobbing;
         UUID joiningId = player.getUUID();
 
         if (!Yigd.NOT_NOTIFIED_ROBBERIES.containsKey(joiningId)) return;

@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.client;
 
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.client.render.GraveBlockEntityRenderer;
+import com.b1n_ry.yigd.config.GraveConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.YigdClientEventHandler;
 import com.b1n_ry.yigd.networking.packets.UpdateConfigC2SPacket;
@@ -29,7 +30,7 @@ public class YigdClient {
         modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, screen) -> AutoConfig.getConfigScreen(YigdConfig.class, screen).get());
 
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> {
-            YigdConfig.GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
+            GraveConfig graveConfig = YigdConfig.getConfig().graveConfig;
             PacketDistributor.sendToServer(new UpdateConfigC2SPacket(graveConfig.claimPriority, graveConfig.graveRobbing.robPriority));
         });
     }

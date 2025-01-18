@@ -20,5 +20,6 @@ public class PacketInitializer {
         registrar.playToClient(GraveOverviewS2CPacket.TYPE, GraveOverviewS2CPacket.STREAM_CODEC, ClientPacketHandler::graveOverview);
         registrar.playToClient(GraveSelectionS2CPacket.TYPE, GraveSelectionS2CPacket.STREAM_CODEC, ClientPacketHandler::graveSelection);
         registrar.playToClient(PlayerSelectionS2CPacket.TYPE, PlayerSelectionS2CPacket.STREAM_CODEC, ClientPacketHandler::playerSelection);
+        registrar.playToClient(SyncConfigS2CPacket.TYPE, SyncConfigS2CPacket.STREAM_CODEC, ClientPacketHandler::syncConfig);
     }
 }

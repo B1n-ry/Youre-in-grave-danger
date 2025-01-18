@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.components;
 
 import com.b1n_ry.yigd.compat.CompatComponent;
 import com.b1n_ry.yigd.compat.InvModCompat;
+import com.b1n_ry.yigd.config.InventoryConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.YigdEvents;
@@ -174,7 +175,7 @@ public class InventoryComponent {
 
     public void applyLoss() {
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
+        InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
 
         int from, to;
         if (itemLoss.usePercentRange) {
@@ -208,7 +209,7 @@ public class InventoryComponent {
     }
     private void loseRandomItem() {
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
+        InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
 
         List<Integer> itemSlots = new ArrayList<>();
         int vanillaLimit = this.items.size();

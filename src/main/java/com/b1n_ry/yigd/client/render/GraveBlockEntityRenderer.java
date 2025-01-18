@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.client.render;
 
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.config.GraveRenderingConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.events.YigdEvents;
 import com.google.gson.Gson;
@@ -61,6 +62,10 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     private static final Map<String, Material> CUBOID_SPRITES = new HashMap<>();
     private static final RenderType OUTLINE_RENDER_LAYER;
 
+    public static boolean syncedGlowing = true;
+    public static int syncedGlowingMaxDistance = Integer.MAX_VALUE;
+    public static double syncedDeathSightDistance = Integer.MAX_VALUE;
+
     public GraveBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.skullModels = SkullBlockRenderer.createSkullRenderers(context.getModelSet());
         this.textRenderer = context.getFont();
@@ -70,7 +75,7 @@ public class GraveBlockEntityRenderer implements BlockEntityRenderer<GraveBlockE
     }
     @Override
     public void render(@NotNull GraveBlockEntity entity, float tickDelta, @NotNull PoseStack poseStack, @NotNull MultiBufferSource multiBufferSource, int light, int overlay) {
-        YigdConfig.GraveRendering config = YigdConfig.getConfig().graveRendering;
+        GraveRenderingConfig config = YigdConfig.getConfig().graveRendering;
         if (!config.useCustomFeatureRenderer) return;
 
         BlockState state = entity.getBlockState();

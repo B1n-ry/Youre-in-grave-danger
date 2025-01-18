@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.config.RespawnConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,7 +25,7 @@ public class EffectComponent {
 
     public EffectComponent(ServerPlayer player) {
         YigdConfig config = YigdConfig.getConfig();
-        YigdConfig.RespawnConfig rConfig = config.respawnConfig;
+        RespawnConfig rConfig = config.respawnConfig;
 
         this.effects = new ArrayList<>();
         this.loadEffectsFromConfig(rConfig);
@@ -81,8 +82,8 @@ public class EffectComponent {
         return nbtCompound;
     }
 
-    private void loadEffectsFromConfig(YigdConfig.RespawnConfig rConfig) {
-        for (YigdConfig.RespawnConfig.EffectConfig effect : rConfig.respawnEffects) {
+    private void loadEffectsFromConfig(RespawnConfig rConfig) {
+        for (RespawnConfig.EffectConfig effect : rConfig.respawnEffects) {
             MobEffect statusEffect = BuiltInRegistries.MOB_EFFECT.get(ResourceLocation.parse(effect.effectName));
             if (statusEffect == null) continue;
 

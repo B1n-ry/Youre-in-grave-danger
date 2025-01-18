@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.components.InventoryComponent;
+import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
 import com.b1n_ry.yigd.events.YigdEvents;
@@ -82,7 +83,7 @@ public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemS
 
         @Override
         public void handleDropRules(DeathContext context) {
-            YigdConfig.CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
+            CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
             for (Tuple<ItemStack, DropRule> tuple : this.inventory) {
                 if (tuple.getA().isEmpty()) continue;
