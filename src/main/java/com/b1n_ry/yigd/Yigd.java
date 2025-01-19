@@ -76,7 +76,7 @@ public class Yigd
     private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, Yigd.MOD_ID);
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> GRAVE_ID = DATA_COMPONENTS.registerComponentType("grave_id", builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> GRAVE_LOCATION = DATA_COMPONENTS.registerComponentType("grave_location", builder -> builder.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
-    public static final DeathHandler DEATH_HANDLER = new DeathHandler();
+    public static final Map<UUID, DeathHandler> UNFINISHED_DEATHS = new HashMap<>();
 
     /**
      * Any runnable added to this list will be executed on the end of the current server tick.

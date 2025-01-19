@@ -26,7 +26,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -559,7 +558,7 @@ public class GraveComponent {
 
         // While the nbt string has an item to add (text contains "${item[i]}")
         Matcher nbtMatcher;
-        NonNullList<Tuple<ItemStack, DropRule>> items = this.inventoryComponent.getItems();
+        NonNullList<GraveItem> items = this.inventoryComponent.getItems();
         do {
             // Find if there are any instances an item should be placed in the nbt
             Pattern nbtPattern = Pattern.compile("\\$\\{!?item\\[[0-9]+]}");
@@ -577,14 +576,14 @@ public class GraveComponent {
             int itemNumber = Integer.parseInt(res);
 
             // Package item as NBT, and put inside NBT summon string
-            ItemStack item = items.get(itemNumber).getA();
+            ItemStack item = items.get(itemNumber).stack;
             CompoundTag itemNbt = (CompoundTag) item.save(world.registryAccess());
 
             boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
 
             summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", itemNbt.toString());
 
-            if (removeItem) items.set(itemNumber, new Tuple<>(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
+            if (removeItem) items.set(itemNumber, new GraveItem(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
         } while (nbtMatcher.find());  // Loop until no more items should be inserted in NBT
 
         try {

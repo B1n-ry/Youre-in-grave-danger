@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.events.YigdEvents;
 import com.b1n_ry.yigd.util.DropRule;
 import com.tiviacz.travelersbackpack.TravelersBackpack;
@@ -13,13 +14,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.function.Predicate;
 
-public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, DropRule>> {
+public class TravelersBackpackCompat implements InvModCompat<GraveItem> {
     public static boolean isIntegrationEnabled() {
         try {
             return TravelersBackpack.enableIntegration();
@@ -40,7 +40,7 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
     }
 
     @Override
-    public CompatComponent<Tuple<ItemStack, DropRule>> readNbt(CompoundTag nbt, HolderLookup.Provider registries) {
+    public CompatComponent<GraveItem> readNbt(CompoundTag nbt, HolderLookup.Provider registries) {
         ItemStack stack = ItemStack.parse(registries, nbt).orElse(ItemStack.EMPTY);
 
         DropRule dropRule;
@@ -49,56 +49,55 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
         } else {
             dropRule = YigdConfig.getConfig().compatConfig.defaultTravelersBackpackDropRule;
         }
-        return new TBCompatComponent(new Tuple<>(stack, dropRule));
+        return new TBCompatComponent(new GraveItem(stack, dropRule));
     }
 
     @Override
-    public CompatComponent<Tuple<ItemStack, DropRule>> getNewComponent(ServerPlayer player) {
+    public CompatComponent<GraveItem> getNewComponent(ServerPlayer player) {
         return new TBCompatComponent(player);
     }
 
-    private static class TBCompatComponent extends CompatComponent<Tuple<ItemStack, DropRule>> {
+    private static class TBCompatComponent extends CompatComponent<GraveItem> {
 
         public TBCompatComponent(ServerPlayer player) {
             super(player);
         }
 
-        public TBCompatComponent(Tuple<ItemStack, DropRule> inventory) {
+        public TBCompatComponent(GraveItem inventory) {
             super(inventory);
         }
 
         @Override
-        public Tuple<ItemStack, DropRule> getInventory(ServerPlayer player) {
+        public GraveItem getInventory(ServerPlayer player) {
             DropRule defaultDropRule = YigdConfig.getConfig().compatConfig.defaultTravelersBackpackDropRule;
             ItemStack stack = AttachmentUtils.getWearingBackpack(player);
-            return stack == null ? InventoryComponent.EMPTY_ITEM_PAIR : new Tuple<>(stack, defaultDropRule);
+            return stack == null ? InventoryComponent.EMPTY_GRAVE_ITEM : new GraveItem(stack, defaultDropRule);
         }
 
         @Override
-        public NonNullList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
-            NonNullList<ItemStack> extraItems = NonNullList.create();
+        public NonNullList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
+            NonNullList<GraveItem> extraItems = NonNullList.create();
 
-            @SuppressWarnings("unchecked")
-            Tuple<ItemStack, DropRule> pair = (Tuple<ItemStack, DropRule>) mergingComponent.inventory;
-            ItemStack mergingStack = pair.getA();
-            ItemStack currentStack = this.inventory.getA();
+            GraveItem graveItem = (GraveItem) mergingComponent.inventory;
+            ItemStack mergingStack = graveItem.stack;
+            ItemStack currentStack = this.inventory.stack;
 
             if (mergingStack.isEmpty()) return extraItems;
 
             if (!currentStack.isEmpty()) {
-                extraItems.add(mergingStack);
+                extraItems.add(graveItem);
                 return extraItems;
             }
 
-            this.inventory = new Tuple<>(mergingStack, pair.getB());
+            this.inventory = new GraveItem(mergingStack, graveItem.dropRule);
             return extraItems;
         }
 
         @Override
         public NonNullList<ItemStack> storeToPlayer(ServerPlayer player) {
-            if (this.inventory.getA().isEmpty()) return NonNullList.create();
+            if (this.inventory.stack.isEmpty()) return NonNullList.create();
 
-            AttachmentUtils.equipBackpack(player, this.inventory.getA().copy());
+            AttachmentUtils.equipBackpack(player, this.inventory.stack.copy());
 
             return NonNullList.create();
         }
@@ -109,36 +108,36 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
 
             DropRule dropRule = compatConfig.defaultTravelersBackpackDropRule;
 
-            ItemStack stack = this.inventory.getA();
+            ItemStack stack = this.inventory.stack;
             if (stack.isEmpty()) return;
 
             if (dropRule == DropRule.PUT_IN_GRAVE)
                 dropRule = NeoForge.EVENT_BUS.post(new YigdEvents.DropRuleEvent(stack, -1, context, true)).getDropRule();
 
-            this.inventory.setB(dropRule);
+            this.inventory.dropRule = dropRule;
         }
 
         @Override
-        public NonNullList<Tuple<ItemStack, DropRule>> getAsStackDropList() {
-            NonNullList<Tuple<ItemStack, DropRule>> stacks = NonNullList.create();
+        public NonNullList<GraveItem> getAsGraveItemList() {
+            NonNullList<GraveItem> stacks = NonNullList.create();
             stacks.add(this.inventory);
             return stacks;
         }
 
         @Override
-        public CompatComponent<Tuple<ItemStack, DropRule>> filterInv(Predicate<DropRule> predicate) {
-            Tuple<ItemStack, DropRule> pair;
-            if (predicate.test(this.inventory.getB())) {
-                pair = this.inventory;
+        public CompatComponent<GraveItem> filterInv(Predicate<DropRule> predicate) {
+            GraveItem graveItem;
+            if (predicate.test(this.inventory.dropRule)) {
+                graveItem = this.inventory;
             } else {
-                pair = InventoryComponent.EMPTY_ITEM_PAIR;
+                graveItem = InventoryComponent.EMPTY_GRAVE_ITEM;
             }
-            return new TBCompatComponent(pair);
+            return new TBCompatComponent(graveItem);
         }
 
         @Override
         public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
-            ItemStack stack = this.inventory.getA();
+            ItemStack stack = this.inventory.stack;
             if (predicate.test(stack)) {
                 stack.shrink(itemCount);
                 return true;
@@ -148,14 +147,14 @@ public class TravelersBackpackCompat implements InvModCompat<Tuple<ItemStack, Dr
 
         @Override
         public void clear() {
-            this.inventory = InventoryComponent.EMPTY_ITEM_PAIR;
+            this.inventory = InventoryComponent.EMPTY_GRAVE_ITEM;
         }
 
         @Override
         public CompoundTag writeNbt(HolderLookup.Provider registries) {
-            CompoundTag nbt = (CompoundTag) this.inventory.getA().save(registries);
+            CompoundTag nbt = (CompoundTag) this.inventory.stack.save(registries);
 
-            nbt.putString("dropRule", this.inventory.getB().name());
+            nbt.putString("dropRule", this.inventory.dropRule.name());
             return nbt;
         }
     }

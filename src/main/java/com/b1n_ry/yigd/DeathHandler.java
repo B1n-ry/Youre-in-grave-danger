@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
@@ -20,7 +21,12 @@ import net.neoforged.neoforge.common.NeoForge;
 import java.util.UUID;
 
 public class DeathHandler {
-    public void onPlayerDeath(ServerPlayer player, ServerLevel world, Vec3 pos, DamageSource deathSource) {
+    private final GraveComponent graveComponent;
+    private final Direction playerDirection;
+    private final DeathContext context;
+    private final RespawnComponent respawnComponent;
+
+    public DeathHandler(ServerPlayer player, ServerLevel world, Vec3 pos, DamageSource deathSource) {
         YigdConfig config = YigdConfig.getConfig();
 
         UUID killerId;
@@ -68,10 +74,20 @@ public class DeathHandler {
 
         Direction playerDirection = player.getDirection();
 
+        this.graveComponent = graveComponent;
+        this.playerDirection = playerDirection;
+        this.context = context;
+        this.respawnComponent = respawnComponent;
+    }
+    public void addItem(ItemStack stack) {
+        InventoryComponent inventoryComponent = this.graveComponent.getInventoryComponent();
+        inventoryComponent.addExtraItemStack(stack);
+    }
+    public void finalizeDeath() {
         YigdEvents.DelayGraveGenerationEvent event = NeoForge.EVENT_BUS.post(
-                new YigdEvents.DelayGraveGenerationEvent(graveComponent, playerDirection, context, respawnComponent, "vanilla"));
+                new YigdEvents.DelayGraveGenerationEvent(this.graveComponent, this.playerDirection, this.context, this.respawnComponent, "vanilla"));
         if (!event.generationIsDelayed()) {
-            graveComponent.generateOrDrop(playerDirection, context, respawnComponent);
+            this.graveComponent.generateOrDrop(this.playerDirection, this.context, this.respawnComponent);
         }
     }
 }

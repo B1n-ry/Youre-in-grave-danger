@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.events.YigdEvents;
 import com.b1n_ry.yigd.util.DropRule;
 import lain.mods.cos.impl.ModObjects;
@@ -12,13 +13,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.function.Predicate;
 
-public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemStack, DropRule>>> {
+public class CosmeticArmorCompat implements InvModCompat<NonNullList<GraveItem>> {
     @Override
     public String getModName() {
         return "cosmeticarmor";
@@ -31,35 +31,35 @@ public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemS
     }
 
     @Override
-    public CompatComponent<NonNullList<Tuple<ItemStack, DropRule>>> readNbt(CompoundTag nbt, HolderLookup.Provider registries) {
-        NonNullList<Tuple<ItemStack, DropRule>> items = InventoryComponent.listFromNbt(nbt, itemTag -> {
+    public CompatComponent<NonNullList<GraveItem>> readNbt(CompoundTag nbt, HolderLookup.Provider registries) {
+        NonNullList<GraveItem> items = InventoryComponent.listFromNbt(nbt, itemTag -> {
             DropRule dropRule = DropRule.valueOf(itemTag.getString("dropRule"));
             ItemStack stack = ItemStack.parse(registries, itemTag).orElse(ItemStack.EMPTY);
-            return new Tuple<>(stack, dropRule);
-        }, InventoryComponent.EMPTY_ITEM_PAIR);
+            return new GraveItem(stack, dropRule);
+        }, InventoryComponent.EMPTY_GRAVE_ITEM);
         return new CosmeticArmorCompatComponent(items);
     }
 
     @Override
-    public CompatComponent<NonNullList<Tuple<ItemStack, DropRule>>> getNewComponent(ServerPlayer player) {
+    public CompatComponent<NonNullList<GraveItem>> getNewComponent(ServerPlayer player) {
         return new CosmeticArmorCompatComponent(player);
     }
 
-    static class CosmeticArmorCompatComponent extends CompatComponent<NonNullList<Tuple<ItemStack, DropRule>>> {
+    static class CosmeticArmorCompatComponent extends CompatComponent<NonNullList<GraveItem>> {
         public CosmeticArmorCompatComponent(ServerPlayer player) {
             super(player);
         }
-        public CosmeticArmorCompatComponent(NonNullList<Tuple<ItemStack, DropRule>> inventory) {
+        public CosmeticArmorCompatComponent(NonNullList<GraveItem> inventory) {
             super(inventory);
         }
 
         @Override
-        public NonNullList<Tuple<ItemStack, DropRule>> getInventory(ServerPlayer player) {
+        public NonNullList<GraveItem> getInventory(ServerPlayer player) {
             InventoryCosArmor inventory = ModObjects.invMan.getCosArmorInventory(player.getUUID());
-            NonNullList<Tuple<ItemStack, DropRule>> list = NonNullList.create();
+            NonNullList<GraveItem> list = NonNullList.create();
             for (int i = 0; i < inventory.getContainerSize(); i++) {
                 ItemStack stack = inventory.getItem(i);
-                list.add(new Tuple<>(stack, DropRule.PUT_IN_GRAVE));
+                list.add(new GraveItem(stack, DropRule.PUT_IN_GRAVE));
             }
             return list;
         }
@@ -71,11 +71,11 @@ public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemS
 
             for (int i = 0; i < cosArmor.getContainerSize(); i++) {
                 if (i >= this.inventory.size()) break;
-                ItemStack stack = this.inventory.get(i).getA().copy();
+                GraveItem graveItem = this.inventory.get(i).copy();
                 if (cosArmor.getItem(i).isEmpty()) {
-                    cosArmor.setItem(i, stack);
+                    cosArmor.setItem(i, graveItem.stack);
                 } else {
-                    extraItems.add(stack);
+                    extraItems.add(graveItem.stack);
                 }
             }
             return extraItems;
@@ -85,19 +85,19 @@ public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemS
         public void handleDropRules(DeathContext context) {
             CompatConfig compatConfig = YigdConfig.getConfig().compatConfig;
 
-            for (Tuple<ItemStack, DropRule> tuple : this.inventory) {
-                if (tuple.getA().isEmpty()) continue;
+            for (GraveItem graveItem : this.inventory) {
+                if (graveItem.stack.isEmpty()) continue;
                 DropRule dropRule = compatConfig.defaultCosmeticArmorDropRule;
 
                 if (dropRule != DropRule.PUT_IN_GRAVE) continue;
-                dropRule = NeoForge.EVENT_BUS.post(new YigdEvents.DropRuleEvent(tuple.getA(), -1, context, true)).getDropRule();
+                dropRule = NeoForge.EVENT_BUS.post(new YigdEvents.DropRuleEvent(graveItem.stack, -1, context, true)).getDropRule();
 
-                tuple.setB(dropRule);
+                graveItem.dropRule = dropRule;
             }
         }
 
         @Override
-        public NonNullList<Tuple<ItemStack, DropRule>> getAsStackDropList() {
+        public NonNullList<GraveItem> getAsGraveItemList() {
             return NonNullList.copyOf(this.inventory);
         }
 
@@ -108,17 +108,17 @@ public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemS
 
         @Override
         public CompoundTag writeNbt(HolderLookup.Provider registries) {
-            return InventoryComponent.listToNbt(this.inventory, tuple -> {
-                CompoundTag itemTag = (CompoundTag) tuple.getA().save(registries);
-                itemTag.putString("dropRule", tuple.getB().toString());
+            return InventoryComponent.listToNbt(this.inventory, graveItem -> {
+                CompoundTag itemTag = (CompoundTag) graveItem.stack.save(registries);
+                itemTag.putString("dropRule", graveItem.dropRule.toString());
                 return itemTag;
-            }, tuple -> tuple.getA().isEmpty());
+            }, graveItem -> graveItem.stack.isEmpty());
         }
 
         @Override
         public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
-            for (Tuple<ItemStack, DropRule> tuple : this.inventory) {
-                ItemStack stack = tuple.getA();
+            for (GraveItem graveItem : this.inventory) {
+                ItemStack stack = graveItem.stack;
                 if (predicate.test(stack)) {
                     stack.shrink(itemCount);
                     return true;
@@ -128,36 +128,35 @@ public class CosmeticArmorCompat implements InvModCompat<NonNullList<Tuple<ItemS
         }
 
         @Override
-        public CompatComponent<NonNullList<Tuple<ItemStack, DropRule>>> filterInv(Predicate<DropRule> predicate) {
-            NonNullList<Tuple<ItemStack, DropRule>> list = NonNullList.create();
-            for (Tuple<ItemStack, DropRule> tuple : this.inventory) {
-                if (predicate.test(tuple.getB())) {
-                    list.add(tuple);
+        public CompatComponent<NonNullList<GraveItem>> filterInv(Predicate<DropRule> predicate) {
+            NonNullList<GraveItem> list = NonNullList.create();
+            for (GraveItem graveItem : this.inventory) {
+                if (predicate.test(graveItem.dropRule)) {
+                    list.add(graveItem);
                 } else {
-                    list.add(InventoryComponent.EMPTY_ITEM_PAIR);
+                    list.add(InventoryComponent.EMPTY_GRAVE_ITEM);
                 }
             }
             return new CosmeticArmorCompatComponent(list);
         }
 
         @Override
-        public NonNullList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
-            NonNullList<ItemStack> extraItems = NonNullList.create();
+        public NonNullList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
+            NonNullList<GraveItem> extraItems = NonNullList.create();
 
             @SuppressWarnings("unchecked")
-            NonNullList<Tuple<ItemStack, DropRule>> mergingItems = (NonNullList<Tuple<ItemStack, DropRule>>) mergingComponent.inventory;
+            NonNullList<GraveItem> mergingItems = (NonNullList<GraveItem>) mergingComponent.inventory;
             for (int i = 0; i < mergingItems.size(); i++) {
-                Tuple<ItemStack, DropRule> tuple = mergingItems.get(i);
-                ItemStack mergingStack = tuple.getA();
+                GraveItem graveItem = mergingItems.get(i);
                 if (i >= this.inventory.size()) {
-                    extraItems.add(mergingStack);
+                    extraItems.add(graveItem);
                     continue;
                 }
-                ItemStack thisStack = this.inventory.get(i).getA();
+                ItemStack thisStack = this.inventory.get(i).stack;
                 if (thisStack.isEmpty()) {
-                    this.inventory.set(i, new Tuple<>(mergingStack, tuple.getB()));
+                    this.inventory.set(i, graveItem);
                 } else {
-                    extraItems.add(mergingStack);
+                    extraItems.add(graveItem);
                 }
             }
             return extraItems;

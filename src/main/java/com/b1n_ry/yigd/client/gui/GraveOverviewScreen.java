@@ -3,8 +3,8 @@ package com.b1n_ry.yigd.client.gui;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.networking.packets.*;
-import com.b1n_ry.yigd.util.DropRule;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -163,9 +162,9 @@ public class GraveOverviewScreen extends Screen {
         });
 
         this.extraItems.clear();
-        NonNullList<Tuple<ItemStack, DropRule>> items = visibleInventoryComponent.getItems();
+        NonNullList<GraveItem> items = visibleInventoryComponent.getItems();
         for (int i = 0; i < items.size(); i++) {
-            ItemStack stack = items.get(i).getA();
+            ItemStack stack = items.get(i).stack;
             if (i < MAIN_SIZE) {  // Main size on screen
                 this.mainInv[i] = stack;
             } else if (i < visibleInventoryComponent.mainSize) {  // Main size in inventory but can't fit on screen

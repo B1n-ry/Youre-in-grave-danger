@@ -25,6 +25,6 @@ public class LivingEntityMixin {
 
         if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
 
-        Yigd.DEATH_HANDLER.onPlayerDeath(player, level, player.position(), damageSource);
+        Yigd.UNFINISHED_DEATHS.put(player.getUUID(), new DeathHandler(player, level, player.position(), damageSource));
     }
 }

@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.events;
 
+import com.b1n_ry.yigd.DeathHandler;
 import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
@@ -13,21 +14,23 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ServerEventHandler {
     @SubscribeEvent
@@ -55,6 +58,22 @@ public class ServerEventHandler {
         ServerLevel overworld = server.overworld();
         DeathInfoManager.INSTANCE = overworld.getDataStorage().computeIfAbsent(DeathInfoManager.getPersistentStateType(server), "yigd_data");
         DeathInfoManager.INSTANCE.setDirty();
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPlayerDeath(LivingDropsEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        UUID playerId = player.getUUID();
+
+        DeathHandler unfinished = Yigd.UNFINISHED_DEATHS.remove(playerId);
+        if (unfinished != null) {
+            for (ItemEntity itemEntity : event.getDrops()) {
+                unfinished.addItem(itemEntity.getItem());
+            }
+            unfinished.finalizeDeath();
+        } else {
+            Yigd.LOGGER.error("Did not find cached death handler for {}. Can't generate player loot", player.getGameProfile().getName());
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
