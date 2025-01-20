@@ -7,8 +7,10 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.events.YigdEvents;
 import com.b1n_ry.yigd.util.DropRule;
+import com.b1n_ry.yigd.util.GraveOverrideAreas;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -81,7 +83,7 @@ public class DeathHandler {
     }
     public void addItem(ItemStack stack) {
         InventoryComponent inventoryComponent = this.graveComponent.getInventoryComponent();
-        inventoryComponent.addExtraItemStack(stack);
+        inventoryComponent.addExtraGraveItem(new GraveItem(stack, GraveOverrideAreas.INSTANCE.defaultDropRule));
     }
     public void finalizeDeath() {
         YigdEvents.DelayGraveGenerationEvent event = NeoForge.EVENT_BUS.post(
