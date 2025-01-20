@@ -221,12 +221,12 @@ public class InventoryComponent {
 
             itemSlots.add(i);
         }
-        NonNullList<ItemStack> extraItems = NonNullList.create();
+        NonNullList<GraveItem> extraItems = NonNullList.create();
         if (itemLoss.includeModdedInventories) {
             for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
                 for (GraveItem graveItem : compatComponent.getAsGraveItemList()) {
                     if (graveItem.stack.isEmpty()) continue;
-                    extraItems.add(graveItem.stack);
+                    extraItems.add(graveItem);
                 }
             }
             for (int i = 0; i < extraItems.size(); i++) {
@@ -241,21 +241,15 @@ public class InventoryComponent {
         int slot = itemSlots.get(random);
         if (itemLoss.affectStacks) {
             if (slot >= vanillaLimit) {
-                ItemStack toBeRemoved = extraItems.get(slot - vanillaLimit);
-                this.handleGraveItems(s -> !s.equals("vanilla"), (stack, s, graveItem) -> {
-                    if (stack.equals(toBeRemoved)) graveItem.dropRule = DropRule.DESTROY;
-                });
+                GraveItem toBeRemoved = extraItems.get(slot - vanillaLimit);
+                toBeRemoved.dropRule = DropRule.DESTROY;
             } else {
                 this.items.get(slot).dropRule = DropRule.DESTROY;
             }
         } else {
-            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit) : this.items.get(slot).stack;
+            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit).stack : this.items.get(slot).stack;
 
             stack.shrink(1);
-        }
-        ItemStack decreased = this.items.get(slot).stack;
-        if (decreased.isEmpty() || decreased.getCount() == 0) {
-            itemSlots.remove(Integer.valueOf(slot));  // Make sure we can't lose this item again
         }
     }
 

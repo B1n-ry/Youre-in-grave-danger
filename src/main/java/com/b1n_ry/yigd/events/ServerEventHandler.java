@@ -67,9 +67,11 @@ public class ServerEventHandler {
 
         DeathHandler unfinished = Yigd.UNFINISHED_DEATHS.remove(playerId);
         if (unfinished != null) {
-            for (ItemEntity itemEntity : event.getDrops()) {
+            Collection<ItemEntity> drops = event.getDrops();
+            for (ItemEntity itemEntity : drops) {
                 unfinished.addItem(itemEntity.getItem());
             }
+            drops.clear();
             unfinished.finalizeDeath();
         } else {
             Yigd.LOGGER.error("Did not find cached death handler for {}. Can't generate player loot", player.getGameProfile().getName());
