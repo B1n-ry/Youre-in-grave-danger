@@ -263,16 +263,13 @@ public class InventoryComponent {
             int random = RANDOM.nextInt(itemSlots.size());
             slot = itemSlots.get(random);
         }
-        if (itemLoss.affectStacks) {
-
-            if (slot >= vanillaLimit) {
-                GraveItem toBeRemoved = extraItems.get(slot - vanillaLimit);
-                toBeRemoved.dropRule = appliedDropRule;
-            } else {
-                this.items.get(slot).dropRule = appliedDropRule;
-            }
+        GraveItem removeFrom = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit) : this.items.get(slot);
+        if (itemLoss.affectStacks || removeFrom.stack.getMaxStackSize() == 1) {
+            // We check max stack size instead of current stack size because else the final removed item of a stack would remain, instead of clearing a slot
+            // This would be an issue where this is the nth time, where a specific slot with original stack size n has been selected
+            removeFrom.dropRule = appliedDropRule;
         } else {
-            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit).stack : this.items.get(slot).stack;
+            ItemStack stack = removeFrom.stack;
 
             stack.shrink(1);
             GraveItem lostItem = new GraveItem(stack.copyWithCount(1), appliedDropRule);

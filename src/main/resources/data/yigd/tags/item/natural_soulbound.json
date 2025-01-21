@@ -1,5 +1,8 @@
 {
   "values": [
-
+    {
+      "id": "#twilightforest:kept_on_death",
+      "required": false
+    }
   ]
 }

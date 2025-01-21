@@ -1,3 +1,19 @@
+# You're in Grave Danger 2.0.10
+
+### Changes
+* Mods adding external inventories, without specific compat, should now have their items
+handled by YiGD (meaning they might get stored in a grave instead of dropping)
+* Item-loss can now be weighted to prefer selection items for destruction of larger stacks
+* Losing individual items though item loss will now be registered as destroyed by the
+backup system
+* Item-loss can be configured to apply other drop rules than the DESTROY drop rule
+
+### Fixes
+* Fixed random error when applying item loss to modded inventories, which would cause death
+handling to be ignored
+
+---
+
 # You're in Grave Danger 2.0.9
 
 ### Changes

@@ -280,7 +280,7 @@ public class CuriosCompat implements InvModCompat<Map<String, CuriosSlotEntry>> 
                 }
             }
             Optional<ICurio> iCurio = CuriosApi.getCurio(stack);
-            return iCurio.map(curio -> curio.getDropRule(new SlotContext(key, context.player(), index, cosmetic, false), context.deathSource(), 0, true)).orElse(ICurio.DropRule.DEFAULT);
+            return iCurio.map(curio -> curio.getDropRule(new SlotContext(key, context.player(), index, cosmetic, false), context.deathSource(), true)).orElse(ICurio.DropRule.DEFAULT);
         }
 
         @Override

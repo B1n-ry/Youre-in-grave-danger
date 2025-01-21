@@ -76,8 +76,8 @@ repositories {
     maven { url 'https://maven.su5ed.dev/releases' }
     maven { url 'https://maven.fabricmc.net' }
     maven {
-        name = "OctoStudios"
-        url = uri("https://maven.octo-studios.com/releases")
+        name = "Illusive Soulworks maven"
+        url = "https://maven.theillusivec4.top/"
     }
     exclusiveContent {
         forRepository {
@@ -106,7 +106,7 @@ dependencies {
     api "me.shedaniel.cloth:cloth-config-neoforge:${project.config_version}"
 
     compileOnly "io.wispforest:accessories-neoforge:${project.accessories_version}"
-    compileOnly "top.theillusivec4.curios:curios-neoforge:${project.curios_version}"
+    compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}:api"
     compileOnly "maven.modrinth:travelersbackpack:${project.travelers_backpack_version}"
     compileOnly "curse.maven:cosmeticarmor-${project.cosmetic_armor_version}"
 }
