@@ -7,6 +7,7 @@ handled by YiGD (meaning they might get stored in a grave instead of dropping)
 * Losing individual items though item loss will now be registered as destroyed by the
 backup system
 * Item-loss can be configured to apply other drop rules than the DESTROY drop rule
+* Added some common soulbound enchantments to standard soulbound enchantment tag
 
 ### Fixes
 * Fixed random error when applying item loss to modded inventories, which would cause death

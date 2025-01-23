@@ -25,6 +25,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public class PlayerSelectionScreen extends Screen {
@@ -91,7 +92,7 @@ public class PlayerSelectionScreen extends Screen {
             if (!searchContent.isEmpty()) {
                 Optional<String> name = playerData.playerProfile().name();
                 if (name.isEmpty()) continue;
-                if (!name.get().toLowerCase().contains(searchContent.toLowerCase())) continue;
+                if (!name.get().toLowerCase(Locale.ROOT).contains(searchContent.toLowerCase(Locale.ROOT))) continue;
             }
 
             Button button = Button.builder(Component.empty(),

@@ -4,6 +4,14 @@
     {
       "id": "yigd:soulbound",
       "required": false
+    },
+    {
+      "id": "soulbound:soulbound",
+      "required": false
+    },
+    {
+      "id": "ars_elemental:soulbound",
+      "required": false
     }
   ]
 }
