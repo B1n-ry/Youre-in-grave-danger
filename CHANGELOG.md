@@ -1,5 +1,10 @@
 # You're in Grave Danger 2.4.15
 
+### Changes
+* Item loss can now be weighted to pick items of higher stack counts
+* You can now set a drop rule different to DESTROY applying to item loss
+* Losing individual items from item loss will now end up in backup
+
 ### Fixes
 * Disabling the `treatBindingCurse` config will no longer treat curse of binding on respawn,
 if the cursed items also has soulbound.

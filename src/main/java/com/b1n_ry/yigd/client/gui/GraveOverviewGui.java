@@ -6,8 +6,8 @@ import com.b1n_ry.yigd.client.gui.widget.WHoverToggleButton;
 import com.b1n_ry.yigd.client.gui.widget.WItemStack;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.networking.ClientPacketHandler;
-import com.b1n_ry.yigd.util.DropRule;
 import io.github.cottonmc.cotton.gui.client.BackgroundPainter;
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription;
 import io.github.cottonmc.cotton.gui.widget.*;
@@ -19,7 +19,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -110,8 +109,8 @@ public class GraveOverviewGui extends LightweightGuiDescription {
 
     private void addItemSlots() {
         NonNullList<ItemStack> items = NonNullList.create();
-        for (Tuple<ItemStack, DropRule> pair : this.visibleInventoryComponent.getItems()) {
-            items.add(pair.getA());
+        for (GraveItem graveItem : this.visibleInventoryComponent.getItems()) {
+            items.add(graveItem.stack);
         }
 
         items.addAll(this.visibleInventoryComponent.getAllExtraItems(true));

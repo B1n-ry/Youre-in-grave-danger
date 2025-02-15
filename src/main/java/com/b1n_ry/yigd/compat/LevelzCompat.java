@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.util.DropRule;
 import net.levelz.access.LevelManagerAccess;
 import net.levelz.level.LevelManager;
@@ -9,7 +10,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Predicate;
@@ -55,7 +55,7 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public NonNullList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
+        public NonNullList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayer merger) {
             this.inventory += (float) mergingComponent.inventory;
             return NonNullList.create();
         }
@@ -74,7 +74,7 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public NonNullList<Tuple<ItemStack, DropRule>> getAsStackDropList() {
+        public NonNullList<GraveItem> getAsGraveItemList() {
             return NonNullList.create();
         }
 
