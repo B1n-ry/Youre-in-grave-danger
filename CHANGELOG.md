@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.4.15
+
+### Fixes
+* Disabling the `treatBindingCurse` config will no longer treat curse of binding on respawn,
+if the cursed items also has soulbound.
+
+---
+
 # You're in Grave Danger 2.4.14
 
 ### Changes

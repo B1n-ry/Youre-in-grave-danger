@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "#minecraft:enchantable/durability"
+    "#minecraft:enchantable/durability",
+    "#minecraft:enchantable/equippable"
   ]
 }

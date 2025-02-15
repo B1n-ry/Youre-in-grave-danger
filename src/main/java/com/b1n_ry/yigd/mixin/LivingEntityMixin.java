@@ -19,7 +19,6 @@ public class LivingEntityMixin {
 
         if (!(e instanceof ServerPlayer player)) return;
 
-        if (!player.isDeadOrDying()) return;  // If some weird shit happens, this is a failsafe
         if (player.isSpectator()) return;  // Spectators don't generate graves
 
         if (world.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;  // KeepInv should be handled by vanilla. No need to complicate things
