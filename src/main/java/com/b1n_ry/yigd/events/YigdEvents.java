@@ -1,6 +1,7 @@
 package com.b1n_ry.yigd.events;
 
 import com.b1n_ry.yigd.block.entity.GraveBlockEntity;
+import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.components.RespawnComponent;
@@ -17,6 +18,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.ICancellableEvent;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class YigdEvents {
     public static class AdjustDropRuleEvent extends Event {
@@ -317,6 +320,17 @@ public class YigdEvents {
 
         public void setRenderGlowing(boolean renderGlowing) {
             this.renderGlowing = renderGlowing;
+        }
+    }
+
+    public static class LoadModCompatEvent extends Event {
+        private final List<InvModCompat<?>> invCompatMods;
+
+        public LoadModCompatEvent(List<InvModCompat<?>> invCompatMods) {
+            this.invCompatMods = invCompatMods;
+        }
+        public void addModCompat(InvModCompat<?> invModCompat) {
+            this.invCompatMods.add(invModCompat);
         }
     }
 }

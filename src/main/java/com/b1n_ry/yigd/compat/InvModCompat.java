@@ -3,10 +3,12 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.compat.misc_compat_mods.TwilightCompat;
 import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.events.YigdEvents;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,8 @@ public interface InvModCompat<T> {
             invCompatMods.add(new CosmeticArmorCompat());
         if (modList.isLoaded("twilightforest"))
             TwilightCompat.init();
+
+        NeoForge.EVENT_BUS.post(new YigdEvents.LoadModCompatEvent(invCompatMods));
     }
 
     String getModName();
