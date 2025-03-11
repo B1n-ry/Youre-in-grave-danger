@@ -37,7 +37,6 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -566,7 +565,7 @@ public class GraveComponent {
 
         // While the nbt string has an item to add (text contains "${item[i]}")
         Matcher nbtMatcher;
-        DefaultedList<Pair<ItemStack, DropRule>> items = this.inventoryComponent.getItems();
+        DefaultedList<GraveItem> items = this.inventoryComponent.getItems();
         do {
             // Find if there are any instances an item should be placed in the nbt
             Pattern nbtPattern = Pattern.compile("\\$\\{!?item\\[[0-9]+]}");
@@ -584,7 +583,7 @@ public class GraveComponent {
             int itemNumber = Integer.parseInt(res);
 
             // Package item as NBT, and put inside NBT summon string
-            ItemStack item = items.get(itemNumber).getLeft();
+            ItemStack item = items.get(itemNumber).stack;
             NbtCompound itemNbt = item.getNbt();
             NbtCompound newNbt = new NbtCompound();
             newNbt.put("tag", itemNbt);
@@ -595,7 +594,7 @@ public class GraveComponent {
 
             summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", newNbt.asString());
 
-            if (removeItem) items.set(itemNumber, new Pair<>(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
+            if (removeItem) items.set(itemNumber, new GraveItem(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
         } while (nbtMatcher.find());  // Loop until no more items should be inserted in NBT
 
         try {

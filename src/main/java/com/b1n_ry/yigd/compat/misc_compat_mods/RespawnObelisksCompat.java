@@ -55,7 +55,7 @@ public class RespawnObelisksCompat {
                 int offHandSize = changedInventory.offHandSize;
 
                 // Save appropriate hotbar items
-                changedInventory.handleItemPairs(mod -> mod.equals("vanilla"), (item, i, pair) -> {
+                changedInventory.handleGraveItems(mod -> mod.equals("vanilla"), (item, i, pair) -> {
                     if (item.isEmpty()) return;
 
                     boolean keep;
@@ -78,14 +78,14 @@ public class RespawnObelisksCompat {
                     }
 
                     if (ObeliskUtils.shouldSaveItem(keep, chance, item)) {
-                        pair.setRight(DropRule.KEEP);
+                        pair.dropRule = DropRule.KEEP;
                     }
                 });
 
                 // Save trinkets
-                changedInventory.handleItemPairs(mod -> mod.equals("trinkets"), (item, i, pair) -> {
+                changedInventory.handleGraveItems(mod -> mod.equals("trinkets"), (item, i, pair) -> {
                     if (ObeliskUtils.shouldSaveItem(RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmor, RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmorChance, item)) {
-                        pair.setRight(DropRule.KEEP);
+                        pair.dropRule = DropRule.KEEP;
                     }
                 });
 

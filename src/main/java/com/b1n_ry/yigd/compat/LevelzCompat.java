@@ -2,13 +2,13 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.util.DropRule;
 import net.levelz.access.PlayerStatsManagerAccess;
 import net.levelz.stats.PlayerStatsManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.function.Predicate;
@@ -73,7 +73,7 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
+        public DefaultedList<GraveItem> getAsGraveItemList() {
             return DefaultedList.of();
         }
 

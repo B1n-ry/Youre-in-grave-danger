@@ -3,13 +3,13 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import dev.emi.trinkets.api.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class TrinketsCompat implements InvModCompat<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> {
+public class TrinketsCompat implements InvModCompat<Map<String, Map<String, DefaultedList<GraveItem>>>> {
 
     @Override
     public String getModName() {
@@ -38,16 +38,16 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
     }
 
     @Override
-    public CompatComponent<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> readNbt(NbtCompound nbt) {
-        Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> inventory = new HashMap<>();
+    public CompatComponent<Map<String, Map<String, DefaultedList<GraveItem>>>> readNbt(NbtCompound nbt) {
+        Map<String, Map<String, DefaultedList<GraveItem>>> inventory = new HashMap<>();
 
         for (String groupName : nbt.getKeys()) {
             NbtCompound groupNbt = nbt.getCompound(groupName);
-            Map<String, DefaultedList<Pair<ItemStack, DropRule>>> groupMap = new HashMap<>();
+            Map<String, DefaultedList<GraveItem>> groupMap = new HashMap<>();
 
             for (String slotName : groupNbt.getKeys()) {
                 NbtCompound slotNbt = groupNbt.getCompound(slotName);
-                DefaultedList<Pair<ItemStack, DropRule>> items = InventoryComponent.listFromNbt(slotNbt, itemNbt -> {
+                DefaultedList<GraveItem> items = InventoryComponent.listFromNbt(slotNbt, itemNbt -> {
                     ItemStack stack = ItemStack.fromNbt(itemNbt);
                     DropRule dropRule;
                     if (itemNbt.contains("dropRule")) {
@@ -62,8 +62,8 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                         dropRule = YigdConfig.getConfig().compatConfig.defaultTrinketsDropRule;
                     }
 
-                    return new Pair<>(stack, dropRule);
-                }, InventoryComponent.EMPTY_ITEM_PAIR, "inventory", "size");
+                    return new GraveItem(stack, dropRule);
+                }, InventoryComponent.EMPTY_GRAVE_ITEM, "inventory", "size");
 
                 groupMap.put(slotName, items);
             }
@@ -75,17 +75,17 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
     }
 
     @Override
-    public CompatComponent<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> getNewComponent(ServerPlayerEntity player) {
+    public CompatComponent<Map<String, Map<String, DefaultedList<GraveItem>>>> getNewComponent(ServerPlayerEntity player) {
         return new TrinketsCompatComponent(player);
     }
 
 
-    private static class TrinketsCompatComponent extends CompatComponent<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> {
+    private static class TrinketsCompatComponent extends CompatComponent<Map<String, Map<String, DefaultedList<GraveItem>>>> {
 
         public TrinketsCompatComponent(ServerPlayerEntity player) {
             super(player);
         }
-        public TrinketsCompatComponent(Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> inventory) {
+        public TrinketsCompatComponent(Map<String, Map<String, DefaultedList<GraveItem>>> inventory) {
             super(inventory);
         }
 
@@ -98,24 +98,24 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> getInventory(ServerPlayerEntity player) {
-            Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> items = new HashMap<>();
+        public Map<String, Map<String, DefaultedList<GraveItem>>> getInventory(ServerPlayerEntity player) {
+            Map<String, Map<String, DefaultedList<GraveItem>>> items = new HashMap<>();
 
             TrinketsApi.getTrinketComponent(player).ifPresent(component -> {
                 for (Map.Entry<String, Map<String, TrinketInventory>> group : component.getInventory().entrySet()) {
                     String groupString = group.getKey();
-                    Map<String, DefaultedList<Pair<ItemStack, DropRule>>> slotMap = new HashMap<>();
+                    Map<String, DefaultedList<GraveItem>> slotMap = new HashMap<>();
                     for (Map.Entry<String, TrinketInventory> slot : group.getValue().entrySet()) {
                         String slotString = slot.getKey();
                         TrinketInventory trinketInventory = slot.getValue();
 
-                        DefaultedList<Pair<ItemStack, DropRule>> itemsInInventory = DefaultedList.of();
+                        DefaultedList<GraveItem> itemsInInventory = DefaultedList.of();
                         for (int i = 0; i < trinketInventory.size(); i++) {
                             ItemStack stack = trinketInventory.getStack(i);
                             SlotReference ref = new SlotReference(trinketInventory, i);
                             TrinketEnums.DropRule dropRule = TrinketsApi.getTrinket(stack.getItem()).getDropRule(stack, ref, player);
 
-                            itemsInInventory.add(new Pair<>(trinketInventory.getStack(i), this.convertDropRule(dropRule)));
+                            itemsInInventory.add(new GraveItem(trinketInventory.getStack(i), this.convertDropRule(dropRule)));
                         }
 
                         slotMap.put(slotString, itemsInInventory);
@@ -137,25 +137,25 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
             if (trinketComponent.isPresent()) {
                 Map<String, Map<String, TrinketInventory>> trinketInventory = trinketComponent.get().getInventory();
 
-                for (Map.Entry<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> group : this.inventory.entrySet()) {
+                for (Map.Entry<String, Map<String, DefaultedList<GraveItem>>> group : this.inventory.entrySet()) {
                     Map<String, TrinketInventory> componentSlots = trinketInventory.get(group.getKey());
                     if (componentSlots == null) continue;
 
-                    for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> slot : group.getValue().entrySet()) {
+                    for (Map.Entry<String, DefaultedList<GraveItem>> slot : group.getValue().entrySet()) {
                         TrinketInventory trinketSlot = componentSlots.get(slot.getKey());
                         if (trinketSlot == null) continue;
 
-                        DefaultedList<Pair<ItemStack, DropRule>> slotItems = slot.getValue();
+                        DefaultedList<GraveItem> slotItems = slot.getValue();
                         for (int i = 0; i < slotItems.size(); i++) {
-                            Pair<ItemStack, DropRule> pair = slotItems.get(i);
-                            ItemStack item = pair.getLeft();
+                            GraveItem graveItem = slotItems.get(i);
+                            ItemStack item = graveItem.stack;
                             if (item.isEmpty()) {
                                 continue;
                             }
                             SlotReference ref = new SlotReference(trinketSlot, i);
                             if (!TrinketsApi.getTrinket(item.getItem()).canUnequip(item, ref, playerRef)) {
                                 noUnequipItems.add(item.copy());
-                                slotItems.set(i, InventoryComponent.EMPTY_ITEM_PAIR);
+                                slotItems.set(i, InventoryComponent.EMPTY_GRAVE_ITEM);
                             }
                         }
                     }
@@ -172,51 +172,51 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
             Optional<TrinketComponent> trinketComponent = TrinketsApi.getTrinketComponent(merger);
 
             @SuppressWarnings("unchecked")
-            Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> mergingInventory = (Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>) mergingComponent.inventory;
-            for (Map.Entry<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> groupEntry : mergingInventory.entrySet()) {  // From merging
+            Map<String, Map<String, DefaultedList<GraveItem>>> mergingInventory = (Map<String, Map<String, DefaultedList<GraveItem>>>) mergingComponent.inventory;
+            for (Map.Entry<String, Map<String, DefaultedList<GraveItem>>> groupEntry : mergingInventory.entrySet()) {  // From merging
                 String groupName = groupEntry.getKey();
-                Map<String, DefaultedList<Pair<ItemStack, DropRule>>> slotMap = this.inventory.get(groupName);  // From this
+                Map<String, DefaultedList<GraveItem>> slotMap = this.inventory.get(groupName);  // From this
                 if (slotMap == null) {
-                    for (DefaultedList<Pair<ItemStack, DropRule>> items : groupEntry.getValue().values()) {
-                        for (Pair<ItemStack, DropRule> stack : items) {
-                            extraItems.add(stack.getLeft().copy());  // Solves the issue where the itemstacks are the same instance
+                    for (DefaultedList<GraveItem> items : groupEntry.getValue().values()) {
+                        for (GraveItem graveItem : items) {
+                            extraItems.add(graveItem.stack.copy());  // Solves the issue where the itemstacks are the same instance
                         }
                     }
                     continue;
                 }
-                for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> slotEntry : groupEntry.getValue().entrySet()) {  // From merging
+                for (Map.Entry<String, DefaultedList<GraveItem>> slotEntry : groupEntry.getValue().entrySet()) {  // From merging
                     String slotName = slotEntry.getKey();
-                    DefaultedList<Pair<ItemStack, DropRule>> stacks = slotMap.get(slotName);  // From this
-                    DefaultedList<Pair<ItemStack, DropRule>> mergingItems = slotEntry.getValue();  // From merging
+                    DefaultedList<GraveItem> stacks = slotMap.get(slotName);  // From this
+                    DefaultedList<GraveItem> mergingItems = slotEntry.getValue();  // From merging
                     if (stacks == null) {
-                        for (Pair<ItemStack, DropRule> stack : mergingItems) {
-                            extraItems.add(stack.getLeft().copy());  // Solves the issue where the itemstacks are the same instance
+                        for (GraveItem graveItem : mergingItems) {
+                            extraItems.add(graveItem.stack.copy());  // Solves the issue where the itemstacks are the same instance
                         }
                         continue;
                     }
 
                     for (int i = 0; i < mergingItems.size(); i++) {
-                        Pair<ItemStack, DropRule> pair = mergingItems.get(i);
-                        ItemStack mergingStack = pair.getLeft().copy();  // Solves the issue where the itemstacks are the same instance
+                        GraveItem graveItem = mergingItems.get(i);
+                        ItemStack mergingStack = graveItem.stack.copy();  // Solves the issue where the itemstacks are the same instance
 
                         if (stacks.size() <= i) {
                             extraItems.add(mergingStack);
                             continue;
                         }
 
-                        Pair<ItemStack, DropRule> currentPair = stacks.get(i);
+                        GraveItem currentPair = stacks.get(i);
                         if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !this.canUnequip(trinketComponent.orElse(null), slotName, groupName, i, mergingStack, merger)) {
-                            extraItems.add(currentPair.getLeft());  // Add the current item to extraItems (as it's being replaced)
-                            stacks.set(i, new Pair<>(mergingStack, pair.getRight()));  // Can't be unequipped, so it's prioritized
+                            extraItems.add(currentPair.stack);  // Add the current item to extraItems (as it's being replaced)
+                            stacks.set(i, new GraveItem(mergingStack, graveItem.dropRule));  // Can't be unequipped, so it's prioritized
                             continue;  // Already set the item, so we can skip the rest
                         }
 
-                        if (!currentPair.getLeft().isEmpty()) {
+                        if (!currentPair.stack.isEmpty()) {
                             extraItems.add(mergingStack);
                             continue;
                         }
 
-                        stacks.set(i, new Pair<>(mergingStack, pair.getRight()));
+                        stacks.set(i, new GraveItem(mergingStack, graveItem.dropRule));
                     }
                 }
             }
@@ -242,34 +242,34 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
             TrinketsApi.getTrinketComponent(player).ifPresent(trinketComponent -> {
                 // Traverse through groups
-                for (Map.Entry<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> group : this.inventory.entrySet()) {
+                for (Map.Entry<String, Map<String, DefaultedList<GraveItem>>> group : this.inventory.entrySet()) {
                     Map<String, TrinketInventory> componentSlots = trinketComponent.getInventory().get(group.getKey());
                     if (componentSlots == null) {  // The trinket group is missing, and all those items need to be added to extraItems
-                        for (DefaultedList<Pair<ItemStack, DropRule>> itemList : group.getValue().values()) {
-                            for (Pair<ItemStack, DropRule> stack : itemList) {
-                                extraItems.add(stack.getLeft().copy());
+                        for (DefaultedList<GraveItem> itemList : group.getValue().values()) {
+                            for (GraveItem graveItem : itemList) {
+                                extraItems.add(graveItem.stack.copy());
                             }
                         }
                         continue;
                     }
 
                     // Traverse through slots
-                    for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> slot : group.getValue().entrySet()) {
+                    for (Map.Entry<String, DefaultedList<GraveItem>> slot : group.getValue().entrySet()) {
                         TrinketInventory trinketInventory = componentSlots.get(slot.getKey());
 
-                        DefaultedList<Pair<ItemStack, DropRule>> slotItems = slot.getValue();
+                        DefaultedList<GraveItem> slotItems = slot.getValue();
 
                         if (trinketInventory == null) {  // The trinket slot is missing, and all those items need to be added to extraItems
-                            for (Pair<ItemStack, DropRule> stack : slotItems) {
-                                extraItems.add(stack.getLeft().copy());
+                            for (GraveItem graveItem : slotItems) {
+                                extraItems.add(graveItem.stack.copy());
                             }
                             continue;
                         }
 
                         // Traverse through item stacks
                         for (int i = 0; i < slotItems.size(); i++) {
-                            Pair<ItemStack, DropRule> pair = slotItems.get(i);
-                            ItemStack item = pair.getLeft().copy();
+                            GraveItem graveItem = slotItems.get(i);
+                            ItemStack item = graveItem.stack.copy();
                             if (i >= trinketInventory.size()) {
                                 extraItems.add(item);
                                 continue;
@@ -287,32 +287,32 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         @Override
         public void handleDropRules(DeathContext context) {
             // Traverse through groups
-            for (Map<String, DefaultedList<Pair<ItemStack, DropRule>>> group : this.inventory.values()) {
+            for (Map<String, DefaultedList<GraveItem>> group : this.inventory.values()) {
 
                 // Traverse through slots
-                for (DefaultedList<Pair<ItemStack, DropRule>> slotItems : group.values()) {
+                for (DefaultedList<GraveItem> slotItems : group.values()) {
 
                     // Traverse through item stacks
-                    for (Pair<ItemStack, DropRule> pair : slotItems) {
-                        ItemStack item = pair.getLeft();
+                    for (GraveItem graveItem : slotItems) {
+                        ItemStack item = graveItem.stack;
 
                         if (item.isEmpty()) continue;
 
-                        DropRule dropRule = pair.getRight();
+                        DropRule dropRule = graveItem.dropRule;
                         if (dropRule == DropRule.PUT_IN_GRAVE)
                             dropRule = DropRuleEvent.EVENT.invoker().getDropRule(item, -1, context, true);
 
-                        pair.setRight(dropRule);
+                        graveItem.dropRule = dropRule;
                     }
                 }
             }
         }
 
         @Override
-        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
-            DefaultedList<Pair<ItemStack, DropRule>> allItems = DefaultedList.of();
-            for (Map<String, DefaultedList<Pair<ItemStack, DropRule>>> slotMap : this.inventory.values()) {
-                for (DefaultedList<Pair<ItemStack, DropRule>> itemStacks : slotMap.values()) {
+        public DefaultedList<GraveItem> getAsGraveItemList() {
+            DefaultedList<GraveItem> allItems = DefaultedList.of();
+            for (Map<String, DefaultedList<GraveItem>> slotMap : this.inventory.values()) {
+                for (DefaultedList<GraveItem> itemStacks : slotMap.values()) {
                     allItems.addAll(itemStacks);
                 }
             }
@@ -321,21 +321,21 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public CompatComponent<Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>>> filterInv(Predicate<DropRule> predicate) {
-            Map<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> filtered = new HashMap<>();
+        public CompatComponent<Map<String, Map<String, DefaultedList<GraveItem>>>> filterInv(Predicate<DropRule> predicate) {
+            Map<String, Map<String, DefaultedList<GraveItem>>> filtered = new HashMap<>();
 
-            for (Map.Entry<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> group : this.inventory.entrySet()) {
-                Map<String, DefaultedList<Pair<ItemStack, DropRule>>> filteredGroup = new HashMap<>();
+            for (Map.Entry<String, Map<String, DefaultedList<GraveItem>>> group : this.inventory.entrySet()) {
+                Map<String, DefaultedList<GraveItem>> filteredGroup = new HashMap<>();
 
-                for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> slot : group.getValue().entrySet()) {
-                    DefaultedList<Pair<ItemStack, DropRule>> filteredSlot = DefaultedList.of();
+                for (Map.Entry<String, DefaultedList<GraveItem>> slot : group.getValue().entrySet()) {
+                    DefaultedList<GraveItem> filteredSlot = DefaultedList.of();
 
-                    DefaultedList<Pair<ItemStack, DropRule>> slotItems = slot.getValue();
-                    for (Pair<ItemStack, DropRule> pair : slotItems) {
-                        if (predicate.test(pair.getRight())) {
-                            filteredSlot.add(pair);
+                    DefaultedList<GraveItem> slotItems = slot.getValue();
+                    for (GraveItem graveItem : slotItems) {
+                        if (predicate.test(graveItem.dropRule)) {
+                            filteredSlot.add(graveItem);
                         } else {
-                            filteredSlot.add(InventoryComponent.EMPTY_ITEM_PAIR);
+                            filteredSlot.add(InventoryComponent.EMPTY_GRAVE_ITEM);
                         }
                     }
                     filteredGroup.put(slot.getKey(), filteredSlot);
@@ -347,10 +347,10 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
         @Override
         public boolean removeItem(Predicate<ItemStack> predicate, int itemCount) {
-            for (Map<String, DefaultedList<Pair<ItemStack, DropRule>>> group : this.inventory.values()) {
-                for (DefaultedList<Pair<ItemStack, DropRule>> slot : group.values()) {
-                    for (Pair<ItemStack, DropRule> pair : slot) {
-                        ItemStack stack = pair.getLeft();
+            for (Map<String, DefaultedList<GraveItem>> group : this.inventory.values()) {
+                for (DefaultedList<GraveItem> slot : group.values()) {
+                    for (GraveItem graveItem : slot) {
+                        ItemStack stack = graveItem.stack;
                         if (predicate.test(stack)) {
                             stack.decrement(itemCount);
 
@@ -364,9 +364,9 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
 
         @Override
         public void clear() {
-            for (Map<String, DefaultedList<Pair<ItemStack, DropRule>>> slotMap : this.inventory.values()) {
-                for (DefaultedList<Pair<ItemStack, DropRule>> items : slotMap.values()) {
-                    Collections.fill(items, InventoryComponent.EMPTY_ITEM_PAIR);
+            for (Map<String, DefaultedList<GraveItem>> slotMap : this.inventory.values()) {
+                for (DefaultedList<GraveItem> items : slotMap.values()) {
+                    Collections.fill(items, InventoryComponent.EMPTY_GRAVE_ITEM);
                 }
             }
         }
@@ -376,20 +376,20 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
             NbtCompound nbt = new NbtCompound();
 
             // Traverse through groups
-            for (Map.Entry<String, Map<String, DefaultedList<Pair<ItemStack, DropRule>>>> group : this.inventory.entrySet()) {
+            for (Map.Entry<String, Map<String, DefaultedList<GraveItem>>> group : this.inventory.entrySet()) {
                 NbtCompound groupNbt = new NbtCompound();
 
                 // Traverse through slots
-                for (Map.Entry<String, DefaultedList<Pair<ItemStack, DropRule>>> slot : group.getValue().entrySet()) {
-                    DefaultedList<Pair<ItemStack, DropRule>> slotItems = slot.getValue();
+                for (Map.Entry<String, DefaultedList<GraveItem>> slot : group.getValue().entrySet()) {
+                    DefaultedList<GraveItem> slotItems = slot.getValue();
 
-                    NbtCompound slotNbt = InventoryComponent.listToNbt(slotItems, pair -> {
+                    NbtCompound slotNbt = InventoryComponent.listToNbt(slotItems, graveItem -> {
                         NbtCompound itemNbt = new NbtCompound();
-                        pair.getLeft().writeNbt(itemNbt);
-                        itemNbt.putString("dropRule", pair.getRight().name());
+                        graveItem.stack.writeNbt(itemNbt);
+                        itemNbt.putString("dropRule", graveItem.dropRule.name());
 
                         return itemNbt;
-                    }, pair -> pair.getLeft().isEmpty(), "inventory", "size");
+                    }, graveItem -> graveItem.stack.isEmpty(), "inventory", "size");
 
                     groupNbt.put(slot.getKey(), slotNbt);
                 }

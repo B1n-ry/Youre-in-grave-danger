@@ -13,7 +13,7 @@ public class OrpheusCompat {
             if (!orpheusLyrePower.equals("keep") && !orpheusLyrePower.equals("both")) return;
 
             if (inventory.containsAny(stack -> stack.isOf(ItemsRegistry.ORPHEUS_LYRE.get()), s -> true, i -> true)) {
-                inventory.handleItemPairs(mod -> true, (item, slot, pair) -> pair.setRight(DropRule.KEEP));
+                inventory.handleGraveItems(mod -> true, (item, slot, graveItem) -> graveItem.dropRule = DropRule.KEEP);
             }
         });
     }

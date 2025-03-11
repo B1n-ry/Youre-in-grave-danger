@@ -2,13 +2,13 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.util.DropRule;
-import com.b1n_ry.yigd.util.PairModificationConsumer;
+import com.b1n_ry.yigd.util.GraveItemModificationConsumer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 
@@ -43,7 +43,7 @@ public abstract class CompatComponent<T> {
      * @param merger The player that is merging the components. DO NOT MODIFY THE PLAYER INVENTORY IN THIS METHOD
      * @return A list with all items that couldn't be merged from merging component
      */
-    public abstract DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger);
+    public abstract DefaultedList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger);
     public abstract DefaultedList<ItemStack> storeToPlayer(ServerPlayerEntity player);
 
     /**
@@ -54,11 +54,11 @@ public abstract class CompatComponent<T> {
     public abstract void handleDropRules(DeathContext context);
 
     /**
-     * Get all items as a {@link DefaultedList<Pair>} of {@link Pair<>} containing {@link ItemStack} and {@link DropRule} in the component
+     * Get all items as a {@link DefaultedList<GraveItem>} of {@link GraveItem} containing {@link ItemStack} and {@link DropRule} in the component
      * The drop rule refers to what drop rule was/will be applied on death
-     * @return Pairs containing all items in the component <b>INCLUDING EMPTY ITEMS</b>, and <b>THAT ARE NOT COPIED ITEM PAIRS</b>
+     * @return GraveItems containing all items in the component <b>INCLUDING EMPTY ITEMS</b>
      */
-    public abstract DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList();
+    public abstract DefaultedList<GraveItem> getAsGraveItemList();
     public abstract CompatComponent<T> filterInv(Predicate<DropRule> predicate);
     public abstract boolean removeItem(Predicate<ItemStack> predicate, int itemCount);
 
@@ -68,12 +68,12 @@ public abstract class CompatComponent<T> {
      * @param pos The position to drop items at
      */
     public void dropItems(ServerWorld world, Vec3d pos) {
-        DefaultedList<Pair<ItemStack, DropRule>> items = this.getAsStackDropList();
-        for (Pair<ItemStack, DropRule> pair : items) {
-            ItemStack stack = pair.getLeft();
+        DefaultedList<GraveItem> items = this.getAsGraveItemList();
+        for (GraveItem graveItem : items) {
+            ItemStack stack = graveItem.stack;
             if (stack.isEmpty()) continue;
 
-            InventoryComponent.dropItemIfToBeDropped(pair.getLeft(), pos.x, pos.y, pos.z, world);
+            InventoryComponent.dropItemIfToBeDropped(graveItem.stack, pos.x, pos.y, pos.z, world);
         }
     }
 
@@ -83,13 +83,13 @@ public abstract class CompatComponent<T> {
      * @param pos The position to drop items at
      */
     public void dropGraveItems(ServerWorld world, Vec3d pos) {
-        DefaultedList<Pair<ItemStack, DropRule>> items = this.getAsStackDropList();
-        for (Pair<ItemStack, DropRule> pair : items) {
-            ItemStack stack = pair.getLeft();
-            if (stack.isEmpty() || pair.getRight() == DropRule.KEEP || pair.getRight() == DropRule.DESTROY) continue;
-            pair.setRight(DropRule.DROP);  // Make sure item are marked as dropped, and not in a non-existent grave
+        DefaultedList<GraveItem> items = this.getAsGraveItemList();
+        for (GraveItem graveItem : items) {
+            ItemStack stack = graveItem.stack;
+            if (stack.isEmpty() || graveItem.dropRule == DropRule.KEEP || graveItem.dropRule == DropRule.DESTROY) continue;
+            graveItem.dropRule = DropRule.DROP;  // Make sure item are marked as dropped, and not in a non-existent grave
 
-            InventoryComponent.dropItemIfToBeDropped(pair.getLeft(), pos.x, pos.y, pos.z, world);
+            InventoryComponent.dropItemIfToBeDropped(graveItem.stack, pos.x, pos.y, pos.z, world);
         }
     }
     public abstract void clear();
@@ -99,8 +99,8 @@ public abstract class CompatComponent<T> {
      * @return Whether the component contains any items that should be placed in a grave
      */
     public boolean containsGraveItems() {
-        for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
-            if (!pair.getLeft().isEmpty() && pair.getRight() == DropRule.PUT_IN_GRAVE) return true;
+        for (GraveItem graveItem : this.getAsGraveItemList()) {
+            if (!graveItem.stack.isEmpty() && graveItem.dropRule == DropRule.PUT_IN_GRAVE) return true;
         }
         return false;
     }
@@ -115,14 +115,14 @@ public abstract class CompatComponent<T> {
      * @return Whether the component contains at least one item that matches the predicate
      */
     public boolean containsAny(Predicate<ItemStack> predicate) {
-        for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
-            if (predicate.test(pair.getLeft())) return true;
+        for (GraveItem graveItem : this.getAsGraveItemList()) {
+            if (predicate.test(graveItem.stack)) return true;
         }
         return false;
     }
-    public void handleItemPairs(PairModificationConsumer modification) {
-        for (Pair<ItemStack, DropRule> pair : this.getAsStackDropList()) {
-            modification.accept(pair.getLeft(), -1, pair);
+    public void handleGraveItems(GraveItemModificationConsumer modification) {
+        for (GraveItem graveItem : this.getAsGraveItemList()) {
+            modification.accept(graveItem.stack, -1, graveItem);
         }
     }
     public abstract NbtCompound writeNbt();

@@ -4,6 +4,7 @@ import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import com.beansgalaxy.backpacks.platform.FabricCompatHelper;
@@ -12,7 +13,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -166,13 +166,13 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         }
 
         @Override
-        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
+        public DefaultedList<GraveItem> getAsGraveItemList() {
             DropRule dropRule = this.inventory.getDropRule();
-            DefaultedList<Pair<ItemStack, DropRule>> stacks = DefaultedList.of();
+            DefaultedList<GraveItem> stacks = DefaultedList.of();
 
-            stacks.add(new Pair<>(this.inventory.getBackpack(), dropRule));
+            stacks.add(new GraveItem(this.inventory.getBackpack(), dropRule));
             for (ItemStack stack : this.inventory.getBackpackContents()) {
-                stacks.add(new Pair<>(stack, dropRule));
+                stacks.add(new GraveItem(stack, dropRule));
             }
             return stacks;
         }

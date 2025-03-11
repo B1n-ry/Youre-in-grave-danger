@@ -3,6 +3,7 @@ package com.b1n_ry.yigd.compat;
 import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathContext;
+import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.events.DropRuleEvent;
 import com.b1n_ry.yigd.util.DropRule;
 import com.glisco.numismaticoverhaul.ModComponents;
@@ -14,7 +15,6 @@ import com.glisco.numismaticoverhaul.item.CurrencyItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.function.Predicate;
@@ -130,26 +130,26 @@ public class NumismaticOverhaulCompat implements InvModCompat<Long> {
         }
 
         @Override
-        public DefaultedList<Pair<ItemStack, DropRule>> getAsStackDropList() {
-            DefaultedList<Pair<ItemStack, DropRule>> list = DefaultedList.of();
+        public DefaultedList<GraveItem> getAsGraveItemList() {
+            DefaultedList<GraveItem> list = DefaultedList.of();
             if (this.graveValue != 0) {
                 for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.graveValue)) {
-                    list.add(new Pair<>(stack, DropRule.PUT_IN_GRAVE));
+                    list.add(new GraveItem(stack, DropRule.PUT_IN_GRAVE));
                 }
             }
             if (this.dropValue != 0) {
                 for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.dropValue)) {
-                    list.add(new Pair<>(stack, DropRule.DROP));
+                    list.add(new GraveItem(stack, DropRule.DROP));
                 }
             }
             if (this.keepValue != 0) {
                 for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.keepValue)) {
-                    list.add(new Pair<>(stack, DropRule.KEEP));
+                    list.add(new GraveItem(stack, DropRule.KEEP));
                 }
             }
             if (this.destroyValue != 0) {
                 for (ItemStack stack : CurrencyConverter.getAsItemStackArray(this.destroyValue)) {
-                    list.add(new Pair<>(stack, DropRule.DESTROY));
+                    list.add(new GraveItem(stack, DropRule.DESTROY));
                 }
             }
 
