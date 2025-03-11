@@ -6,6 +6,8 @@ death sight enchantment range are now properly synced to the server
 
 ### Fixes
 * Item loss is now applied after checking required items for generating a grave
+* Graveyards will no longer try to generate graves where graves have already been generated
+* Graveyards can now successfully generate graves cross-dimensionally
 
 ---
 
