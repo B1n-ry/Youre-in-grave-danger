@@ -248,7 +248,7 @@ public class GraveComponent {
 
         DeathInfoManager.INSTANCE.setDirty();  // The "this" object is (at least should be) located inside DeathInfoManager.INSTANCE
 
-        // Loop should ABSOLUTELY NOT loop 50 times, but in case some stupid ass person (maybe me lol) doesn't return true by default
+        // Loop should ABSOLUTELY NOT loop 50 times, but in case some stupid-ass person (maybe me lol) doesn't return true by default
         // in canGenerate when i reaches some value (maybe 4) there is a cap at least, so the loop won't continue forever and freeze the game
         for (int i = 0; i < 50; i++) {
             for (BlockPos iPos : BlockPos.withinManhattan(this.pos, generationMaxDistance.x, generationMaxDistance.y, generationMaxDistance.z)) {
@@ -273,6 +273,10 @@ public class GraveComponent {
         }
         DirectionalPos closest = null;
         for (GraveyardData.GraveLocation location : graveyardData.graveLocations) {
+            BlockPos graveyardPos = new BlockPos(location.x, location.y, location.z);
+            if (!graveyardWorld.getBlockState(graveyardPos).is(YigdTags.REPLACE_SOFT_WHITELIST) || graveyardWorld.getBlockEntity(graveyardPos) != null)
+                continue;
+
             Optional<String> maybeName = this.owner.name();
             if (location.forPlayer != null && !location.forPlayer.equalsIgnoreCase(maybeName.orElse("")))
                 continue;
@@ -289,8 +293,8 @@ public class GraveComponent {
             }
         }
         if (closest != null) {
-            this.world = graveyardWorld;
-            this.pos = closest.pos();
+            this.setWorld(graveyardWorld);
+            this.setPos(closest.pos());
             return closest;
         }
 
@@ -313,47 +317,47 @@ public class GraveComponent {
         return this.world.setBlockAndUpdate(this.pos, state);
     }
 
-    public void placeAndLoad(Direction direction, DeathContext context, BlockPos pos, RespawnComponent respawnComponent) {
+    public void placeAndLoad(Direction direction, DeathContext context, BlockPos pos, ServerLevel level, RespawnComponent respawnComponent) {
         YigdConfig config = YigdConfig.getConfig();
 
-        ServerLevel world = context.world();
+        ServerLevel deathLevel = context.world();
         Vec3 deathPos = context.deathPos();
 
         // Check storage options first, in case that will lead to empty graves
         if (!config.graveConfig.storeItems) {
-            this.inventoryComponent.dropGraveItems(world, deathPos);
+            this.inventoryComponent.dropGraveItems(deathLevel, deathPos);
         }
         if (!config.graveConfig.storeXp) {
-            this.expComponent.dropAll(world, deathPos);
+            this.expComponent.dropAll(deathLevel, deathPos);
             this.getExpComponent().clear();
         }
 
-        boolean waterlogged = world.getFluidState(pos).is(Fluids.WATER);  // Grave generated in full water block (submerged)
+        boolean waterlogged = level.getFluidState(pos).is(Fluids.WATER);  // Grave generated in full water block (submerged)
         BlockState graveBlock = Yigd.GRAVE_BLOCK.defaultBlockState()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, direction)
                 .setValue(BlockStateProperties.WATERLOGGED, waterlogged);
 
         // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
         Yigd.END_OF_TICK.add(() -> {
-            BlockState previousState = world.getBlockState(pos);
+            BlockState previousState = level.getBlockState(pos);
 
             boolean placed = this.tryPlaceGrave(graveBlock);
             BlockPos placedPos = this.getPos();
 
             if (!placed) {
                 Yigd.LOGGER.error("Failed to generate grave at X: {}, Y: {}, Z: {}, {}. Grave block placement failed",
-                        placedPos.getX(), placedPos.getY(), placedPos.getZ(), world.dimension().location());
+                        placedPos.getX(), placedPos.getY(), placedPos.getZ(), level.dimension().location());
                 Yigd.LOGGER.info("Dropping items on ground instead of in grave");
                 context.player().sendSystemMessage(Component.translatable("text.yigd.message.grave_generation_error"));
-                this.getInventoryComponent().dropGraveItems(world, Vec3.atLowerCornerOf(placedPos));
-                this.getExpComponent().dropAll(world, Vec3.atLowerCornerOf(placedPos));
+                this.getInventoryComponent().dropGraveItems(level, Vec3.atLowerCornerOf(placedPos));
+                this.getExpComponent().dropAll(level, Vec3.atLowerCornerOf(placedPos));
                 return;
             }
 
             respawnComponent.setGraveGenerated(true);  // Not guaranteed yet, but only errors can stop it from generating after this point
             DeathInfoManager.INSTANCE.setDirty();  // Make sure respawn component is updated
 
-            GraveBlockEntity be = (GraveBlockEntity) world.getBlockEntity(placedPos);
+            GraveBlockEntity be = (GraveBlockEntity) level.getBlockEntity(placedPos);
             if (be == null) return;
             be.setPreviousState(previousState);
             be.setComponent(this);
@@ -380,7 +384,7 @@ public class GraveComponent {
             ServerLevel graveWorld = this.getWorld();
             assert graveWorld != null;  // Shouldn't use assert in production, but I want to avoid warnings. Since we're on server side, this always passes
 
-            this.placeAndLoad(direction, context, gravePos, respawnComponent);
+            this.placeAndLoad(direction, context, gravePos, graveWorld, respawnComponent);
         }
     }
 
