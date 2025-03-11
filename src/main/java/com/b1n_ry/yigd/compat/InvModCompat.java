@@ -2,6 +2,7 @@ package com.b1n_ry.yigd.compat;
 
 import com.b1n_ry.yigd.compat.misc_compat_mods.CommonProtectionApiCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.events.LoadModCompatEvent;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -50,6 +51,8 @@ public interface InvModCompat<T> {
 //            OrpheusCompat.init();
 //        if (compatConfig.enableRespawnObelisksCompat && loader.isModLoaded("respawnobelisks"))
 //            RespawnObelisksCompat.init();
+
+        LoadModCompatEvent.EVENT.invoker().loadModCompat(invCompatMods);
     }
 
     String getModName();
