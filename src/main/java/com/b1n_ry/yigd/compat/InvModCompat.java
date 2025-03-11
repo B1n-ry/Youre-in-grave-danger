@@ -6,6 +6,7 @@ import com.b1n_ry.yigd.compat.misc_compat_mods.RespawnObelisksCompat;
 import com.b1n_ry.yigd.compat.misc_compat_mods.TwilightCompat;
 import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
+import com.b1n_ry.yigd.events.LoadModCompatEvent;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -55,6 +56,8 @@ public interface InvModCompat<T> {
             RespawnObelisksCompat.init();
         if (loader.isModLoaded("twilightforest"))
             TwilightCompat.init();
+
+        LoadModCompatEvent.EVENT.invoker().onLoadModCompat(invCompatMods);
     }
 
     String getModName();
