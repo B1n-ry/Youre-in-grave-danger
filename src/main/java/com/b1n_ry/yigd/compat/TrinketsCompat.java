@@ -166,8 +166,8 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public DefaultedList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
+            DefaultedList<GraveItem> extraItems = DefaultedList.of();
 
             Optional<TrinketComponent> trinketComponent = TrinketsApi.getTrinketComponent(merger);
 
@@ -179,7 +179,7 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                 if (slotMap == null) {
                     for (DefaultedList<GraveItem> items : groupEntry.getValue().values()) {
                         for (GraveItem graveItem : items) {
-                            extraItems.add(graveItem.stack.copy());  // Solves the issue where the itemstacks are the same instance
+                            extraItems.add(graveItem.copy());  // Solves the issue where the itemstacks are the same instance
                         }
                     }
                     continue;
@@ -190,38 +190,40 @@ public class TrinketsCompat implements InvModCompat<Map<String, Map<String, Defa
                     DefaultedList<GraveItem> mergingItems = slotEntry.getValue();  // From merging
                     if (stacks == null) {
                         for (GraveItem graveItem : mergingItems) {
-                            extraItems.add(graveItem.stack.copy());  // Solves the issue where the itemstacks are the same instance
+                            extraItems.add(graveItem.copy());  // Solves the issue where the itemstacks are the same instance
                         }
                         continue;
                     }
 
                     for (int i = 0; i < mergingItems.size(); i++) {
-                        GraveItem graveItem = mergingItems.get(i);
-                        ItemStack mergingStack = graveItem.stack.copy();  // Solves the issue where the itemstacks are the same instance
+                        GraveItem mergingGraveItem = mergingItems.get(i).copy();  // Solves the issue where the itemstacks are the same instance
+                        ItemStack mergingStack = mergingGraveItem.stack;
+                        if (mergingStack.isEmpty()) continue;
 
                         if (stacks.size() <= i) {
-                            extraItems.add(mergingStack);
+                            extraItems.add(mergingGraveItem);
                             continue;
                         }
 
-                        GraveItem currentPair = stacks.get(i);
+                        GraveItem currentGraveItem = stacks.get(i);
+                        ItemStack currentStack = currentGraveItem.stack;
                         if (YigdConfig.getConfig().graveConfig.treatBindingCurse && !this.canUnequip(trinketComponent.orElse(null), slotName, groupName, i, mergingStack, merger)) {
-                            extraItems.add(currentPair.stack);  // Add the current item to extraItems (as it's being replaced)
-                            stacks.set(i, new GraveItem(mergingStack, graveItem.dropRule));  // Can't be unequipped, so it's prioritized
+                            extraItems.add(currentGraveItem);  // Add the current item to extraItems (as it's being replaced)
+                            stacks.set(i, mergingGraveItem);  // Can't be unequipped, so it's prioritized
                             continue;  // Already set the item, so we can skip the rest
                         }
 
-                        if (!currentPair.stack.isEmpty()) {
-                            extraItems.add(mergingStack);
+                        if (!currentStack.isEmpty()) {
+                            extraItems.add(mergingGraveItem);
                             continue;
                         }
 
-                        stacks.set(i, new GraveItem(mergingStack, graveItem.dropRule));
+                        stacks.set(i, mergingGraveItem);
                     }
                 }
             }
 
-            extraItems.removeIf(ItemStack::isEmpty);
+            extraItems.removeIf(graveItem -> graveItem.stack.isEmpty());
             return extraItems;
         }
         private boolean canUnequip(@Nullable TrinketComponent component, String slot, String group, int index, ItemStack item, ServerPlayerEntity player) {

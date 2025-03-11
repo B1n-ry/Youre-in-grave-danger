@@ -114,8 +114,8 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Gra
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public DefaultedList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
+            DefaultedList<GraveItem> extraItems = DefaultedList.of();
 
             @SuppressWarnings("unchecked")
             Map<String, DefaultedList<GraveItem>> mergingInventory = (Map<String, DefaultedList<GraveItem>>) mergingComponent.inventory;
@@ -124,18 +124,18 @@ public class OriginsCompat implements InvModCompat<Map<String, DefaultedList<Gra
                 DefaultedList<GraveItem> mergingItems = entry.getValue();
 
                 for (int i = 0; i < mergingItems.size(); i++) {
-                    ItemStack mergingStack = mergingItems.get(i).stack.copy();  // Solves the case where the itemstacks are the same instance
+                    GraveItem mergingItem = mergingItems.get(i).copy();  // Solves the case where the itemstacks are the same instance
 
                     if (i >= currentItems.size()) {
-                        extraItems.add(mergingStack);
+                        extraItems.add(mergingItem);
                         continue;
                     }
 
-                    GraveItem currentPair = currentItems.get(i);
-                    if (!currentPair.stack.isEmpty()) {
-                        extraItems.add(mergingStack);
+                    GraveItem currentGraveItem = currentItems.get(i);
+                    if (!currentGraveItem.stack.isEmpty()) {
+                        extraItems.add(mergingItem);
                     } else {
-                        currentItems.set(i, new GraveItem(mergingStack, currentPair.dropRule));
+                        currentItems.set(i, mergingItem);
                     }
                 }
             }

@@ -12,7 +12,6 @@ import com.tiviacz.travelersbackpack.config.TravelersBackpackConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.function.Predicate;
@@ -73,22 +72,21 @@ public class TravelersBackpackCompat implements InvModCompat<GraveItem> {
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public DefaultedList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
+            DefaultedList<GraveItem> extraItems = DefaultedList.of();
 
-            @SuppressWarnings("unchecked")
-            Pair<ItemStack, DropRule> pair = (Pair<ItemStack, DropRule>) mergingComponent.inventory;
-            ItemStack mergingStack = pair.getLeft();
+            GraveItem graveItem = (GraveItem) mergingComponent.inventory;
+            ItemStack mergingStack = graveItem.stack;
             ItemStack currentStack = this.inventory.stack;
 
             if (mergingStack.isEmpty()) return extraItems;
 
             if (!currentStack.isEmpty()) {
-                extraItems.add(mergingStack);
+                extraItems.add(graveItem);
                 return extraItems;
             }
 
-            this.inventory = new GraveItem(mergingStack, pair.getRight());
+            this.inventory = new GraveItem(mergingStack, graveItem.dropRule);
             return extraItems;
         }
 

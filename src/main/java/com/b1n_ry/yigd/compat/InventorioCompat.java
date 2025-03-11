@@ -81,21 +81,21 @@ public class InventorioCompat implements InvModCompat<DefaultedList<GraveItem>> 
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public DefaultedList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
+            DefaultedList<GraveItem> extraItems = DefaultedList.of();
 
             @SuppressWarnings("unchecked")
             DefaultedList<GraveItem> mergingInventory = (DefaultedList<GraveItem>) mergingComponent.inventory;
             for (int i = 0; i < mergingInventory.size(); i++) {
-                ItemStack mergingItem = mergingInventory.get(i).stack.copy();  // Solves the issue where the itemstacks are the same instance
-                if (mergingItem.isEmpty()) continue;
+                GraveItem mergingItem = mergingInventory.get(i).copy();  // Solves the issue where the itemstacks are the same instance
+                if (mergingItem.stack.isEmpty()) continue;
 
                 GraveItem graveItem = this.inventory.get(i);
                 if (!graveItem.stack.isEmpty()) {
                     extraItems.add(mergingItem);
                 } else {
                     // Can't set the ItemStack directly because if it's the empty one we change the empty pair to a non-empty value
-                    this.inventory.set(i, new GraveItem(mergingItem, graveItem.dropRule));
+                    this.inventory.set(i, mergingItem);
                 }
             }
             return extraItems;

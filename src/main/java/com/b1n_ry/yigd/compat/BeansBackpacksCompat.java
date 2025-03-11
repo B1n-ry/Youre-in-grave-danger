@@ -236,23 +236,23 @@ public class BeansBackpacksCompat implements InvModCompat<BeansBackpacksCompat.B
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
-            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        public DefaultedList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
+            DefaultedList<GraveItem> extraItems = DefaultedList.of();
 
             BeansBackpackInv mergingInventory = (BeansBackpackInv) mergingComponent.inventory;
             if (this.inventory.getBackpack().isEmpty()) {
                 for (ItemStack withoutBackpack : this.inventory.getBackpackContents()) {
                     if (!withoutBackpack.isEmpty())
-                        extraItems.add(withoutBackpack);
+                        extraItems.add(new GraveItem(withoutBackpack, this.inventory.getDropRule()));
                 }
                 this.inventory.setBackpack(mergingInventory.getBackpack());
                 this.inventory.setDropRule(mergingInventory.getDropRule());
                 this.inventory.setBackpackContents(mergingInventory.getBackpackContents());
             } else {
-                extraItems.add(mergingInventory.getBackpack());
+                extraItems.add(new GraveItem(mergingInventory.getBackpack(), mergingInventory.getDropRule()));
                 for (ItemStack stack : mergingInventory.getBackpackContents()) {
                     if (!stack.isEmpty()) {
-                        extraItems.add(stack);
+                        extraItems.add(new GraveItem(stack, mergingInventory.getDropRule()));
                     }
                 }
             }

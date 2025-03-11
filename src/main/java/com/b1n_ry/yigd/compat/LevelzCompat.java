@@ -54,7 +54,7 @@ public class LevelzCompat implements InvModCompat<Float> {
         }
 
         @Override
-        public DefaultedList<ItemStack> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
+        public DefaultedList<GraveItem> merge(CompatComponent<?> mergingComponent, ServerPlayerEntity merger) {
             this.inventory += (float) mergingComponent.inventory;
             return DefaultedList.of();
         }
