@@ -12,6 +12,8 @@ backup system
 ### Fixes
 * Fixed random error when applying item loss to modded inventories, which would cause death
 handling to be ignored
+* Graveyards will no longer try to generate graves where graves have already been generated
+* Graveyards can now successfully generate graves cross-dimensionally
 
 ---
 
