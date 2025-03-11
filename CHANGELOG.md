@@ -3,6 +3,8 @@
 ### Changes
 * Config values for glowing graves, glowing grave distance, breakable graves, and
 death sight enchantment range are now properly synced to the server
+* Item loss can now be weighted based on stack size
+* Items lost from item-loss will be kept in backup
 
 ### Fixes
 * Item loss is now applied after checking required items for generating a grave

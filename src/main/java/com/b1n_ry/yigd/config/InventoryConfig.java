@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.config;
 
+import com.b1n_ry.yigd.util.DropRule;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
@@ -28,6 +29,9 @@ public class InventoryConfig {
         public boolean usePercentRange = true;
         public int lossRangeFrom = 0;
         public int lossRangeTo = 100;
+        public boolean weightedSelection = true;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public DropRule lossDropRule = DropRule.DESTROY;
 
         @Comment("Chance of losing an item (iterated over every item picked up by lossRange)")
         public int percentChanceOfLoss = 50;

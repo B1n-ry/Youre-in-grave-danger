@@ -208,6 +208,9 @@ public class InventoryComponent {
         InventoryConfig.ItemLossConfig itemLoss = config.inventoryConfig.itemLoss;
 
         List<Integer> itemSlots = new ArrayList<>();
+        List<Integer> slotWeights = new ArrayList<>();
+        int totalLosableItemCount = 0;
+
         int vanillaLimit = this.items.size();
         for (int i = 0; i < vanillaLimit; i++) {
             GraveItem graveItem = this.items.get(i);
@@ -217,41 +220,58 @@ public class InventoryComponent {
             if (stack.isIn(YigdTags.LOSS_IMMUNE)) continue;
 
             itemSlots.add(i);
+            int itemCount = stack.getCount();
+            slotWeights.add(itemCount);
+            totalLosableItemCount += itemCount;
         }
-        DefaultedList<ItemStack> extraItems = DefaultedList.of();
+        DefaultedList<GraveItem> extraItems = DefaultedList.of();
         if (itemLoss.includeModdedInventories) {
             for (CompatComponent<?> compatComponent : this.modInventoryItems.values()) {
                 for (GraveItem graveItem : compatComponent.getAsGraveItemList()) {
                     if (graveItem.stack.isEmpty()) continue;
-                    extraItems.add(graveItem.stack);
+                    if (graveItem.dropRule == DropRule.KEEP && !itemLoss.canLoseSoulbound) continue;
+                    if (graveItem.stack.isIn(YigdTags.LOSS_IMMUNE)) continue;
+                    extraItems.add(graveItem);
                 }
             }
             for (int i = 0; i < extraItems.size(); i++) {
                 itemSlots.add(vanillaLimit + i);
+                int itemCount = extraItems.get(i).stack.getCount();
+                slotWeights.add(itemCount);
+                totalLosableItemCount += itemCount;
             }
         }
 
         if (itemSlots.isEmpty()) return;
 
-        int random = RANDOM.nextInt(itemSlots.size());
+        DropRule appliedDropRule = itemLoss.lossDropRule;
 
-        int slot = itemSlots.get(random);
+        int slot;
+        if (itemLoss.weightedSelection) {
+            int random = RANDOM.nextInt(totalLosableItemCount);
+            int i = 0, j = 0;
+            while (random >= j) {
+                j += slotWeights.get(i);
+                i++;
+            }
+            slot = itemSlots.get(i - 1);
+        } else {
+            int random = RANDOM.nextInt(itemSlots.size());
+            slot = itemSlots.get(random);
+        }
         if (itemLoss.affectStacks) {
             if (slot >= vanillaLimit) {
-                ItemStack toBeRemoved = extraItems.get(slot - vanillaLimit);
-                this.handleGraveItems(s -> !s.equals("vanilla"), (stack, s, graveItem) -> {
-                    if (stack.equals(toBeRemoved)) graveItem.dropRule = DropRule.DESTROY;
-                });
+                GraveItem toBeRemoved = extraItems.get(slot - vanillaLimit);
+                toBeRemoved.dropRule = appliedDropRule;
             } else {
-                this.items.get(slot).dropRule = DropRule.DESTROY;
+                this.items.get(slot).dropRule = appliedDropRule;
             }
         } else {
-            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit) : this.items.get(slot).stack;
+            ItemStack stack = slot >= vanillaLimit ? extraItems.get(slot - vanillaLimit).stack : this.items.get(slot).stack;
 
             stack.decrement(1);
-            if (stack.isEmpty() || stack.getCount() == 0) {
-                itemSlots.remove(Integer.valueOf(slot));  // Make sure we can't lose this item again
-            }
+            GraveItem lostItem = new GraveItem(stack.copyWithCount(1), appliedDropRule);
+            this.mergeSingleItem(lostItem, false);
         }
     }
 
@@ -378,13 +398,36 @@ public class InventoryComponent {
         return extraItems;
     }
 
-    public void addExtraItemStack(ItemStack stack) {
-        this.items.add(new GraveItem(stack, GraveOverrideAreas.INSTANCE.defaultDropRule));
+    public void mergeSingleItem(GraveItem graveItem, boolean mergeDropRules) {
+        while (!graveItem.stack.isEmpty()) {
+            int addToSlot = this.findMatchingStackSlot(graveItem, mergeDropRules);
+            if (addToSlot == -1) {
+                addToSlot = this.findEmptySlot();
+                if (addToSlot == -1) {
+                    this.addExtraGraveItem(graveItem);
+                    break;
+                }
+            }
+            ItemStack addToStack = this.items.get(addToSlot).stack;
+            if (addToStack.isEmpty()) {
+                this.items.set(addToSlot, graveItem);
+                break;
+            } else {
+                this.mergeItemInSlot(graveItem.stack, addToSlot);
+                if (graveItem.stack.isEmpty()) {
+                    break;
+                }
+            }
+        }
+    }
+
+    public void addExtraGraveItem(GraveItem graveItem) {
+        this.items.add(graveItem);
     }
 
     private int findMatchingStackSlot(GraveItem graveItem, boolean mergeDropRules) {
         ItemStack graveStack = graveItem.stack;
-        for (int i = 0; i < this.mainSize; i++) {
+        for (int i = 0; i < this.items.size(); i++) {
             GraveItem iGraveItem = this.items.get(i);
             ItemStack iStack = iGraveItem.stack;
 
