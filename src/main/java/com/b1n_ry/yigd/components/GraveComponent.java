@@ -483,7 +483,7 @@ public class GraveComponent {
             if (addGraveItem)
                 player.addItem(graveItem);
         } else if (config.graveConfig.dropOnRetrieve == DropType.ON_GROUND) {
-            this.dropAll();
+            this.dropAllGraveItems();
 
             if (this.world != null && addGraveItem)
                 InventoryComponent.dropItemIfToBeDropped(graveItem, this.pos.getX(), this.pos.getY(), this.pos.getZ(), this.world);
@@ -649,8 +649,9 @@ public class GraveComponent {
         }
     }
 
-    public void dropAll() {
-        this.inventoryComponent.dropAll(this.world, this.pos.getCenter());
+    public void dropAllGraveItems() {
+        this.inventoryComponent.filteredInv(rule -> rule == DropRule.PUT_IN_GRAVE)
+                .dropAll(this.world, this.pos.getCenter());
         this.expComponent.dropAll(this.world, this.pos.getCenter());
     }
 
@@ -670,7 +671,7 @@ public class GraveComponent {
         }
 
         if (YigdConfig.getConfig().graveConfig.dropItemsIfDestroyed) {
-            this.dropAll();
+            this.dropAllGraveItems();
         }
     }
 

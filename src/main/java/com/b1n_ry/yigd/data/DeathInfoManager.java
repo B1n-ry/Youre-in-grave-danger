@@ -105,7 +105,7 @@ public class DeathInfoManager extends SavedData {
             this.delete(toBeRemoved.getGraveId());
             if (toBeRemoved.getStatus() == GraveStatus.UNCLAIMED) {
                 if (config.graveConfig.dropFromOldestWhenDeleted)
-                    toBeRemoved.dropAll();
+                    toBeRemoved.dropAllGraveItems();
             }
         }
 
