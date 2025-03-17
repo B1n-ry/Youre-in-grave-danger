@@ -217,7 +217,7 @@ public class GraveBlockEntity extends BlockEntity {
             be.component.replaceWithOld(newState);
 
             if (timeoutConfig.dropContentsOnTimeout) {
-                be.component.dropAll();
+                be.component.dropAllGraveItems();
             }
         }
     }

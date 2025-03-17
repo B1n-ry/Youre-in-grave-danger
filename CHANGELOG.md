@@ -10,6 +10,8 @@
 if the cursed items also has soulbound.
 * Graveyards will no longer try to generate graves where graves have already been generated
 * Graveyards can now successfully generate graves cross-dimensionally
+* When graves drop items on the ground when destroyed/claimed, it will now only contain
+items contained in the grave (no soulbound, already dropped, or destroyed items)
 
 ---
 
