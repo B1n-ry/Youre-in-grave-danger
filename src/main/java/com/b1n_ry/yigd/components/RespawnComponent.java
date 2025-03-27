@@ -69,7 +69,10 @@ public class RespawnComponent {
 
     public void apply(ServerPlayerEntity player) {
         if (this.soulboundInventory != null) {
-            DefaultedList<ItemStack> extraItems = this.soulboundInventory.pullBindingCurseItems(player);
+            DefaultedList<ItemStack> extraItems = DefaultedList.of();
+            if (YigdConfig.getConfig().respawnConfig.treatBindingCurse) {
+                extraItems.addAll(this.soulboundInventory.pullBindingCurseItems(player));
+            }
             extraItems.addAll(this.soulboundInventory.applyToPlayer(player));
 
             double x = player.getX();
