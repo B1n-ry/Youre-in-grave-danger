@@ -301,8 +301,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
 
                     cosmeticAccessories.setItem(i, slot.stack.copy());
                     container.renderOptions().set(i, slot.visible);
-                    container.markChanged(false);
                 }
+                container.markChanged(false);
             }
 
             return extraItems;
