@@ -199,6 +199,7 @@
   "text.autoconfig.yigd.option.respawnConfig.resetSaturation": "Reset Saturation?",
   "text.autoconfig.yigd.option.respawnConfig.respawnSaturation": "Saturation on Respawn",
   "text.autoconfig.yigd.option.respawnConfig.extraItemDrops": "Extra Items Received",
+  "text.autoconfig.yigd.option.respawnConfig.treatBindingCurse": "Handle Curse of Binding",
   "text.autoconfig.yigd.option.ExtraItemDrop": "Item",
   "text.autoconfig.yigd.option.ExtraItemDrop.itemId": "Item ID",
   "text.autoconfig.yigd.option.ExtraItemDrop.count": "Amount",

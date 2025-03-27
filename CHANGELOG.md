@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.4.16
+
+### Changes
+* Moved curse of binding treatment config to the respawn component (the grave
+component config will still handle grave items)
+
+---
+
 # You're in Grave Danger 2.4.15
 
 ### Changes
