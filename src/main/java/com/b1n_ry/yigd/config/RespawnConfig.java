@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.config;
 
+import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ public class RespawnConfig {
     public float respawnSaturation = -1f;
     @Comment("Extra items that will be given to player once respawned")
     public List<ExtraItemDrop> extraItemDrops = new ArrayList<>();
+    @Comment("If true, items with both curse of binding and soulbound will not be forced onto the player")
+    public boolean treatBindingCurse = true;
 
     public static class EffectConfig {
         public String effectName;

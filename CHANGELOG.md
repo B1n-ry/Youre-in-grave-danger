@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.11
+
+### Changes
+* Added config option for treating curse of binding items with soulbound on respawn.
+
+---
+
 # You're in Grave Danger 2.0.10
 
 ### Changes
