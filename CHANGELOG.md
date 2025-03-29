@@ -3,6 +3,8 @@
 ### Changes
 * Moved curse of binding treatment config to the respawn component (the grave
 component config will still handle grave items)
+* Changed keep percentage of XP to be a percentage of the total XP, instead of
+percentage of "stored in grave"-xp
 
 ---
 
