@@ -6,6 +6,11 @@ component config will still handle grave items)
 * Changed keep percentage of XP to be a percentage of the total XP, instead of
 percentage of "stored in grave"-xp.
 
+### Fixes
+* Removed dupe of accessories when configured to not put them in the grave
+* When non-standard drop rules are changed so a grave becomes empty, the
+grave will no longer be generated if empty grave generation is disabled
+
 ---
 
 # You're in Grave Danger 2.4.15
