@@ -332,6 +332,8 @@ public class GraveComponent {
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, direction)
                 .setValue(BlockStateProperties.WATERLOGGED, waterlogged);
 
+        if (!config.graveConfig.generateEmptyGraves && this.isGraveEmpty()) return;
+
         // At this point is where the END_OF_TICK would be implemented, unless it wasn't already so
         Yigd.END_OF_TICK.add(() -> {
             BlockState previousState = level.getBlockState(pos);
