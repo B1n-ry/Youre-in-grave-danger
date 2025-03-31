@@ -1,7 +1,9 @@
 # You're in Grave Danger 2.0.14
 
 ### Changes
-* Added config option for treating curse of binding items with soulbound on respawn.
+* Added config option for treating curse of binding items with soulbound on respawn
+* Changed keep percentage of XP to be a percentage of the total XP, instead of
+percentage of "stored in grave"-xp
 
 ### Fixes
 * Removed dupe of accessories when configured to not put them in the grave

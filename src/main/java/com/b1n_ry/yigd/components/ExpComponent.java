@@ -71,10 +71,7 @@ public class ExpComponent {
     public ExpComponent getSoulboundExp() {
         YigdConfig config = YigdConfig.getConfig();
         float soulboundFactor = config.expConfig.keepPercentage / 100f;
-        int keepXp = (int) (this.storedXp * soulboundFactor);
-        this.storedXp -= keepXp;
-
-        if (this.storedXp < 0) this.storedXp = 0;
+        int keepXp = (int) (this.originalXp * soulboundFactor);
 
         return new ExpComponent(keepXp, this.originalXp);
     }
