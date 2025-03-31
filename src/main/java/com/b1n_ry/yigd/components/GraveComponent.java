@@ -240,7 +240,7 @@ public class GraveComponent {
         if (config.graveConfig.tryGenerateOnGround) {
             for (BlockPos pos = this.pos.below(); pos.getY() >= this.world.getMinBuildHeight(); pos = pos.below()) {
                 if (!this.world.getBlockState(pos).is(YigdTags.REPLACE_SOFT_WHITELIST)) {
-                    this.pos = pos.below();
+                    this.pos = pos.above();
                     break;
                 }
             }

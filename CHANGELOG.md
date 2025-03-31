@@ -10,6 +10,8 @@ percentage of "stored in grave"-xp.
 * Removed dupe of accessories when configured to not put them in the grave
 * When non-standard drop rules are changed so a grave becomes empty, the
 grave will no longer be generated if empty grave generation is disabled
+* `tryGenerateGraveOnGround` config will no longer attempt placing the grave 2 blocks
+below ground
 
 ---
 
