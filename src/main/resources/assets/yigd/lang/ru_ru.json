@@ -88,7 +88,7 @@
   "text.yigd.message.grave_relocated": "Ваша могила перемещена на X: %d Y: %d Z: %d в %s",
   "text.yigd.message.grave_generation_error": "Ошибка создания могилы. Предметы выброшены",
 
-  "text.yigd.dimension.name.minecraft:overworld": "Верхний мир",
+  "text.yigd.dimension.name.minecraft:overworld": "Обычный мир",
   "text.yigd.dimension.name.minecraft:the_nether": "Незер",
   "text.yigd.dimension.name.minecraft:the_end": "Энд",
   "text.yigd.dimension.name.the_bumblezone:the_bumblezone": "Жужжилище",
