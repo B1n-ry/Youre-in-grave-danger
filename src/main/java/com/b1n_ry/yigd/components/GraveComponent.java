@@ -427,11 +427,12 @@ public class GraveComponent {
     /**
      * Replaces the grave with the block that was there before the grave was placed (or air if feature is disabled)
      * @param newState The block that should be placed instead of the grave (previous state)
+     * @param safetyOn If true, will not replace the grave if the block is in the blacklist
      * @return Weather or not the block was replaced
      */
-    public boolean replaceWithOld(BlockState newState) {
+    public boolean replaceWithOld(BlockState newState, boolean safetyOn) {
         if (this.world == null) return false;
-        if (newState.is(YigdTags.REPLACE_GRAVE_BLACKLIST)) return false;
+        if (safetyOn && newState.is(YigdTags.REPLACE_GRAVE_BLACKLIST)) return false;
 
         boolean placed = this.world.setBlockAndUpdate(this.pos, newState);  // Place the block
         // Although no player placed the block, we still need to update it in case the block is multipart
@@ -496,9 +497,11 @@ public class GraveComponent {
         this.setStatus(GraveStatus.CLAIMED);
 
         if (!config.graveConfig.persistentGraves.enabled) {
+            boolean replaced = false;
             if (config.graveConfig.replaceOldWhenClaimed && previousState != null) {
-                this.replaceWithOld(previousState);
-            } else {
+                replaced = this.replaceWithOld(previousState, true);
+            }
+            if (!replaced) {
                 world.removeBlock(pos, false);
             }
         } else {
@@ -549,7 +552,7 @@ public class GraveComponent {
         if (previousState == null) {
             return this.world.removeBlock(this.pos, false);
         } else {
-            return this.replaceWithOld(previousState);
+            return this.replaceWithOld(previousState, false);
         }
     }
 

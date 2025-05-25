@@ -1,3 +1,11 @@
+# You're in Grave Danger 2.4.17
+
+### Fixes
+* Graves replacing damaging blocks will now disappear when claiming the grave
+(if config is set to do so)
+
+---
+
 # You're in Grave Danger 2.4.16
 
 ### Changes
