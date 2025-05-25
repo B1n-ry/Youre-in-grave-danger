@@ -14,14 +14,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -30,7 +32,6 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ServerEventHandler {
     @SubscribeEvent
@@ -61,7 +62,7 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPlayerDeath(LivingDropsEvent event) {
+    public void onPlayerDeathDropItems(LivingDropsEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         UUID playerId = player.getUUID();
 
@@ -76,6 +77,45 @@ public class ServerEventHandler {
         } else {
             Yigd.LOGGER.error("Did not find cached death handler for {}. Can't generate player loot", player.getGameProfile().getName());
         }
+    }
+
+    /**
+     * This event is used to handle deaths.
+     * It stores the death information in a map for later processing. Note that THIS WILL CLEAR THE INVENTORY so that
+     * items are not dropped twice.
+     * Event priority is set to LOWEST to ensure other mods can manipulate certain items first.
+     * Mods which would handle inventory drops in this method (in my opinion) are doing it wrong,
+     * and should use the {@link YigdEvents.DropItemEvent} instead.
+     * I'll argue that I'm in the right though, since I have to make sure that I keep track of all slots
+     * (can't be done in DropItemEvent), and since I run this with lowest priority, it should be fine.
+     * Additionally, this event has to run after some events that can stop the death from happening all together.
+     * <br>
+     * If you have any questions or concerns about this, feel free to open an issue on the GitHub repository.
+     *
+     * @param event Death event
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onLivingDeath(LivingDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+
+        if (!(entity instanceof ServerPlayer player)) return;
+
+        if (Yigd.UNFINISHED_DEATHS.containsKey(player.getUUID())) {
+            Yigd.LOGGER.warn("Player '{}' already has a registered, unhandled death. Ignoring this one", player.getGameProfile().getName());
+            return;
+        }
+        if (!player.isDeadOrDying()) {
+            Yigd.LOGGER.error("Player '{}' is not dead, but LivingDeathEvent was called. This should not happen. Ignoring this event", player.getGameProfile().getName());
+            return;
+        }
+        if (player.isSpectator()) return;
+
+        ServerLevel level = player.serverLevel();
+        DamageSource damageSource = event.getSource();
+
+        if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
+
+        Yigd.UNFINISHED_DEATHS.put(player.getUUID(), new DeathHandler(player, level, player.position(), damageSource));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
