@@ -189,7 +189,7 @@ public class GraveBlockEntity extends BlockEntity {
             if (YigdConfig.getConfig().graveConfig.replaceOldWhenClaimed && previousState != null) {
                 newState = previousState;
             }
-            be.component.replaceWithOld(newState);
+            be.component.replaceWithOld(newState, false);
 
             if (timeoutConfig.dropContentsOnTimeout) {
                 be.component.dropAllGraveItems();
