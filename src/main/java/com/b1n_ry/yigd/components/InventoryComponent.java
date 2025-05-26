@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.compat.CompatComponent;
 import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -742,9 +743,14 @@ public class InventoryComponent {
             T item = list.get(i);
             if (isEmpty.test(item)) continue;
 
-            CompoundTag itemNbt = mappingFunction.apply(item);
-            itemNbt.putInt(itemName, i);
-            nbtList.add(itemNbt);
+            try {  // In case the empty check returns false, but it's still empty (idk why this would happen, but it did on neoforge 1.21)
+                CompoundTag itemNbt = mappingFunction.apply(item);
+                itemNbt.putInt(itemName, i);
+                nbtList.add(itemNbt);
+            }
+            catch (Exception e) {
+                Yigd.LOGGER.error("Failed to convert item to NBT: {}", item, e);
+            }
         }
         nbt.put(listName, nbtList);
         return nbt;
