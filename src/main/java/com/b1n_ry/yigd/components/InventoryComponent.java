@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.components;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.compat.CompatComponent;
 import com.b1n_ry.yigd.compat.InvModCompat;
 import com.b1n_ry.yigd.config.InventoryConfig;
@@ -744,9 +745,14 @@ public class InventoryComponent {
             T item = list.get(i);
             if (isEmpty.test(item)) continue;
 
-            NbtCompound itemNbt = mappingFunction.apply(item);
-            itemNbt.putInt(itemName, i);
-            nbtList.add(itemNbt);
+            try {
+                NbtCompound itemNbt = mappingFunction.apply(item);
+                itemNbt.putInt(itemName, i);
+                nbtList.add(itemNbt);
+            }
+            catch (Exception e) {
+                Yigd.LOGGER.error("Failed to convert item to NBT: {}", item, e);
+            }
         }
         nbt.put(listName, nbtList);
         return nbt;
