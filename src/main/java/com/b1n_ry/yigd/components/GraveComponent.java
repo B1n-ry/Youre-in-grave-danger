@@ -196,7 +196,21 @@ public class GraveComponent {
 
         YigdConfig config = YigdConfig.getConfig();
         int y = this.pos.getY();
-        int lowerAcceptableY = config.graveConfig.lowestGraveY + this.world.getMinBuildHeight();
+
+        Map<String, Integer> minimumYMap = new HashMap<>();
+        for (MapEntryConfig.IntType entry : config.graveConfig.minimumGraveYLevel) {
+            minimumYMap.put(entry.key, entry.value);
+        }
+        String dimName = this.worldRegistryKey.location().toString();
+        if (!minimumYMap.containsKey(dimName)) dimName = "misc";
+
+        int lowerAcceptableY = this.world.getMinBuildHeight();
+        if (minimumYMap.containsKey(dimName)) {
+            minimumYMap.get(dimName);
+        } else {
+            Yigd.LOGGER.error("Couldn't find minimum Y level for dimension {}, using world min build height instead", dimName);
+        }
+
         if (config.graveConfig.generateGraveInVoid && this.pos.getY() <= lowerAcceptableY) {
             y = lowerAcceptableY;
         }
@@ -399,7 +413,7 @@ public class GraveComponent {
         if (!event.isPlacementAllowed()) return;
 
         Map<String, String> blockInDimMap = new HashMap<>();
-        for (MapEntryConfig pair : config.blockInDimensions) {
+        for (MapEntryConfig.StringType pair : config.blockInDimensions) {
             blockInDimMap.put(pair.key, pair.value);
         }
 

@@ -149,7 +149,7 @@
   "text.autoconfig.yigd.option.graveConfig.graveTimeout.dropContentsOnTimeout": "Drop Contents on Timeout",
   "text.autoconfig.yigd.option.graveConfig.treatBindingCurse": "Handle Curse of Binding",
   "text.autoconfig.yigd.option.graveConfig.generateGraveInVoid": "Generate Grave in Void",
-  "text.autoconfig.yigd.option.graveConfig.lowestGraveY": "Lowest Grave Y-Coordinate",
+  "text.autoconfig.yigd.option.graveConfig.minimumGraveYLevel": "Minimum Grave Y-Coordinate",
   "text.autoconfig.yigd.option.graveConfig.generateOnlyWithinBorder": "Generate Only Within World-Border",
   "text.autoconfig.yigd.option.graveConfig.ignoredDeathTypes": "Ignored Death Types",
   "text.autoconfig.yigd.option.graveConfig.unlockable": "Unlockable",
