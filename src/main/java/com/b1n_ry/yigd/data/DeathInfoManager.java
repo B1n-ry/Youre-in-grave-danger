@@ -75,7 +75,12 @@ public class DeathInfoManager extends SavedData {
     }
 
     public void addRespawnComponent(ResolvableProfile profile, RespawnComponent component) {
-        this.respawnEffects.put(profile.gameProfile(), component);
+        // If respawn component already exists for this profile, we assume this one was added because the death
+        // event fired more than once for the same death (should not happen unless other mods are involved), and
+        // only the first respawn component should have anything stored, meaning that is the one we use.
+        if (!this.respawnEffects.containsKey(profile.gameProfile())) {
+            this.respawnEffects.put(profile.gameProfile(), component);
+        }
     }
     public Optional<RespawnComponent> getRespawnComponent(ResolvableProfile profile) {
         return Optional.ofNullable(this.respawnEffects.get(profile.gameProfile()));
