@@ -56,8 +56,8 @@ public abstract class CompatComponent<T> {
     public abstract void handleDropRules(DeathContext context);
 
     /**
-     * Get all items as a {@link NonNullList<Tuple>} of {@link Tuple<>} containing {@link ItemStack} and {@link DropRule} in the component
-     * The drop rule refers to what drop rule was/will be applied on death
+     * Get all items as a {@link NonNullList<GraveItem>} of {@link GraveItem} containing {@link ItemStack} and {@link DropRule} in the component.
+     * The drop rule refers to what drop rule was/will be applied on death.
      * @return GraveItems containing all items in the component <b>INCLUDING EMPTY ITEMS</b>
      */
     public abstract NonNullList<GraveItem> getAsGraveItemList();

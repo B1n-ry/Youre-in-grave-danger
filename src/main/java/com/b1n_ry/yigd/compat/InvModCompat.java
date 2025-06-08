@@ -23,9 +23,11 @@ public interface InvModCompat<T> {
         boolean accessoriesPresent = modList.isLoaded("accessories");
         boolean curiosPresent = modList.isLoaded("curios");
 
+        boolean ccLayerLoaded = modList.isLoaded("cclayer") || modList.isLoaded("cc_layer_mod_id");
+
         if (compatConfig.enableAccessoriesCompat && accessoriesPresent)
             invCompatMods.add(new AccessoriesCompat());
-        if (compatConfig.enableCuriosCompat && curiosPresent && !modList.isLoaded("cclayer"))
+        if (compatConfig.enableCuriosCompat && curiosPresent && !ccLayerLoaded)
             invCompatMods.add(new CuriosCompat());
         if (modList.isLoaded("travelersbackpack")) {
             if (compatConfig.enableTravelersBackpackCompat && !((accessoriesPresent || curiosPresent) && TravelersBackpackCompat.isIntegrationEnabled()))
