@@ -1,5 +1,6 @@
 package com.b1n_ry.yigd.compat;
 
+import com.b1n_ry.yigd.Yigd;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.config.CompatConfig;
 import com.b1n_ry.yigd.config.YigdConfig;
@@ -152,10 +153,18 @@ public class TravelersBackpackCompat implements InvModCompat<GraveItem> {
 
         @Override
         public CompoundTag writeNbt(HolderLookup.Provider registries) {
-            CompoundTag nbt = (CompoundTag) this.inventory.stack.save(registries);
+            try {
+                CompoundTag nbt = !this.inventory.stack.isEmpty()
+                        ? (CompoundTag) this.inventory.stack.save(registries)
+                        : new CompoundTag();
 
-            nbt.putString("dropRule", this.inventory.dropRule.name());
-            return nbt;
+                nbt.putString("dropRule", this.inventory.dropRule.name());
+                return nbt;
+            }
+            catch (Exception e) {
+                Yigd.LOGGER.error("Error while converting item to NBT: {}", this.inventory.stack, e);
+                return new CompoundTag();
+            }
         }
     }
 }

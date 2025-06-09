@@ -599,13 +599,22 @@ public class GraveComponent {
 
             // Package item as NBT, and put inside NBT summon string
             ItemStack item = items.get(itemNumber).stack;
-            CompoundTag itemNbt = (CompoundTag) item.save(world.registryAccess());
+            if (item.isEmpty()) {
+                summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", "{}");
+                continue;
+            }
+            try {
+                CompoundTag itemNbt = (CompoundTag) item.save(world.registryAccess());  // This is why try-catch is needed
 
-            boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
+                boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
 
-            summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", itemNbt.toString());
+                summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", itemNbt.toString());
 
-            if (removeItem) items.set(itemNumber, new GraveItem(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
+                if (removeItem) items.set(itemNumber, new GraveItem(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
+            }
+            catch (Exception e) {
+                Yigd.LOGGER.error("Error while converting item to NBT: {}", item, e);
+            }
         } while (nbtMatcher.find());  // Loop until no more items should be inserted in NBT
 
         try {
