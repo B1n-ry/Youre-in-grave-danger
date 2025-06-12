@@ -1,8 +1,15 @@
 # You're in Grave Danger 2.0.12
 
+### Changes
+* Added configurability to minimum grave spawn height per-dimension
+
 ### Fixes
 * Graves replacing damaging blocks will now disappear when claiming the grave
 (if config is set to do so)
+* Fix crash with weird item-data which would lead to graves being rendered
+useless.
+* Visibility on accessories stay toggled after death
+* Fix soulbound items being deleted when dying due to apotheosis executions
 
 ---
 
