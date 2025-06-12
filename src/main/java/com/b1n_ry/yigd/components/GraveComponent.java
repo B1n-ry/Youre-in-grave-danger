@@ -206,7 +206,7 @@ public class GraveComponent {
 
         int lowerAcceptableY = this.world.getMinBuildHeight();
         if (minimumYMap.containsKey(dimName)) {
-            minimumYMap.get(dimName);
+            lowerAcceptableY = minimumYMap.get(dimName);
         } else {
             Yigd.LOGGER.error("Couldn't find minimum Y level for dimension {}, using world min build height instead", dimName);
         }
