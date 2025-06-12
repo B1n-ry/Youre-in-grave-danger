@@ -295,13 +295,13 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     AccessoriesInventorySlot slot = inventorySlot.cosmetic.get(i);
-                    cosmeticAccessories.setItem(i, slot.graveItem.stack.copy());
+                    container.renderOptions().set(i, slot.visible);
                     if (slot.graveItem.stack.isEmpty()) continue;
                     if (i >= cosmeticAccessories.getContainerSize()) {
                         extraItems.add(slot.graveItem.stack.copy());
                         continue;
                     }
-                    container.renderOptions().set(i, slot.visible);
+                    cosmeticAccessories.setItem(i, slot.graveItem.stack.copy());
                 }
                 container.markChanged(false);
             }
