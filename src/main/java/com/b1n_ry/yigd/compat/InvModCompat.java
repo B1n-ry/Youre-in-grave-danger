@@ -23,7 +23,7 @@ public interface InvModCompat<T> {
         boolean accessoriesPresent = modList.isLoaded("accessories");
         boolean curiosPresent = modList.isLoaded("curios");
 
-        boolean ccLayerLoaded = modList.isLoaded("cclayer") || modList.isLoaded("cc_layer_mod_id");
+        boolean ccLayerLoaded = modList.isLoaded("cclayer");
 
         if (compatConfig.enableAccessoriesCompat && accessoriesPresent)
             invCompatMods.add(new AccessoriesCompat());
