@@ -126,7 +126,7 @@ dependencies {
 	modCompileOnly "maven.modrinth:travelersbackpack:${project.travelers_backpack_version}"  // travelers backpack
 	modCompileOnly "io.wispforest:accessories-fabric:${project.accessories_version}"  // accessories
 //	modCompileOnly "maven.modrinth:numismatic-overhaul:${project.numismatic_version}"  // numismatic overhaul
-//	modCompileOnly "com.github.apace100:apoli:${project.apoli_version}"  // origins/apoli
+//	modCompileOnly "io.github.apace100:apoli:${project.apoli_version}"  // origins/apoli
 	modCompileOnly "maven.modrinth:levelz:${project.levelz_version}"
 //	modCompileOnly "maven.modrinth:beans-backpacks:${project.beans_backpacks_version}"
 }

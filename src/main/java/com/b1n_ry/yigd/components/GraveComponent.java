@@ -202,7 +202,20 @@ public class GraveComponent {
 
         YigdConfig config = YigdConfig.getConfig();
         int y = this.pos.getY();
-        int lowerAcceptableY = config.graveConfig.lowestGraveY + this.world.getMinBuildHeight();
+        Map<String, Integer> minimumYMap = new HashMap<>();
+        for (YigdConfig.MapEntry.IntType entry : config.graveConfig.minimumGraveYLevel) {
+            minimumYMap.put(entry.key, entry.value);
+        }
+        String dimName = this.worldRegistryKey.location().toString();
+        if (!minimumYMap.containsKey(dimName)) dimName = "misc";
+
+        int lowerAcceptableY = this.world.getMinBuildHeight();
+        if (minimumYMap.containsKey(dimName)) {
+            lowerAcceptableY = minimumYMap.get(dimName);
+        } else {
+            Yigd.LOGGER.error("Couldn't find minimum Y level for dimension {}, using world min build height ({}) instead", dimName, lowerAcceptableY);
+        }
+
         if (config.graveConfig.generateGraveInVoid && this.pos.getY() <= lowerAcceptableY) {
             y = lowerAcceptableY;
         }
@@ -402,7 +415,7 @@ public class GraveComponent {
         if (!AllowBlockUnderGraveGenerationEvent.EVENT.invoker().allowBlockGeneration(this, currentUnder)) return;
 
         Map<String, String> blockInDimMap = new HashMap<>();
-        for (YigdConfig.MapEntry pair : config.blockInDimensions) {
+        for (YigdConfig.MapEntry.StringType pair : config.blockInDimensions) {
             blockInDimMap.put(pair.key, pair.value);
         }
 
@@ -588,13 +601,22 @@ public class GraveComponent {
 
             // Package item as NBT, and put inside NBT summon string
             ItemStack item = items.get(itemNumber).stack;
-            CompoundTag itemNbt = (CompoundTag) item.save(world.registryAccess());
+            if (item.isEmpty()) {
+                summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", "{}");
+                continue;
+            }
+            try {
+                CompoundTag itemNbt = (CompoundTag) item.save(world.registryAccess());
 
-            boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
+                boolean removeItem = summonNbt.contains("${!item[" + itemNumber + "]}"); // Contains ! -> remove item from list later
 
-            summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", itemNbt.toString());
+                summonNbt = summonNbt.replaceAll("\\$\\{!?item\\[" + itemNumber + "]}", itemNbt.toString());
 
-            if (removeItem) items.set(itemNumber, new GraveItem(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
+                if (removeItem) items.set(itemNumber, new GraveItem(ItemStack.EMPTY, GraveOverrideAreas.INSTANCE.defaultDropRule)); // Make sure item gets "used"
+            }
+            catch (Exception e) {
+                Yigd.LOGGER.error("Error while converting item to NBT: {}", item, e);
+            }
         } while (nbtMatcher.find());  // Loop until no more items should be inserted in NBT
 
         try {

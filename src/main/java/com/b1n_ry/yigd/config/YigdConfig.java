@@ -177,8 +177,13 @@ public class YigdConfig implements ConfigData {
         public boolean treatBindingCurse = true;
         // generate grave in the void? (which y level then)
         public boolean generateGraveInVoid = true;
-        @Comment("Minimum amount of blocks above void a grave can spawn")
-        public int lowestGraveY = 3;
+        @Comment("Minimum y-level a grave can spawn in a dimension")
+        public List<MapEntry.IntType> minimumGraveYLevel = new ArrayList<>() {{
+            add(new MapEntry.IntType("minecraft:overworld", -60));
+            add(new MapEntry.IntType("minecraft:the_nether", 3));
+            add(new MapEntry.IntType("minecraft:the_end", 3));
+            add(new MapEntry.IntType("misc", 3));
+        }};
         // Weather or not the grave can generate outside the world border
         public boolean generateOnlyWithinBorder = true;
         // ignore death types
@@ -267,11 +272,11 @@ public class YigdConfig implements ConfigData {
 
         public static class BlockUnderGrave {
             public boolean enabled = true;
-            public List<MapEntry> blockInDimensions = new ArrayList<>() {{
-                    add(new MapEntry("minecraft:overworld", "minecraft:cobblestone"));
-                    add(new MapEntry("minecraft:the_nether", "minecraft:soul_soil"));
-                    add(new MapEntry("minecraft:the_end", "minecraft:end_stone"));
-                    add(new MapEntry("misc", "minecraft:dirt"));
+            public List<MapEntry.StringType> blockInDimensions = new ArrayList<>() {{
+                    add(new MapEntry.StringType("minecraft:overworld", "minecraft:cobblestone"));
+                    add(new MapEntry.StringType("minecraft:the_nether", "minecraft:soul_soil"));
+                    add(new MapEntry.StringType("minecraft:the_end", "minecraft:end_stone"));
+                    add(new MapEntry.StringType("misc", "minecraft:dirt"));
             }};
             @Comment("Defines whether the block under grave can be generated in claims where the player can NOT place blocks if protection api compat is enabled")
             public boolean generateOnProtectedLand = false;
@@ -410,18 +415,42 @@ public class YigdConfig implements ConfigData {
         }
     }
 
-    public static class MapEntry {
+    public static abstract class MapEntry<T> {
         public String key;
-        public String value;
+        public T value;
 
         @SuppressWarnings("unused")
         public MapEntry() {  // Required for cloth config GUI to work
             this.key = "";
-            this.value = "";
         }
-        public MapEntry(String key, String value) {
+        public MapEntry(String key) {
             this.key = key;
-            this.value = value;
+        }
+
+        public static class StringType extends MapEntry<String> {
+            @SuppressWarnings("unused")
+            public StringType() {  // Required for cloth config GUI to work
+                super();
+                this.value = "";
+            }
+
+            public StringType(String key, String value) {
+                super(key);
+                this.value = value;
+            }
+        }
+
+        public static class IntType extends MapEntry<Integer> {
+            @SuppressWarnings("unused")
+            public IntType() {  // Required for cloth config GUI to work
+                super();
+                this.value = 0;
+            }
+
+            public IntType(String key, int value) {
+                super(key);
+                this.value = value;
+            }
         }
     }
 
