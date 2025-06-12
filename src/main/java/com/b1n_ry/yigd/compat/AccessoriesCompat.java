@@ -58,7 +58,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 boolean visible = !itemNbt.contains("visible") || itemNbt.getBoolean("visible");
 
                 return new AccessoriesInventorySlot(stack, dropRule, visible);
-            }, AccessoriesInventorySlot.EMPTY);
+            }, AccessoriesInventorySlot.empty(true));
             DefaultedList<AccessoriesInventorySlot> cosmeticSlot = InventoryComponent.listFromNbt(slotNbt.getCompound("cosmetic"), itemNbt -> {
                 ItemStack stack = ItemStack.fromNbt(itemNbt);
                 DropRule dropRule;
@@ -76,7 +76,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 boolean visible = !itemNbt.contains("visible") || itemNbt.getBoolean("visible");
 
                 return new AccessoriesInventorySlot(stack, dropRule, visible);
-            }, AccessoriesInventorySlot.EMPTY);
+            }, AccessoriesInventorySlot.empty(true));
 
             inventory.put(key, new AccessoriesInventoryGroup(normalSlot, cosmeticSlot));
         }
@@ -113,7 +113,9 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
             this.graveItem = new GraveItem(stack, dropRule);
             this.visible = visible;
         }
-        public static AccessoriesInventorySlot EMPTY = new AccessoriesInventorySlot(ItemStack.EMPTY, DropRule.PUT_IN_GRAVE, true);
+        public static AccessoriesInventorySlot empty(boolean visible) {
+            return new AccessoriesInventorySlot(ItemStack.EMPTY, DropRule.PUT_IN_GRAVE, visible);
+        }
     }
 
     private static class AccessoriesCompatComponent extends CompatComponent<Map<String, AccessoriesInventoryGroup>> {
@@ -139,7 +141,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 ExpandedSimpleContainer normal = container.getAccessories();
                 ExpandedSimpleContainer cosmetic = container.getCosmeticAccessories();
                 for (int i = 0; i < normal.size(); i++) {
-                    normalSlot.add(new AccessoriesInventorySlot(normal.getStack(i).copy(), DropRule.PUT_IN_GRAVE, true));
+                    boolean shouldRender = container.shouldRender(i);
+                    normalSlot.add(new AccessoriesInventorySlot(normal.getStack(i).copy(), DropRule.PUT_IN_GRAVE, shouldRender));
                 }
                 for (int i = 0; i < cosmetic.size(); i++) {
                     boolean shouldRender = container.shouldRender(i);
@@ -270,6 +273,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 ExpandedSimpleContainer cosmeticAccessories = container.getCosmeticAccessories();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     AccessoriesInventorySlot slot = inventorySlot.normal.get(i);
+                    container.renderOptions().set(i, slot.visible);
                     if (slot.graveItem.stack.isEmpty()) continue;
                     if (i >= normalAccessories.size()) {
                         extraItems.add(slot.graveItem.stack.copy());
@@ -280,6 +284,7 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     AccessoriesInventorySlot slot = inventorySlot.cosmetic.get(i);
+                    container.renderOptions().set(i, slot.visible);
                     if (slot.graveItem.stack.isEmpty()) continue;
                     if (i >= cosmeticAccessories.size()) {
                         extraItems.add(slot.graveItem.stack.copy());
@@ -287,7 +292,6 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     }
 
                     cosmeticAccessories.setStack(i, slot.graveItem.stack.copy());
-                    container.renderOptions().set(i, slot.visible);
                 }
                 container.markChanged(false);
             }
@@ -361,14 +365,14 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                     if (predicate.test(slot.graveItem.dropRule)) {
                         normalSlot.add(slot);
                     } else {
-                        normalSlot.add(AccessoriesInventorySlot.EMPTY);
+                        normalSlot.add(AccessoriesInventorySlot.empty(slot.visible));
                     }
                 }
                 for (AccessoriesInventorySlot slot : inventorySlot.cosmetic) {
                     if (predicate.test(slot.graveItem.dropRule)) {
                         cosmeticSlot.add(slot);
                     } else {
-                        cosmeticSlot.add(AccessoriesInventorySlot.EMPTY);
+                        cosmeticSlot.add(AccessoriesInventorySlot.empty(slot.visible));
                     }
                 }
 
@@ -394,8 +398,8 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
         @Override
         public void clear() {
             for (AccessoriesInventoryGroup inventorySlot : this.inventory.values()) {
-                Collections.fill(inventorySlot.normal, AccessoriesInventorySlot.EMPTY);
-                Collections.fill(inventorySlot.cosmetic, AccessoriesInventorySlot.EMPTY);
+                Collections.fill(inventorySlot.normal, AccessoriesInventorySlot.empty(true));
+                Collections.fill(inventorySlot.cosmetic, AccessoriesInventorySlot.empty(true));
             }
         }
 
@@ -407,20 +411,20 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 NbtCompound slotNbt = new NbtCompound();
                 NbtCompound normalNbt = InventoryComponent.listToNbt(inventorySlot.normal, slot -> {
                     NbtCompound itemNbt = new NbtCompound();
-                    slot.graveItem.stack.writeNbt(itemNbt);
+                    if (!slot.graveItem.stack.isEmpty()) slot.graveItem.stack.writeNbt(itemNbt);
                     itemNbt.putString("dropRule", slot.graveItem.dropRule.name());
                     itemNbt.putBoolean("visible", slot.visible);
 
                     return itemNbt;
-                }, slot -> slot.graveItem.stack.isEmpty());
+                }, slot -> slot.graveItem.stack.isEmpty() && slot.visible);
                 NbtCompound cosmeticNbt = InventoryComponent.listToNbt(inventorySlot.cosmetic, slot -> {
                     NbtCompound itemNbt = new NbtCompound();
-                    slot.graveItem.stack.writeNbt(itemNbt);
+                    if (!slot.graveItem.stack.isEmpty()) slot.graveItem.stack.writeNbt(itemNbt);
                     itemNbt.putString("dropRule", slot.graveItem.dropRule.name());
                     itemNbt.putBoolean("visible", slot.visible);
 
                     return itemNbt;
-                }, slot -> slot.graveItem.stack.isEmpty());
+                }, slot -> slot.graveItem.stack.isEmpty() && slot.visible);
 
                 slotNbt.put("normal", normalNbt);
                 slotNbt.put("cosmetic", cosmeticNbt);
