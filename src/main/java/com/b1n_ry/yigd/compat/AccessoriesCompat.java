@@ -273,23 +273,23 @@ public class AccessoriesCompat implements InvModCompat<Map<String, AccessoriesIn
                 ExpandedSimpleContainer cosmeticAccessories = container.getCosmeticAccessories();
                 for (int i = 0; i < inventorySlot.normal.size(); i++) {
                     AccessoriesInventorySlot slot = inventorySlot.normal.get(i);
-                    container.renderOptions().set(i, slot.visible);
-                    if (slot.graveItem.stack.isEmpty()) continue;
                     if (i >= normalAccessories.size()) {
                         extraItems.add(slot.graveItem.stack.copy());
                         continue;
                     }
+                    container.renderOptions().set(i, slot.visible);
+                    if (slot.graveItem.stack.isEmpty()) continue;
 
                     normalAccessories.setStack(i, slot.graveItem.stack.copy());
                 }
                 for (int i = 0; i < inventorySlot.cosmetic.size(); i++) {
                     AccessoriesInventorySlot slot = inventorySlot.cosmetic.get(i);
-                    container.renderOptions().set(i, slot.visible);
-                    if (slot.graveItem.stack.isEmpty()) continue;
                     if (i >= cosmeticAccessories.size()) {
                         extraItems.add(slot.graveItem.stack.copy());
                         continue;
                     }
+                    container.renderOptions().set(i, slot.visible);
+                    if (slot.graveItem.stack.isEmpty()) continue;
 
                     cosmeticAccessories.setStack(i, slot.graveItem.stack.copy());
                 }
