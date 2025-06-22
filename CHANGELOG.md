@@ -1,3 +1,10 @@
+# You're in Grave Danger 2.0.13
+
+### Fixes
+* Accessories can now handle stored accessories data with more slots than the player has (in case of updates)
+
+---
+
 # You're in Grave Danger 2.0.12
 
 ### Changes
