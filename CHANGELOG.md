@@ -1,3 +1,13 @@
+# You're in Grave Danger 2.0.14
+
+### Changes
+* Grave select GUI has now inverted order to view the latest death at the top
+
+### Fixes
+* GUI scroll bars will now work no matter how fast you scroll
+
+---
+
 # You're in Grave Danger 2.0.13
 
 ### Fixes

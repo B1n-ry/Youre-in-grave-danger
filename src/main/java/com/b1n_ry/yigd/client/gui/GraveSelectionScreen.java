@@ -94,7 +94,7 @@ public class GraveSelectionScreen extends Screen {
         this.clearWidgets();
         this.buttons.clear();
         this.overlayColorList.clear();
-        for (LightGraveData graveData : this.data) {
+        for (LightGraveData graveData : this.data.reversed()) {
             switch (graveData.status()) {
                 case CLAIMED -> { if (!this.showClaimed) continue; }
                 case DESTROYED -> { if (!this.showDestroyed) continue; }
@@ -230,10 +230,15 @@ public class GraveSelectionScreen extends Screen {
         this.scrollBar.render(graphics, mouseX, mouseY, partialTick);
         graphics.enableScissor(0, y + 1, this.width, y + SCROLL_MENU_HEIGHT + 1);
         for (int i = 0; i < this.buttons.size(); i++) {
-            if ((i + 1) * 20 < this.scrollDistance) continue;
-            if (i * 20 - this.scrollDistance > SCROLL_MENU_HEIGHT) break;
-
             Button button = this.buttons.get(i);
+            if ((i + 1) * 20 < this.scrollDistance || i * 20 - this.scrollDistance > SCROLL_MENU_HEIGHT) {
+                // Make sure the buttons do not interfere if they are not in the viewport
+                button.active = false;
+                continue;
+            } else {
+                button.active = true;
+            }
+
             button.setPosition(x + 1, y + 1 + i * 20 - (int) this.scrollDistance);
             button.render(graphics, mouseX, mouseY, partialTick);
 
