@@ -9,6 +9,8 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.networking.packets.SyncConfigS2CPacket;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -47,8 +49,14 @@ public class ServerEventHandler {
     @SubscribeEvent
     public void endPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
-        if (player.onGround())
-            player.setData(Yigd.LAST_GROUND_POS, player.position());
+        if (player.onGround()) {
+            SubLevelAccess subLevel = SableCompanion.INSTANCE.getTrackingOrVehicleSubLevel(player);
+            if (subLevel != null) {
+                player.setData(Yigd.LAST_GROUND_POS, subLevel.logicalPose().transformPositionInverse(player.position()));
+            } else {
+                player.setData(Yigd.LAST_GROUND_POS, player.position());
+            }
+        }
     }
 
     @SubscribeEvent
