@@ -11,6 +11,8 @@ import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.events.YigdEvents;
 import com.b1n_ry.yigd.util.DropRule;
 import com.b1n_ry.yigd.util.GraveOverrideAreas;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -62,7 +64,14 @@ public class DeathHandler {
         respawnComponent.setSoulboundExp(keepExp);
 
         ResolvableProfile profile = new ResolvableProfile(player.getGameProfile());
-        Vec3 graveGenerationPos = !config.graveConfig.generateOnLastGroundPos ? pos : player.getData(Yigd.LAST_GROUND_POS);
+        Vec3 graveGenerationPos;
+        if (config.graveConfig.generateOnLastGroundPos) {
+            graveGenerationPos = player.getData(Yigd.LAST_GROUND_POS);
+        } else {
+            SubLevelAccess subLevel = SableCompanion.INSTANCE.getTrackingOrVehicleSubLevel(player);
+            graveGenerationPos = (subLevel == null) ? pos : subLevel.logicalPose().transformPositionInverse(pos);
+        }
+
         GraveComponent graveComponent = new GraveComponent(profile, inventoryComponent, expComponent,
                 world, graveGenerationPos.add(0D, .5D, 0D), deathSource.getLocalizedDeathMessage(player), killerId);  // Will keep track of player grave (if enabled)
 
