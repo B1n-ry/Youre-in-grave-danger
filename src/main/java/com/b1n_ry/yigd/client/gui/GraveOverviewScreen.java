@@ -5,6 +5,7 @@ import com.b1n_ry.yigd.components.GraveComponent;
 import com.b1n_ry.yigd.components.InventoryComponent;
 import com.b1n_ry.yigd.data.GraveItem;
 import com.b1n_ry.yigd.networking.packets.*;
+import dev.ryanhcode.sable.companion.SableCompanion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,8 +18,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3d;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -273,8 +277,20 @@ public class GraveOverviewScreen extends Screen {
         Component number = Component.nullToEmpty(String.valueOf(this.graveComponent.getExpComponent().getXpLevel()));
 
         graphics.drawString(FONT, this.title, leftEdge + 28, topEdge + 8, 0x404040, false);
-        graphics.drawString(FONT, Component.nullToEmpty("X: %d / Y: %d / Z: %d".formatted(pos.getX(), pos.getY(), pos.getZ())), leftEdge + 28, topEdge + 26, 0x404040, false);
-        graphics.drawString(FONT, Component.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId), leftEdge + 28, topEdge + 44, 0x404040, false);
+        Level level = ServerLifecycleHooks.getCurrentServer().getLevel(graveComponent.getWorldRegistryKey());
+        if (SableCompanion.INSTANCE.isInPlotGrid(level, this.graveComponent.getPos())) {
+            Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(level, new Vector3d(pos.getX(), pos.getY(), pos.getZ()));
+            String formattedX = String.format("%.1f", temp.x());
+            String formattedY = String.format("%.1f", temp.y());
+            String formattedZ = String.format("%.1f", temp.z());
+
+            graphics.drawString(FONT, Component.nullToEmpty("X: %s / Y: %s / Z: %s".formatted(formattedX, formattedY, formattedZ)), leftEdge + 28, topEdge + 26, 0x404040, false);
+            graphics.drawString(FONT, Component.translatable("text.yigd.gui.on_sublevel"), leftEdge + 28, topEdge + 36, 0x404040, false);
+            graphics.drawString(FONT, Component.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId), leftEdge + 28, topEdge + 50, 0x404040, false);
+        } else {
+            graphics.drawString(FONT, Component.nullToEmpty("X: %d / Y: %d / Z: %d".formatted(pos.getX(), pos.getY(), pos.getZ())), leftEdge + 28, topEdge + 26, 0x404040, false);
+            graphics.drawString(FONT, Component.translatableWithFallback("text.yigd.dimension.name." + dimId, dimId), leftEdge + 28, topEdge + 44, 0x404040, false);
+        }
         graphics.blitSprite(EXP_ORB, leftEdge + 28, topEdge + 62, 12, 12);
         graphics.drawString(FONT, number, leftEdge + 39, topEdge + 68, 0x000000, false);
         graphics.drawString(FONT, number, leftEdge + 40, topEdge + 67, 0x000000, false);

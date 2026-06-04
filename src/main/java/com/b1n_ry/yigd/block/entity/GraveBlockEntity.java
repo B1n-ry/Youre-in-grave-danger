@@ -249,7 +249,6 @@ public class GraveBlockEntity extends BlockEntity {
             ResolvableProfile owner = this.component.getOwner();
             ServerPlayer player = owner.id().isPresent() ? playerManager.getPlayer(owner.id().get()) : playerManager.getPlayerByName(owner.name().orElse("PLAYER_NOT_FOUND"));
             if (player != null) {
-
                 if (SableCompanion.INSTANCE.isInPlotGrid(world, pos)) {
                     Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(world, new Vector3d(pos.getX(), pos.getY(), pos.getZ()));
                     String formattedX = String.format("%.1f", temp.x());

@@ -125,9 +125,9 @@ public class GraveSelectionScreen extends Screen {
                 formattedZ = String.format("%.1f", temp.z());
                 button.setTooltip(Tooltip.create(
                         Component.translatable("text.yigd.gui.grave_location", formattedX, formattedY, formattedZ)
-                                .append("\n")
+                                .append("\n§o§7(")
                                 .append(Component.translatable("text.yigd.gui.on_sublevel"))
-                                .append("\n")
+                                .append(")\n")
                                 .append(Component.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName))
                                 .append("\n")
                                 .append(Component.translatable("text.yigd.gui.item_count", graveData.itemCount()))
