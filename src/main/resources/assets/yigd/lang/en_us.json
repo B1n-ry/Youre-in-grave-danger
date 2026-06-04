@@ -37,6 +37,7 @@
   "button.yigd.gui.hide_deleted_items": "Hiding Destroyed Items",
   "text.yigd.gui.graves_of": "Graves of %s",
   "text.yigd.gui.grave_location": "X: %d / Y: %d / Z: %d",
+  "text.yigd.gui.on_sublevel": "§o§7(On Sublevel)",
   "text.yigd.gui.item_count": "%d items",
   "text.yigd.gui.level_count": "%d levels",
   "button.yigd.gui.viewing_claimed": "Viewing claimed graves",
