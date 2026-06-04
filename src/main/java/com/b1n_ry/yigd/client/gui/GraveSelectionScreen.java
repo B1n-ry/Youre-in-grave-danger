@@ -5,6 +5,8 @@ import com.b1n_ry.yigd.components.ExpComponent;
 import com.b1n_ry.yigd.networking.LightGraveData;
 import com.b1n_ry.yigd.networking.packets.GraveOverviewRequestC2SPacket;
 import com.b1n_ry.yigd.networking.packets.GraveSelectionS2CPacket;
+import com.mojang.authlib.minecraft.client.MinecraftClient;
+import dev.ryanhcode.sable.companion.SableCompanion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,11 +14,17 @@ import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.server.ServerLifecycleEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3d;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -106,14 +114,39 @@ public class GraveSelectionScreen extends Screen {
 
             BlockPos gravePos = graveData.pos();
             String dimensionName = graveData.registryKey().location().toString();
-            button.setTooltip(Tooltip.create(
-                    Component.translatable("text.yigd.gui.grave_location", gravePos.getX(), gravePos.getY(), gravePos.getZ())
-                            .append("\n")
-                            .append(Component.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName))
-                            .append("\n")
-                            .append(Component.translatable("text.yigd.gui.item_count", graveData.itemCount()))
-                            .append("\n")
-                            .append(Component.translatable("text.yigd.gui.level_count", ExpComponent.xpToLevels(graveData.xpPoints())))));
+            String formattedX;
+            String formattedY;
+            String formattedZ;
+            Level level = ServerLifecycleHooks.getCurrentServer().getLevel(graveData.registryKey());
+            if (SableCompanion.INSTANCE.isInPlotGrid(level, gravePos)) {
+                Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(level, new Vector3d(gravePos.getX(), gravePos.getY(), gravePos.getZ()));
+                formattedX = String.format("%.1f", temp.x());
+                formattedY = String.format("%.1f", temp.y());
+                formattedZ = String.format("%.1f", temp.z());
+                button.setTooltip(Tooltip.create(
+                        Component.translatable("text.yigd.gui.grave_location", formattedX, formattedY, formattedZ)
+                                .append("\n§o§7(")
+                                .append(Component.translatable("text.yigd.gui.on_sublevel"))
+                                .append(")\n")
+                                .append(Component.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName))
+                                .append("\n")
+                                .append(Component.translatable("text.yigd.gui.item_count", graveData.itemCount()))
+                                .append("\n")
+                                .append(Component.translatable("text.yigd.gui.level_count", ExpComponent.xpToLevels(graveData.xpPoints())))));
+
+            } else {
+                formattedX = String.valueOf(gravePos.getX());
+                formattedY = String.valueOf(gravePos.getY());
+                formattedZ = String.valueOf(gravePos.getZ());
+                button.setTooltip(Tooltip.create(
+                        Component.translatable("text.yigd.gui.grave_location", formattedX, formattedY, formattedZ)
+                                .append("\n")
+                                .append(Component.translatableWithFallback("text.yigd.dimension.name." + dimensionName, dimensionName))
+                                .append("\n")
+                                .append(Component.translatable("text.yigd.gui.item_count", graveData.itemCount()))
+                                .append("\n")
+                                .append(Component.translatable("text.yigd.gui.level_count", ExpComponent.xpToLevels(graveData.xpPoints())))));
+            }
 
             this.overlayColorList.add(graveData.status().getTransparentColor());
 

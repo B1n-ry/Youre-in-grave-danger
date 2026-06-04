@@ -7,6 +7,7 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.events.YigdEvents;
+import dev.ryanhcode.sable.companion.SableCompanion;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderGetter;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -247,9 +249,19 @@ public class GraveBlockEntity extends BlockEntity {
             ResolvableProfile owner = this.component.getOwner();
             ServerPlayer player = owner.id().isPresent() ? playerManager.getPlayer(owner.id().get()) : playerManager.getPlayerByName(owner.name().orElse("PLAYER_NOT_FOUND"));
             if (player != null) {
+                if (SableCompanion.INSTANCE.isInPlotGrid(world, pos)) {
+                    Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(world, new Vector3d(pos.getX(), pos.getY(), pos.getZ()));
+                    String formattedX = String.format("%.1f", temp.x());
+                    String formattedY = String.format("%.1f", temp.y());
+                    String formattedZ = String.format("%.1f", temp.z());
+                    player.sendSystemMessage(Component.translatable("text.yigd.message.grave_relocated_sublevel", formattedX, formattedY, formattedZ, world.dimension().location().toString()));
+
+                } else {
+                    player.sendSystemMessage(Component.translatable("text.yigd.message.grave_relocated", pos.getX(), pos.getY(), pos.getZ(), world.dimension().location().toString()));
+                }
                 Yigd.LOGGER.info("Grave belonging to {} resurfaced at X: {} / Y: {} / Z: {} / {}", this.component.getOwner().name().orElse("PLAYER_NOT_FOUND"),
                         this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ(), this.component.getWorldRegistryKey().location());
-                player.sendSystemMessage(Component.translatable("text.yigd.message.grave_relocated", pos.getX(), pos.getY(), pos.getZ(), world.dimension().location().toString()));
+
             }
         }
     }

@@ -9,6 +9,8 @@ import com.b1n_ry.yigd.config.YigdConfig;
 import com.b1n_ry.yigd.data.DeathInfoManager;
 import com.b1n_ry.yigd.data.GraveStatus;
 import com.b1n_ry.yigd.networking.packets.SyncConfigS2CPacket;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -30,6 +32,7 @@ import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector3d;
 
 import java.util.*;
 
@@ -47,8 +50,14 @@ public class ServerEventHandler {
     @SubscribeEvent
     public void endPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
-        if (player.onGround())
-            player.setData(Yigd.LAST_GROUND_POS, player.position());
+        if (player.onGround()) {
+            SubLevelAccess subLevel = SableCompanion.INSTANCE.getTrackingOrVehicleSubLevel(player);
+            if (subLevel != null) {
+                player.setData(Yigd.LAST_GROUND_POS, subLevel.logicalPose().transformPositionInverse(player.position()));
+            } else {
+                player.setData(Yigd.LAST_GROUND_POS, player.position());
+            }
+        }
     }
 
     @SubscribeEvent
@@ -138,9 +147,20 @@ public class ServerEventHandler {
             if (!graves.isEmpty()) {
                 GraveComponent latest = graves.getLast();
                 BlockPos gravePos = latest.getPos();
-                newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location",
-                        gravePos.getX(), gravePos.getY(), gravePos.getZ(),
-                        latest.getWorldRegistryKey().location().toString()));
+
+                if (SableCompanion.INSTANCE.isInPlotGrid(latest.getWorld(), gravePos)) {
+                    Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(latest.getWorld(), new Vector3d(gravePos.getX(), gravePos.getY(), gravePos.getZ()));
+                    String formattedX = String.format("%.1f", temp.x());
+                    String formattedY = String.format("%.1f", temp.y());
+                    String formattedZ = String.format("%.1f", temp.z());
+                    newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location_sublevel",
+                            formattedX, formattedY, formattedZ,
+                            latest.getWorldRegistryKey().location().toString()));
+                } else {
+                    newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location",
+                            gravePos.getX(), gravePos.getY(), gravePos.getZ(),
+                            latest.getWorldRegistryKey().location().toString()));
+                }
             }
         }
     }
@@ -187,9 +207,20 @@ public class ServerEventHandler {
         if (!loggedOffUnclaimed.isEmpty()) {
             GraveComponent component = loggedOffUnclaimed.getFirst();
             BlockPos lastGravePos = component.getPos();
-            player.server.sendSystemMessage(Component.translatable("text.yigd.message.sellout_player",
-                    loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
-                    component.getWorldRegistryKey().location().toString()));
+
+            if (SableCompanion.INSTANCE.isInPlotGrid(component.getWorld(), lastGravePos)) {
+                Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(component.getWorld(), new Vector3d(lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ()));
+                String formattedX = String.format("%.1f", temp.x());
+                String formattedY = String.format("%.1f", temp.y());
+                String formattedZ = String.format("%.1f", temp.z());
+                player.server.sendSystemMessage(Component.translatable("text.yigd.message.sellout_player_sublevel",
+                        loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), formattedX, formattedY, formattedZ,
+                        component.getWorldRegistryKey().location().toString()));
+            } else {
+                player.server.sendSystemMessage(Component.translatable("text.yigd.message.sellout_player",
+                        loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
+                        component.getWorldRegistryKey().location().toString()));
+            }
         }
     }
 }
