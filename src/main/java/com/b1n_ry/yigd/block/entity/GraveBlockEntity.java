@@ -255,16 +255,13 @@ public class GraveBlockEntity extends BlockEntity {
                     String formattedX = String.format("%.1f", temp.x());
                     String formattedY = String.format("%.1f", temp.y());
                     String formattedZ = String.format("%.1f", temp.z());
-
-                    Yigd.LOGGER.info("Grave belonging to {} resurfaced on a sublevel at X: {} / Y: {} / Z: {} / {}", this.component.getOwner().name().orElse("PLAYER_NOT_FOUND"),
-                            formattedX, formattedY, formattedZ, this.component.getWorldRegistryKey().location());
                     player.sendSystemMessage(Component.translatable("text.yigd.message.grave_relocated_sublevel", formattedX, formattedY, formattedZ, world.dimension().location().toString()));
 
                 } else {
-                    Yigd.LOGGER.info("Grave belonging to {} resurfaced at X: {} / Y: {} / Z: {} / {}", this.component.getOwner().name().orElse("PLAYER_NOT_FOUND"),
-                            this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ(), this.component.getWorldRegistryKey().location());
                     player.sendSystemMessage(Component.translatable("text.yigd.message.grave_relocated", pos.getX(), pos.getY(), pos.getZ(), world.dimension().location().toString()));
                 }
+                Yigd.LOGGER.info("Grave belonging to {} resurfaced at X: {} / Y: {} / Z: {} / {}", this.component.getOwner().name().orElse("PLAYER_NOT_FOUND"),
+                        this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ(), this.component.getWorldRegistryKey().location());
 
             }
         }

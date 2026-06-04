@@ -79,6 +79,7 @@
   "text.yigd.message.missing_key": "You do not have the proper key to unlock this grave",
   "text.yigd.message.no_shovel": "You need a shovel to loot this grave",
   "text.yigd.message.sellout_player": "%s logged off, and they have a grave at X: %d / Y: %d / Z: %d / %s",
+  "text.yigd.message.sellout_player_sublevel": "%s logged off, and they have a grave on a sublevel last at X: %s / Y: %s / Z: %s / %s",
   "text.yigd.message.inform_robbery": "One of your graves has been robbed",
   "text.yigd.message.inform_robbery.with_details": "%s has robbed one of your graves",
   "text.yigd.message.grave_location": "Your grave is located at X: %d / Y: %d / Z: %d / %s",

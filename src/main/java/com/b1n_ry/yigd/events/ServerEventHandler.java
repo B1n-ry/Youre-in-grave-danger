@@ -22,7 +22,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -35,7 +34,6 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3d;
 
-import javax.swing.text.Position;
 import java.util.*;
 
 public class ServerEventHandler {
@@ -152,13 +150,16 @@ public class ServerEventHandler {
 
                 if (SableCompanion.INSTANCE.isInPlotGrid(latest.getWorld(), gravePos)) {
                     Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(latest.getWorld(), new Vector3d(gravePos.getX(), gravePos.getY(), gravePos.getZ()));
+                    String formattedX = String.format("%.1f", temp.x());
+                    String formattedY = String.format("%.1f", temp.y());
+                    String formattedZ = String.format("%.1f", temp.z());
                     newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location_sublevel",
-                            String.format("%.1f", temp.x()), String.format("%.1f", temp.y()), String.format("%.1f", temp.z()),
+                            formattedX, formattedY, formattedZ,
                             latest.getWorldRegistryKey().location().toString()));
                 } else {
                     newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location",
-                        gravePos.getX(), gravePos.getY(), gravePos.getZ(),
-                        latest.getWorldRegistryKey().location().toString()));
+                            gravePos.getX(), gravePos.getY(), gravePos.getZ(),
+                            latest.getWorldRegistryKey().location().toString()));
                 }
             }
         }
@@ -206,9 +207,20 @@ public class ServerEventHandler {
         if (!loggedOffUnclaimed.isEmpty()) {
             GraveComponent component = loggedOffUnclaimed.getFirst();
             BlockPos lastGravePos = component.getPos();
-            player.server.sendSystemMessage(Component.translatable("text.yigd.message.sellout_player",
-                    loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
-                    component.getWorldRegistryKey().location().toString()));
+
+            if (SableCompanion.INSTANCE.isInPlotGrid(component.getWorld(), lastGravePos)) {
+                Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(component.getWorld(), new Vector3d(lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ()));
+                String formattedX = String.format("%.1f", temp.x());
+                String formattedY = String.format("%.1f", temp.y());
+                String formattedZ = String.format("%.1f", temp.z());
+                player.server.sendSystemMessage(Component.translatable("text.yigd.message.sellout_player_sublevel",
+                        loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), formattedX, formattedY, formattedZ,
+                        component.getWorldRegistryKey().location().toString()));
+            } else {
+                player.server.sendSystemMessage(Component.translatable("text.yigd.message.sellout_player",
+                        loggedOffProfile.name().orElse("PLAYER_NOT_FOUND"), lastGravePos.getX(), lastGravePos.getY(), lastGravePos.getZ(),
+                        component.getWorldRegistryKey().location().toString()));
+            }
         }
     }
 }
