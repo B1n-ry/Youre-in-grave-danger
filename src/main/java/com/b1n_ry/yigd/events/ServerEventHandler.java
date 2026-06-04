@@ -22,6 +22,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -32,7 +33,9 @@ import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector3d;
 
+import javax.swing.text.Position;
 import java.util.*;
 
 public class ServerEventHandler {
@@ -146,9 +149,17 @@ public class ServerEventHandler {
             if (!graves.isEmpty()) {
                 GraveComponent latest = graves.getLast();
                 BlockPos gravePos = latest.getPos();
-                newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location",
+
+                if (SableCompanion.INSTANCE.isInPlotGrid(latest.getWorld(), gravePos)) {
+                    Vector3d temp = SableCompanion.INSTANCE.projectOutOfSubLevel(latest.getWorld(), new Vector3d(gravePos.getX(), gravePos.getY(), gravePos.getZ()));
+                    newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location_sublevel",
+                            String.format("%.1f", temp.x()), String.format("%.1f", temp.y()), String.format("%.1f", temp.z()),
+                            latest.getWorldRegistryKey().location().toString()));
+                } else {
+                    newPlayer.sendSystemMessage(Component.translatable("text.yigd.message.grave_location",
                         gravePos.getX(), gravePos.getY(), gravePos.getZ(),
                         latest.getWorldRegistryKey().location().toString()));
+                }
             }
         }
     }
