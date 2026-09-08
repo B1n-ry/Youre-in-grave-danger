@@ -55,6 +55,7 @@ public class GraveConfig {
         add(new MapEntryConfig.IntType("minecraft:overworld", -60));
         add(new MapEntryConfig.IntType("minecraft:the_nether", 3));
         add(new MapEntryConfig.IntType("minecraft:the_end", 3));
+        add(new MapEntryConfig.IntType("spectrum:deeper_down", -316));
         add(new MapEntryConfig.IntType("misc", 3));
     }};
     // Weather or not the grave can generate outside the world border
